@@ -1,0 +1,242 @@
+bat:
+  brew: ~
+  scoop:
+    name: bat
+    before: ~
+    after: ~
+    pre: ~
+    post: ~
+  pacman: ~
+  nix: ~
+bottom:
+  brew: ~
+  scoop: ~
+  pacman: ~
+  nix:
+    name: bottom-rs
+chezmoi:
+  brew: ~
+  scoop: ~
+  pacman: ~
+  nix: ~
+direnv:
+  brew: ~
+  scoop: ~
+  pacman: ~
+  nix: ~
+dust:
+  brew: ~
+  scoop: ~
+  pacman: ~
+exa:
+  brew: ~
+  pacman: ~
+  nix: ~
+fd:
+  brew: ~
+  scoop: ~
+  pacman: ~
+  nix: ~
+fnm:
+  brew: ~
+  scoop: ~
+  aur:
+    name: "fnm-bin"
+  nix: ~
+fzf:
+  brew: ~
+  scoop: ~
+  pacman: ~
+  nix: ~
+github-cli:
+  brew:
+    name: gh
+  scoop: ~
+  apt: ~
+  pacman: ~
+  nix: ~
+ghq:
+  brew: ~
+  scoop: ~
+  nix: ~
+git-delta:
+  brew: ~
+  scoop:
+    name: delta
+  pacman: ~
+gitui:
+  brew: ~
+  scoop: ~
+  pacman: ~
+  nix: ~
+go:
+  brew:
+    name: golang
+  scoop: ~
+  apt: ~
+  pacman: ~
+  nix: ~
+grex:
+  brew: ~
+  scoop: ~
+  pacman: ~
+  nix: ~
+hub:
+  brew: ~
+  scoop: ~
+  pacman: ~
+  nix: ~
+jq:
+  brew: ~
+  scoop: ~
+  pacman: ~
+  nix: ~
+lsd:
+  brew: ~
+  scoop: ~
+  pacman: ~
+  nix: ~
+mc:
+  brew: ~
+  scoop: ~
+  apt: ~
+  pacman: ~
+  nix: ~
+micro:
+  brew: ~
+  scoop: ~
+  pacman: ~
+  nix: ~
+nnn:
+  brew: ~
+  pacman: ~
+  nix: ~
+oh-my-posh:
+  aur:
+    name: "oh-my-posh-git"
+  brew:
+    before: "brew tap jandedobbeleer/oh-my-posh"
+  scoop:
+    name: "https://github.com/JanDeDobbeleer/oh-my-posh/releases/latest/download/oh-my-posh.json"
+pueue:
+  brew: ~
+  scoop: ~
+  pacman: ~
+  nix: ~
+procs:
+  brew: ~
+  scoop: ~
+  pacman: ~
+  nix: ~
+pyenv:
+  brew: ~
+  scoop: ~
+  pacman: ~
+python:
+  brew: ~
+  scoop: ~
+  apt: ~
+  pacman: ~
+  nix: ~
+ripgrep:
+  brew:
+    name: rg
+  scoop: ~
+  pacman: ~
+  nix: ~
+rustup:
+  brew: ~
+  scoop: ~
+  pacman: ~
+  nix: ~
+sd:
+  brew: ~
+  scoop: ~
+  pacman: ~
+  nix: ~
+tealdeer:
+  brew: ~
+  scoop: ~
+  pacman: ~
+  nix: ~
+thefuck:
+  brew: ~
+  apt: ~
+  nix: ~
+tmux:
+  brew: ~
+  apt: ~
+  pacman: ~
+  nix: ~
+viu:
+  brew: ~
+  pacman: ~
+  nix: ~
+when-cli:
+  cargo: ~
+zellij:
+  brew: ~
+  pacman: ~
+  nix: ~
+zoxide:
+  brew: ~
+  scoop: ~
+  pacman: ~
+  nix: ~
+
+act:
+  brew: ~
+  scoop: ~
+aria2:
+  brew: ~
+  scoop: ~
+  pacman: ~
+emplace:
+  scoop: ~
+findutils:
+  scoop: ~
+gsudo:
+  scoop: ~
+ln:
+  scoop: ~
+nircmd:
+  scoop: ~
+nvs:
+  scoop: ~
+tre-command:
+  brew: ~
+  scoop: ~
+wget:
+  brew: ~
+  scoop: ~
+  pacman: ~
+  apt: ~
+which:
+  scoop: ~
+"@fluidframework/build-tools":
+  npm:
+    post: "@latest"
+generate:
+  npm: ~
+generate-license:
+  npm: ~
+auto-install:
+  npm: ~
+npkill:
+  npm: ~
+npm-check-updates:
+  npm: ~
+rimraf:
+  npm: ~
+sort-package-json:
+  npm: ~
+tiged:
+  npm: ~
+vsts-npm-auth:
+  npm: ~
+yarn:
+  npm: ~
+blindspot:
+  cargo: ~
+cargo-update:
+  cargo: ~

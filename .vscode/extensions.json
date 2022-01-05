@@ -1,0 +1,9 @@
+{
+    "recommendations": [
+        "rust-lang.rust",
+        "redhat.vscode-yaml",
+        "serayuzgur.crates",
+        "bungcip.better-toml",
+        "EditorConfig.EditorConfig"
+    ]
+}

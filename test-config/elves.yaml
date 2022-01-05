@@ -1,0 +1,9 @@
+- name: scoop
+  emoji: 🍨
+  shell_command: scoop
+  install_command: "scoop install"
+  check_command: "scoop export |% { $_.split(' ')[0] }"
+# - name: apt
+#   emoji: ⭕
+#   shell_command: "sudo apt"
+#   install_command: "sudo apt install"
