@@ -1,5 +1,7 @@
 #![allow(unused)]
 
+mod elves;
+
 // extern crate clap_verbosity_flag;
 use std::fmt;
 
@@ -7,6 +9,7 @@ use anyhow::bail;
 use clap::{AppSettings, Parser, Subcommand};
 use console::style;
 use std::path::PathBuf;
+use elves::brew;
 
 /// Manage default sets of packages for a variety of package managers.
 #[derive(Parser)]
