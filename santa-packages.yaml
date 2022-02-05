@@ -43,7 +43,6 @@ packages:
   ghq:
     brew: true
     scoop: true
-    pacman: true
   git-delta:
     brew: true
     scoop:
