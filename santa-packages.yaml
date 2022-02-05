@@ -1,0 +1,202 @@
+packages:
+  bat:
+    brew: true
+    scoop: true
+    pacman: true
+  bottom:
+    brew: true
+    scoop: true
+    pacman: true
+  chezmoi:
+    brew: true
+    scoop: true
+    pacman: true
+  direnv:
+    brew: true
+    scoop: true
+    pacman: true
+  dust:
+    brew: true
+    scoop: true
+    pacman: true
+  exa:
+    brew: true
+    scoop: true
+    pacman: true
+  fd:
+    brew: true
+    scoop: true
+    pacman: true
+  fnm:
+    brew: true
+    scoop: true
+  fzf:
+    brew: true
+    scoop: true
+    pacman: true
+  github-cli:
+    brew:
+      name: gh
+    scoop: true
+    apt: true
+    pacman: true
+  ghq:
+    brew: true
+    scoop: true
+    pacman: true
+  git-delta:
+    brew: true
+    scoop:
+      name: delta
+    pacman: true
+  gitui:
+    brew: true
+    scoop: true
+    pacman: true
+  go:
+    brew:
+      name: golang
+    scoop: true
+    apt: true
+    pacman: true
+  grex:
+    brew: true
+    scoop: true
+    pacman: true
+  hub:
+    brew: true
+    scoop: true
+    pacman: true
+  jq:
+    brew: true
+    scoop: true
+    pacman: true
+  lsd:
+    brew: true
+    scoop: true
+    pacman: true
+  mc:
+    brew: true
+    scoop: true
+    apt: true
+    pacman: true
+  micro:
+    brew: true
+    scoop: true
+    pacman: true
+  nnn:
+    brew: true
+    scoop: true
+    pacman: true
+  oh-my-posh:
+    aur:
+      name: "oh-my-posh-git"
+    brew:
+      pre: "brew tap jandedobbeleer/oh-my-posh"
+    scoop:
+      name: "https://github.com/JanDeDobbeleer/oh-my-posh/releases/latest/download/oh-my-posh.json"
+  pueue:
+    brew: true
+    scoop: true
+    pacman: true
+  procs:
+    brew: true
+    scoop: true
+    pacman: true
+  pyenv:
+    brew: true
+    scoop: true
+    pacman: true
+  python:
+    brew: true
+    scoop: true
+    apt: true
+    pacman: true
+  ripgrep:
+    brew:
+      name: rg
+    scoop: true
+    apt: false
+    pacman: true
+  rustup:
+    brew: true
+    scoop: true
+    pacman: true
+  sd:
+    brew: true
+    scoop: true
+    pacman: true
+  tealdeer:
+    brew: true
+    scoop: true
+    pacman: true
+  thefuck:
+    brew: true
+    scoop: true
+    apt: true
+    pacman: false
+  tmux:
+    brew: true
+    scoop: true
+    apt: true
+    pacman: true
+  viu:
+    brew: true
+    scoop: true
+    pacman: true
+  when-cli:
+    cargo: true
+  zellij:
+    brew: true
+    scoop: true
+    pacman: true
+  zoxide:
+    brew: true
+    scoop: true
+    pacman: true
+
+  act:
+    brew: true
+    scoop: true
+  aria2:
+    brew: true
+    scoop: true
+    pacman: true
+  emplace:
+    scoop: true
+  findutils:
+    scoop: true
+  gsudo:
+    scoop: true
+  ln:
+    scoop: true
+  nircmd:
+    scoop: true
+  nvs:
+    scoop: true
+  tre-command:
+    brew: true
+    scoop: true
+  wget:
+    brew: true
+    scoop: true
+    pacman: true
+    apt: true
+  which:
+    scoop: true
+
+
+
+elves:
+  brew:
+    os:
+      - "macos"
+      - "linux"
+  cargo:
+  npm:
+  apt:
+  pip:
+  pacman:
+  blindspot:
+  go-get:
+
