@@ -9,7 +9,6 @@ use anyhow::bail;
 use clap::{AppSettings, Parser, Subcommand};
 use console::style;
 use std::path::PathBuf;
-use elves::brew;
 
 /// Manage default sets of packages for a variety of package managers.
 #[derive(Parser)]
@@ -37,13 +36,11 @@ enum Commands {
     /// Prints the status of santa packages
     Status,
     /// Installs packages
-    Install {
-      elf: Option<String>
-    },
+    Install { elf: Option<String> },
     /// Asks an elf to add a package to its tracking list
     Add {
-      package: Option<String>,
-      elf: Option<String>
+        package: Option<String>,
+        elf: Option<String>,
     },
 }
 
@@ -51,15 +48,15 @@ pub fn execute() -> Result<(), anyhow::Error> {
     let cli = Cli::parse();
 
     match &cli.command {
-      Commands::Status => {
-        println!("santa status");
-      }
-      Commands::Install {elf} => {
-        println!("NYI: santa install {:?}", elf);
-      }
-      Commands::Add {elf, package} => {
-        println!("NYI: santa add {:?} {:?}", elf, package);
-      }
+        Commands::Status => {
+            println!("santa status");
+        }
+        Commands::Install { elf } => {
+            println!("NYI: santa install {:?}", elf);
+        }
+        Commands::Add { elf, package } => {
+            println!("NYI: santa add {:?} {:?}", elf, package);
+        }
     }
 
     Ok(())

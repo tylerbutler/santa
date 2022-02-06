@@ -9,44 +9,22 @@ use subprocess::*;
 
 use crate::elves::traits;
 
-struct BrewStruct {
-    pub installed: HashSet<String>,
+use super::ElfData;
+
+// pub struct BrewStruct {
+//   name:
+//     installed: HashSet<String>,
+// }
+
+pub struct BrewElf<'a> {
+  data: ElfData<'a>,
 }
 
-impl BrewStruct {
-    fn list_packages() -> String {
-        match Exec::shell("brew leaves --installed-on-request").capture() {
-            Ok(data) => {
-                let val = data.stdout_str();
-                return val;
-            }
-            Err(e) => {
-                // TODO
-                return "".to_string();
-            }
-        }
-    }
-
-    fn test<T: AsRef<str>>(inp: &[T]) {
-        for x in inp {
-            print!("{} ", x.as_ref())
-        }
-        println!("");
-    }
-}
-
-impl traits::Elf for BrewStruct {
-    fn ListPackages(&mut self) {
-        let pkg_list = BrewStruct::list_packages();
-        let lines = pkg_list.lines();
-        let mut pkgs: HashSet<String> = HashSet::new();
-        // self.installed = pkgs.to_owned();
-        for line in lines {
-            self.installed.insert(String::from(line));
-        }
-        // self.installed = pkgs;
-        // for pkg in split {
-        //     self.installed.insert(pkg.to_string());
-        // }
-    }
+impl<'a> traits::Printable for BrewElf<'a> {
+  fn title(&self) -> String {
+      let mut title = String::from(self.data.emoji);
+      title.push_str(" ");
+      title.push_str(self.data.name);
+      return title;
+  }
 }
