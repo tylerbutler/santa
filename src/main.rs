@@ -24,7 +24,7 @@ use crate::elves::{all_elves, traits::Printable};
 /// Manage default sets of packages for a variety of package managers.
 #[derive(Parser)]
 #[clap(author, version = clap::crate_version!(), max_term_width = 100, about)]
-#[clap(global_setting(AppSettings::PropagateVersion))]
+// #[clap(global_setting(AppSettings::PropagateVersion))]
 #[clap(global_setting(AppSettings::UseLongFormatForHelpSubcommand))]
 struct Cli {
     /// The pattern to look for
@@ -37,7 +37,9 @@ struct Cli {
 
     #[clap(subcommand)]
     command: Commands,
-    #[clap(short, long, parse(from_occurrences))]
+
+    /// Increase logging level
+    #[clap(short, long, global=true, parse(from_occurrences))]
     verbose: usize,
 }
 
@@ -55,16 +57,23 @@ enum Commands {
 }
 
 pub fn execute() -> Result<(), anyhow::Error> {
+
+    let cli = Cli::parse();
     // env_logger::init();
 
+    let mut log_level = LevelFilter::Info;
+
+    match &cli.verbose {
+      1 => {log_level = LevelFilter::Info}
+      _ => {log_level = LevelFilter::Off}
+    }
+
     TermLogger::init(
-        LevelFilter::Info,
+        log_level,
         simplelog::Config::default(),
         TerminalMode::Mixed,
         simplelog::ColorChoice::Auto,
     );
-
-    let cli = Cli::parse();
 
     match &cli.command {
         Commands::Status => {
