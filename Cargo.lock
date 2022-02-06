@@ -449,11 +449,13 @@ dependencies = [
  "clap-verbosity-flag",
  "config",
  "console",
+ "lazy_static",
  "pest",
  "pest_derive",
  "serde 1.0.136",
  "serde_json",
  "subprocess",
+ "yaml-rust",
 ]
 
 [[package]]

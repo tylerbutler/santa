@@ -4,7 +4,7 @@ pub trait Package {
     fn name(&self) -> String;
 }
 
-pub trait Elf {}
+// pub trait Elf {}
 
 pub trait CheckAndListCapable {
     fn list_packages(&self) {
@@ -13,7 +13,7 @@ pub trait CheckAndListCapable {
 }
 
 pub trait InstallCapable {
-    fn install_packages(&self, pkg: &impl Package) {
+    fn install_packages(&self, pkg: Box<dyn Package>) {
         println!("Not Yet Implemented");
         // return;
     }
@@ -22,6 +22,6 @@ pub trait Printable {
     fn title(&self) -> String;
 
     fn print_status(&self) {
-        println!()
+        println!("{}", self.title());
     }
 }

@@ -1,5 +1,8 @@
 #![allow(unused)]
+#[macro_use]
+extern crate lazy_static;
 
+mod commands;
 mod elves;
 
 // extern crate clap_verbosity_flag;
@@ -9,6 +12,9 @@ use anyhow::bail;
 use clap::{AppSettings, Parser, Subcommand};
 use console::style;
 use std::path::PathBuf;
+
+use crate::elves::{all_elves, traits::Printable};
+use crate::commands::*;
 
 /// Manage default sets of packages for a variety of package managers.
 #[derive(Parser)]
@@ -50,6 +56,7 @@ pub fn execute() -> Result<(), anyhow::Error> {
     match &cli.command {
         Commands::Status => {
             println!("santa status");
+            commands::status_command();
         }
         Commands::Install { elf } => {
             println!("NYI: santa install {:?}", elf);
