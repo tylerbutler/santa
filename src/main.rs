@@ -1,20 +1,23 @@
 #![allow(unused)]
 #[macro_use]
-extern crate lazy_static;
 
 mod commands;
 mod elves;
 
 // extern crate clap_verbosity_flag;
-use std::fmt;
-
 use anyhow::bail;
 use clap::{AppSettings, Parser, Subcommand};
+use config::Config;
+use std::fmt;
+extern crate directories;
 use console::style;
+use directories::BaseDirs;
+extern crate lazy_static;
+
 use std::path::PathBuf;
 
-use crate::elves::{all_elves, traits::Printable};
 use crate::commands::*;
+use crate::elves::{all_elves, traits::Printable};
 
 /// Manage default sets of packages for a variety of package managers.
 #[derive(Parser)]

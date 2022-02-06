@@ -17,6 +17,7 @@ clap = { version ="3.0.0", features = ["color", "derive", "cargo", "wrap_help"] 
 clap-verbosity-flag = "0.4.0"
 config = "0.11"
 console = "0.15.0"
+directories = "4.0"
 lazy_static = "1.4.0"
 pest = "2.1.3"
 pest_derive = "2.1.0"
