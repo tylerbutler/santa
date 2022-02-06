@@ -8,6 +8,8 @@ mod elves;
 use anyhow::bail;
 use clap::{AppSettings, Parser, Subcommand};
 use config::Config;
+use log::{info, warn, LevelFilter};
+use simplelog::{TermLogger, TerminalMode};
 use std::fmt;
 extern crate directories;
 use console::style;
@@ -33,11 +35,10 @@ struct Cli {
     // #[clap(short, long, parse(from_os_str))]
     // path: Option<PathBuf>,
 
-    // #[clap(flatten)]
-    // verbose: clap_verbosity_flag::Verbosity,
-
     #[clap(subcommand)]
     command: Commands,
+    #[clap(short, long, parse(from_occurrences))]
+    verbose: usize,
 }
 
 #[derive(Subcommand)]
@@ -54,11 +55,20 @@ enum Commands {
 }
 
 pub fn execute() -> Result<(), anyhow::Error> {
+    // env_logger::init();
+
+    TermLogger::init(
+        LevelFilter::Info,
+        simplelog::Config::default(),
+        TerminalMode::Mixed,
+        simplelog::ColorChoice::Auto,
+    );
+
     let cli = Cli::parse();
 
     match &cli.command {
         Commands::Status => {
-            println!("santa status");
+            info!("santa status");
             commands::status_command();
         }
         Commands::Install { elf } => {

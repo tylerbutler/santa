@@ -1,3 +1,5 @@
+use log::{info, warn};
+
 use crate::elves::{all_elves, traits::Printable};
 
 pub fn status_command() {

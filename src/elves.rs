@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 use subprocess::Exec;
 
 use self::traits::Package;
@@ -49,13 +51,20 @@ impl<'a> traits::Printable for Elf<'a> {
 }
 
 impl<'a> traits::CheckAndListCapable for Elf<'a> {
-  fn list_packages(&self) {
-    println!("Not Yet implemented");
-  }
+    fn list_packages(&self) {
+        let pkg_list = self.exec_check();
+
+        let lines = pkg_list.lines();
+        let mut pkgs: HashSet<String> = HashSet::new();
+        // self.installed = pkgs.to_owned();
+        for line in lines {
+            pkgs.insert(String::from(line));
+        }
+    }
 }
 
 impl<'a> traits::InstallCapable for Elf<'a> {
-  fn install_packages(&self, pkg: Box<dyn Package>) {
-      println!("Not Yet Implemented");
-  }
+    fn install_packages(&self, pkg: Box<dyn Package>) {
+        println!("Not Yet Implemented");
+    }
 }
