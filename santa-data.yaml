@@ -186,16 +186,40 @@ packages:
 
 
 
-elves:
-  brew:
-    os:
-      - "macos"
-      - "linux"
-  cargo:
-  npm:
-  apt:
-  pip:
-  pacman:
-  blindspot:
-  go-get:
+# elves:
+#   brew:
+#     arch:
+#       x64
+#     os:
+#       - "macos"
+#       - "linux"
+#   cargo:
+#     os:
+#       - macos
+#       - linux
+#       - windows
+#   npm:
+#     os:
+#       - macos
+#       - linux
+#       - windows
+#   apt:
+#     os:
+#       - linux
+#   pip:
+#     os:
+#       - macos
+#       - linux
+#       - windows
+#   pacman:
+#     os:
+#       - linux
+#   blindspot:
+#     os:
+#       - linux
+#   go-get:
+#     os:
+#       - macos
+#       - linux
+#       - windows
 

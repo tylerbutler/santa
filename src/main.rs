@@ -1,25 +1,36 @@
 #![allow(unused)]
 #[macro_use]
-
-mod commands;
-mod elves;
-
 // extern crate clap_verbosity_flag;
 use anyhow::bail;
 use clap::{AppSettings, Parser, Subcommand};
-use config::Config;
-use log::{info, warn, LevelFilter};
+use config::{Config, File, FileSourceFile, Value};
+use log::{debug, info, warn, LevelFilter};
 use simplelog::{TermLogger, TerminalMode};
-use std::fmt;
+use std::collections::HashSet;
+use std::sync::RwLock;
+use std::{env, fmt};
 extern crate directories;
 use console::style;
 use directories::BaseDirs;
 extern crate lazy_static;
+use lazy_static::lazy_static;
 
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use crate::commands::*;
+use crate::data::SantaData;
 use crate::elves::{all_elves, traits::Printable};
+
+mod commands;
+mod data;
+mod elves;
+
+// static CONFIG: Config = ;
+
+lazy_static! {
+  // let Some(CONFIG_PATH) = BaseDirs::new();
+  static ref SETTINGS: RwLock<Config> = RwLock::new(Config::new());
+}
 
 /// Manage default sets of packages for a variety of package managers.
 #[derive(Parser)]
@@ -39,7 +50,7 @@ struct Cli {
     command: Commands,
 
     /// Increase logging level
-    #[clap(short, long, global=true, parse(from_occurrences))]
+    #[clap(short, long, global = true, parse(from_occurrences))]
     verbose: usize,
 }
 
@@ -56,16 +67,15 @@ enum Commands {
     },
 }
 
-pub fn execute() -> Result<(), anyhow::Error> {
-
+pub fn run() -> Result<(), anyhow::Error> {
     let cli = Cli::parse();
-    // env_logger::init();
 
     let mut log_level = LevelFilter::Info;
 
     match &cli.verbose {
-      1 => {log_level = LevelFilter::Info}
-      _ => {log_level = LevelFilter::Off}
+        1 => log_level = LevelFilter::Info,
+        2 => log_level = LevelFilter::Debug,
+        _ => log_level = LevelFilter::Off,
     }
 
     TermLogger::init(
@@ -74,6 +84,27 @@ pub fn execute() -> Result<(), anyhow::Error> {
         TerminalMode::Mixed,
         simplelog::ColorChoice::Auto,
     );
+
+    debug!("Argument parsing complete.");
+    let dir = BaseDirs::new().unwrap();
+    let home_dir = dir.home_dir();
+    let config_file = home_dir.join(".config/santa/config.yaml");
+    let data = SantaData::load_from("santa-data.yaml");
+    let the_config = SETTINGS
+        .write()
+        .unwrap()
+        .merge(File::with_name("santa-data.yaml"))
+        .unwrap();
+    let pkgs = SETTINGS.read().unwrap().get_array("packages");
+    debug!("Loaded packages");
+    for pkg in pkgs {
+        for val in pkg {
+            println!("{}", val);
+        }
+    }
+
+    // env_logger::init();
+
 
     match &cli.command {
         Commands::Status => {
@@ -126,7 +157,7 @@ pub fn execute() -> Result<(), anyhow::Error> {
 }
 
 fn main() {
-    match execute() {
+    match run() {
         Ok(()) => {}
         Err(err) => {
             eprintln!("error: {}", err);

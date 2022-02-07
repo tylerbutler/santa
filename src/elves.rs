@@ -1,6 +1,9 @@
 use std::collections::HashSet;
 
+use log::{debug, error};
 use subprocess::Exec;
+
+use crate::elves::traits::CheckAndListCapable;
 
 use self::traits::Package;
 
@@ -28,14 +31,18 @@ pub struct Elf<'a> {
 
 impl<'a> Elf<'a> {
     fn exec_check(&self) -> String {
+        debug!(
+            "Running shell command: {} {}",
+            self.shell_command, self.check_comand
+        );
         let command = [self.shell_command, self.check_comand].join(" ");
-        match Exec::cmd(command).capture() {
+        match Exec::shell(command).capture() {
             Ok(data) => {
                 let val = data.stdout_str();
                 return val;
             }
             Err(e) => {
-                // TODO
+                error!("{}", e);
                 return "".to_string();
             }
         }
@@ -48,6 +55,11 @@ impl<'a> traits::Printable for Elf<'a> {
     fn title(&self) -> String {
         return [self.emoji, self.name].join(" ");
     }
+
+    fn print_status(&self) {
+        println!("{}", self.title());
+        self.list_packages();
+    }
 }
 
 impl<'a> traits::CheckAndListCapable for Elf<'a> {
@@ -55,11 +67,14 @@ impl<'a> traits::CheckAndListCapable for Elf<'a> {
         let pkg_list = self.exec_check();
 
         let lines = pkg_list.lines();
-        let mut pkgs: HashSet<String> = HashSet::new();
-        // self.installed = pkgs.to_owned();
         for line in lines {
-            pkgs.insert(String::from(line));
+            println!("{}", line);
         }
+
+        // let mut pkgs: HashSet<String> = HashSet::new();
+        // for line in lines {
+        //     pkgs.insert(String::from(line));
+        // }
     }
 }
 

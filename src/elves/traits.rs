@@ -1,4 +1,5 @@
 use console::style;
+use log::warn;
 
 pub trait Package {
     fn name(&self) -> String;
@@ -8,20 +9,18 @@ pub trait Package {
 
 pub trait CheckAndListCapable {
     fn list_packages(&self) {
-        println!("Not Yet Implemented!");
+        warn!("Not Yet Implemented!");
     }
 }
 
 pub trait InstallCapable {
     fn install_packages(&self, pkg: Box<dyn Package>) {
-        println!("Not Yet Implemented");
+        warn!("Not Yet Implemented");
         // return;
     }
 }
 pub trait Printable {
     fn title(&self) -> String;
 
-    fn print_status(&self) {
-        println!("{}", self.title());
-    }
+    fn print_status(&self);
 }
