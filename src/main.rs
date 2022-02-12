@@ -18,12 +18,14 @@ use lazy_static::lazy_static;
 use std::path::{Path, PathBuf};
 
 use crate::commands::*;
-use crate::data::SantaData;
-use crate::elves::{all_elves, traits::Printable};
+use crate::data::{SantaData, SantaConfig};
+use crate::elves::{all_elves};
+use crate::traits::Exportable;
 
 mod commands;
 mod data;
 mod elves;
+mod traits;
 
 // static CONFIG: Config = ;
 
@@ -89,8 +91,11 @@ pub fn run() -> Result<(), anyhow::Error> {
     let dir = BaseDirs::new().unwrap();
     let home_dir = dir.home_dir();
     let config_file = home_dir.join(".config/santa/config.yaml");
-    let data = SantaData::load_from("santa-data.yaml");
-    data.export();
+    let data = SantaData::load_from(Path::new("santa-data.yaml"));
+    let d = data.export();
+    debug!("{}", d);
+
+    let config = SantaConfig::load_from(&config_file);
 
     // for (k, v) in data.packages {
     //   println!("{}: {:?}", k, v);

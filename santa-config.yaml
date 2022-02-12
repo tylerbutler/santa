@@ -1,4 +1,4 @@
-source-order:
+sources:
   - pacman
   - scoop
   - brew

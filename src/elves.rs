@@ -1,6 +1,7 @@
 use std::collections::HashSet;
 
 use log::{debug, error};
+use serde::{Serialize, Deserialize};
 use subprocess::Exec;
 
 use crate::elves::traits::CheckAndListCapable;
@@ -21,6 +22,8 @@ pub fn all_elves<'a>() -> Vec<Elf<'a>> {
     vec.push(brew);
     return vec;
 }
+
+#[derive(Serialize, Deserialize, Debug)]
 pub struct Elf<'a> {
     name: &'a str,
     emoji: &'a str,
@@ -51,30 +54,31 @@ impl<'a> Elf<'a> {
 
 // impl<'a> traits::Elf for ElfData<'a> {}
 
-impl<'a> traits::Printable for Elf<'a> {
-    fn title(&self) -> String {
-        return [self.emoji, self.name].join(" ");
-    }
+// impl<'a> Printable for Elf<'a> {
+//     fn title(&self) -> String {
+//         return [self.emoji, self.name].join(" ");
+//     }
 
-    fn print_status(&self) {
-        println!("{}", self.title());
-        self.list_packages();
+//     fn print_status(&self) {
+//         println!("{}", self.title());
+//         self.list_packages();
+//     }
+// }
+
+impl<'a> std::fmt::Display for Elf<'a> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "ELF: {} {}\n{:?}", self.emoji, self.name, self.packages())
     }
 }
 
 impl<'a> traits::CheckAndListCapable for Elf<'a> {
-    fn list_packages(&self) {
+    fn packages(&self) -> Vec<String> {
         let pkg_list = self.exec_check();
-
         let lines = pkg_list.lines();
-        for line in lines {
-            println!("{}", line);
-        }
+        let packages: Vec<String> = lines.map(|s| s.to_string()).collect();
+        // Vec::new()
+        packages
 
-        // let mut pkgs: HashSet<String> = HashSet::new();
-        // for line in lines {
-        //     pkgs.insert(String::from(line));
-        // }
     }
 }
 

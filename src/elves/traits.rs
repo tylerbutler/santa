@@ -8,8 +8,9 @@ pub trait Package {
 // pub trait Elf {}
 
 pub trait CheckAndListCapable {
-    fn list_packages(&self) {
+    fn packages(&self) -> Vec<String> {
         warn!("Not Yet Implemented!");
+        Vec::new()
     }
 }
 
@@ -18,9 +19,4 @@ pub trait InstallCapable {
         warn!("Not Yet Implemented");
         // return;
     }
-}
-pub trait Printable {
-    fn title(&self) -> String;
-
-    fn print_status(&self);
 }
