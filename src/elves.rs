@@ -1,8 +1,9 @@
 use std::collections::HashSet;
 
 use log::{debug, error};
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 use subprocess::Exec;
+use tabular::{Row, Table};
 
 use crate::elves::traits::CheckAndListCapable;
 
@@ -18,6 +19,7 @@ pub fn all_elves<'a>() -> Vec<Elf<'a>> {
         shell_command: "brew",
         install_command: "install",
         check_comand: "leaves --installed-on-request",
+        configured_packages: Vec::new(),
     };
     vec.push(brew);
     return vec;
@@ -30,6 +32,7 @@ pub struct Elf<'a> {
     shell_command: &'a str,
     install_command: &'a str,
     check_comand: &'a str,
+    configured_packages: Vec<String>,
 }
 
 impl<'a> Elf<'a> {
@@ -67,7 +70,12 @@ impl<'a> Elf<'a> {
 
 impl<'a> std::fmt::Display for Elf<'a> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "ELF: {} {}\n{:?}", self.emoji, self.name, self.packages())
+        let mut table = Table::new("{:<}{:<}");
+        table.add_heading(format!("{} {}", self.emoji, self.name));
+        for pkg in self.packages() {
+            table.add_row(Row::new().with_cell(pkg).with_cell("status"));
+        }
+        write!(f, "{}", table)
     }
 }
 
@@ -78,7 +86,6 @@ impl<'a> traits::CheckAndListCapable for Elf<'a> {
         let packages: Vec<String> = lines.map(|s| s.to_string()).collect();
         // Vec::new()
         packages
-
     }
 }
 
