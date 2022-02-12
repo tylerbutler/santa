@@ -1,92 +1,92 @@
 packages:
   bat:
-    brew: true
-    scoop: true
-    pacman: true
+    brew: ~
+    scoop: ~
+    pacman: ~
   bottom:
-    brew: true
-    scoop: true
-    pacman: true
+    brew: ~
+    scoop: ~
+    pacman: ~
   chezmoi:
-    brew: true
-    scoop: true
-    pacman: true
+    brew: ~
+    scoop: ~
+    pacman: ~
   direnv:
-    brew: true
-    scoop: true
-    pacman: true
+    brew: ~
+    scoop: ~
+    pacman: ~
   dust:
-    brew: true
-    scoop: true
-    pacman: true
+    brew: ~
+    scoop: ~
+    pacman: ~
   exa:
-    brew: true
-    scoop: true
-    pacman: true
+    brew: ~
+    scoop: ~
+    pacman: ~
   fd:
-    brew: true
-    scoop: true
-    pacman: true
+    brew: ~
+    scoop: ~
+    pacman: ~
   fnm:
-    brew: true
-    scoop: true
+    brew: ~
+    scoop: ~
   fzf:
-    brew: true
-    scoop: true
-    pacman: true
+    brew: ~
+    scoop: ~
+    pacman: ~
   github-cli:
     brew:
       name: gh
-    scoop: true
-    apt: true
-    pacman: true
+    scoop: ~
+    apt: ~
+    pacman: ~
   ghq:
-    brew: true
-    scoop: true
+    brew: ~
+    scoop: ~
   git-delta:
-    brew: true
+    brew: ~
     scoop:
       name: delta
-    pacman: true
+    pacman: ~
   gitui:
-    brew: true
-    scoop: true
-    pacman: true
+    brew: ~
+    scoop: ~
+    pacman: ~
   go:
     brew:
       name: golang
-    scoop: true
-    apt: true
-    pacman: true
+    scoop: ~
+    apt: ~
+    pacman: ~
   grex:
-    brew: true
-    scoop: true
-    pacman: true
+    brew: ~
+    scoop: ~
+    pacman: ~
   hub:
-    brew: true
-    scoop: true
-    pacman: true
+    brew: ~
+    scoop: ~
+    pacman: ~
   jq:
-    brew: true
-    scoop: true
-    pacman: true
+    brew: ~
+    scoop: ~
+    pacman: ~
   lsd:
-    brew: true
-    scoop: true
-    pacman: true
+    brew: ~
+    scoop: ~
+    pacman: ~
   mc:
-    brew: true
-    scoop: true
-    apt: true
-    pacman: true
+    brew: ~
+    scoop: ~
+    apt: ~
+    pacman: ~
   micro:
-    brew: true
-    scoop: true
-    pacman: true
+    brew: ~
+    scoop: ~
+    pacman: ~
   nnn:
-    brew: true
-    scoop: true
-    pacman: true
+    brew: ~
+    scoop: ~
+    pacman: ~
   oh-my-posh:
     aur:
       name: "oh-my-posh-git"
@@ -95,94 +95,92 @@ packages:
     scoop:
       name: "https://github.com/JanDeDobbeleer/oh-my-posh/releases/latest/download/oh-my-posh.json"
   pueue:
-    brew: true
-    scoop: true
-    pacman: true
+    brew: ~
+    scoop: ~
+    pacman: ~
   procs:
-    brew: true
-    scoop: true
-    pacman: true
+    brew: ~
+    scoop: ~
+    pacman: ~
   pyenv:
-    brew: true
-    scoop: true
-    pacman: true
+    brew: ~
+    scoop: ~
+    pacman: ~
   python:
-    brew: true
-    scoop: true
-    apt: true
-    pacman: true
+    brew: ~
+    scoop: ~
+    apt: ~
+    pacman: ~
   ripgrep:
     brew:
       name: rg
-    scoop: true
-    apt: false
-    pacman: true
+    scoop: ~
+    pacman: ~
   rustup:
-    brew: true
-    scoop: true
-    pacman: true
+    brew: ~
+    scoop: ~
+    pacman: ~
   sd:
-    brew: true
-    scoop: true
-    pacman: true
+    brew: ~
+    scoop: ~
+    pacman: ~
   tealdeer:
-    brew: true
-    scoop: true
-    pacman: true
+    brew: ~
+    scoop: ~
+    pacman: ~
   thefuck:
-    brew: true
-    scoop: true
-    apt: true
-    pacman: false
+    brew: ~
+    scoop: ~
+    apt: ~
   tmux:
-    brew: true
-    scoop: true
-    apt: true
-    pacman: true
+    brew: ~
+    scoop: ~
+    apt: ~
+    pacman: ~
   viu:
-    brew: true
-    scoop: true
-    pacman: true
+    brew: ~
+    scoop: ~
+    pacman: ~
   when-cli:
-    cargo: true
+    cargo: ~
   zellij:
-    brew: true
-    scoop: true
-    pacman: true
+    brew: ~
+    scoop: ~
+    pacman: ~
   zoxide:
-    brew: true
-    scoop: true
-    pacman: true
+    brew: ~
+    scoop: ~
+    pacman: ~
 
   act:
-    brew: true
-    scoop: true
+    brew: ~
+    scoop: ~
   aria2:
-    brew: true
-    scoop: true
-    pacman: true
+    brew: ~
+    scoop: ~
+    pacman: ~
   emplace:
-    scoop: true
+    scoop: ~
   findutils:
-    scoop: true
+    scoop: ~
   gsudo:
-    scoop: true
+    scoop: ~
   ln:
-    scoop: true
+    scoop: ~
   nircmd:
-    scoop: true
+    scoop: ~
   nvs:
-    scoop: true
+    scoop: ~
   tre-command:
-    brew: true
-    scoop: true
+    brew: ~
+    scoop: ~
   wget:
-    brew: true
-    scoop: true
-    pacman: true
-    apt: true
+    brew: ~
+    scoop: ~
+    pacman: ~
+    apt: ~
   which:
-    scoop: true
+    scoop: ~
 
 
 

@@ -90,10 +90,11 @@ pub fn run() -> Result<(), anyhow::Error> {
     let home_dir = dir.home_dir();
     let config_file = home_dir.join(".config/santa/config.yaml");
     let data = SantaData::load_from("santa-data.yaml");
+    data.export();
 
-    for (k, v) in data.packages {
-      println!("{}: {:?}", k, v);
-    }
+    // for (k, v) in data.packages {
+    //   println!("{}: {:?}", k, v);
+    // }
 
     // env_logger::init();
 
