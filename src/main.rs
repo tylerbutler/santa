@@ -19,7 +19,6 @@ use std::path::{Path, PathBuf};
 
 use crate::commands::*;
 use crate::data::{SantaData, SantaConfig};
-use crate::elves::{all_elves};
 use crate::traits::Exportable;
 
 mod commands;
@@ -108,7 +107,7 @@ pub fn run() -> Result<(), anyhow::Error> {
     match &cli.command {
         Commands::Status => {
             info!("santa status");
-            commands::status_command(&config);
+            commands::status_command(&config, &data);
         }
         Commands::Install { elf } => {
             println!("NYI: santa install {:?}", elf);

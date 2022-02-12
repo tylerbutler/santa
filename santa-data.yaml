@@ -1,3 +1,16 @@
+elves:
+  - name: brew
+    emoji: 🍺
+    shell_command: brew
+    install_command: install
+    check_comand: leaves --installed-on-request
+    # configured_packages: []
+  - name: pacman
+    emoji: 👾📦
+    shell_command: pacman
+    install_command: "-Syyu"
+    check_comand: "-Qe"
+    # configured_packages: []
 packages:
   bat:
     brew: ~

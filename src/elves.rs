@@ -6,43 +6,45 @@ use serde::{Deserialize, Serialize};
 use subprocess::Exec;
 use tabular::{Row, Table};
 
-use crate::{data::PackageData, elves::traits::CheckAndListCapable};
+use crate::{data::{PackageData, SantaConfig}, elves::traits::CheckAndListCapable};
 
 // use self::traits::Package;
 
 pub mod traits;
 
-pub fn all_elves<'a>() -> Vec<Elf<'a>> {
-    let mut vec: Vec<Elf> = Vec::new();
-    let brew = Elf {
-        name: "brew",
-        emoji: "🍺",
-        shell_command: "brew",
-        install_command: "install",
-        check_comand: "leaves --installed-on-request",
-        configured_packages: Vec::new(),
-    };
-    vec.push(brew);
-    return vec;
-}
+// pub fn all_elves() -> Vec<Elf> {
+//     let mut vec: Vec<Elf> = Vec::new();
+//     let brew = Elf {
+//         name: "brew",
+//         emoji: "🍺",
+//         shell_command: "brew",
+//         install_command: "install",
+//         check_comand: "leaves --installed-on-request",
+//         configured_packages: Vec::new(),
+//     };
+//     vec.push(brew);
+//     return vec;
+// }
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct Elf<'a> {
-    name: &'a str,
-    emoji: &'a str,
-    shell_command: &'a str,
-    install_command: &'a str,
-    check_comand: &'a str,
-    configured_packages: Vec<String>,
+pub struct Elf {
+    name: String,
+    emoji: String,
+    shell_command: String,
+    install_command: String,
+    check_comand: String,
+
+    #[serde(skip)]
+    pub configured_packages: Vec<String>,
 }
 
-impl<'a> Elf<'a> {
+impl Elf {
     fn exec_check(&self) -> String {
         debug!(
             "Running shell command: {} {}",
             self.shell_command, self.check_comand
         );
-        let command = [self.shell_command, self.check_comand].join(" ");
+        let command = [self.shell_command.clone(), self.check_comand.clone()].join(" ");
         match Exec::shell(command).capture() {
             Ok(data) => {
                 let val = data.stdout_str();
@@ -54,11 +56,23 @@ impl<'a> Elf<'a> {
             }
         }
     }
+
+    pub fn table(&self, config: &SantaConfig) {
+      let mut table = Table::new("{:<}{:<}");
+      for pkg in config.packages {
+        table.add_row(Row::new().with_cell(pkg).with_cell(if self.check(pkg) {
+            "Y"
+        } else {
+            "N"
+        }));
+    }
+
+    }
 }
 
-// impl<'a> traits::Elf for ElfData<'a> {}
+// impl traits::Elf for ElfData {}
 
-// impl<'a> Printable for Elf<'a> {
+// impl Printable for Elf {
 //     fn title(&self) -> String {
 //         return [self.emoji, self.name].join(" ");
 //     }
@@ -69,22 +83,15 @@ impl<'a> Elf<'a> {
 //     }
 // }
 
-impl<'a> std::fmt::Display for Elf<'a> {
+impl std::fmt::Display for Elf {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let mut table = Table::new("{:<}{:<}");
         table.add_heading(format!("{} {}", self.emoji, self.name));
-        for pkg in &self.configured_packages {
-            table.add_row(Row::new().with_cell(pkg).with_cell(if self.check(pkg) {
-                "Y"
-            } else {
-                "N"
-            }));
-        }
         write!(f, "{}", table)
     }
 }
 
-impl<'a> traits::CheckAndListCapable for Elf<'a> {
+impl traits::CheckAndListCapable for Elf {
     fn packages(&self) -> Vec<String> {
         let pkg_list = self.exec_check();
         let lines = pkg_list.lines();
@@ -94,7 +101,7 @@ impl<'a> traits::CheckAndListCapable for Elf<'a> {
     }
 }
 
-impl<'a> traits::InstallCapable for Elf<'a> {
+impl traits::InstallCapable for Elf {
     fn install_packages(&self, pkg: &PackageData) {
         println!("Not Yet Implemented");
     }

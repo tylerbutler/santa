@@ -1,13 +1,15 @@
 use log::{info, warn};
 
-use crate::{elves::{all_elves}, data::SantaConfig};
+use crate::data::{SantaConfig, SantaData};
 
-pub fn status_command(config: &SantaConfig) {
-  let elves = all_elves();
+pub fn status_command(config: &SantaConfig, data: &SantaData) {
+  let elves = &data.elves;
   let serialized = serde_yaml::to_string(&elves).unwrap();
+  println!("status-comand");
   println!("{}", serialized);
 
   for elf in elves {
-    println!("{}", elf);
+    // elf.configured_packages = config.packages;
+    println!("{}\n{:?}", elf, elf.table(config));
   }
 }
