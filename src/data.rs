@@ -89,6 +89,7 @@ impl PackageData {
 pub struct SantaData {
     pub packages: HashMap<String, HashMap<KnownElves, Option<PackageData>>>,
     // pub elf_settings: HashMap<KnownElves, PackageData>,
+    // pub elves<'a>: Vec<Elf<'a>>,
 }
 
 impl SantaData {

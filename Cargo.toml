@@ -13,6 +13,7 @@ rust-version = "1.56.0"
 
 [dependencies]
 anyhow = "1.0.51"
+cached = "0.30.0"
 clap = { version ="3.0.0", features = ["color", "derive", "cargo", "wrap_help"] }
 clap-verbosity-flag = "1.0.0"
 config = "0.11"

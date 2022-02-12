@@ -1,13 +1,14 @@
 use std::collections::HashSet;
 
+use cached::proc_macro::cached;
 use log::{debug, error};
 use serde::{Deserialize, Serialize};
 use subprocess::Exec;
 use tabular::{Row, Table};
 
-use crate::elves::traits::CheckAndListCapable;
+use crate::{data::PackageData, elves::traits::CheckAndListCapable};
 
-use self::traits::Package;
+// use self::traits::Package;
 
 pub mod traits;
 
@@ -72,8 +73,12 @@ impl<'a> std::fmt::Display for Elf<'a> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let mut table = Table::new("{:<}{:<}");
         table.add_heading(format!("{} {}", self.emoji, self.name));
-        for pkg in self.packages() {
-            table.add_row(Row::new().with_cell(pkg).with_cell("status"));
+        for pkg in &self.configured_packages {
+            table.add_row(Row::new().with_cell(pkg).with_cell(if self.check(pkg) {
+                "Y"
+            } else {
+                "N"
+            }));
         }
         write!(f, "{}", table)
     }
@@ -90,7 +95,7 @@ impl<'a> traits::CheckAndListCapable for Elf<'a> {
 }
 
 impl<'a> traits::InstallCapable for Elf<'a> {
-    fn install_packages(&self, pkg: Box<dyn Package>) {
+    fn install_packages(&self, pkg: &PackageData) {
         println!("Not Yet Implemented");
     }
 }

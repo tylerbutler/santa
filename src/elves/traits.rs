@@ -1,22 +1,24 @@
 use console::style;
 use log::warn;
 
-pub trait Package {
-    fn name(&self) -> String;
-}
+use crate::data::PackageData;
 
-// pub trait Elf {}
+// pub trait Package {
+//     fn name(&self) -> String;
+// }
 
 pub trait CheckAndListCapable {
     fn packages(&self) -> Vec<String> {
-        warn!("Not Yet Implemented!");
+        unimplemented!();
         Vec::new()
+    }
+    fn check(&self, pkg: &String) -> bool {
+      self.packages().contains(pkg)
     }
 }
 
 pub trait InstallCapable {
-    fn install_packages(&self, pkg: Box<dyn Package>) {
-        warn!("Not Yet Implemented");
-        // return;
+    fn install_packages(&self, pkg: &PackageData) {
+        unimplemented!();
     }
 }

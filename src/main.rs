@@ -4,7 +4,7 @@
 use anyhow::bail;
 use clap::{AppSettings, Parser, Subcommand};
 use config::{Config, File, FileSourceFile, Value};
-use log::{debug, info, warn, LevelFilter};
+use log::{debug, info, warn, LevelFilter, trace};
 use simplelog::{TermLogger, TerminalMode};
 use std::collections::HashSet;
 use std::sync::RwLock;
@@ -93,9 +93,10 @@ pub fn run() -> Result<(), anyhow::Error> {
     let config_file = home_dir.join(".config/santa/config.yaml");
     let data = SantaData::load_from(Path::new("santa-data.yaml"));
     let d = data.export();
-    debug!("{}", d);
+    trace!("{}", d);
 
     let config = SantaConfig::load_from(&config_file);
+    trace!("{:?}", config);
 
     // for (k, v) in data.packages {
     //   println!("{}: {:?}", k, v);
@@ -107,7 +108,7 @@ pub fn run() -> Result<(), anyhow::Error> {
     match &cli.command {
         Commands::Status => {
             info!("santa status");
-            commands::status_command();
+            commands::status_command(&config);
         }
         Commands::Install { elf } => {
             println!("NYI: santa install {:?}", elf);
