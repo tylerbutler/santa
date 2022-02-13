@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 use subprocess::Exec;
 use tabular::{Row, Table};
 
-use crate::{data::{PackageData, SantaConfig}, elves::traits::CheckAndListCapable};
+use crate::{data::{PackageData, SantaConfig}, elves::traits::HasPackages};
 
 // use self::traits::Package;
 
@@ -92,7 +92,7 @@ impl std::fmt::Display for Elf {
     }
 }
 
-impl traits::CheckAndListCapable for Elf {
+impl traits::HasPackages for Elf {
     fn packages(&self) -> Vec<String> {
         let pkg_list = self.exec_check();
         let lines = pkg_list.lines();

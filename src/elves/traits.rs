@@ -7,7 +7,8 @@ use crate::data::PackageData;
 //     fn name(&self) -> String;
 // }
 
-pub trait CheckAndListCapable {
+pub trait HasPackages {
+
     fn packages(&self) -> Vec<String> {
         unimplemented!();
         Vec::new()
