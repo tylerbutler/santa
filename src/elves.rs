@@ -22,15 +22,34 @@ impl PackageCache {
         PackageCache { cache: map }
     }
 
+    pub fn foo() -> Vec<String> {
+        Vec::new()
+    }
+
     pub fn check(&self, elf: &str, pkg: &str) -> bool {
         match self.cache.get(elf) {
             Some(pkgs) => pkgs.contains(&pkg.to_string()),
             _ => {
-                error!("Nothing in the cache for {}", pkg);
+                error!("No package cache for {}", elf);
                 false
             }
         }
     }
+
+    pub fn packages_for(&self, elf: &str) -> Option<&Vec<String>> {
+        self.cache.get(elf)
+    }
+
+    // pub fn packages(&self, elf: &str) -> Vec<String> {
+    //     match self.cache.get(elf) {
+    //         Some(pkgs) => pkgs,
+    //         _ => {
+    //             error!("Nothing in the cache for {}", elf);
+    //             let v: Vec<String> = Vec::new();
+    //             return &v;
+    //         }
+    //     }
+    // }
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -106,11 +125,15 @@ pub fn table(mut elf: &Elf, config: &SantaConfig, cache: &PackageCache) -> Table
     let mut table = Table::new("{:<}{:<}");
     for pkg in &config.packages {
         let owned_package = pkg.to_owned();
-        table.add_row(Row::new().with_cell(pkg).with_cell(if cache.check(&elf.name, &pkg) {
-            "Y"
-        } else {
-            "N"
-        }));
+        table.add_row(
+            Row::new()
+                .with_cell(pkg)
+                .with_cell(if cache.check(&elf.name, &pkg) {
+                    "Y"
+                } else {
+                    "N"
+                }),
+        );
     }
     table
 }
