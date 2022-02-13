@@ -6,10 +6,7 @@ use serde::{Deserialize, Serialize};
 use subprocess::Exec;
 use tabular::{Row, Table};
 
-use crate::{
-    data::{PackageData, SantaConfig},
-    elves::traits::HasPackages,
-};
+use crate::data::{PackageData, SantaConfig};
 
 // use self::traits::Package;
 
@@ -38,10 +35,10 @@ pub struct Elf {
     check_comand: String,
 
     #[serde(skip)]
-    _packages: Vec<String>,
+    pub _packages: Vec<String>,
 
     #[serde(skip)]
-    _checked: bool,
+    pub _checked: bool,
     // #[serde(skip)]
     // pub configured_packages: Vec<String>,
 }
@@ -67,22 +64,42 @@ impl Elf {
         }
     }
 
-    pub fn set_checked(&mut self) {
-        self._checked = true;
+    fn check(&self, pkg: &str) -> bool {
+        packages(self).contains(&pkg.to_string())
     }
 
-    pub fn table(&self, config: &SantaConfig) -> Table {
-        let mut table = Table::new("{:<}{:<}");
-        for pkg in &config.packages {
-            let owned_package = pkg.to_owned();
-            table.add_row(Row::new().with_cell(pkg).with_cell(if self.check(&pkg) {
-                "Y"
-            } else {
-                "N"
-            }));
-        }
-        table
+    pub fn cache_package_list(&mut self) {
+        self._checked = true;
+        self._packages = packages(self);
     }
+}
+
+fn packages(elf: &Elf) -> Vec<String> {
+    if elf._checked {
+        debug!("Returning cached package list.");
+        return elf._packages.to_owned();
+        // return self._packages;
+    } else {
+        let pkg_list = elf.exec_check();
+        let lines = pkg_list.lines();
+        // let packages: Vec<String> = lines.map(|s| s.to_string()).collect();
+        let packages: Vec<String> = lines.map(|s| s.to_string()).collect();
+        // Vec::new()
+        packages
+    }
+}
+
+pub fn table(mut elf: &Elf, config: &SantaConfig) -> Table {
+    let mut table = Table::new("{:<}{:<}");
+    for pkg in &config.packages {
+        let owned_package = pkg.to_owned();
+        table.add_row(
+            Row::new()
+                .with_cell(pkg)
+                .with_cell(if elf.check(&pkg) { "Y" } else { "N" }),
+        );
+    }
+    table
 }
 
 // impl traits::Elf for ElfData {}
@@ -106,21 +123,27 @@ impl std::fmt::Display for Elf {
     }
 }
 
-impl traits::HasPackages for Elf {
-    fn packages(&self) -> Vec<String> {
-        if self._checked {
-            debug!("");
-            return self._packages.to_owned();
-            // return self._packages;
-        } else {
-            let pkg_list = self.exec_check();
-            let lines = pkg_list.lines();
-            let packages: Vec<String> = lines.map(|s| s.to_string()).collect();
-            // Vec::new()
-            packages
-        }
-    }
-}
+// impl traits::HasPackages for Elf {
+//     fn packages(&self) -> Vec<String> {
+//         if self._checked {
+//             debug!("Returning cached package list.");
+//             return self._packages.to_owned();
+//             // return self._packages;
+//         } else {
+//             let pkg_list = self.exec_check();
+//             let lines = pkg_list.lines();
+//             // let packages: Vec<String> = lines.map(|s| s.to_string()).collect();
+//             let packages: Vec<String> = lines.map(|s| s.to_string()).collect();
+//             self._packages = packages.to_owned();
+//             // Vec::new()
+//             packages
+//         }
+//     }
+
+//     fn check(&mut self, pkg: &str) -> bool {
+//       HasPackages::packages(self).contains(&pkg.to_string())
+//     }
+// }
 
 impl traits::InstallCapable for Elf {
     fn install_packages(&self, pkg: &PackageData) {

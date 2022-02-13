@@ -1,3 +1,4 @@
+use crate::elves::table;
 use std::fmt::format;
 
 use log::{info, warn};
@@ -11,8 +12,8 @@ pub fn status_command(config: &SantaConfig, data: &SantaData) {
   println!("{}", serialized);
 
   for mut elf in elves {
-    // elf.configured_packages = config.packages;
-    let table = format!("{}", elf.table(config));
+    // elf._packages = config.packages;
+    let table = format!("{}", table(elf, config));
     println!("{}\n{:?}", elf, table);
   }
 }
