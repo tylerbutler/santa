@@ -59,8 +59,9 @@ impl Elf {
 
     pub fn table(&self, config: &SantaConfig) {
       let mut table = Table::new("{:<}{:<}");
-      for pkg in config.packages {
-        table.add_row(Row::new().with_cell(pkg).with_cell(if self.check(pkg) {
+      for pkg in &config.packages {
+        let owned_package = pkg.to_owned();
+        table.add_row(Row::new().with_cell(pkg).with_cell(if self.check(&pkg) {
             "Y"
         } else {
             "N"

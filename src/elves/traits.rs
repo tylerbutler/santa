@@ -12,8 +12,8 @@ pub trait CheckAndListCapable {
         unimplemented!();
         Vec::new()
     }
-    fn check(&self, pkg: &String) -> bool {
-      self.packages().contains(pkg)
+    fn check(&self, pkg: &str) -> bool {
+      self.packages().contains(&pkg.to_string())
     }
 }
 
