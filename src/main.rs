@@ -19,6 +19,7 @@ use std::path::{Path, PathBuf};
 
 use crate::commands::*;
 use crate::data::{SantaData, SantaConfig};
+use crate::elves::PackageCache;
 use crate::traits::Exportable;
 
 mod commands;
@@ -103,11 +104,12 @@ pub fn run() -> Result<(), anyhow::Error> {
 
     // env_logger::init();
 
+    let mut cache: PackageCache = PackageCache::new();
 
     match &cli.command {
         Commands::Status => {
             info!("santa status");
-            commands::status_command(&config, &data);
+            commands::status_command(&config, &data, cache);
         }
         Commands::Install { elf } => {
             println!("NYI: santa install {:?}", elf);

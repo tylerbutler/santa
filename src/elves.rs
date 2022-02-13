@@ -1,4 +1,4 @@
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 
 use cached::proc_macro::cached;
 use log::{debug, error};
@@ -12,27 +12,34 @@ use crate::data::{PackageData, SantaConfig};
 
 pub mod traits;
 
-// pub fn all_elves() -> Vec<Elf> {
-//     let mut vec: Vec<Elf> = Vec::new();
-//     let brew = Elf {
-//         name: "brew",
-//         emoji: "🍺",
-//         shell_command: "brew",
-//         install_command: "install",
-//         check_comand: "leaves --installed-on-request",
-//         configured_packages: Vec::new(),
-//     };
-//     vec.push(brew);
-//     return vec;
-// }
+pub struct PackageCache {
+    pub cache: HashMap<String, Vec<String>>,
+}
+
+impl PackageCache {
+    pub fn new() -> Self {
+        let map: HashMap<String, Vec<String>> = HashMap::new();
+        PackageCache { cache: map }
+    }
+
+    pub fn check(&self, elf: &str, pkg: &str) -> bool {
+        match self.cache.get(elf) {
+            Some(pkgs) => pkgs.contains(&pkg.to_string()),
+            _ => {
+                error!("Nothing in the cache for {}", pkg);
+                false
+            }
+        }
+    }
+}
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Elf {
-    name: String,
+    pub name: String,
     emoji: String,
-    shell_command: String,
-    install_command: String,
-    check_comand: String,
+    pub shell_command: String,
+    pub install_command: String,
+    pub check_comand: String,
 
     #[serde(skip)]
     pub _packages: Vec<String>,
@@ -64,14 +71,20 @@ impl Elf {
         }
     }
 
-    fn check(&self, pkg: &str) -> bool {
-        packages(self).contains(&pkg.to_string())
+    pub fn packages(&self) -> Vec<String> {
+        let pkg_list = self.exec_check();
+        let lines = pkg_list.lines();
+        // let packages: Vec<String> = lines.map(|s| s.to_string()).collect();
+        let packages: Vec<String> = lines.map(|s| s.to_string()).collect();
+        debug!("{} - {} packages", self.name, packages.len());
+        packages
     }
 
-    pub fn cache_package_list(&mut self) {
-        self._checked = true;
-        self._packages = packages(self);
-    }
+    // pub fn cache_package_list(&mut self) {
+    //   debug!{"Caching package list."};
+    //     self._checked = true;
+    //     self._packages = packages(self);
+    // }
 }
 
 fn packages(elf: &Elf) -> Vec<String> {
@@ -89,31 +102,18 @@ fn packages(elf: &Elf) -> Vec<String> {
     }
 }
 
-pub fn table(mut elf: &Elf, config: &SantaConfig) -> Table {
+pub fn table(mut elf: &Elf, config: &SantaConfig, cache: &PackageCache) -> Table {
     let mut table = Table::new("{:<}{:<}");
     for pkg in &config.packages {
         let owned_package = pkg.to_owned();
-        table.add_row(
-            Row::new()
-                .with_cell(pkg)
-                .with_cell(if elf.check(&pkg) { "Y" } else { "N" }),
-        );
+        table.add_row(Row::new().with_cell(pkg).with_cell(if cache.check(&elf.name, &pkg) {
+            "Y"
+        } else {
+            "N"
+        }));
     }
     table
 }
-
-// impl traits::Elf for ElfData {}
-
-// impl Printable for Elf {
-//     fn title(&self) -> String {
-//         return [self.emoji, self.name].join(" ");
-//     }
-
-//     fn print_status(&self) {
-//         println!("{}", self.title());
-//         self.list_packages();
-//     }
-// }
 
 impl std::fmt::Display for Elf {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -122,28 +122,6 @@ impl std::fmt::Display for Elf {
         write!(f, "{}", table)
     }
 }
-
-// impl traits::HasPackages for Elf {
-//     fn packages(&self) -> Vec<String> {
-//         if self._checked {
-//             debug!("Returning cached package list.");
-//             return self._packages.to_owned();
-//             // return self._packages;
-//         } else {
-//             let pkg_list = self.exec_check();
-//             let lines = pkg_list.lines();
-//             // let packages: Vec<String> = lines.map(|s| s.to_string()).collect();
-//             let packages: Vec<String> = lines.map(|s| s.to_string()).collect();
-//             self._packages = packages.to_owned();
-//             // Vec::new()
-//             packages
-//         }
-//     }
-
-//     fn check(&mut self, pkg: &str) -> bool {
-//       HasPackages::packages(self).contains(&pkg.to_string())
-//     }
-// }
 
 impl traits::InstallCapable for Elf {
     fn install_packages(&self, pkg: &PackageData) {
