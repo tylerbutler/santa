@@ -8,11 +8,7 @@ use crate::data::PackageData;
 // }
 
 pub trait HasPackages {
-
-    fn packages(&self) -> Vec<String> {
-        unimplemented!();
-        Vec::new()
-    }
+    fn packages(&self) -> Vec<String>;
     fn check(&self, pkg: &str) -> bool {
       self.packages().contains(&pkg.to_string())
     }

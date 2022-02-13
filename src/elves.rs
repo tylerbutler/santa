@@ -6,7 +6,10 @@ use serde::{Deserialize, Serialize};
 use subprocess::Exec;
 use tabular::{Row, Table};
 
-use crate::{data::{PackageData, SantaConfig}, elves::traits::HasPackages};
+use crate::{
+    data::{PackageData, SantaConfig},
+    elves::traits::HasPackages,
+};
 
 // use self::traits::Package;
 
@@ -35,7 +38,12 @@ pub struct Elf {
     check_comand: String,
 
     #[serde(skip)]
-    pub configured_packages: Vec<String>,
+    _packages: Vec<String>,
+
+    #[serde(skip)]
+    _checked: bool,
+    // #[serde(skip)]
+    // pub configured_packages: Vec<String>,
 }
 
 impl Elf {
@@ -47,27 +55,33 @@ impl Elf {
         let command = [self.shell_command.clone(), self.check_comand.clone()].join(" ");
         match Exec::shell(command).capture() {
             Ok(data) => {
+                // self.set_checked();
                 let val = data.stdout_str();
                 return val;
             }
             Err(e) => {
+                // self.set_checked();
                 error!("{}", e);
                 return "".to_string();
             }
         }
     }
 
-    pub fn table(&self, config: &SantaConfig) {
-      let mut table = Table::new("{:<}{:<}");
-      for pkg in &config.packages {
-        let owned_package = pkg.to_owned();
-        table.add_row(Row::new().with_cell(pkg).with_cell(if self.check(&pkg) {
-            "Y"
-        } else {
-            "N"
-        }));
+    pub fn set_checked(&mut self) {
+        self._checked = true;
     }
 
+    pub fn table(&self, config: &SantaConfig) -> Table {
+        let mut table = Table::new("{:<}{:<}");
+        for pkg in &config.packages {
+            let owned_package = pkg.to_owned();
+            table.add_row(Row::new().with_cell(pkg).with_cell(if self.check(&pkg) {
+                "Y"
+            } else {
+                "N"
+            }));
+        }
+        table
     }
 }
 
@@ -94,11 +108,17 @@ impl std::fmt::Display for Elf {
 
 impl traits::HasPackages for Elf {
     fn packages(&self) -> Vec<String> {
-        let pkg_list = self.exec_check();
-        let lines = pkg_list.lines();
-        let packages: Vec<String> = lines.map(|s| s.to_string()).collect();
-        // Vec::new()
-        packages
+        if self._checked {
+            debug!("");
+            return self._packages.to_owned();
+            // return self._packages;
+        } else {
+            let pkg_list = self.exec_check();
+            let lines = pkg_list.lines();
+            let packages: Vec<String> = lines.map(|s| s.to_string()).collect();
+            // Vec::new()
+            packages
+        }
     }
 }
 
