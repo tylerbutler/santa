@@ -106,20 +106,20 @@ impl Elf {
     // }
 }
 
-fn packages(elf: &Elf) -> Vec<String> {
-    if elf._checked {
-        debug!("Returning cached package list.");
-        return elf._packages.to_owned();
-        // return self._packages;
-    } else {
-        let pkg_list = elf.exec_check();
-        let lines = pkg_list.lines();
-        // let packages: Vec<String> = lines.map(|s| s.to_string()).collect();
-        let packages: Vec<String> = lines.map(|s| s.to_string()).collect();
-        // Vec::new()
-        packages
-    }
-}
+// fn packages(elf: &Elf) -> Vec<String> {
+//     if elf._checked {
+//         debug!("Returning cached package list.");
+//         return elf._packages.to_owned();
+//         // return self._packages;
+//     } else {
+//         let pkg_list = elf.exec_check();
+//         let lines = pkg_list.lines();
+//         // let packages: Vec<String> = lines.map(|s| s.to_string()).collect();
+//         let packages: Vec<String> = lines.map(|s| s.to_string()).collect();
+//         // Vec::new()
+//         packages
+//     }
+// }
 
 pub fn table(mut elf: &Elf, config: &SantaConfig, cache: &PackageCache) -> Table {
     let mut table = Table::new("{:<}{:<}");

@@ -6,10 +6,10 @@ elves:
     check_comand: leaves --installed-on-request
     # configured_packages: []
   - name: pacman
-    emoji: 👾📦
+    emoji: 👾
     shell_command: pacman
     install_command: "-Syyu"
-    check_comand: "-Qe"
+    check_comand: "-Qe | cut -f 1 -d \" \""
     # configured_packages: []
 packages:
   bat:

@@ -1,5 +1,5 @@
 use std::{
-    collections::{HashMap, HashSet},
+    collections::{hash_map::Entry, HashMap, HashSet},
     fs,
     path::{Path, PathBuf},
 };
@@ -89,7 +89,7 @@ impl PackageData {
 pub struct SantaData {
     pub packages: HashMap<String, HashMap<KnownElves, Option<PackageData>>>,
     // pub elf_settings: HashMap<KnownElves, PackageData>,
-    pub elves: Vec<Elf>
+    pub elves: Vec<Elf>,
 }
 
 impl SantaData {
@@ -102,6 +102,15 @@ impl SantaData {
         let data: SantaData = serde_yaml::from_str(&yaml_str).unwrap();
         data
     }
+
+    // pub fn packages(&self) -> Vec<String> {
+    //     let pkg_list = self.exec_check();
+    //     let lines = pkg_list.lines();
+    //     // let packages: Vec<String> = lines.map(|s| s.to_string()).collect();
+    //     let packages: Vec<String> = lines.map(|s| s.to_string()).collect();
+    //     debug!("{} - {} packages", self.name, packages.len());
+    //     packages
+    // }
 }
 
 impl Exportable for SantaData {}
@@ -126,4 +135,66 @@ impl SantaConfig {
         let data: SantaConfig = serde_yaml::from_str(&yaml_str).unwrap();
         data
     }
+
+    pub fn groups(mut self, data: &SantaData) -> HashMap<KnownElves, Vec<String>> {
+        let configured_sources: Vec<KnownElves> = self.sources;
+        // let s2 = self.sources.clone();
+        let mut map: HashMap<KnownElves, Vec<String>> = HashMap::new();
+        for elf in configured_sources.clone() {
+            map.insert(elf, Vec::new());
+        }
+
+        for pkg in &self.packages {
+            for elf in configured_sources.clone() {
+                if data.packages.contains_key(pkg) {
+                    let available_sources = data.packages.get(pkg).unwrap();
+
+                    if available_sources.contains_key(&elf) {
+                        match map.get_mut(&elf) {
+                            Some(v) => {}
+                            None => todo!(),
+                        }
+                    }
+                }
+            }
+        }
+
+        // for pkg in &self.packages {
+        //     if data.packages.contains_key(pkg) {
+        //         let available_sources = data.packages.get(pkg).unwrap();
+
+        //         for (elf, pkgs) in map.into_iter() {
+        //             if available_sources.contains_key(elf) {
+        //                 let pkg_settings = available_sources.get(elf).unwrap();
+
+        //                 match pkg_settings {
+        //                     Some(settings) => {
+        //                         // No custom settings
+        //                         todo!();
+        //                     }
+        //                     None => {
+        //                       let mut v: Vec<String> = Vec::new();
+        //                       map.entry(elf).or_insert(&v).push(pkg.to_string());
+        //                       match map.entry(elf) {
+        //                         Entry::Vacant(e) => {
+        //                             e.insert(&vec![pkg.to_string()]);
+        //                         }
+        //                         Entry::Occupied(mut e) => {
+        //                             e.get_mut().push(pkg.to_string());
+        //                         }
+        //                     }
+        //                   },
+        //                 }
+        //             }
+        //         }
+        //     }
+        // }
+
+        map
+    }
+}
+
+fn to_array<T, const N: usize>(v: Vec<T>) -> [T; N] {
+    v.try_into()
+        .unwrap_or_else(|v: Vec<T>| panic!("Expected a Vec of length {} but it was {}", N, v.len()))
 }
