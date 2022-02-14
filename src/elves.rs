@@ -99,21 +99,22 @@ impl Elf {
 pub fn table(
     elf: &Elf,
     groups: &HashMap<KnownElves, Vec<String>>,
-    // data: &SantaData,
     cache: &PackageCache,
+    include_installed: bool,
 ) -> Table {
     let mut table = Table::new("{:<}{:<}");
     for (key, pkgs) in groups {
-        if elf.name == key.to_string() { // HACK
+        if elf.name == key.to_string() {
+            // HACK
             for pkg in pkgs {
                 let owned_package = pkg.to_owned();
-                table.add_row(Row::new().with_cell(pkg).with_cell(
-                    if cache.check(&elf.name, &pkg) {
-                        "✅"
-                    } else {
-                        "❌"
-                    },
-                ));
+                let checked = cache.check(&elf.name, &pkg);
+                let add = !checked || (checked && include_installed);
+                let emoji = if checked { "✅" } else { "❌" };
+
+                if add {
+                  table.add_row(Row::new().with_cell(emoji).with_cell(pkg));
+                }
             }
         }
     }

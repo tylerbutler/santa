@@ -119,6 +119,9 @@ impl Exportable for SantaData {}
 pub struct SantaConfig {
     pub sources: Vec<KnownElves>,
     pub packages: Vec<String>,
+
+    #[serde(skip)]
+    pub log_level: usize
 }
 
 impl SantaConfig {

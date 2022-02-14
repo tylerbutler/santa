@@ -8,11 +8,10 @@ use crate::data::{SantaConfig, SantaData};
 pub fn status_command(config: SantaConfig, data: &SantaData, mut cache: PackageCache) {
     let elves = &data.elves;
     let serialized = serde_yaml::to_string(&elves).unwrap();
-    println!("status-comand");
-    println!("{}", serialized);
+    debug!("{}", serialized);
 
     for elf in elves {
-        debug!("Stata for {}", elf.name);
+        debug!("Stats for {}", elf.name);
         let pkgs = cache.cache.get(&elf.name);
 
         match pkgs {
@@ -30,7 +29,7 @@ pub fn status_command(config: SantaConfig, data: &SantaData, mut cache: PackageC
         let groups = config.clone().groups(data);
         // elf._packages = config.packages;
         // elf.cache_package_list();
-        let table = format!("{}", table(elf, &groups, &cache).to_string());
+        let table = format!("{}", table(elf, &groups, &cache, config.log_level >= 2).to_string());
         println!("{}", elf);
         println!("{}", table);
     }

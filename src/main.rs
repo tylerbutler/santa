@@ -4,7 +4,7 @@
 use anyhow::bail;
 use clap::{AppSettings, Parser, Subcommand};
 use config::{Config, File, FileSourceFile, Value};
-use log::{debug, info, warn, LevelFilter, trace};
+use log::{debug, info, trace, warn, LevelFilter};
 use simplelog::{TermLogger, TerminalMode};
 use std::collections::HashSet;
 use std::sync::RwLock;
@@ -18,7 +18,7 @@ use lazy_static::lazy_static;
 use std::path::{Path, PathBuf};
 
 use crate::commands::*;
-use crate::data::{SantaData, SantaConfig};
+use crate::data::{SantaConfig, SantaData};
 use crate::elves::PackageCache;
 use crate::traits::Exportable;
 
@@ -59,7 +59,10 @@ struct Cli {
 #[derive(Subcommand)]
 enum Commands {
     /// Prints the status of santa packages
-    Status,
+    Status {
+      /// List all packages, not just missing ones
+      #[clap(short, long)]
+      all: bool },
     /// Installs packages
     Install { elf: Option<String> },
     /// Asks an elf to add a package to its tracking list
@@ -96,7 +99,8 @@ pub fn run() -> Result<(), anyhow::Error> {
     let d = data.export();
     trace!("{}", d);
 
-    let config = SantaConfig::load_from(&config_file);
+    let mut config = SantaConfig::load_from(&config_file);
+    config.log_level = cli.verbose;
     trace!("{:?}", config);
 
     // for (k, v) in data.packages {
@@ -108,8 +112,8 @@ pub fn run() -> Result<(), anyhow::Error> {
     let mut cache: PackageCache = PackageCache::new();
 
     match &cli.command {
-        Commands::Status => {
-            info!("santa status");
+        Commands::Status {all} => {
+            debug!("santa status");
             commands::status_command(config, &data, cache);
         }
         Commands::Install { elf } => {

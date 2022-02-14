@@ -1,11 +1,11 @@
 sources:
   - pacman
-  - scoop
   - brew
   - aur
   - cargo
   - apt
   - nix
+  - scoop
 packages:
   - bat
   - bottom
