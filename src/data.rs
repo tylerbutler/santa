@@ -139,9 +139,9 @@ impl SantaConfig {
     pub fn groups(mut self, data: &SantaData) -> HashMap<KnownElves, Vec<String>> {
         let configured_sources: Vec<KnownElves> = self.sources;
         // let s2 = self.sources.clone();
-        let mut map: HashMap<KnownElves, Vec<String>> = HashMap::new();
+        let mut groups: HashMap<KnownElves, Vec<String>> = HashMap::new();
         for elf in configured_sources.clone() {
-            map.insert(elf, Vec::new());
+            groups.insert(elf, Vec::new());
         }
 
         for pkg in &self.packages {
@@ -150,8 +150,11 @@ impl SantaConfig {
                     let available_sources = data.packages.get(pkg).unwrap();
 
                     if available_sources.contains_key(&elf) {
-                        match map.get_mut(&elf) {
-                            Some(v) => {}
+                        match groups.get_mut(&elf) {
+                            Some(v) => {
+                              debug!("Adding {} to {} list.", pkg, elf);
+                              v.push(pkg.to_string());
+                            }
                             None => todo!(),
                         }
                     }
@@ -190,7 +193,7 @@ impl SantaConfig {
         //     }
         // }
 
-        map
+        groups
     }
 }
 
