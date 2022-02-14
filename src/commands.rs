@@ -1,4 +1,4 @@
-use crate::elves::{table, PackageCache};
+use crate::elves::PackageCache;
 use std::{collections::HashMap, fmt::format};
 
 use log::{debug, info, warn};
@@ -33,7 +33,8 @@ pub fn status_command(config: SantaConfig, data: &SantaData, mut cache: PackageC
                 let pkg_count = pkgs.len();
                 let table = format!(
                     "{}",
-                    table(elf, &pkgs, &cache, (*all || config.log_level > 0)).to_string()
+                    elf.table(&pkgs, &cache, (*all || config.log_level > 0))
+                        .to_string()
                 );
                 println!("{}", elf);
                 println!("{}", table);

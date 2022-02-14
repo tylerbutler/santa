@@ -1,12 +1,12 @@
 use std::collections::{HashMap, HashSet};
 
 use cached::proc_macro::cached;
-use log::{debug, error};
+use log::{debug, error, info};
 use serde::{Deserialize, Serialize, __private::de::IdentifierDeserializer};
 use subprocess::Exec;
 use tabular::{Row, Table};
 
-use crate::data::{KnownElves, PackageData, SantaConfig, SantaData, Platform};
+use crate::data::{KnownElves, PackageData, Platform, SantaConfig, SantaData};
 
 // use self::traits::Package;
 
@@ -35,26 +35,15 @@ impl PackageCache {
     pub fn packages_for(&self, elf: &str) -> Option<&Vec<String>> {
         self.cache.get(elf)
     }
-
-    // pub fn packages(&self, elf: &str) -> Vec<String> {
-    //     match self.cache.get(elf) {
-    //         Some(pkgs) => pkgs,
-    //         _ => {
-    //             error!("Nothing in the cache for {}", elf);
-    //             let v: Vec<String> = Vec::new();
-    //             return &v;
-    //         }
-    //     }
-    // }
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 
 pub struct ElfOverride {
-  platform: Platform,
-  pub shell_command: Option<String>,
-  pub install_command: Option<String>,
-  pub check_command: Option<String>,
+    platform: Platform,
+    pub shell_command: Option<String>,
+    pub install_command: Option<String>,
+    pub check_command: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -101,35 +90,31 @@ impl Elf {
         let lines = pkg_list.lines();
         // let packages: Vec<String> = lines.map(|s| s.to_string()).collect();
         let packages: Vec<String> = lines.map(|s| s.to_string()).collect();
-        debug!("{} - {} packages", self.name, packages.len());
+        info!("{} - {} packages", self.name, packages.len());
         packages
     }
-}
 
-pub fn table(
-    elf: &Elf,
-    // groups: &HashMap<KnownElves, Vec<String>>,
-    pkgs: &Vec<String>,
-    cache: &PackageCache,
-    include_installed: bool,
-) -> Table {
-    let mut table = Table::new("{:<} {:<}");
-    // for (key, pkgs) in groups {
-    //     if elf.name == key.to_string() {
-    //         // HACK
-            for pkg in pkgs {
-                let owned_package = pkg.to_owned();
-                let checked = cache.check(&elf.name, &pkg);
-                let add = !checked || (checked && include_installed);
-                let emoji = if checked { "✅" } else { "❌" };
+    pub fn table(
+      &self,
+      // groups: &HashMap<KnownElves, Vec<String>>,
+      pkgs: &Vec<String>,
+      cache: &PackageCache,
+      include_installed: bool,
+  ) -> Table {
+      let mut table = Table::new("{:<} {:<}");
+      for pkg in pkgs {
+          let owned_package = pkg.to_owned();
+          let checked = cache.check(&self.name, &pkg);
+          let add = !checked || (checked && include_installed);
+          let emoji = if checked { "✅" } else { "❌" };
 
-                if add {
-                  table.add_row(Row::new().with_cell(emoji).with_cell(pkg));
-                }
-            }
-    //     }
-    // }
-    table
+          if add {
+              table.add_row(Row::new().with_cell(emoji).with_cell(pkg));
+          }
+      }
+      table
+  }
+
 }
 
 impl std::fmt::Display for Elf {
