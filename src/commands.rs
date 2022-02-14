@@ -5,7 +5,7 @@ use log::{debug, info, warn};
 
 use crate::data::{SantaConfig, SantaData};
 
-pub fn status_command(config: SantaConfig, data: &SantaData, mut cache: PackageCache) {
+pub fn status_command(config: SantaConfig, data: &SantaData, mut cache: PackageCache, all: &bool) {
     let elves = &data.elves;
     let serialized = serde_yaml::to_string(&elves).unwrap();
     debug!("{}", serialized);
@@ -26,11 +26,21 @@ pub fn status_command(config: SantaConfig, data: &SantaData, mut cache: PackageC
         }
     }
     for elf in elves {
+        // let f = elves
         let groups = config.clone().groups(data);
-        // elf._packages = config.packages;
-        // elf.cache_package_list();
-        let table = format!("{}", table(elf, &groups, &cache, config.log_level >= 2).to_string());
-        println!("{}", elf);
-        println!("{}", table);
+        for (key, pkgs) in groups {
+            if elf.name == key.to_string() {
+                let pkg_count = pkgs.len();
+                let table = format!(
+                    "{}",
+                    table(elf, &pkgs, &cache, (*all || config.log_level > 0)).to_string()
+                );
+                println!("{}", elf);
+                println!("{}", table);
+                break;
+            }
+            // elf._packages = config.packages;
+            // elf.cache_package_list();
+        }
     }
 }

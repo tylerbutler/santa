@@ -98,14 +98,15 @@ impl Elf {
 
 pub fn table(
     elf: &Elf,
-    groups: &HashMap<KnownElves, Vec<String>>,
+    // groups: &HashMap<KnownElves, Vec<String>>,
+    pkgs: &Vec<String>,
     cache: &PackageCache,
     include_installed: bool,
 ) -> Table {
-    let mut table = Table::new("{:<}{:<}");
-    for (key, pkgs) in groups {
-        if elf.name == key.to_string() {
-            // HACK
+    let mut table = Table::new("{:<} {:<}");
+    // for (key, pkgs) in groups {
+    //     if elf.name == key.to_string() {
+    //         // HACK
             for pkg in pkgs {
                 let owned_package = pkg.to_owned();
                 let checked = cache.check(&elf.name, &pkg);
@@ -116,8 +117,8 @@ pub fn table(
                   table.add_row(Row::new().with_cell(emoji).with_cell(pkg));
                 }
             }
-        }
-    }
+    //     }
+    // }
     table
 }
 

@@ -60,9 +60,10 @@ struct Cli {
 enum Commands {
     /// Prints the status of santa packages
     Status {
-      /// List all packages, not just missing ones
-      #[clap(short, long)]
-      all: bool },
+        /// List all packages, not just missing ones
+        #[clap(short, long)]
+        all: bool,
+    },
     /// Installs packages
     Install { elf: Option<String> },
     /// Asks an elf to add a package to its tracking list
@@ -112,9 +113,9 @@ pub fn run() -> Result<(), anyhow::Error> {
     let mut cache: PackageCache = PackageCache::new();
 
     match &cli.command {
-        Commands::Status {all} => {
+        Commands::Status { all } => {
             debug!("santa status");
-            commands::status_command(config, &data, cache);
+            commands::status_command(config, &data, cache, all);
         }
         Commands::Install { elf } => {
             println!("NYI: santa install {:?}", elf);
