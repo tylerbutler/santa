@@ -43,6 +43,8 @@ packages:
   fnm:
     brew: ~
     scoop: ~
+    aur:
+      name: "fnm-bin"
   fzf:
     brew: ~
     scoop: ~

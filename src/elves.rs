@@ -2,11 +2,11 @@ use std::collections::{HashMap, HashSet};
 
 use cached::proc_macro::cached;
 use log::{debug, error};
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize, __private::de::IdentifierDeserializer};
 use subprocess::Exec;
 use tabular::{Row, Table};
 
-use crate::data::{PackageData, SantaConfig};
+use crate::data::{KnownElves, PackageData, SantaConfig, SantaData};
 
 // use self::traits::Package;
 
@@ -20,10 +20,6 @@ impl PackageCache {
     pub fn new() -> Self {
         let map: HashMap<String, Vec<String>> = HashMap::new();
         PackageCache { cache: map }
-    }
-
-    pub fn foo() -> Vec<String> {
-        Vec::new()
     }
 
     pub fn check(&self, elf: &str, pkg: &str) -> bool {
@@ -52,7 +48,7 @@ impl PackageCache {
     // }
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Elf {
     pub name: String,
     emoji: String,
@@ -98,42 +94,28 @@ impl Elf {
         debug!("{} - {} packages", self.name, packages.len());
         packages
     }
-
-    // pub fn cache_package_list(&mut self) {
-    //   debug!{"Caching package list."};
-    //     self._checked = true;
-    //     self._packages = packages(self);
-    // }
 }
 
-// fn packages(elf: &Elf) -> Vec<String> {
-//     if elf._checked {
-//         debug!("Returning cached package list.");
-//         return elf._packages.to_owned();
-//         // return self._packages;
-//     } else {
-//         let pkg_list = elf.exec_check();
-//         let lines = pkg_list.lines();
-//         // let packages: Vec<String> = lines.map(|s| s.to_string()).collect();
-//         let packages: Vec<String> = lines.map(|s| s.to_string()).collect();
-//         // Vec::new()
-//         packages
-//     }
-// }
-
-pub fn table(mut elf: &Elf, config: &SantaConfig, cache: &PackageCache) -> Table {
+pub fn table(
+    elf: &Elf,
+    groups: &HashMap<KnownElves, Vec<String>>,
+    // data: &SantaData,
+    cache: &PackageCache,
+) -> Table {
     let mut table = Table::new("{:<}{:<}");
-    for pkg in &config.packages {
-        let owned_package = pkg.to_owned();
-        table.add_row(
-            Row::new()
-                .with_cell(pkg)
-                .with_cell(if cache.check(&elf.name, &pkg) {
-                    "Y"
-                } else {
-                    "N"
-                }),
-        );
+    for (key, pkgs) in groups {
+        if elf.name == key.to_string() { // HACK
+            for pkg in pkgs {
+                let owned_package = pkg.to_owned();
+                table.add_row(Row::new().with_cell(pkg).with_cell(
+                    if cache.check(&elf.name, &pkg) {
+                        "✅"
+                    } else {
+                        "❌"
+                    },
+                ));
+            }
+        }
     }
     table
 }

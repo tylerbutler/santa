@@ -32,6 +32,22 @@ pub enum KnownElves {
     Unknown(String),
 }
 
+// impl std::str::FromStr for KnownElves {
+//     type Err = ();
+
+//     fn from_str(input: &str) -> Result<KnownElves, Self::Err> {
+//         match input.to_lowercase() {
+//             "apt" => Ok(KnownElves::Apt),
+//             "aur" => Ok(KnownElves::Aur),
+//             "brew" => Ok(KnownElves::Brew),
+//             "cargo" => Ok(KnownElves::Cargo),
+//             "pacman" => Ok(KnownElves::Pacman),
+//             "scoop" => Ok(KnownElves::Scoop),
+//             _ => Err(()),
+//         }
+//     }
+// }
+
 #[derive(Serialize, Deserialize, Debug)]
 pub enum OS {
     Macos,
@@ -78,14 +94,7 @@ impl PackageData {
     }
 }
 
-// #[derive(Serialize, Deserialize, Debug)]
-// pub struct Package {
-//     pub name: String,
-//     // pub data: Option<PackageData>,
-//     pub elves: Option<Vec<String>>,
-// }
-
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct SantaData {
     pub packages: HashMap<String, HashMap<KnownElves, Option<PackageData>>>,
     // pub elf_settings: HashMap<KnownElves, PackageData>,
@@ -102,20 +111,11 @@ impl SantaData {
         let data: SantaData = serde_yaml::from_str(&yaml_str).unwrap();
         data
     }
-
-    // pub fn packages(&self) -> Vec<String> {
-    //     let pkg_list = self.exec_check();
-    //     let lines = pkg_list.lines();
-    //     // let packages: Vec<String> = lines.map(|s| s.to_string()).collect();
-    //     let packages: Vec<String> = lines.map(|s| s.to_string()).collect();
-    //     debug!("{} - {} packages", self.name, packages.len());
-    //     packages
-    // }
 }
 
 impl Exportable for SantaData {}
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct SantaConfig {
     pub sources: Vec<KnownElves>,
     pub packages: Vec<String>,
@@ -136,7 +136,7 @@ impl SantaConfig {
         data
     }
 
-    pub fn groups(mut self, data: &SantaData) -> HashMap<KnownElves, Vec<String>> {
+    pub fn groups(self, data: &SantaData) -> HashMap<KnownElves, Vec<String>> {
         let configured_sources: Vec<KnownElves> = self.sources;
         // let s2 = self.sources.clone();
         let mut groups: HashMap<KnownElves, Vec<String>> = HashMap::new();
@@ -145,15 +145,18 @@ impl SantaConfig {
         }
 
         for pkg in &self.packages {
+            trace!("Grouping {}", pkg);
             for elf in configured_sources.clone() {
                 if data.packages.contains_key(pkg) {
                     let available_sources = data.packages.get(pkg).unwrap();
+                    trace!("available_sources: {:?}", available_sources);
 
                     if available_sources.contains_key(&elf) {
                         match groups.get_mut(&elf) {
                             Some(v) => {
-                              debug!("Adding {} to {} list.", pkg, elf);
-                              v.push(pkg.to_string());
+                                trace!("Adding {} to {} list.", pkg, elf);
+                                v.push(pkg.to_string());
+                                break;
                             }
                             None => todo!(),
                         }

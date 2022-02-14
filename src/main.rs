@@ -77,6 +77,7 @@ pub fn run() -> Result<(), anyhow::Error> {
     match &cli.verbose {
         1 => log_level = LevelFilter::Info,
         2 => log_level = LevelFilter::Debug,
+        3 => log_level = LevelFilter::Trace,
         _ => log_level = LevelFilter::Off,
     }
 
@@ -109,7 +110,7 @@ pub fn run() -> Result<(), anyhow::Error> {
     match &cli.command {
         Commands::Status => {
             info!("santa status");
-            commands::status_command(&config, &data, cache);
+            commands::status_command(config, &data, cache);
         }
         Commands::Install { elf } => {
             println!("NYI: santa install {:?}", elf);
