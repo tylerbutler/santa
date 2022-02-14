@@ -48,31 +48,74 @@ pub enum KnownElves {
 //     }
 // }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub enum OS {
     Macos,
     Linux,
     Windows,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub enum Arch {
     X64,
     Aarch64,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub enum Distro {
     None,
     ArchLinux,
     Ubuntu,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct Platform {
     os: OS,
     arch: Arch,
-    distro: Distro,
+    distro: Option<Distro>,
+}
+
+impl Platform {
+    pub fn default() -> Self {
+        Platform {
+            os: OS::Linux,
+            arch: Arch::X64,
+            distro: None,
+        }
+    }
+
+    pub fn current() -> Self {
+        let family = std::env::consts::FAMILY;
+        let os = std::env::consts::OS;
+        let arch = std::env::consts::ARCH;
+        let mut platform: Platform = Platform::default();
+
+        if family == "windows" {
+            platform.os = OS::Windows;
+        } else {
+            match os {
+                "macos" | "ios" => {
+                    platform.os = OS::Macos;
+                }
+                "windows" => {
+                    platform.os = OS::Windows;
+                }
+                _ => todo!(),
+            }
+        }
+
+        match arch {
+            "x86_64" => platform.arch = Arch::X64,
+            "aarch64" => platform.arch = Arch::Aarch64,
+            _ => todo!(),
+        }
+
+        platform
+    }
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -121,7 +164,7 @@ pub struct SantaConfig {
     pub packages: Vec<String>,
 
     #[serde(skip)]
-    pub log_level: usize
+    pub log_level: usize,
 }
 
 impl SantaConfig {
@@ -167,43 +210,6 @@ impl SantaConfig {
                 }
             }
         }
-
-        // for pkg in &self.packages {
-        //     if data.packages.contains_key(pkg) {
-        //         let available_sources = data.packages.get(pkg).unwrap();
-
-        //         for (elf, pkgs) in map.into_iter() {
-        //             if available_sources.contains_key(elf) {
-        //                 let pkg_settings = available_sources.get(elf).unwrap();
-
-        //                 match pkg_settings {
-        //                     Some(settings) => {
-        //                         // No custom settings
-        //                         todo!();
-        //                     }
-        //                     None => {
-        //                       let mut v: Vec<String> = Vec::new();
-        //                       map.entry(elf).or_insert(&v).push(pkg.to_string());
-        //                       match map.entry(elf) {
-        //                         Entry::Vacant(e) => {
-        //                             e.insert(&vec![pkg.to_string()]);
-        //                         }
-        //                         Entry::Occupied(mut e) => {
-        //                             e.get_mut().push(pkg.to_string());
-        //                         }
-        //                     }
-        //                   },
-        //                 }
-        //             }
-        //         }
-        //     }
-        // }
-
         groups
     }
-}
-
-fn to_array<T, const N: usize>(v: Vec<T>) -> [T; N] {
-    v.try_into()
-        .unwrap_or_else(|v: Vec<T>| panic!("Expected a Vec of length {} but it was {}", N, v.len()))
 }

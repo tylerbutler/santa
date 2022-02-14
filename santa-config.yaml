@@ -3,6 +3,7 @@ sources:
   - brew
   - aur
   - cargo
+  - npm
   - apt
   - nix
   - scoop

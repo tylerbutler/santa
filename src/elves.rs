@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize, __private::de::IdentifierDeserializer};
 use subprocess::Exec;
 use tabular::{Row, Table};
 
-use crate::data::{KnownElves, PackageData, SantaConfig, SantaData};
+use crate::data::{KnownElves, PackageData, SantaConfig, SantaData, Platform};
 
 // use self::traits::Package;
 
@@ -49,12 +49,22 @@ impl PackageCache {
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
+
+pub struct ElfOverride {
+  platform: Platform,
+  pub shell_command: Option<String>,
+  pub install_command: Option<String>,
+  pub check_command: Option<String>,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Elf {
     pub name: String,
     emoji: String,
     pub shell_command: String,
     pub install_command: String,
-    pub check_comand: String,
+    pub check_command: String,
+    pub overrides: Option<Vec<ElfOverride>>,
 
     #[serde(skip)]
     pub _packages: Vec<String>,
@@ -69,9 +79,9 @@ impl Elf {
     fn exec_check(&self) -> String {
         debug!(
             "Running shell command: {} {}",
-            self.shell_command, self.check_comand
+            self.shell_command, self.check_command
         );
-        let command = [self.shell_command.clone(), self.check_comand.clone()].join(" ");
+        let command = [self.shell_command.clone(), self.check_command.clone()].join(" ");
         match Exec::shell(command).capture() {
             Ok(data) => {
                 // self.set_checked();

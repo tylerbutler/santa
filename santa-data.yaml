@@ -3,12 +3,22 @@ elves:
     emoji: 🍺
     shell_command: brew
     install_command: install
-    check_comand: leaves --installed-on-request
+    check_command: leaves --installed-on-request
   - name: pacman
     emoji: 👾
     shell_command: pacman
     install_command: "-Syyu"
-    check_comand: "-Qe | cut -f 1 -d \" \""
+    check_command: '-Qe | cut -f 1 -d " "'
+  - name: npm
+    emoji: 📦
+    shell_command: npm
+    install_command: install -g
+    check_command: "ls -1 `npm root -g`"
+    overrides:
+      - platform:
+          os: windows
+          arch: x64
+        check_command: "root -g | gci -Name"
 packages:
   bat:
     brew: ~

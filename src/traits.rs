@@ -20,7 +20,6 @@ pub trait Exportable {
         Self: Serialize,
     {
         let serialized = serde_yaml::to_string(&self).unwrap();
-        trace!("serialized = {}", serialized);
         serialized
     }
 }
