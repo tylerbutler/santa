@@ -46,13 +46,32 @@ pub struct ElfOverride {
     pub check_command: Option<String>,
 }
 
+impl ElfOverride {
+    pub fn default() -> Self {
+        ElfOverride {
+            platform: Platform::default(),
+            shell_command: None,
+            check_command: None,
+            install_command: None,
+        }
+    }
+}
+
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Elf {
+    /// The name of the package manager.
     pub name: String,
+    /// An icon that represents the package manager.
     emoji: String,
+    /// The command that executes the package manager. For example, for npm this is `npm`.
     pub shell_command: String,
+    /// The command that will be run to query the list of installed packages. For example,
+    /// for brew this is `brew install`.
     pub install_command: String,
+    /// The command that will be run to query the list of installed packages. For example,
+    /// for brew this is `brew leaves --installed-on-request`.
     pub check_command: String,
+    /// Override the commands per platform.
     pub overrides: Option<Vec<ElfOverride>>,
 
     #[serde(skip)]
@@ -60,61 +79,77 @@ pub struct Elf {
 
     #[serde(skip)]
     pub _checked: bool,
-    // #[serde(skip)]
-    // pub configured_packages: Vec<String>,
 }
 
 impl Elf {
     fn exec_check(&self) -> String {
-        debug!(
-            "Running shell command: {} {}",
-            self.shell_command, self.check_command
-        );
-        let command = [self.shell_command.clone(), self.check_command.clone()].join(" ");
+        let shell = self.shell_command();
+        let check = self.check_command.clone();
+        debug!("Running shell command: {} {}", shell, check);
+
+        let command = [shell.clone(), check.clone()].join(" ");
         match Exec::shell(command).capture() {
             Ok(data) => {
-                // self.set_checked();
                 let val = data.stdout_str();
                 return val;
             }
             Err(e) => {
-                // self.set_checked();
                 error!("{}", e);
                 return "".to_string();
             }
         }
     }
 
+    pub fn get_override_for_current_platform(&self) -> Option<ElfOverride> {
+        let current = Platform::current();
+        match &self.overrides {
+            Some(overrides) => match overrides.into_iter().find(|&o| o.platform == current) {
+                Some(ov) => Some(ov.clone()),
+                None => None,
+            },
+            None => None,
+        }
+    }
+
+    pub fn shell_command(&self) -> String {
+        match self.get_override_for_current_platform() {
+            Some(ov) => {
+                return match ov.shell_command {
+                    Some(cmd) => cmd,
+                    None => self.shell_command.to_string(),
+                };
+            }
+            None => self.shell_command.to_string(),
+        }
+    }
+
     pub fn packages(&self) -> Vec<String> {
         let pkg_list = self.exec_check();
         let lines = pkg_list.lines();
-        // let packages: Vec<String> = lines.map(|s| s.to_string()).collect();
         let packages: Vec<String> = lines.map(|s| s.to_string()).collect();
         info!("{} - {} packages", self.name, packages.len());
         packages
     }
 
     pub fn table(
-      &self,
-      // groups: &HashMap<KnownElves, Vec<String>>,
-      pkgs: &Vec<String>,
-      cache: &PackageCache,
-      include_installed: bool,
-  ) -> Table {
-      let mut table = Table::new("{:<} {:<}");
-      for pkg in pkgs {
-          let owned_package = pkg.to_owned();
-          let checked = cache.check(&self.name, &pkg);
-          let add = !checked || (checked && include_installed);
-          let emoji = if checked { "✅" } else { "❌" };
+        &self,
+        pkgs: &Vec<String>,
+        cache: &PackageCache,
+        include_installed: bool,
+    ) -> Table {
+        let mut table = Table::new("{:<} {:<}");
+        for pkg in pkgs {
+            let owned_package = pkg.to_owned();
+            let checked = cache.check(&self.name, &pkg);
+            let add = !checked || (checked && include_installed);
+            let emoji = if checked { "✅" } else { "❌" };
 
-          if add {
-              table.add_row(Row::new().with_cell(emoji).with_cell(pkg));
-          }
-      }
-      table
-  }
-
+            if add {
+                table.add_row(Row::new().with_cell(emoji).with_cell(pkg));
+            }
+        }
+        table
+    }
 }
 
 impl std::fmt::Display for Elf {

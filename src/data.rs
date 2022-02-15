@@ -48,7 +48,7 @@ pub enum KnownElves {
 //     }
 // }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub enum OS {
     Macos,
@@ -56,14 +56,14 @@ pub enum OS {
     Windows,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub enum Arch {
     X64,
     Aarch64,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub enum Distro {
     None,
@@ -71,12 +71,12 @@ pub enum Distro {
     Ubuntu,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct Platform {
-    os: OS,
-    arch: Arch,
-    distro: Option<Distro>,
+    pub os: OS,
+    pub arch: Arch,
+    pub distro: Option<Distro>,
 }
 
 impl Platform {
@@ -101,10 +101,12 @@ impl Platform {
                 "macos" | "ios" => {
                     platform.os = OS::Macos;
                 }
-                "windows" => {
+                "windows" => { // unnecessary
                     platform.os = OS::Windows;
                 }
-                _ => todo!(),
+                _ => {
+                  platform.os = OS::Linux
+                }
             }
         }
 
