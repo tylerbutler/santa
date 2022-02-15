@@ -8,22 +8,17 @@ elves:
     emoji: 👾
     shell_command: pacman
     install_command: "sudo pacman -Syyu"
-    check_command: 'sudo pacman -Qe | cut -f 1 -d " "'
+    check_command: 'pacman -Qe | cut -f 1 -d " "'
   - name: npm
     emoji: 📦
     shell_command: npm
     install_command: "npm install -g"
-    check_command: "echo 'FAIL'"
+    check_command: "ls -1 `npm root -g`"
     overrides:
       - platform:
           os: windows
           arch: x64
         check_command: "npm root -g | gci -Name"
-      - platform:
-          os: linux
-          arch: x64
-        shell_command: ls
-        check_command: "ls -1 `npm root -g`"
 packages:
   bat:
     brew: ~

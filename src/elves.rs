@@ -64,13 +64,13 @@ pub struct Elf {
     /// An icon that represents the package manager.
     emoji: String,
     /// The command that executes the package manager. For example, for npm this is `npm`.
-    pub shell_command: String,
+    shell_command: String,
     /// The command that will be run to query the list of installed packages. For example,
     /// for brew this is `brew install`.
     pub install_command: String,
     /// The command that will be run to query the list of installed packages. For example,
     /// for brew this is `brew leaves --installed-on-request`.
-    pub check_command: String,
+    check_command: String,
     /// Override the commands per platform.
     pub overrides: Option<Vec<ElfOverride>>,
 
@@ -83,11 +83,11 @@ pub struct Elf {
 
 impl Elf {
     fn exec_check(&self) -> String {
-        let shell = self.shell_command();
-        let check = self.check_command.clone();
-        debug!("Running shell command: {} {}", shell, check);
+        // let shell = self.shell_command();
+        let check = self.check_command();
+        debug!("Running shell command: {}", check);
 
-        let command = [shell.clone(), check.clone()].join(" ");
+        let command = check;
         match Exec::shell(command).capture() {
             Ok(data) => {
                 let val = data.stdout_str();
@@ -120,6 +120,19 @@ impl Elf {
                 };
             }
             None => self.shell_command.to_string(),
+        }
+    }
+
+    pub fn check_command(&self) -> String {
+        match self.get_override_for_current_platform() {
+            Some(ov) => {
+                info!("Override found: {:?}", ov);
+                return match ov.check_command {
+                    Some(cmd) => cmd,
+                    None => self.check_command.to_string(),
+                };
+            }
+            None => self.check_command.to_string(),
         }
     }
 
