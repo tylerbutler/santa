@@ -1,3 +1,5 @@
+pub mod constants;
+
 use std::{
     collections::{hash_map::Entry, HashMap, HashSet},
     fs,
@@ -10,14 +12,7 @@ use serde::{Deserialize, Serialize};
 use serde_enum_str::{Deserialize_enum_str, Serialize_enum_str};
 use yaml_rust::{Yaml, YamlEmitter, YamlLoader};
 
-use crate::{elves::Elf, traits::Exportable};
-
-// #[derive(Serialize, Deserialize, Debug, Clone, Eq, PartialEq, Hash)]
-// #[serde(untagged)]
-// pub enum ElfOrBool {
-//   KnownElves,
-//   Boolean(bool),
-// }
+use crate::{elves::Elf, traits::Exportable, data::constants::DEFAULT_CONFIG};
 
 #[derive(Serialize_enum_str, Deserialize_enum_str, Debug, Clone, Eq, PartialEq, Hash)]
 #[serde(rename_all = "camelCase")]
@@ -147,71 +142,23 @@ pub struct SantaData {
 }
 
 impl SantaData {
+    pub fn default() -> Self {
+      SantaData::load_from_str(constants::BUILTIN_DATA)
+    }
+
     pub fn load_from(file: &Path) -> Self {
         debug!("Loading data from: {}", file.display());
         if !file.exists() {
             error!("Can't find data file: {}", file.display());
         }
         let yaml_str = fs::read_to_string(file).unwrap();
-        let data: SantaData = serde_yaml::from_str(&yaml_str).unwrap();
-        data
+        SantaData::load_from_str(&yaml_str)
     }
+
+    pub fn load_from_str(yaml_str: &str) -> Self {
+      let data: SantaData = serde_yaml::from_str(&yaml_str).unwrap();
+      data
+  }
 }
 
 impl Exportable for SantaData {}
-
-#[derive(Serialize, Deserialize, Clone, Debug)]
-pub struct SantaConfig {
-    pub sources: Vec<KnownElves>,
-    pub packages: Vec<String>,
-
-    #[serde(skip)]
-    pub log_level: usize,
-}
-
-impl SantaConfig {
-    pub fn load_from(file: &Path) -> Self {
-        debug!("Loading config from: {}", file.display());
-        let mut yaml_str: String;
-        if file.exists() {
-            yaml_str = fs::read_to_string(file).unwrap();
-        } else {
-            warn!("Can't find config file: {}", file.display());
-            warn!("Loading default config");
-            yaml_str = fs::read_to_string("santa-config.yaml").unwrap();
-        }
-        let data: SantaConfig = serde_yaml::from_str(&yaml_str).unwrap();
-        data
-    }
-
-    pub fn groups(self, data: &SantaData) -> HashMap<KnownElves, Vec<String>> {
-        let configured_sources: Vec<KnownElves> = self.sources;
-        // let s2 = self.sources.clone();
-        let mut groups: HashMap<KnownElves, Vec<String>> = HashMap::new();
-        for elf in configured_sources.clone() {
-            groups.insert(elf, Vec::new());
-        }
-
-        for pkg in &self.packages {
-            trace!("Grouping {}", pkg);
-            for elf in configured_sources.clone() {
-                if data.packages.contains_key(pkg) {
-                    let available_sources = data.packages.get(pkg).unwrap();
-                    trace!("available_sources: {:?}", available_sources);
-
-                    if available_sources.contains_key(&elf) {
-                        match groups.get_mut(&elf) {
-                            Some(v) => {
-                                trace!("Adding {} to {} list.", pkg, elf);
-                                v.push(pkg.to_string());
-                                break;
-                            }
-                            None => todo!(),
-                        }
-                    }
-                }
-            }
-        }
-        groups
-    }
-}

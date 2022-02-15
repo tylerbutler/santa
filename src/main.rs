@@ -4,6 +4,7 @@
 use anyhow::bail;
 use clap::{AppSettings, Parser, Subcommand};
 use config::{Config, File, FileSourceFile, Value};
+use configuration::SantaConfig;
 use log::{debug, info, trace, warn, LevelFilter};
 use simplelog::{TermLogger, TerminalMode};
 use std::collections::HashSet;
@@ -18,11 +19,12 @@ use lazy_static::lazy_static;
 use std::path::{Path, PathBuf};
 
 use crate::commands::*;
-use crate::data::{SantaConfig, SantaData};
+use crate::data::SantaData;
 use crate::elves::PackageCache;
 use crate::traits::Exportable;
 
 mod commands;
+mod configuration;
 mod data;
 mod elves;
 mod traits;
@@ -33,6 +35,8 @@ lazy_static! {
   // let Some(CONFIG_PATH) = BaseDirs::new();
   static ref SETTINGS: RwLock<Config> = RwLock::new(Config::new());
 }
+
+static DEFAULT_CONFIG_FILE_PATH: &str = ".config/santa/config.yaml";
 
 /// Manage default sets of packages for a variety of package managers.
 #[derive(Parser)]
@@ -73,6 +77,15 @@ enum Commands {
     },
 }
 
+fn load_config(path: &Path) -> SantaConfig {
+    let dir = BaseDirs::new().unwrap();
+    let home_dir = dir.home_dir();
+    let config_file = home_dir.join(path);
+    let config = SantaConfig::load_from(&config_file);
+    trace!("{:?}", config);
+    config
+}
+
 pub fn run() -> Result<(), anyhow::Error> {
     let cli = Cli::parse();
 
@@ -93,17 +106,12 @@ pub fn run() -> Result<(), anyhow::Error> {
     );
 
     debug!("Argument parsing complete.");
-    let dir = BaseDirs::new().unwrap();
-    let home_dir = dir.home_dir();
-    let config_file = home_dir.join(".config/santa/config.yaml");
-    let data = SantaData::load_from(Path::new("santa-data.yaml"));
+    let data = SantaData::default();
     let d = data.export();
     trace!("{}", d);
 
-    let mut config = SantaConfig::load_from(&config_file);
+    let mut config = load_config(Path::new(DEFAULT_CONFIG_FILE_PATH));
     config.log_level = cli.verbose;
-    trace!("{:?}", config);
-
     // for (k, v) in data.packages {
     //   println!("{}: {:?}", k, v);
     // }

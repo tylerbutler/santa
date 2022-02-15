@@ -1,14 +1,12 @@
 use std::collections::{HashMap, HashSet};
 
 use cached::proc_macro::cached;
-use log::{debug, error, info};
+use log::{debug, error, info, trace};
 use serde::{Deserialize, Serialize, __private::de::IdentifierDeserializer};
 use subprocess::Exec;
 use tabular::{Row, Table};
 
-use crate::data::{KnownElves, PackageData, Platform, SantaConfig, SantaData};
-
-// use self::traits::Package;
+use crate::data::{KnownElves, PackageData, Platform, SantaData};
 
 pub mod traits;
 
@@ -100,6 +98,7 @@ impl Elf {
         }
     }
 
+    /// Returns an override for the current platform, if defined.
     pub fn get_override_for_current_platform(&self) -> Option<ElfOverride> {
         let current = Platform::current();
         match &self.overrides {
@@ -111,6 +110,7 @@ impl Elf {
         }
     }
 
+    /// Returns the configured shell command, taking into account any platform overrides.
     pub fn shell_command(&self) -> String {
         match self.get_override_for_current_platform() {
             Some(ov) => {
@@ -123,6 +123,7 @@ impl Elf {
         }
     }
 
+    /// Returns the configured check command, taking into account any platform overrides.
     pub fn check_command(&self) -> String {
         match self.get_override_for_current_platform() {
             Some(ov) => {
@@ -140,7 +141,7 @@ impl Elf {
         let pkg_list = self.exec_check();
         let lines = pkg_list.lines();
         let packages: Vec<String> = lines.map(|s| s.to_string()).collect();
-        info!("{} - {} packages", self.name, packages.len());
+        trace!("{} - {} packages", self.name, packages.len());
         packages
     }
 
@@ -152,12 +153,10 @@ impl Elf {
     ) -> Table {
         let mut table = Table::new("{:<} {:<}");
         for pkg in pkgs {
-            let owned_package = pkg.to_owned();
-            let checked = cache.check(&self.name, &pkg);
-            let add = !checked || (checked && include_installed);
-            let emoji = if checked { "✅" } else { "❌" };
+            let installed = cache.check(&self.name, &pkg);
+            let emoji = if installed { "✅" } else { "❌" };
 
-            if add {
+            if !installed || (installed && include_installed) {
                 table.add_row(Row::new().with_cell(emoji).with_cell(pkg));
             }
         }
@@ -167,9 +166,10 @@ impl Elf {
 
 impl std::fmt::Display for Elf {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let mut table = Table::new("{:<}{:<}");
-        table.add_heading(format!("{} {}", self.emoji, self.name));
-        write!(f, "{}", table)
+        // let mut table = Table::new("{:<}{:<}");
+        // table.add_heading(format!("{} {}", self.emoji, self.name));
+        // write!(f, "{}", table)
+        write!(f, "{} {}", self.emoji, self.name)
     }
 }
 
