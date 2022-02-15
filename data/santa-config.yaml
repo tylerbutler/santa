@@ -43,4 +43,21 @@ packages:
   - wget:apt
   - zellij
   - zoxide
-  -
+
+  # npm-only packages
+  - "@fluidframework/build-tools@latest"
+  - generate
+  - generate-license
+  - auto-install
+  - npkill
+  - npm-check-updates
+  - rimraf
+  - sort-package-json
+  - tiged
+  - vsts-npm-auth
+  - yarn
+
+# cargo packages
+  - blindspot
+  - cargo-update
+  - when-cli

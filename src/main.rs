@@ -44,16 +44,12 @@ static DEFAULT_CONFIG_FILE_PATH: &str = ".config/santa/config.yaml";
 // #[clap(global_setting(AppSettings::PropagateVersion))]
 #[clap(global_setting(AppSettings::UseLongFormatForHelpSubcommand))]
 struct Cli {
-    /// The pattern to look for
-    // #[clap(long)]
-    // pattern: String,
-
-    // /// The path to the file to read
-    // #[clap(short, long, parse(from_os_str))]
-    // path: Option<PathBuf>,
-
     #[clap(subcommand)]
     command: Commands,
+
+    /// Load ONLY the default config
+    #[clap(long, global = true)]
+    builtin_config: bool,
 
     /// Increase logging level
     #[clap(short, long, global = true, parse(from_occurrences))]
@@ -110,7 +106,12 @@ pub fn run() -> Result<(), anyhow::Error> {
     let d = data.export();
     trace!("{}", d);
 
-    let mut config = load_config(Path::new(DEFAULT_CONFIG_FILE_PATH));
+    let mut config = if cli.builtin_config {
+        info!("loading built-in config because of CLI flag.");
+        SantaConfig::default()
+    } else {
+        load_config(Path::new(DEFAULT_CONFIG_FILE_PATH))
+    };
     config.log_level = cli.verbose;
     // for (k, v) in data.packages {
     //   println!("{}: {:?}", k, v);

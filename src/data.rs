@@ -117,9 +117,17 @@ impl Platform {
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct PackageData {
+    /// Name of the package
     pub name: Option<String>,
+    /// A command to run BEFORE installing the package
+    pub before: Option<String>,
+    /// A command to run AFTER installing the package
+    pub after: Option<String>,
+    /// A string to prepend to the install string
     pub pre: Option<String>,
+    /// A string to postpend to the install string
     pub post: Option<String>,
+    /// Elves that can install this package
     pub elves: Option<Vec<String>>,
 }
 
@@ -127,6 +135,8 @@ impl PackageData {
     pub fn new(name: &str) -> Self {
         PackageData {
             name: Some(name.to_string()),
+            before: None,
+            after: None,
             pre: None,
             post: None,
             elves: None,

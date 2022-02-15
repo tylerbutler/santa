@@ -65,10 +65,13 @@ pub struct Elf {
     shell_command: String,
     /// The command that will be run to query the list of installed packages. For example,
     /// for brew this is `brew install`.
-    pub install_command: String,
+    install_command: String,
     /// The command that will be run to query the list of installed packages. For example,
     /// for brew this is `brew leaves --installed-on-request`.
     check_command: String,
+    /// A string to prepend to every package name for this elf.
+    pub prepend_to_package_name: Option<String>,
+
     /// Override the commands per platform.
     pub overrides: Option<Vec<ElfOverride>>,
 
@@ -140,9 +143,16 @@ impl Elf {
     pub fn packages(&self) -> Vec<String> {
         let pkg_list = self.exec_check();
         let lines = pkg_list.lines();
-        let packages: Vec<String> = lines.map(|s| s.to_string()).collect();
+        let packages: Vec<String> = lines.map(|s| self.adjust_package_name(s)).collect();
         trace!("{} - {} packages", self.name, packages.len());
         packages
+    }
+
+    pub fn adjust_package_name(&self, pkg: &str) -> String {
+      match &self.prepend_to_package_name {
+        Some(pre) => format!("{}{}", pre, pkg),
+        None => pkg.to_string()
+      }
     }
 
     pub fn table(

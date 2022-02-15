@@ -19,6 +19,22 @@ elves:
           os: windows
           arch: x64
         check_command: "npm root -g | gci -Name"
+  - name: cargo
+    emoji: "C"
+    shell_command: cargo
+    install_command: "cargo install"
+    check_command: "cargo install --list | grep ':' | cut -d' ' -f1"
+    overrides:
+      - platform:
+          os: windows
+          arch: x64
+        check_command: "NYI"
+  - name: nix
+    emoji: "N"
+    shell_command: nix
+    install_command: "nix-env -iA"
+    check_command: "nix-env -q | rev | cut -d'-' -f2- | rev"
+    prepend_to_package_name: "nixpkgs."
 packages:
   bat:
     brew: ~
@@ -28,6 +44,8 @@ packages:
     brew: ~
     scoop: ~
     pacman: ~
+    nix:
+      name: nixpkgs.bottom-rs
   chezmoi:
     brew: ~
     scoop: ~
@@ -114,7 +132,7 @@ packages:
     aur:
       name: "oh-my-posh-git"
     brew:
-      pre: "brew tap jandedobbeleer/oh-my-posh"
+      before: "brew tap jandedobbeleer/oh-my-posh"
     scoop:
       name: "https://github.com/JanDeDobbeleer/oh-my-posh/releases/latest/download/oh-my-posh.json"
   pueue:
@@ -204,3 +222,30 @@ packages:
     apt: ~
   which:
     scoop: ~
+  "@fluidframework/build-tools":
+    npm:
+      post: "@latest"
+  generate:
+    npm: ~
+  generate-license:
+    npm: ~
+  auto-install:
+    npm: ~
+  npkill:
+    npm: ~
+  npm-check-updates:
+    npm: ~
+  rimraf:
+    npm: ~
+  sort-package-json:
+    npm: ~
+  tiged:
+    npm: ~
+  vsts-npm-auth:
+    npm: ~
+  yarn:
+    npm: ~
+  blindspot:
+    cargo: ~
+  cargo-update:
+    cargo: ~
