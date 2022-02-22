@@ -1,5 +1,3 @@
-pub mod constants;
-
 use std::{
     collections::{hash_map::Entry, HashMap, HashSet},
     fs,
@@ -12,7 +10,9 @@ use serde::{Deserialize, Serialize};
 use serde_enum_str::{Deserialize_enum_str, Serialize_enum_str};
 use yaml_rust::{Yaml, YamlEmitter, YamlLoader};
 
-use crate::{elves::Elf, traits::Exportable, data::constants::DEFAULT_CONFIG};
+use crate::{data::constants::DEFAULT_CONFIG, elves::Elf, traits::Exportable};
+
+pub mod constants;
 
 #[derive(Serialize_enum_str, Deserialize_enum_str, Debug, Clone, Eq, PartialEq, Hash)]
 #[serde(rename_all = "camelCase")]
@@ -27,22 +27,6 @@ pub enum KnownElves {
     #[serde(other)]
     Unknown(String),
 }
-
-// impl std::str::FromStr for KnownElves {
-//     type Err = ();
-
-//     fn from_str(input: &str) -> Result<KnownElves, Self::Err> {
-//         match input.to_lowercase() {
-//             "apt" => Ok(KnownElves::Apt),
-//             "aur" => Ok(KnownElves::Aur),
-//             "brew" => Ok(KnownElves::Brew),
-//             "cargo" => Ok(KnownElves::Cargo),
-//             "pacman" => Ok(KnownElves::Pacman),
-//             "scoop" => Ok(KnownElves::Scoop),
-//             _ => Err(()),
-//         }
-//     }
-// }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 #[serde(rename_all = "camelCase")]
@@ -97,12 +81,11 @@ impl Platform {
                 "macos" | "ios" => {
                     platform.os = OS::Macos;
                 }
-                "windows" => { // unnecessary
+                "windows" => {
+                    // unnecessary
                     platform.os = OS::Windows;
                 }
-                _ => {
-                  platform.os = OS::Linux
-                }
+                _ => platform.os = OS::Linux,
             }
         }
 
@@ -114,6 +97,24 @@ impl Platform {
 
         platform
     }
+}
+
+pub trait LoadFromFile {
+    fn load_from(file: &Path) -> Self
+    where
+        Self: Sized,
+    {
+        debug!("Loading data from: {}", file.display());
+        if !file.exists() {
+            error!("Can't find data file: {}", file.display());
+        }
+        let yaml_str = fs::read_to_string(file).unwrap();
+        LoadFromFile::load_from_str(&yaml_str)
+    }
+
+    fn load_from_str(yaml_str: &str) -> Self
+    where
+        Self: Sized;
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -145,6 +146,13 @@ impl PackageData {
     }
 }
 
+// impl LoadFromFile for PackageData {
+//     fn load_from_str(yaml_str: &str) -> Self {
+//         let data: PackageData = serde_yaml::from_str(&yaml_str).unwrap();
+//         data
+//     }
+// }
+
 // #[derive(Serialize, Deserialize, Clone, Debug)]
 pub type PackageDataList = HashMap<String, HashMap<KnownElves, Option<PackageData>>>;
 pub type ElfList = Vec<Elf>;
@@ -156,24 +164,34 @@ pub struct SantaData {
     pub elves: ElfList,
 }
 
+// trait ElfListT {
+//     fn packages() -> ElfList;
+// }
+
+impl LoadFromFile for ElfList {
+    fn load_from_str(yaml_str: &str) -> Self {
+        let data: ElfList = serde_yaml::from_str(&yaml_str).unwrap();
+        data
+    }
+}
+
+impl LoadFromFile for PackageDataList {
+    fn load_from_str(yaml_str: &str) -> Self {
+        let data: PackageDataList = serde_yaml::from_str(&yaml_str).unwrap();
+        data
+    }
+}
+
 impl SantaData {
     pub fn default() -> Self {
-      SantaData::load_from_str(constants::BUILTIN_DATA)
+        SantaData::load_from_str(constants::BUILTIN_PACKAGES, constants::BUILTIN_ELVES)
     }
 
-    pub fn load_from(file: &Path) -> Self {
-        debug!("Loading data from: {}", file.display());
-        if !file.exists() {
-            error!("Can't find data file: {}", file.display());
-        }
-        let yaml_str = fs::read_to_string(file).unwrap();
-        SantaData::load_from_str(&yaml_str)
+    pub fn load_from_str(packages_str: &str, elves_str: &str) -> Self {
+        let packages = PackageDataList::load_from_str(packages_str);
+        let elves = ElfList::load_from_str(elves_str);
+        SantaData { packages, elves }
     }
-
-    pub fn load_from_str(yaml_str: &str) -> Self {
-      let data: SantaData = serde_yaml::from_str(&yaml_str).unwrap();
-      data
-  }
 }
 
 impl Exportable for SantaData {}
