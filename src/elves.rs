@@ -36,7 +36,6 @@ impl PackageCache {
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
-
 pub struct ElfOverride {
     platform: Platform,
     pub shell_command: Option<String>,

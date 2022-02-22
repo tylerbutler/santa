@@ -1,59 +1,25 @@
-elves:
-  - name: brew
-    emoji: 🍺
-    shell_command: brew
-    install_command: "brew install"
-    check_command: "brew leaves --installed-on-request"
-  - name: pacman
-    emoji: 👾
-    shell_command: pacman
-    install_command: "sudo pacman -Syyu"
-    check_command: 'pacman -Qe | cut -f 1 -d " "'
-  - name: npm
-    emoji: 📦
-    shell_command: npm
-    install_command: "npm install -g"
-    check_command: "ls -1 `npm root -g`"
-    overrides:
-      - platform:
-          os: windows
-          arch: x64
-        check_command: "npm root -g | gci -Name"
-  - name: cargo
-    emoji: "C"
-    shell_command: cargo
-    install_command: "cargo install"
-    check_command: "cargo install --list | grep ':' | cut -d' ' -f1"
-    overrides:
-      - platform:
-          os: windows
-          arch: x64
-        check_command: "NYI"
-  - name: nix
-    emoji: "N"
-    shell_command: nix
-    install_command: "nix-env -iA"
-    check_command: "nix-env -q | rev | cut -d'-' -f2- | rev"
-    prepend_to_package_name: "nixpkgs."
 packages:
   bat:
     brew: ~
     scoop: ~
     pacman: ~
+    nix: ~
   bottom:
     brew: ~
     scoop: ~
     pacman: ~
     nix:
-      name: nixpkgs.bottom-rs
+      name: bottom-rs
   chezmoi:
     brew: ~
     scoop: ~
     pacman: ~
+    nix: ~
   direnv:
     brew: ~
     scoop: ~
     pacman: ~
+    nix: ~
   dust:
     brew: ~
     scoop: ~
@@ -62,28 +28,34 @@ packages:
     brew: ~
     scoop: ~
     pacman: ~
+    nix: ~
   fd:
     brew: ~
     scoop: ~
     pacman: ~
+    nix: ~
   fnm:
     brew: ~
     scoop: ~
     aur:
       name: "fnm-bin"
+    nix: ~
   fzf:
     brew: ~
     scoop: ~
     pacman: ~
+    nix: ~
   github-cli:
     brew:
       name: gh
     scoop: ~
     apt: ~
     pacman: ~
+    nix: ~
   ghq:
     brew: ~
     scoop: ~
+    nix: ~
   git-delta:
     brew: ~
     scoop:
@@ -93,41 +65,50 @@ packages:
     brew: ~
     scoop: ~
     pacman: ~
+    nix: ~
   go:
     brew:
       name: golang
     scoop: ~
     apt: ~
     pacman: ~
+    nix: ~
   grex:
     brew: ~
     scoop: ~
     pacman: ~
+    nix: ~
   hub:
     brew: ~
     scoop: ~
     pacman: ~
+    nix: ~
   jq:
     brew: ~
     scoop: ~
     pacman: ~
+    nix: ~
   lsd:
     brew: ~
     scoop: ~
     pacman: ~
+    nix: ~
   mc:
     brew: ~
     scoop: ~
     apt: ~
     pacman: ~
+    nix: ~
   micro:
     brew: ~
     scoop: ~
     pacman: ~
+    nix: ~
   nnn:
     brew: ~
     scoop: ~
     pacman: ~
+    nix: ~
   oh-my-posh:
     aur:
       name: "oh-my-posh-git"
@@ -139,10 +120,12 @@ packages:
     brew: ~
     scoop: ~
     pacman: ~
+    nix: ~
   procs:
     brew: ~
     scoop: ~
     pacman: ~
+    nix: ~
   pyenv:
     brew: ~
     scoop: ~
@@ -152,46 +135,56 @@ packages:
     scoop: ~
     apt: ~
     pacman: ~
+    nix: ~
   ripgrep:
     brew:
       name: rg
     scoop: ~
     pacman: ~
+    nix: ~
   rustup:
     brew: ~
     scoop: ~
     pacman: ~
+    nix: ~
   sd:
     brew: ~
     scoop: ~
     pacman: ~
+    nix: ~
   tealdeer:
     brew: ~
     scoop: ~
     pacman: ~
+    nix: ~
   thefuck:
     brew: ~
     scoop: ~
     apt: ~
+    nix: ~
   tmux:
     brew: ~
     scoop: ~
     apt: ~
     pacman: ~
+    nix: ~
   viu:
     brew: ~
     scoop: ~
     pacman: ~
+    nix: ~
   when-cli:
     cargo: ~
   zellij:
     brew: ~
     scoop: ~
     pacman: ~
+    nix: ~
   zoxide:
     brew: ~
     scoop: ~
     pacman: ~
+    nix: ~
 
   act:
     brew: ~

@@ -23,6 +23,7 @@ pub enum KnownElves {
     Cargo,
     Pacman,
     Scoop,
+    Nix,
     #[serde(other)]
     Unknown(String),
 }
@@ -144,11 +145,15 @@ impl PackageData {
     }
 }
 
+// #[derive(Serialize, Deserialize, Clone, Debug)]
+pub type PackageDataList = HashMap<String, HashMap<KnownElves, Option<PackageData>>>;
+pub type ElfList = Vec<Elf>;
+
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct SantaData {
-    pub packages: HashMap<String, HashMap<KnownElves, Option<PackageData>>>,
+    pub packages: PackageDataList,
     // pub elf_settings: HashMap<KnownElves, PackageData>,
-    pub elves: Vec<Elf>,
+    pub elves: ElfList,
 }
 
 impl SantaData {
