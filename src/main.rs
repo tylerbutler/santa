@@ -71,6 +71,7 @@ enum Commands {
         package: Option<String>,
         elf: Option<String>,
     },
+    Config {},
 }
 
 fn load_config(path: &Path) -> SantaConfig {

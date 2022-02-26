@@ -146,13 +146,6 @@ impl PackageData {
     }
 }
 
-// impl LoadFromFile for PackageData {
-//     fn load_from_str(yaml_str: &str) -> Self {
-//         let data: PackageData = serde_yaml::from_str(&yaml_str).unwrap();
-//         data
-//     }
-// }
-
 // #[derive(Serialize, Deserialize, Clone, Debug)]
 pub type PackageDataList = HashMap<String, HashMap<KnownElves, Option<PackageData>>>;
 pub type ElfList = Vec<Elf>;
@@ -163,10 +156,6 @@ pub struct SantaData {
     // pub elf_settings: HashMap<KnownElves, PackageData>,
     pub elves: ElfList,
 }
-
-// trait ElfListT {
-//     fn packages() -> ElfList;
-// }
 
 impl LoadFromFile for ElfList {
     fn load_from_str(yaml_str: &str) -> Self {
