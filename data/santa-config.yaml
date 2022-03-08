@@ -57,7 +57,7 @@ packages:
   - vsts-npm-auth
   - yarn
 
-# cargo packages
+  # cargo packages
   - blindspot
   - cargo-update
   - when-cli

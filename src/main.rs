@@ -42,7 +42,6 @@ static DEFAULT_CONFIG_FILE_PATH: &str = ".config/santa/config.yaml";
 #[derive(Parser)]
 #[clap(author, version = clap::crate_version!(), max_term_width = 100, about)]
 // #[clap(global_setting(AppSettings::PropagateVersion))]
-#[clap(global_setting(AppSettings::UseLongFormatForHelpSubcommand))]
 struct Cli {
     #[clap(subcommand)]
     command: Commands,
@@ -132,6 +131,9 @@ pub fn run() -> Result<(), anyhow::Error> {
         }
         Commands::Add { elf, package } => {
             println!("NYI: santa add {:?} {:?}", elf, package);
+        }
+        Commands::Config {} => {
+            todo!();
         }
     }
 

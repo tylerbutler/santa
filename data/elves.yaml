@@ -19,7 +19,7 @@
         arch: x64
       check_command: "npm root -g | gci -Name"
 - name: cargo
-  emoji: "C"
+  emoji: 📦
   shell_command: cargo
   install_command: "cargo install"
   check_command: "cargo install --list | grep ':' | cut -d' ' -f1"
@@ -29,7 +29,7 @@
         arch: x64
       check_command: "NYI"
 - name: nix
-  emoji: "N"
+  emoji: 📦
   shell_command: nix
   install_command: "nix-env -iA"
   check_command: "nix-env -q | rev | cut -d'-' -f2- | rev"
