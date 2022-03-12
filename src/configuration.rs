@@ -1,3 +1,4 @@
+use crate::data::ElfList;
 use std::{collections::HashMap, fs, path::Path};
 
 use log::{debug, trace, warn};
@@ -9,16 +10,19 @@ use crate::data::{KnownElves, SantaData, constants};
 pub struct SantaConfig {
     pub sources: Vec<KnownElves>,
     pub packages: Vec<String>,
+    pub elves: Option<ElfList>,
 
     #[serde(skip)]
     pub log_level: usize,
 }
 
-impl SantaConfig {
-    pub fn default() -> Self {
+impl Default for SantaConfig {
+    fn default() -> Self {
       SantaConfig::load_from_str(constants::DEFAULT_CONFIG)
     }
+}
 
+impl SantaConfig {
     pub fn load_from_str(yaml_str: &str) -> Self {
         let data: SantaConfig = serde_yaml::from_str(&yaml_str).unwrap();
         data

@@ -70,7 +70,10 @@ enum Commands {
         package: Option<String>,
         elf: Option<String>,
     },
-    Config {},
+    Config {
+        #[clap(short, long)]
+        pipe: bool,
+    },
 }
 
 fn load_config(path: &Path) -> SantaConfig {
@@ -132,7 +135,7 @@ pub fn run() -> Result<(), anyhow::Error> {
         Commands::Add { elf, package } => {
             println!("NYI: santa add {:?} {:?}", elf, package);
         }
-        Commands::Config {} => {
+        Commands::Config { pipe } => {
             todo!();
         }
     }

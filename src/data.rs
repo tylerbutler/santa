@@ -63,15 +63,17 @@ pub struct Platform {
     pub distro: Option<Distro>,
 }
 
-impl Platform {
-    pub fn default() -> Self {
+impl Default for Platform {
+    fn default() -> Self {
         Platform {
             os: OS::Linux,
             arch: Arch::X64,
             distro: None,
         }
     }
+}
 
+impl Platform {
     pub fn current() -> Self {
         let family = std::env::consts::FAMILY;
         let os = std::env::consts::OS;
@@ -177,15 +179,17 @@ impl LoadFromFile for PackageDataList {
 }
 
 impl SantaData {
-    pub fn default() -> Self {
-        SantaData::load_from_str(constants::BUILTIN_PACKAGES, constants::BUILTIN_ELVES)
-    }
-
     pub fn load_from_str(packages_str: &str, elves_str: &str) -> Self {
         let packages = PackageDataList::load_from_str(packages_str);
         let elves = ElfList::load_from_str(elves_str);
         SantaData { packages, elves }
     }
 }
+
+impl Default for SantaData {
+    fn default() -> Self {
+        SantaData::load_from_str(constants::BUILTIN_PACKAGES, constants::BUILTIN_ELVES)
+    }    
+}    
 
 impl Exportable for SantaData {}
