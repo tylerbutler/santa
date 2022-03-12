@@ -186,6 +186,8 @@ impl LoadFromFile for ElfList {
     }    
 }    
 
+impl Exportable for ElfList {}
+
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct SantaData {
     pub packages: PackageDataList,
@@ -200,13 +202,26 @@ impl SantaData {
         SantaData { packages, elves }
     }
 
-    pub fn update_from_config(&mut self, config: &SantaConfig) {
+    // pub fn update_from_config(&mut self, config: &SantaConfig) {
+    //     match &config.elves {
+    //         Some(elves) => {
+    //             info!("Adding {} new elves from config. {} elves already loaded.", elves.len(), self.elves.len());
+    //             self.elves.extend(elves.clone());
+    //         }
+    //         None => {}
+    //     }
+    // }
+
+    pub fn elves(&self, config: &SantaConfig) -> ElfList {
         match &config.elves {
+            None => self.elves.clone(),
             Some(elves) => {
-                info!("Adding {} new elves from config. {} elves already loaded.", elves.len(), self.elves.len());
-                self.elves.extend(elves.clone());
+                let mut ret: ElfList = self.elves.clone();
+                // let add: ElfList = elves.clone();
+                ret.extend(elves.clone());
+                // ret.extend_from_slice(&config.elves.as_ref());
+                ret
             }
-            None => {}
         }
     }
 }

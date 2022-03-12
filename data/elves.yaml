@@ -9,7 +9,7 @@
   install_command: "sudo pacman -Syyu"
   check_command: 'pacman -Qe | cut -f 1 -d " "'
 - name: npm
-  emoji: 📦
+  emoji: 🕸
   shell_command: npm
   install_command: "npm install -g"
   check_command: "ls -1 `npm root -g`"
@@ -29,7 +29,7 @@
         arch: x64
       check_command: "cargo install --list | Where-Object { $_.endsWith(':')[0] } |% { $_.split(' ')[0] }"
 - name: nix
-  emoji: 📦
+  emoji: 📈
   shell_command: nix
   install_command: "nix-env -iA"
   check_command: "nix-env -q | rev | cut -d'-' -f2- | rev"

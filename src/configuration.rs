@@ -1,3 +1,4 @@
+use crate::Exportable;
 use crate::data::ElfList;
 use std::{collections::HashMap, fs, path::Path};
 
@@ -14,6 +15,8 @@ pub struct SantaConfig {
     pub elves: Option<ElfList>,
 
     #[serde(skip)]
+    _groups: Option<HashMap<KnownElves, Vec<String>>>,
+    #[serde(skip)]
     pub log_level: usize,
 }
 
@@ -22,6 +25,8 @@ impl Default for SantaConfig {
       SantaConfig::load_from_str(constants::DEFAULT_CONFIG)
     }
 }
+
+impl Exportable for SantaConfig {}
 
 impl SantaConfig {
     pub fn load_from_str(yaml_str: &str) -> Self {
@@ -61,16 +66,19 @@ impl SantaConfig {
             for elf in configured_sources.clone() {
                 if data.packages.contains_key(pkg) {
                     let available_sources = data.packages.get(pkg).unwrap();
-                    // trace!("available_sources: {:?}", available_sources);
+                    trace!("available_sources: {:?}", available_sources);
                     
                     if available_sources.contains_key(&elf) {
+                        trace!("Adding {} to {} list.", pkg, elf);
                         match groups.get_mut(&elf) {
                             Some(v) => {
-                                trace!("Adding {} to {} list.", pkg, elf);
+                                // trace!("Adding {} to {} list.", pkg, elf);
                                 v.push(pkg.to_string());
                                 break;
                             }
-                            None => todo!(),
+                            None => {
+                                todo!();
+                            }
                         }
                     }
                 }

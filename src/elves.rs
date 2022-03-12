@@ -124,26 +124,6 @@ impl Elf {
         }
     }
 
-    // Non-windows version
-    // #[cfg(not(target_os = "windows"))]
-    // fn exec_check(&self) -> String {
-    //     // let shell = self.shell_command();
-    //     let check = self.check_command();
-    //     debug!("Running shell command: {}", check);
-
-    //     // let command = check;
-    //     match Exec::shell(command).capture() {
-    //         Ok(data) => {
-    //             let val = data.stdout_str();
-    //             return val;
-    //         }
-    //         Err(e) => {
-    //             error!("Subprocess error: {}", e);
-    //             return "".to_string();
-    //         }
-    //     }
-    // }
-
     /// Returns an override for the current platform, if defined.
     pub fn get_override_for_current_platform(&self) -> Option<ElfOverride> {
         let current = Platform::current();

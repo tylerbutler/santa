@@ -71,7 +71,10 @@ enum Commands {
         elf: Option<String>,
     },
     Config {
+        /// List configured packages with elves
         #[clap(short, long)]
+        packages: bool,
+        #[clap(long)]
         pipe: bool,
     },
 }
@@ -118,13 +121,7 @@ pub fn run() -> Result<(), anyhow::Error> {
     config.log_level = cli.verbose;
 
     let mut data = data; // re-declare variable to make it mutable
-    data.update_from_config(&config);
-
-    // for (k, v) in data.packages {
-    //   println!("{}: {:?}", k, v);
-    // }
-
-    // env_logger::init();
+    // data.update_from_config(&config);
 
     let mut cache: PackageCache = PackageCache::new();
 
@@ -135,50 +132,18 @@ pub fn run() -> Result<(), anyhow::Error> {
         }
         Commands::Install { elf } => {
             println!("NYI: santa install {:?}", elf);
+            todo!();
         }
         Commands::Add { elf, package } => {
             println!("NYI: santa add {:?} {:?}", elf, package);
-        }
-        Commands::Config { pipe } => {
             todo!();
+        }
+        Commands::Config { pipe, packages } => {
+            commands::config_command(&config, &data, &pipe, &packages);
         }
     }
 
     Ok(())
-
-    // match cli.colors.as_deref() {
-    //     None | Some("auto") => {}
-    //     Some("always") => console::set_colors_enabled(true),
-    //     Some("never") => console::set_colors_enabled(false),
-    //     Some(other) => bail!("unknown value for --colors ({})", other),
-    // };
-
-    // if cli.list_timezones {
-    //     return list_timezones();
-    // }
-
-    // let expr = InputExpr::parse(cli.expr.as_deref().unwrap_or("now"))?;
-    // let timestamps = expr.process()?;
-
-    // if cli.json {
-    //     println!("{}", serde_json::to_string_pretty(&timestamps).unwrap());
-    // } else if cli.short {
-    //     for t in timestamps.iter() {
-    //         println!(
-    //             "{} ({})",
-    //             t.datetime().format("%Y-%m-%d %H:%M:%S %z"),
-    //             t.zone()
-    //         );
-    //     }
-    // } else {
-    //     let now = Utc::now();
-    //     for (idx, t) in timestamps.iter().enumerate() {
-    //         if idx > 0 {
-    //             println!();
-    //         }
-    //         print_date(t, now);
-    //     }
-    // }
 }
 
 fn main() {

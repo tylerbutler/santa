@@ -1,6 +1,7 @@
 use crate::data::ElfList;
 use crate::data::KnownElves;
 use crate::elves::Elf;
+use crate::traits::Exportable;
 use crate::{configuration::SantaConfig, elves::PackageCache};
 use std::collections::HashSet;
 use std::{collections::HashMap, fmt::format};
@@ -10,21 +11,16 @@ use log::{debug, info, trace, warn};
 use crate::data::SantaData;
 
 pub fn status_command(config: &SantaConfig, data: &SantaData, mut cache: PackageCache, all: &bool) {
-    // let mut elves: HashSet<Elf> = data.elves.into_iter().collect();
-    // elves.insert();
-    // let elves = &data.elves;
-
-    // filter elves to 
-    let elfs: Vec<Elf> = data
+    // filter elves to those enabled in the config
+    let elves: Vec<Elf> = data
         .elves
         .clone()
         .into_iter()
         .filter(|elf| config.clone().is_elf_enabled(&elf.name_str()))
         .collect();
-    let serialized = serde_yaml::to_string(&elfs).unwrap();
-    trace!("{}", serialized);
+    let serialized = serde_yaml::to_string(&elves).unwrap();
 
-    for elf in &elfs {
+    for elf in &elves {
         debug!("Stats for {}", elf.name);
         let pkgs = cache.cache.get(&elf.name_str());
 
@@ -39,7 +35,7 @@ pub fn status_command(config: &SantaConfig, data: &SantaData, mut cache: Package
             }
         }
     }
-    for elf in &elfs {
+    for elf in &elves {
         let groups = config.clone().groups(data);
         for (key, pkgs) in groups {
             if elf.name == key {
@@ -50,5 +46,14 @@ pub fn status_command(config: &SantaConfig, data: &SantaData, mut cache: Package
                 break;
             }
         }
+    }
+}
+
+pub fn config_command(config: &SantaConfig, data: &SantaData, pipe: &bool, include_packages: &bool) {
+    if *include_packages {
+    println!("{}", data.export());
+    } else {
+        println!("{}", data.elves.export());
+        println!("{}", config.elves.as_ref().unwrap().export());
     }
 }

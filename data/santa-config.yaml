@@ -1,63 +1,12 @@
 sources:
-  - pacman
-  - brew
-  - aur
-  - cargo
   - npm
-  - apt
-  - nix
-  - scoop
+  - cargo
 packages:
-  - bat
-  - bottom
-  - chezmoi
-  - direnv
-  - dust
-  - exa
-  - fd
-  - fnm
-  - fzf
-  - gh
-  - ghq
-  - git-delta
-  - gitui
-  - golang
-  - grex
-  - hub
-  - jq
-  - lsd
-  - mc
-  - micro
-  - nnn
-  - pueue
-  - procs
-  - pyenv
-  - python
   - rg
-  - rustup
-  - sd
-  - tealdeer
-  - thefuck
-  - tmux
-  - viu
-  - wget:apt
-  - zellij
   - zoxide
 
   # npm-only packages
-  - "@fluidframework/build-tools@latest"
-  - generate
-  - generate-license
-  - auto-install
-  - npkill
-  - npm-check-updates
-  - rimraf
-  - sort-package-json
-  - tiged
-  - vsts-npm-auth
   - yarn
 
   # cargo packages
-  - blindspot
   - cargo-update
-  - when-cli
