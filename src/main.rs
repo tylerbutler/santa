@@ -107,7 +107,7 @@ pub fn run() -> Result<(), anyhow::Error> {
     debug!("Argument parsing complete.");
     let data = SantaData::default();
     let d = data.export();
-    trace!("data: {}", d);
+    // trace!("data: {}", d);
 
     let mut config = if cli.builtin_config {
         info!("loading built-in config because of CLI flag.");

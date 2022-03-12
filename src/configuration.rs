@@ -58,7 +58,6 @@ impl SantaConfig {
         }
         
         for pkg in &self.packages {
-            trace!("Grouping {}", pkg);
             for elf in configured_sources.clone() {
                 if data.packages.contains_key(pkg) {
                     let available_sources = data.packages.get(pkg).unwrap();

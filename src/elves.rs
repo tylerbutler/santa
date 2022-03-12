@@ -10,10 +10,10 @@ use crate::data::{KnownElves, PackageData, Platform, SantaData};
 
 pub mod traits;
 
-const MACHINE_KIND: &str = if cfg!(unix) {
-    "unix"
-} else if cfg!(windows) {
+const MACHINE_KIND: &str = if cfg!(windows) {
     "windows"
+} else if cfg!(unix) {
+    "unix"
 } else {
     "unknown"
 };
@@ -188,7 +188,7 @@ impl Elf {
         let pkg_list = self.exec_check();
         let lines = pkg_list.lines();
         let packages: Vec<String> = lines.map(|s| self.adjust_package_name(s)).collect();
-        debug!("Elf: {} - {} packages", self.name, packages.len());
+        debug!("{} - {} packages installed", self.name, packages.len());
         trace!("{:?}", packages);
         packages
     }

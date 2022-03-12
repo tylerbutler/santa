@@ -34,3 +34,8 @@
   install_command: "nix-env -iA"
   check_command: "nix-env -q | rev | cut -d'-' -f2- | rev"
   prepend_to_package_name: "nixpkgs."
+- name: scoop
+  emoji: 🍨
+  shell_command: scoop
+  install_command: "scoop install"
+  check_command: "scoop export |% { $_.split(' ')[0] } |% { echo $_ }"
