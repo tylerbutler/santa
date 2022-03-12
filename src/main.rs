@@ -107,7 +107,7 @@ pub fn run() -> Result<(), anyhow::Error> {
     debug!("Argument parsing complete.");
     let data = SantaData::default();
     let d = data.export();
-    trace!("{}", d);
+    trace!("data: {}", d);
 
     let mut config = if cli.builtin_config {
         info!("loading built-in config because of CLI flag.");
@@ -116,6 +116,10 @@ pub fn run() -> Result<(), anyhow::Error> {
         load_config(Path::new(DEFAULT_CONFIG_FILE_PATH))
     };
     config.log_level = cli.verbose;
+
+    let mut data = data; // re-declare variable to make it mutable
+    data.update_from_config(&config);
+
     // for (k, v) in data.packages {
     //   println!("{}: {:?}", k, v);
     // }

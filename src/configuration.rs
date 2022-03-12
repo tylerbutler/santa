@@ -2,6 +2,7 @@ use crate::data::ElfList;
 use std::{collections::HashMap, fs, path::Path};
 
 use log::{debug, trace, warn};
+use memoize::memoize;
 use serde::{Deserialize, Serialize};
 
 use crate::data::{KnownElves, SantaData, constants};
@@ -55,14 +56,14 @@ impl SantaConfig {
         for elf in configured_sources.clone() {
             groups.insert(elf, Vec::new());
         }
-
+        
         for pkg in &self.packages {
             trace!("Grouping {}", pkg);
             for elf in configured_sources.clone() {
                 if data.packages.contains_key(pkg) {
                     let available_sources = data.packages.get(pkg).unwrap();
                     trace!("available_sources: {:?}", available_sources);
-
+                    
                     if available_sources.contains_key(&elf) {
                         match groups.get_mut(&elf) {
                             Some(v) => {

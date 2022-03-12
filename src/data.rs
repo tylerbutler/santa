@@ -1,3 +1,4 @@
+use crate::SantaConfig;
 use std::{
     collections::{hash_map::Entry, HashMap, HashSet},
     fs,
@@ -5,7 +6,7 @@ use std::{
 };
 
 extern crate yaml_rust;
-use log::{debug, error, trace, warn};
+use log::{debug, error, info, trace, warn};
 use serde::{Deserialize, Serialize};
 use serde_enum_str::{Deserialize_enum_str, Serialize_enum_str};
 use yaml_rust::{Yaml, YamlEmitter, YamlLoader};
@@ -154,15 +155,8 @@ impl PackageData {
 
 // #[derive(Serialize, Deserialize, Clone, Debug)]
 pub type PackageDataList = HashMap<String, HashMap<KnownElves, Option<PackageData>>>;
-pub type ElfList = HashSet<Elf>;
-// pub type ElfList = Vec<Elf>;
-
-#[derive(Serialize, Deserialize, Clone, Debug)]
-pub struct SantaData {
-    pub packages: PackageDataList,
-    // pub elf_settings: HashMap<KnownElves, PackageData>,
-    pub elves: ElfList,
-}
+// pub type ElfList = HashSet<Elf>;
+pub type ElfList = Vec<Elf>;
 
 impl LoadFromFile for ElfList {
     fn load_from_str(yaml_str: &str) -> Self {
@@ -178,11 +172,28 @@ impl LoadFromFile for PackageDataList {
     }
 }
 
+#[derive(Serialize, Deserialize, Clone, Debug)]
+pub struct SantaData {
+    pub packages: PackageDataList,
+    // pub elf_settings: HashMap<KnownElves, PackageData>,
+    pub elves: ElfList,
+}
+
 impl SantaData {
     pub fn load_from_str(packages_str: &str, elves_str: &str) -> Self {
         let packages = PackageDataList::load_from_str(packages_str);
         let elves = ElfList::load_from_str(elves_str);
         SantaData { packages, elves }
+    }
+
+    pub fn update_from_config(&mut self, config: &SantaConfig) {
+        match &config.elves {
+            Some(elves) => {
+                info!("Adding {} new elves from config. {} elves already loaded.", elves.len(), self.elves.len());
+                self.elves.extend(elves.clone());
+            }
+            None => {}
+        }
     }
 }
 

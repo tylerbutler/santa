@@ -5,7 +5,7 @@ use crate::{configuration::SantaConfig, elves::PackageCache};
 use std::collections::HashSet;
 use std::{collections::HashMap, fmt::format};
 
-use log::{debug, info, warn};
+use log::{debug, info, trace, warn};
 
 use crate::data::SantaData;
 
@@ -13,18 +13,20 @@ pub fn status_command(config: &SantaConfig, data: &SantaData, mut cache: Package
     // let mut elves: HashSet<Elf> = data.elves.into_iter().collect();
     // elves.insert();
     // let elves = &data.elves;
+
+    // filter elves to 
     let elfs: Vec<Elf> = data
         .elves
         .clone()
         .into_iter()
-        .filter(|elf| config.clone().is_elf_enabled(&elf.name))
+        .filter(|elf| config.clone().is_elf_enabled(&elf.name_str()))
         .collect();
     let serialized = serde_yaml::to_string(&elfs).unwrap();
-    debug!("{}", serialized);
+    trace!("{}", serialized);
 
     for elf in &elfs {
         debug!("Stats for {}", elf.name);
-        let pkgs = cache.cache.get(&elf.name);
+        let pkgs = cache.cache.get(&elf.name_str());
 
         match pkgs {
             Some(y) => {
@@ -33,14 +35,14 @@ pub fn status_command(config: &SantaConfig, data: &SantaData, mut cache: Package
             None => {
                 debug!("Cache miss, filling cache for {}", elf.name);
                 let pkgs = elf.packages();
-                cache.cache.insert(elf.name.to_owned(), pkgs);
+                cache.cache.insert(elf.name_str(), pkgs);
             }
         }
     }
     for elf in &elfs {
         let groups = config.clone().groups(data);
         for (key, pkgs) in groups {
-            if elf.name == key.to_string() {
+            if elf.name == key {
                 let pkg_count = pkgs.len();
                 let table = format!("{}", elf.table(&pkgs, &cache, *all).to_string());
                 println!("{} ({} packages total)", elf, pkg_count);

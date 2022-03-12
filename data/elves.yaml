@@ -27,7 +27,7 @@
     - platform:
         os: windows
         arch: x64
-      check_command: "NYI"
+      check_command: "cargo install --list | Where-Object { $_.endsWith(':')[0] } |% { $_.split(' ')[0] }"
 - name: nix
   emoji: 📦
   shell_command: nix

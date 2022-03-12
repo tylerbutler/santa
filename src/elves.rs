@@ -57,7 +57,7 @@ impl ElfOverride {
 #[derive(Serialize, Deserialize, Clone, Debug, Eq, PartialEq, Hash)]
 pub struct Elf {
     /// The name of the package manager.
-    pub name: String,
+    pub name: KnownElves,
     /// An icon that represents the package manager.
     emoji: String,
     /// The command that executes the package manager. For example, for npm this is `npm`.
@@ -82,13 +82,17 @@ pub struct Elf {
 }
 
 impl Elf {
+    pub fn name_str(&self) -> String {
+        self.name.to_string()
+    }
+
     fn exec_check(&self) -> String {
         // let shell = self.shell_command();
         let check = self.check_command();
         debug!("Running shell command: {}", check);
 
-        let command = check;
-        match Exec::shell(command).capture() {
+        // let command = check;
+        match { Exec::cmd("pwsh.exe") | Exec::cmd(check) }.capture() {
             Ok(data) => {
                 let val = data.stdout_str();
                 return val;
@@ -129,7 +133,7 @@ impl Elf {
     pub fn check_command(&self) -> String {
         match self.get_override_for_current_platform() {
             Some(ov) => {
-                info!("Override found: {:?}", ov);
+                debug!("Override found: {:?}", ov);
                 return match ov.check_command {
                     Some(cmd) => cmd,
                     None => self.check_command.to_string(),
@@ -148,10 +152,10 @@ impl Elf {
     }
 
     pub fn adjust_package_name(&self, pkg: &str) -> String {
-      match &self.prepend_to_package_name {
-        Some(pre) => format!("{}{}", pre, pkg),
-        None => pkg.to_string()
-      }
+        match &self.prepend_to_package_name {
+            Some(pre) => format!("{}{}", pre, pkg),
+            None => pkg.to_string(),
+        }
     }
 
     pub fn table(
@@ -162,7 +166,7 @@ impl Elf {
     ) -> Table {
         let mut table = Table::new("{:<} {:<}");
         for pkg in pkgs {
-            let installed = cache.check(&self.name, &pkg);
+            let installed = cache.check(&self.name_str(), &pkg);
             let emoji = if installed { "✅" } else { "❌" };
 
             if !installed || (installed && include_installed) {
