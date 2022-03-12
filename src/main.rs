@@ -31,10 +31,10 @@ mod traits;
 
 // static CONFIG: Config = ;
 
-lazy_static! {
-  // let Some(CONFIG_PATH) = BaseDirs::new();
-  static ref SETTINGS: RwLock<Config> = RwLock::new(Config::new());
-}
+// lazy_static! {
+//   // let Some(CONFIG_PATH) = BaseDirs::new();
+//   static ref SETTINGS: RwLock<Config> = RwLock::new(Config::new());
+// }
 
 static DEFAULT_CONFIG_FILE_PATH: &str = ".config/santa/config.yaml";
 
@@ -124,7 +124,7 @@ pub fn run() -> Result<(), anyhow::Error> {
     match &cli.command {
         Commands::Status { all } => {
             debug!("santa status");
-            commands::status_command(config, &data, cache, all);
+            commands::status_command(&config, &data, cache, all);
         }
         Commands::Install { elf } => {
             println!("NYI: santa install {:?}", elf);

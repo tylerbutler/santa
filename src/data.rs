@@ -28,7 +28,11 @@ pub enum KnownElves {
     Unknown(String),
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+// impl std::convert::From<&str> for KnownElves {
+
+// }
+
+#[derive(Serialize, Deserialize, Debug, Clone, Eq, PartialEq, Hash)]
 #[serde(rename_all = "camelCase")]
 pub enum OS {
     Macos,
@@ -36,14 +40,14 @@ pub enum OS {
     Windows,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, Eq, PartialEq, Hash)]
 #[serde(rename_all = "camelCase")]
 pub enum Arch {
     X64,
     Aarch64,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, Eq, PartialEq, Hash)]
 #[serde(rename_all = "camelCase")]
 pub enum Distro {
     None,
@@ -51,7 +55,7 @@ pub enum Distro {
     Ubuntu,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, Eq, PartialEq, Hash)]
 #[serde(rename_all = "camelCase")]
 pub struct Platform {
     pub os: OS,
@@ -148,7 +152,8 @@ impl PackageData {
 
 // #[derive(Serialize, Deserialize, Clone, Debug)]
 pub type PackageDataList = HashMap<String, HashMap<KnownElves, Option<PackageData>>>;
-pub type ElfList = Vec<Elf>;
+pub type ElfList = HashSet<Elf>;
+// pub type ElfList = Vec<Elf>;
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct SantaData {

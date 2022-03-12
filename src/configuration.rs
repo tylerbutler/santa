@@ -37,6 +37,12 @@ impl SantaConfig {
         }
     }
 
+    pub fn is_elf_enabled(self, name: &str) -> bool {
+        trace!("Checking for {}", name);
+        let known_elf = serde_yaml::from_str::<KnownElves>(name).unwrap();
+        return self.sources.contains(&known_elf);
+    }
+
     /// Groups the configured (enabled) packages by elf.
     pub fn groups(self, data: &SantaData) -> HashMap<KnownElves, Vec<String>> {
         let configured_sources: Vec<KnownElves> = self.sources;

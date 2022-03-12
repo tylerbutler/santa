@@ -35,7 +35,7 @@ impl PackageCache {
     }
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug, Eq, PartialEq, Hash)]
 pub struct ElfOverride {
     platform: Platform,
     pub shell_command: Option<String>,
@@ -54,7 +54,7 @@ impl ElfOverride {
     }
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug, Eq, PartialEq, Hash)]
 pub struct Elf {
     /// The name of the package manager.
     pub name: String,
