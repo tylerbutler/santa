@@ -74,6 +74,19 @@ impl Default for Platform {
     }
 }
 
+impl std::fmt::Display for Platform {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match &self.distro {
+            Some(distro) => {
+                write!(f, "{:?} {:?} ({:?})", self.os, self.arch, distro)
+            }
+            None => {
+                write!(f, "{:?} {:?}", self.os, self.arch)
+            }
+        }
+    }
+}
+
 impl Platform {
     pub fn current() -> Self {
         let family = std::env::consts::FAMILY;
@@ -155,15 +168,6 @@ impl PackageData {
 
 // #[derive(Serialize, Deserialize, Clone, Debug)]
 pub type PackageDataList = HashMap<String, HashMap<KnownElves, Option<PackageData>>>;
-// pub type ElfList = HashSet<Elf>;
-pub type ElfList = Vec<Elf>;
-
-impl LoadFromFile for ElfList {
-    fn load_from_str(yaml_str: &str) -> Self {
-        let data: ElfList = serde_yaml::from_str(&yaml_str).unwrap();
-        data
-    }
-}
 
 impl LoadFromFile for PackageDataList {
     fn load_from_str(yaml_str: &str) -> Self {
@@ -171,6 +175,29 @@ impl LoadFromFile for PackageDataList {
         data
     }
 }
+
+// pub type ElfList = HashSet<Elf>;
+pub type ElfList = Vec<Elf>;
+
+impl LoadFromFile for ElfList {
+    fn load_from_str(yaml_str: &str) -> Self {
+        let data: ElfList = serde_yaml::from_str(&yaml_str).unwrap();
+        data
+    }    
+}    
+
+// impl std::fmt::Display for ElfList {
+//     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+//         match self.distro {
+//             Some(distro) => {
+//                 write!(f, "{} {} ({})", self.os, self.arch, distro)
+//             }
+//             None => {
+//                 write!(f, "{} {}", self.os, self.arch)
+//             }
+//         }
+//     }
+// }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct SantaData {

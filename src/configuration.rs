@@ -62,7 +62,7 @@ impl SantaConfig {
             for elf in configured_sources.clone() {
                 if data.packages.contains_key(pkg) {
                     let available_sources = data.packages.get(pkg).unwrap();
-                    trace!("available_sources: {:?}", available_sources);
+                    // trace!("available_sources: {:?}", available_sources);
                     
                     if available_sources.contains_key(&elf) {
                         match groups.get_mut(&elf) {

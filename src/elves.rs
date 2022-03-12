@@ -10,6 +10,14 @@ use crate::data::{KnownElves, PackageData, Platform, SantaData};
 
 pub mod traits;
 
+const MACHINE_KIND: &str = if cfg!(unix) {
+    "unix"
+} else if cfg!(windows) {
+    "windows"
+} else {
+    "unknown"
+};
+
 pub struct PackageCache {
     pub cache: HashMap<String, Vec<String>>,
 }
@@ -86,23 +94,55 @@ impl Elf {
         self.name.to_string()
     }
 
+    // #[cfg(target_os = "windows")]
     fn exec_check(&self) -> String {
-        // let shell = self.shell_command();
         let check = self.check_command();
+        let ex: Exec;
+
         debug!("Running shell command: {}", check);
 
-        // let command = check;
-        match { Exec::cmd("pwsh.exe") | Exec::cmd(check) }.capture() {
+        if MACHINE_KIND != "windows" {
+            ex = Exec::shell(check);
+        } else {
+            ex = Exec::cmd("pwsh.exe").args(&[
+                "-NonInteractive",
+                "-NoLogo",
+                "-NoProfile",
+                "-Command",
+                &check,
+            ]);
+        }
+        match ex.capture() {
             Ok(data) => {
                 let val = data.stdout_str();
                 return val;
             }
             Err(e) => {
-                error!("{}", e);
+                error!("Subprocess error: {}", e);
                 return "".to_string();
             }
         }
     }
+
+    // Non-windows version
+    // #[cfg(not(target_os = "windows"))]
+    // fn exec_check(&self) -> String {
+    //     // let shell = self.shell_command();
+    //     let check = self.check_command();
+    //     debug!("Running shell command: {}", check);
+
+    //     // let command = check;
+    //     match Exec::shell(command).capture() {
+    //         Ok(data) => {
+    //             let val = data.stdout_str();
+    //             return val;
+    //         }
+    //         Err(e) => {
+    //             error!("Subprocess error: {}", e);
+    //             return "".to_string();
+    //         }
+    //     }
+    // }
 
     /// Returns an override for the current platform, if defined.
     pub fn get_override_for_current_platform(&self) -> Option<ElfOverride> {
@@ -133,7 +173,8 @@ impl Elf {
     pub fn check_command(&self) -> String {
         match self.get_override_for_current_platform() {
             Some(ov) => {
-                debug!("Override found: {:?}", ov);
+                debug!("Override found for {}", Platform::current());
+                trace!("Override: {:?}", ov);
                 return match ov.check_command {
                     Some(cmd) => cmd,
                     None => self.check_command.to_string(),
@@ -147,7 +188,8 @@ impl Elf {
         let pkg_list = self.exec_check();
         let lines = pkg_list.lines();
         let packages: Vec<String> = lines.map(|s| self.adjust_package_name(s)).collect();
-        trace!("{} - {} packages", self.name, packages.len());
+        debug!("Elf: {} - {} packages", self.name, packages.len());
+        trace!("{:?}", packages);
         packages
     }
 
