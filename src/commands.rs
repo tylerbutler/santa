@@ -18,7 +18,7 @@ pub fn status_command(config: &SantaConfig, data: &SantaData, mut cache: Package
         .into_iter()
         .filter(|elf| config.clone().is_elf_enabled(&elf.name_str()))
         .collect();
-    let serialized = serde_yaml::to_string(&elves).unwrap();
+    // let serialized = serde_yaml::to_string(&elves).unwrap();
 
     for elf in &elves {
         debug!("Stats for {}", elf.name);
@@ -58,5 +58,20 @@ pub fn config_command(config: &SantaConfig, data: &SantaData, packages: bool, bu
         } else {
             println!("{}", data.elves.export())
         }
+    }
+}
+
+pub fn install_command(config: &SantaConfig, data: &SantaData, cache: PackageCache) {
+    // filter elves to those enabled in the config
+    let elves: Vec<Elf> = data
+        .elves
+        .clone()
+        .into_iter()
+        .filter(|elf| config.clone().is_elf_enabled(&elf.name_str()))
+        .collect();
+
+    for elf in &elves {
+        let pkgs = elf.packages_to_install(&cache);
+        elf.exec_install(config, data, pkgs);
     }
 }

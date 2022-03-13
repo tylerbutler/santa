@@ -138,8 +138,8 @@ pub fn run() -> Result<(), anyhow::Error> {
             commands::status_command(&config, &data, cache, all);
         }
         Commands::Install { elf } => {
-            println!("NYI: santa install {:?}", elf);
-            todo!();
+            // println!("NYI: santa install {:?}", elf);
+            commands::install_command(&config, &data, cache);
         }
         Commands::Add { elf, package } => {
             println!("NYI: santa add {:?} {:?}", elf, package);

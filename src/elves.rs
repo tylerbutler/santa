@@ -1,3 +1,4 @@
+use crate::SantaConfig;
 use std::collections::{HashMap, HashSet};
 
 use cached::proc_macro::cached;
@@ -124,6 +125,17 @@ impl Elf {
         }
     }
 
+    pub fn exec_install(&self, config: &SantaConfig, data: &SantaData, packages: Vec<String>) {
+        // let pkgs: Vec<String> = config.clone().groups(data).keys().map(|i| i.to_string()).collect();
+        // for (k, v) in config.groups(data) {
+        //     println!("To install missing {} packages, run:", self);
+        //     println!("{} {}\n", self.install_command, pkgs.join(" "));
+        // }
+
+        println!("To install missing {} packages, run:", self);
+        println!("{} {}\n", self.install_command, packages.join(" "));
+    }
+
     /// Returns an override for the current platform, if defined.
     pub fn get_override_for_current_platform(&self) -> Option<ElfOverride> {
         let current = Platform::current();
@@ -173,11 +185,24 @@ impl Elf {
         packages
     }
 
+    pub fn packages_to_install(&self, cache: &PackageCache) -> Vec<String> {
+        self.packages()
+            .clone()
+            .iter()
+            .filter(|p| self.package_is_installed(p.to_string(), cache))
+            .map(|s| s.to_string())
+            .collect()
+    }
+
     pub fn adjust_package_name(&self, pkg: &str) -> String {
         match &self.prepend_to_package_name {
             Some(pre) => format!("{}{}", pre, pkg),
             None => pkg.to_string(),
         }
+    }
+
+    pub fn package_is_installed(&self, pkg: String, cache: &PackageCache) -> bool {
+        self.packages().contains(&pkg)
     }
 
     pub fn table(
@@ -202,11 +227,5 @@ impl Elf {
 impl std::fmt::Display for Elf {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{} {}", self.emoji, self.name)
-    }
-}
-
-impl traits::InstallCapable for Elf {
-    fn install_packages(&self, pkg: &PackageData) {
-        unimplemented!();
     }
 }
