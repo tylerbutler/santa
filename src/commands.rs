@@ -6,7 +6,7 @@ use crate::{configuration::SantaConfig, elves::PackageCache};
 use std::collections::HashSet;
 use std::{collections::HashMap, fmt::format};
 
-use log::{debug, info, trace, warn};
+use log::{debug, error, info, trace, warn};
 
 use crate::data::SantaData;
 
@@ -70,8 +70,36 @@ pub fn install_command(config: &SantaConfig, data: &SantaData, cache: PackageCac
         .filter(|elf| config.clone().is_elf_enabled(&elf.name_str()))
         .collect();
 
+    // for (k, v) in config.groups(&data) {
+    //     error!("{} {:?}", k, v);
+    // }
+
     for elf in &elves {
-        let pkgs = elf.packages_to_install(&cache);
-        elf.exec_install(config, data, pkgs);
+        let groups = config.clone().groups(data);
+        for (key, pkgs) in groups {
+            if elf.name == key {
+                let pkgs = pkgs
+                    .iter()
+                    .filter(|p| elf.package_is_installed(p.to_string(), &cache))
+                    .map(|p| p.to_string())
+                    .collect();
+                elf.exec_install(config, data, pkgs);
+            }
+        }
+
+        // elf.exec_install(config, data, elf.packages_to_install(&cache));
+
+        // for pkg in elf.packages_to_install(&cache) {
+        // }
+
+        // for (key, pkgs) in groups {
+        //     if elf.name == key {
+        //         let pkg_count = pkgs.len();
+        //         let table = format!("{}", elf.table(&pkgs, &cache, *all).to_string());
+        //         println!("{} ({} packages total)", elf, pkg_count);
+        //         println!("{}", table);
+        //         break;
+        //     }
+        // }
     }
 }
