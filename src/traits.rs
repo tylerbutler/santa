@@ -22,4 +22,11 @@ pub trait Exportable {
         let serialized = serde_yaml::to_string(&self).unwrap();
         serialized
     }
+
+    fn export_min(&self) -> String
+    where
+        Self: Serialize,
+    {
+        self.export()
+    }
 }

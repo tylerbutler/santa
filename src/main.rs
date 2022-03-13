@@ -71,10 +71,17 @@ enum Commands {
         elf: Option<String>,
     },
     Config {
-        /// List configured packages with elves
+        /// Show full config
         #[clap(short, long)]
-        packages: bool,
-        #[clap(long)]
+        full: bool,
+
+        // #[clap(short, long)]
+        // packages: bool,
+
+        #[clap(short, long)]
+        local: bool,
+
+        #[clap(short, long)]
         pipe: bool,
     },
 }
@@ -138,8 +145,8 @@ pub fn run() -> Result<(), anyhow::Error> {
             println!("NYI: santa add {:?} {:?}", elf, package);
             todo!();
         }
-        Commands::Config { pipe, packages } => {
-            commands::config_command(&config, &data, &pipe, &packages);
+        Commands::Config { full, local, pipe } => {
+            commands::config_command(&config, &data, &full, &local, &pipe);
         }
     }
 

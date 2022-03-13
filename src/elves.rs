@@ -201,15 +201,12 @@ impl Elf {
 
 impl std::fmt::Display for Elf {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        // let mut table = Table::new("{:<}{:<}");
-        // table.add_heading(format!("{} {}", self.emoji, self.name));
-        // write!(f, "{}", table)
         write!(f, "{} {}", self.emoji, self.name)
     }
 }
 
 impl traits::InstallCapable for Elf {
     fn install_packages(&self, pkg: &PackageData) {
-        println!("Not Yet Implemented");
+        unimplemented!();
     }
 }

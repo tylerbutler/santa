@@ -176,6 +176,17 @@ impl LoadFromFile for PackageDataList {
     }
 }
 
+impl Exportable for PackageDataList {
+    fn export_min(&self) -> String
+    where
+        Self: Serialize,
+    {
+        let list: Vec<String> = self.keys().map(|key| format!("{}", key)).collect();
+        let serialized = serde_yaml::to_string(&list).unwrap();
+        serialized
+    }
+}
+
 // pub type ElfList = HashSet<Elf>;
 pub type ElfList = Vec<Elf>;
 
@@ -186,7 +197,16 @@ impl LoadFromFile for ElfList {
     }    
 }    
 
-impl Exportable for ElfList {}
+impl Exportable for ElfList {
+    fn export_min(&self) -> String
+    where
+        Self: Serialize,
+    {
+        let list: Vec<String> = self.iter().map(|elf| format!("{}", elf)).collect();
+        let serialized = serde_yaml::to_string(&list).unwrap();
+        serialized
+    }
+}
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct SantaData {
@@ -203,15 +223,6 @@ impl SantaData {
     }
 
     // pub fn update_from_config(&mut self, config: &SantaConfig) {
-    //     match &config.elves {
-    //         Some(elves) => {
-    //             info!("Adding {} new elves from config. {} elves already loaded.", elves.len(), self.elves.len());
-    //             self.elves.extend(elves.clone());
-    //         }
-    //         None => {}
-    //     }
-    // }
-
     pub fn elves(&self, config: &SantaConfig) -> ElfList {
         match &config.elves {
             None => self.elves.clone(),
@@ -232,4 +243,12 @@ impl Default for SantaData {
     }    
 }    
 
-impl Exportable for SantaData {}
+impl Exportable for SantaData {
+    fn export_min(&self) -> String
+    where
+        Self: Serialize,
+    {
+        let serialized = serde_yaml::to_string(&self).unwrap();
+        serialized
+    }
+}
