@@ -54,7 +54,7 @@ impl SantaConfig {
     }
 
     /// Groups the configured (enabled) packages by elf.
-    pub fn groups(self, data: &SantaData) -> HashMap<KnownElves, Vec<String>> {
+    pub fn groups(mut self, data: &SantaData) -> HashMap<KnownElves, Vec<String>> {
         match &self._groups {
             Some(groups) => groups.clone(),
             None => {
@@ -87,7 +87,8 @@ impl SantaConfig {
                         }
                     }
                 }
-                groups
+                self._groups = Some(groups);
+                self._groups.unwrap()
             }
         }
     }
