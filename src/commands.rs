@@ -49,27 +49,14 @@ pub fn status_command(config: &SantaConfig, data: &SantaData, mut cache: Package
     }
 }
 
-pub fn config_command(
-    config: &SantaConfig,
-    data: &SantaData,
-    full: &bool,
-    local: &bool,
-    pipe: &bool,
-) {
-    if *full {
-        println!("{}", data.export());
-        return;
-    } else if *local {
-        // println!("{}", data.elves(config).export());
-        match config.elves.as_ref() {
-            Some(elves) => {
-                println!("{}", elves.export_min());
-            }
-            None => {
-                println!("");
-            }
-        }
+pub fn config_command(config: &SantaConfig, data: &SantaData, packages: bool, builtin: bool) {
+    if !builtin {
+        println!("{}", config.export());
     } else {
-        println!("{}", data.elves.export_min());
+        if packages {
+            println!("{}", data.export());
+        } else {
+            println!("{}", data.elves.export())
+        }
     }
 }

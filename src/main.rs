@@ -47,8 +47,8 @@ struct Cli {
     command: Commands,
 
     /// Load ONLY the default config
-    #[clap(long, global = true)]
-    builtin_config: bool,
+    #[clap(short, long, global = true)]
+    builtin_only: bool,
 
     /// Increase logging level
     #[clap(short, long, global = true, parse(from_occurrences))]
@@ -73,15 +73,15 @@ enum Commands {
     Config {
         /// Show full config
         #[clap(short, long)]
-        full: bool,
+        packages: bool,
 
         // #[clap(short, long)]
         // packages: bool,
 
-        #[clap(short, long)]
-        local: bool,
+        // #[clap(short, long)]
+        // local: bool,
 
-        #[clap(short, long)]
+        #[clap(long)]
         pipe: bool,
     },
 }
@@ -119,7 +119,7 @@ pub fn run() -> Result<(), anyhow::Error> {
     let d = data.export();
     // trace!("data: {}", d);
 
-    let mut config = if cli.builtin_config {
+    let mut config = if cli.builtin_only {
         info!("loading built-in config because of CLI flag.");
         SantaConfig::default()
     } else {
@@ -127,7 +127,7 @@ pub fn run() -> Result<(), anyhow::Error> {
     };
     config.log_level = cli.verbose;
 
-    let mut data = data; // re-declare variable to make it mutable
+    // let mut data = data; // re-declare variable to make it mutable
     // data.update_from_config(&config);
 
     let mut cache: PackageCache = PackageCache::new();
@@ -145,8 +145,8 @@ pub fn run() -> Result<(), anyhow::Error> {
             println!("NYI: santa add {:?} {:?}", elf, package);
             todo!();
         }
-        Commands::Config { full, local, pipe } => {
-            commands::config_command(&config, &data, &full, &local, &pipe);
+        Commands::Config { packages, pipe } => {
+            commands::config_command(&config, &data, *packages, cli.builtin_only);
         }
     }
 

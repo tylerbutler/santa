@@ -1,12 +1,12 @@
-use crate::Exportable;
 use crate::data::ElfList;
+use crate::Exportable;
 use std::{collections::HashMap, fs, path::Path};
 
 use log::{debug, trace, warn};
 use memoize::memoize;
 use serde::{Deserialize, Serialize};
 
-use crate::data::{KnownElves, SantaData, constants};
+use crate::data::{constants, KnownElves, SantaData};
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct SantaConfig {
@@ -22,7 +22,7 @@ pub struct SantaConfig {
 
 impl Default for SantaConfig {
     fn default() -> Self {
-      SantaConfig::load_from_str(constants::DEFAULT_CONFIG)
+        SantaConfig::load_from_str(constants::DEFAULT_CONFIG)
     }
 }
 
@@ -55,35 +55,40 @@ impl SantaConfig {
 
     /// Groups the configured (enabled) packages by elf.
     pub fn groups(self, data: &SantaData) -> HashMap<KnownElves, Vec<String>> {
-        let configured_sources: Vec<KnownElves> = self.sources;
-        // let s2 = self.sources.clone();
-        let mut groups: HashMap<KnownElves, Vec<String>> = HashMap::new();
-        for elf in configured_sources.clone() {
-            groups.insert(elf, Vec::new());
-        }
-        
-        for pkg in &self.packages {
-            for elf in configured_sources.clone() {
-                if data.packages.contains_key(pkg) {
-                    let available_sources = data.packages.get(pkg).unwrap();
-                    trace!("available_sources: {:?}", available_sources);
-                    
-                    if available_sources.contains_key(&elf) {
-                        trace!("Adding {} to {} list.", pkg, elf);
-                        match groups.get_mut(&elf) {
-                            Some(v) => {
-                                // trace!("Adding {} to {} list.", pkg, elf);
-                                v.push(pkg.to_string());
-                                break;
-                            }
-                            None => {
-                                todo!();
+        match &self._groups {
+            Some(groups) => groups.clone(),
+            None => {
+                let configured_sources: Vec<KnownElves> = self.sources;
+                // let s2 = self.sources.clone();
+                let mut groups: HashMap<KnownElves, Vec<String>> = HashMap::new();
+                for elf in configured_sources.clone() {
+                    groups.insert(elf, Vec::new());
+                }
+
+                for pkg in &self.packages {
+                    for elf in configured_sources.clone() {
+                        if data.packages.contains_key(pkg) {
+                            let available_sources = data.packages.get(pkg).unwrap();
+                            trace!("available_sources: {:?}", available_sources);
+
+                            if available_sources.contains_key(&elf) {
+                                trace!("Adding {} to {} list.", pkg, elf);
+                                match groups.get_mut(&elf) {
+                                    Some(v) => {
+                                        // trace!("Adding {} to {} list.", pkg, elf);
+                                        v.push(pkg.to_string());
+                                        break;
+                                    }
+                                    None => {
+                                        todo!();
+                                    }
+                                }
                             }
                         }
                     }
                 }
+                groups
             }
         }
-        groups
     }
 }
