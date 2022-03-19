@@ -16,24 +16,12 @@ pub fn status_command(config: &SantaConfig, data: &SantaData, mut cache: Package
         .elves
         .clone()
         .into_iter()
-        .filter(|elf| config.clone().is_elf_enabled(&elf.name_str()))
+        .filter(|elf| config.clone().is_elf_enabled(&elf))
         .collect();
     // let serialized = serde_yaml::to_string(&elves).unwrap();
 
     for elf in &elves {
-        debug!("Stats for {}", elf.name);
-        let pkgs = cache.cache.get(&elf.name_str());
-
-        match pkgs {
-            Some(y) => {
-                debug!("Cache hit");
-            }
-            None => {
-                debug!("Cache miss, filling cache for {}", elf.name);
-                let pkgs = elf.packages();
-                cache.cache.insert(elf.name_str(), pkgs);
-            }
-        }
+        cache.cache_for(&elf);
     }
     for elf in &elves {
         let groups = config.clone().groups(data);
@@ -47,6 +35,8 @@ pub fn status_command(config: &SantaConfig, data: &SantaData, mut cache: Package
             }
         }
     }
+
+    install_command(config, data, cache);
 }
 
 pub fn config_command(config: &SantaConfig, data: &SantaData, packages: bool, builtin: bool) {
@@ -61,13 +51,14 @@ pub fn config_command(config: &SantaConfig, data: &SantaData, packages: bool, bu
     }
 }
 
-pub fn install_command(config: &SantaConfig, data: &SantaData, cache: PackageCache) {
+pub fn install_command(config: &SantaConfig, data: &SantaData, mut cache: PackageCache) {
+    // let config = config.clone();
     // filter elves to those enabled in the config
     let elves: Vec<Elf> = data
         .elves
         .clone()
         .into_iter()
-        .filter(|elf| config.clone().is_elf_enabled(&elf.name_str()))
+        .filter(|elf| config.clone().is_elf_enabled(&elf))
         .collect();
 
     // for (k, v) in config.groups(&data) {
@@ -75,31 +66,22 @@ pub fn install_command(config: &SantaConfig, data: &SantaData, cache: PackageCac
     // }
 
     for elf in &elves {
+        debug!("Stats for {}", elf.name);
+        cache.cache_for(&elf);
+    }
+
+    let config = config.clone();
+    for elf in &elves {
         let groups = config.clone().groups(data);
         for (key, pkgs) in groups {
             if elf.name == key {
-                let pkgs = pkgs
+                let pkgs: Vec<String> = pkgs
                     .iter()
-                    .filter(|p| elf.package_is_installed(p.to_string(), &cache))
+                    .filter(|p| !cache.check(&elf, p))
                     .map(|p| p.to_string())
                     .collect();
-                elf.exec_install(config, data, pkgs);
+                elf.exec_install(&config, data, pkgs);
             }
         }
-
-        // elf.exec_install(config, data, elf.packages_to_install(&cache));
-
-        // for pkg in elf.packages_to_install(&cache) {
-        // }
-
-        // for (key, pkgs) in groups {
-        //     if elf.name == key {
-        //         let pkg_count = pkgs.len();
-        //         let table = format!("{}", elf.table(&pkgs, &cache, *all).to_string());
-        //         println!("{} ({} packages total)", elf, pkg_count);
-        //         println!("{}", table);
-        //         break;
-        //     }
-        // }
     }
 }

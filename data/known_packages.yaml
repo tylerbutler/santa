@@ -25,7 +25,6 @@ dust:
   pacman: ~
 exa:
   brew: ~
-  scoop: ~
   pacman: ~
   nix: ~
 fd:

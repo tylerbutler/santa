@@ -1,3 +1,4 @@
+use crate::elves::Elf;
 use crate::data::ElfList;
 use crate::Exportable;
 use std::{collections::HashMap, fs, path::Path};
@@ -47,10 +48,9 @@ impl SantaConfig {
         }
     }
 
-    pub fn is_elf_enabled(self, name: &str) -> bool {
-        trace!("Checking for {}", name);
-        let known_elf = serde_yaml::from_str::<KnownElves>(name).unwrap();
-        return self.sources.contains(&known_elf);
+    pub fn is_elf_enabled(self, elf: &Elf) -> bool {
+        trace!("Checking if {} is enabled", elf);
+        return self.sources.contains(&elf.name);
     }
 
     /// Groups the configured (enabled) packages by elf.

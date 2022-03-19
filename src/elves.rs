@@ -19,6 +19,7 @@ const MACHINE_KIND: &str = if cfg!(windows) {
     "unknown"
 };
 
+#[derive(Clone, Debug)]
 pub struct PackageCache {
     pub cache: HashMap<String, Vec<String>>,
 }
@@ -29,18 +30,40 @@ impl PackageCache {
         PackageCache { cache: map }
     }
 
-    pub fn check(&self, elf: &str, pkg: &str) -> bool {
-        match self.cache.get(elf) {
+    /// Checks for a package in the cache. This accesses the cache only, and will not modify it.
+    pub fn check(&self, elf: &Elf, pkg: &str) -> bool {
+        match self.cache.get(&elf.name_str()) {
             Some(pkgs) => pkgs.contains(&pkg.to_string()),
             _ => {
-                error!("No package cache for {}", elf);
+                debug!("No package cache for {}", elf);
                 false
             }
         }
     }
 
-    pub fn packages_for(&self, elf: &str) -> Option<&Vec<String>> {
-        self.cache.get(elf)
+    pub fn cache_for(&mut self, elf: &Elf) {
+        info!("Caching data for {}", elf);
+        let pkgs = elf.packages();
+        self.cache.insert(elf.name_str(), pkgs.clone());
+    }
+
+    /// Returns all packages for an Elf. This will call the Elf's check_command and populate the cache if needed.
+    /// If the Elf can't be found, or the cache population fails, then None will be returned.
+    pub fn packages_for(cache: &mut PackageCache, elf: &Elf) -> Option<Vec<String>> {
+        let c = cache.clone();
+        match c.cache.get(&elf.name_str()) {
+            Some(pkgs) => {
+                trace!("Cache hit");
+                Some(pkgs.to_vec())
+            }
+            None => {
+                debug!("Cache miss, filling cache for {}", elf.name);
+                let pkgs = elf.packages();
+                cache.cache_for(elf);
+                Some(pkgs)
+                // None
+            }
+        }
     }
 }
 
@@ -132,8 +155,12 @@ impl Elf {
         //     println!("{} {}\n", self.install_command, pkgs.join(" "));
         // }
 
-        println!("To install missing {} packages, run:", self);
-        println!("{} {}\n", self.install_command, packages.join(" "));
+        if packages.len() != 0 {
+            println!("To install missing {} packages, run:", self);
+            println!("{} {}\n", self.install_command, packages.join(" "));
+        } else {
+            info!("No missing packages for {}", self);
+        }
     }
 
     /// Returns an override for the current platform, if defined.
@@ -185,14 +212,14 @@ impl Elf {
         packages
     }
 
-    pub fn packages_to_install(&self, cache: &PackageCache) -> Vec<String> {
-        self.packages()
-            .clone()
-            .iter()
-            .filter(|p| self.package_is_installed(p.to_string(), cache))
-            .map(|s| s.to_string())
-            .collect()
-    }
+    // pub fn packages_to_install(&self, cache: &PackageCache) -> Vec<String> {
+    //     self.packages()
+    //         .clone()
+    //         .iter()
+    //         .filter(|p| self.package_is_installed(p.to_string(), cache))
+    //         .map(|s| s.to_string())
+    //         .collect()
+    // }
 
     pub fn adjust_package_name(&self, pkg: &str) -> String {
         match &self.prepend_to_package_name {
@@ -201,9 +228,9 @@ impl Elf {
         }
     }
 
-    pub fn package_is_installed(&self, pkg: String, cache: &PackageCache) -> bool {
-        self.packages().contains(&pkg)
-    }
+    // pub fn package_is_installed(&self, pkg: String, cache: &PackageCache) -> bool {
+    //     self.packages().contains(&pkg)
+    // }
 
     pub fn table(
         &self,
@@ -213,7 +240,7 @@ impl Elf {
     ) -> Table {
         let mut table = Table::new("{:<} {:<}");
         for pkg in pkgs {
-            let installed = cache.check(&self.name_str(), &pkg);
+            let installed = cache.check(&self, &pkg);
             let emoji = if installed { "✅" } else { "❌" };
 
             if !installed || (installed && include_installed) {
