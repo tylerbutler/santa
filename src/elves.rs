@@ -105,12 +105,11 @@ pub struct Elf {
 
     /// Override the commands per platform.
     pub overrides: Option<Vec<ElfOverride>>,
+    // #[serde(skip)]
+    // pub _packages: Vec<String>,
 
-    #[serde(skip)]
-    pub _packages: Vec<String>,
-
-    #[serde(skip)]
-    pub _checked: bool,
+    // #[serde(skip)]
+    // pub _checked: bool,
 }
 
 impl Elf {
@@ -156,8 +155,9 @@ impl Elf {
         // }
 
         if packages.len() != 0 {
+            let renamed: Vec<String> = packages.iter().map(|p| data.name_for(p, self)).collect();
             println!("To install missing {} packages, run:", self);
-            println!("{} {}\n", self.install_command, packages.join(" "));
+            println!("{} {}\n", self.install_command, renamed.join(" "));
         } else {
             info!("No missing packages for {}", self);
         }

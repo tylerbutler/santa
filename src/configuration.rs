@@ -1,10 +1,10 @@
-use crate::elves::Elf;
 use crate::data::ElfList;
+use crate::elves::Elf;
 use crate::Exportable;
 use std::{collections::HashMap, fs, path::Path};
 
 use log::{debug, trace, warn};
-use memoize::memoize;
+// use memoize::memoize;
 use serde::{Deserialize, Serialize};
 
 use crate::data::{constants, KnownElves, SantaData};

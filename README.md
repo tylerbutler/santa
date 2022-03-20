@@ -41,3 +41,10 @@ packages:
   - chezmoi
 ```
 
+## Development to do
+
+- [ ] Config should be the primary thing the app passes around. Data should be loaded into the config.
+- [ ] Per-elf overrides for packages (e.g. `git-delta` is `delta` in scoop) aren't handled consistently.
+- [ ] Centralize the logic for loading the right `PackageData` for a given package taking into account the elf that the
+      package is configured to use. There should be a single place that answers the question, "is this package enabled?"
+      That should be the Config. App should load data, use it to initialize config (i.e. merge the two)

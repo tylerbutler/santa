@@ -1,6 +1,11 @@
 bat:
   brew: ~
-  scoop: ~
+  scoop:
+    name: bat
+    before: ~
+    after: ~
+    pre: ~
+    post: ~
   pacman: ~
   nix: ~
 bottom:
@@ -104,7 +109,6 @@ micro:
   nix: ~
 nnn:
   brew: ~
-  scoop: ~
   pacman: ~
   nix: ~
 oh-my-posh:
@@ -157,25 +161,21 @@ tealdeer:
   nix: ~
 thefuck:
   brew: ~
-  scoop: ~
   apt: ~
   nix: ~
 tmux:
   brew: ~
-  scoop: ~
   apt: ~
   pacman: ~
   nix: ~
 viu:
   brew: ~
-  scoop: ~
   pacman: ~
   nix: ~
 when-cli:
   cargo: ~
 zellij:
   brew: ~
-  scoop: ~
   pacman: ~
   nix: ~
 zoxide:

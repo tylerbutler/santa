@@ -12,7 +12,7 @@ use crate::data::SantaData;
 
 pub fn status_command(config: &SantaConfig, data: &SantaData, mut cache: PackageCache, all: &bool) {
     // filter elves to those enabled in the config
-    let elves: Vec<Elf> = data
+    let elves: ElfList = data
         .elves
         .clone()
         .into_iter()
@@ -54,7 +54,7 @@ pub fn config_command(config: &SantaConfig, data: &SantaData, packages: bool, bu
 pub fn install_command(config: &SantaConfig, data: &SantaData, mut cache: PackageCache) {
     // let config = config.clone();
     // filter elves to those enabled in the config
-    let elves: Vec<Elf> = data
+    let elves: ElfList = data
         .elves
         .clone()
         .into_iter()
@@ -70,7 +70,7 @@ pub fn install_command(config: &SantaConfig, data: &SantaData, mut cache: Packag
         cache.cache_for(&elf);
     }
 
-    let config = config.clone();
+    // let config = config.clone();
     for elf in &elves {
         let groups = config.clone().groups(data);
         for (key, pkgs) in groups {

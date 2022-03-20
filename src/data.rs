@@ -5,11 +5,11 @@ use std::{
     path::{Path, PathBuf},
 };
 
-extern crate yaml_rust;
+// extern crate yaml_rust;
 use log::{debug, error, info, trace, warn};
 use serde::{Deserialize, Serialize};
 use serde_enum_str::{Deserialize_enum_str, Serialize_enum_str};
-use yaml_rust::{Yaml, YamlEmitter, YamlLoader};
+// use yaml_rust::{Yaml, YamlEmitter, YamlLoader};
 
 use crate::{data::constants::DEFAULT_CONFIG, elves::Elf, traits::Exportable};
 
@@ -124,7 +124,7 @@ pub trait LoadFromFile {
     where
         Self: Sized,
     {
-        debug!("Loading data from: {}", file.display());
+        info!("Loading data from: {}", file.display());
         if !file.exists() {
             error!("Can't find data file: {}", file.display());
         }
@@ -140,7 +140,7 @@ pub trait LoadFromFile {
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct PackageData {
     /// Name of the package
-    pub name: Option<String>,
+    name: Option<String>,
     /// A command to run BEFORE installing the package
     pub before: Option<String>,
     /// A command to run AFTER installing the package
@@ -149,8 +149,8 @@ pub struct PackageData {
     pub pre: Option<String>,
     /// A string to postpend to the install string
     pub post: Option<String>,
-    /// Elves that can install this package
-    pub elves: Option<Vec<String>>,
+    // Elves that can install this package
+    // pub elves: Option<Vec<String>>,
 }
 
 impl PackageData {
@@ -161,12 +161,21 @@ impl PackageData {
             after: None,
             pre: None,
             post: None,
-            elves: None,
+            // elves: None,
         }
     }
+
+    // pub fn name(self) -> Option<String> {
+    //     self.name
+    // }
+
+    // pub fn string_for(&self, elf: &Elf) -> String {
+
+    // }
 }
 
 // #[derive(Serialize, Deserialize, Clone, Debug)]
+/// A map of package names (strings)
 pub type PackageDataList = HashMap<String, HashMap<KnownElves, Option<PackageData>>>;
 
 impl LoadFromFile for PackageDataList {
@@ -194,8 +203,8 @@ impl LoadFromFile for ElfList {
     fn load_from_str(yaml_str: &str) -> Self {
         let data: ElfList = serde_yaml::from_str(&yaml_str).unwrap();
         data
-    }    
-}    
+    }
+}
 
 impl Exportable for ElfList {
     fn export_min(&self) -> String
@@ -235,13 +244,31 @@ impl SantaData {
             }
         }
     }
+
+    pub fn name_for(&self, package: &str, elf: &Elf) -> String {
+        // let elves =;
+        match self.packages.get(package) {
+            Some(elves) => {
+                match elves.get(&elf.name) {
+                    Some(pkgs) => {
+                        match pkgs {
+                            Some(name) => name.name.as_ref().unwrap_or(&package.to_string()).to_string(),
+                            None => package.to_string()
+                        }
+                    }
+                    None => package.to_string()
+                }
+            }
+            None => package.to_string()
+        }
+    }
 }
 
 impl Default for SantaData {
     fn default() -> Self {
         SantaData::load_from_str(constants::BUILTIN_PACKAGES, constants::BUILTIN_ELVES)
-    }    
-}    
+    }
+}
 
 impl Exportable for SantaData {
     fn export_min(&self) -> String
