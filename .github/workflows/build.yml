@@ -15,9 +15,9 @@ on:
         required: false
         default: false
 
-  push:
-    branches:
-      - main
+  # push:
+  #   branches:
+  #     - main
   #     - dev
 jobs:
   # docs:
@@ -48,13 +48,13 @@ jobs:
           - {
               rust: stable,
               os: macos-latest,
-              artifact_name: santa,
+              artifact_name: santa-macos,
               asset_name: santa-macos,
             }
           - {
               rust: stable,
               os: ubuntu-latest,
-              artifact_name: santa,
+              artifact_name: santa-linux,
               asset_name: santa-linux,
             }
           - {
