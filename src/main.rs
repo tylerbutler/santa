@@ -11,7 +11,7 @@ use std::collections::HashSet;
 use std::sync::RwLock;
 use std::{env, fmt};
 extern crate directories;
-use console::style;
+// use console::style;
 use directories::BaseDirs;
 // extern crate lazy_static;
 // use lazy_static::lazy_static;

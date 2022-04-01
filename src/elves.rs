@@ -1,7 +1,7 @@
 use crate::SantaConfig;
 use std::collections::{HashMap, HashSet};
 
-use cached::proc_macro::cached;
+// use cached::proc_macro::cached;
 use log::{debug, error, info, trace};
 use serde::{Deserialize, Serialize, __private::de::IdentifierDeserializer};
 use subprocess::Exec;
