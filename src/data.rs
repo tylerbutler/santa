@@ -248,18 +248,18 @@ impl SantaData {
     pub fn name_for(&self, package: &str, elf: &Elf) -> String {
         // let elves =;
         match self.packages.get(package) {
-            Some(elves) => {
-                match elves.get(&elf.name) {
-                    Some(pkgs) => {
-                        match pkgs {
-                            Some(name) => name.name.as_ref().unwrap_or(&package.to_string()).to_string(),
-                            None => package.to_string()
-                        }
-                    }
-                    None => package.to_string()
-                }
-            }
-            None => package.to_string()
+            Some(elves) => match elves.get(&elf.name) {
+                Some(pkgs) => match pkgs {
+                    Some(name) => name
+                        .name
+                        .as_ref()
+                        .unwrap_or(&package.to_string())
+                        .to_string(),
+                    None => package.to_string(),
+                },
+                None => package.to_string(),
+            },
+            None => package.to_string(),
         }
     }
 }

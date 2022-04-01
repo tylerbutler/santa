@@ -1,0 +1,3 @@
+# [build.env]
+# volumes = ["BUILD_DIR"]
+# passthrough = ["IMPORTANT_ENV_VARIABLES"]

@@ -1,0 +1,120 @@
+name: Build
+on:
+  workflow_dispatch:
+    inputs:
+      extended_targets:
+        description: Build extended targets
+        type: boolean
+        required: false
+        default: false
+  workflow_call:
+    inputs:
+      extended_targets:
+        description: Build extended targets
+        type: boolean
+        required: false
+        default: false
+
+  push:
+    branches:
+      - main
+  #     - dev
+jobs:
+  # docs:
+  #   name: Documentation
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Checkout repository
+  #       uses: actions/checkout@v2
+  #     - name: Install Rust
+  #       uses: actions-rs/toolchain@v1
+  #       with:
+  #         toolchain: stable
+  #         override: true
+  #         profile: minimal
+  #         components: rustfmt
+  #     - name: Check documentation
+  #       env:
+  #         RUSTDOCFLAGS: -D warnings
+  #       run: cargo doc --no-deps --document-private-items --workspace
+
+  build:
+    name: Build - ${{ matrix.rust }} - ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - {
+              rust: stable,
+              os: macos-latest,
+              artifact_name: santa,
+              asset_name: santa-macos,
+            }
+          - {
+              rust: stable,
+              os: ubuntu-latest,
+              artifact_name: santa,
+              asset_name: santa-linux,
+            }
+          - {
+              rust: stable,
+              os: windows-latest,
+              artifact_name: santa.exe,
+              asset_name: santa-windows.exe,
+            }
+          # - { rust: stable-x86_64-gnu, os: windows-latest }
+          # - { rust: stable-i686-msvc, os: windows-latest }
+          # - { rust: stable-i686-gnu, os: windows-latest }
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: ${{ matrix.rust }}
+          override: true
+          profile: minimal
+      - uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --release --all-features
+      - uses: actions/upload-artifact@v3
+        with:
+          name: ${{ matrix.asset_name }}
+          path: target/release/${{ matrix.artifact_name }}
+
+  build-cross:
+    name: Build - ${{ matrix.target }} - cross
+    runs-on: ubuntu-latest
+    if: github.event.inputs.extended_targets == true
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          # 32-bit x86
+          - i686-unknown-linux-gnu
+          # 32-bit ARM (on Android)
+          - armv7-linux-androideabi
+          # 64-bit ARM (on Android)
+          - aarch64-linux-android
+        include:
+          - { asset_name: santa }
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+          profile: minimal
+          target: ${{ matrix.target }}
+      - uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --release --target=${{ matrix.target }} --all-features
+          use-cross: true
+      - uses: actions/upload-artifact@v3
+        with:
+          name: ${{ matrix.asset_name }}-${{ matrix.target }}
+          path: target/${{ matrix.target }}/release/${{ matrix.asset_name }}

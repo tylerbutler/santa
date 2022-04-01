@@ -80,7 +80,6 @@ enum Commands {
 
         // #[clap(short, long)]
         // local: bool,
-
         #[clap(long)]
         pipe: bool,
     },

@@ -48,3 +48,25 @@ packages:
 - [ ] Centralize the logic for loading the right `PackageData` for a given package taking into account the elf that the
       package is configured to use. There should be a single place that answers the question, "is this package enabled?"
       That should be the Config. App should load data, use it to initialize config (i.e. merge the two)
+
+## Commands
+
+### Build:
+
+```
+cargo build [--release]
+```
+
+### Check for unused dependencies
+
+First, install [cargo-udeps](https://github.com/est31/cargo-udeps):
+
+```
+cargo install cargo-udeps --locked
+```
+
+Then run it:
+
+```
+cargo +nightly udeps
+```
