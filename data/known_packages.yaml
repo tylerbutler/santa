@@ -55,6 +55,8 @@ github-cli:
   apt: ~
   pacman: ~
   nix: ~
+gitkraken:
+  aur: ~
 ghq:
   brew: ~
   scoop: ~
@@ -113,7 +115,7 @@ nnn:
   nix: ~
 oh-my-posh:
   aur:
-    name: "oh-my-posh-git"
+    name: "oh-my-posh-bin"
   brew:
     before: "brew tap jandedobbeleer/oh-my-posh"
   scoop:
