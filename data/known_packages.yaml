@@ -61,6 +61,8 @@ ghq:
   brew: ~
   scoop: ~
   nix: ~
+  aur:
+    name: ghq-bin
 git-delta:
   brew: ~
   scoop:
@@ -165,6 +167,7 @@ thefuck:
   brew: ~
   apt: ~
   nix: ~
+  pacman: ~
 tmux:
   brew: ~
   apt: ~
