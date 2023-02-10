@@ -1,0 +1,20 @@
+{
+	"folders": [
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"workbench.colorTheme": "Default Dark+",
+	},
+	"extensions": {
+		"recommendations": [
+			"zhuangtongfa.material-theme",
+			"pawelgrzybek.gatito-theme",
+			"rust-lang.rust",
+			"redhat.vscode-yaml",
+			"bungcip.better-toml",
+			"serayuzgur.crates"
+		]
+	}
+}
