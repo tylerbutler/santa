@@ -1,3 +1,15 @@
+act:
+  brew: ~
+  scoop: ~
+aria2:
+  brew: ~
+  scoop: ~
+  pacman: ~
+atuin:
+  brew: ~
+  scoop: ~
+  pacman: ~
+  nix: ~
 bat:
   brew: ~
   scoop:
@@ -24,11 +36,16 @@ direnv:
   scoop: ~
   pacman: ~
   nix: ~
+difftastic:
+  brew: ~
+  scoop: ~
+  pacman: ~
+  nix: ~
 dust:
   brew: ~
   scoop: ~
   pacman: ~
-exa:
+eza:
   brew: ~
   pacman: ~
   nix: ~
@@ -97,7 +114,8 @@ lsd:
   pacman: ~
   nix: ~
 mc:
-  brew: ~
+  brew:
+    name: "midnight-commander"
   scoop: ~
   apt: ~
   pacman: ~
@@ -159,6 +177,11 @@ tealdeer:
   scoop: ~
   pacman: ~
   nix: ~
+topgrade:
+  brew: ~
+  scoop: ~
+  pacman: ~
+  nix: ~
 thefuck:
   brew: ~
   apt: ~
@@ -184,13 +207,6 @@ zoxide:
   pacman: ~
   nix: ~
 
-act:
-  brew: ~
-  scoop: ~
-aria2:
-  brew: ~
-  scoop: ~
-  pacman: ~
 emplace:
   scoop: ~
 findutils:

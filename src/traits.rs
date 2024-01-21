@@ -6,8 +6,6 @@ pub trait Package {
     fn name(&self) -> String;
 }
 
-// pub trait Elf {}
-
 // pub trait Printable {
 //     fn title(&self) -> String;
 
@@ -19,8 +17,7 @@ pub trait Exportable {
     where
         Self: Serialize,
     {
-        let serialized = serde_yaml::to_string(&self).unwrap();
-        serialized
+        serde_yaml::to_string(&self).unwrap()
     }
 
     fn export_min(&self) -> String

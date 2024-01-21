@@ -1,5 +1,5 @@
-use crate::data::ElfList;
-use crate::elves::Elf;
+use crate::data::SourceList;
+use crate::sources::PackageSource;
 use crate::Exportable;
 use std::{collections::HashMap, fs, path::Path};
 
@@ -7,18 +7,18 @@ use log::{debug, trace, warn};
 // use memoize::memoize;
 use serde::{Deserialize, Serialize};
 
-use crate::data::{constants, KnownElves, SantaData};
+use crate::data::{constants, KnownSources, SantaData};
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct SantaConfig {
-    pub sources: Vec<KnownElves>,
+    pub sources: Vec<KnownSources>,
     pub packages: Vec<String>,
-    pub elves: Option<ElfList>,
+    pub custom_sources: Option<SourceList>,
 
     #[serde(skip)]
-    _groups: Option<HashMap<KnownElves, Vec<String>>>,
+    _groups: Option<HashMap<KnownSources, Vec<String>>>,
     #[serde(skip)]
-    pub log_level: usize,
+    pub log_level: u8,
 }
 
 impl Default for SantaConfig {
@@ -31,7 +31,7 @@ impl Exportable for SantaConfig {}
 
 impl SantaConfig {
     pub fn load_from_str(yaml_str: &str) -> Self {
-        let data: SantaConfig = serde_yaml::from_str(&yaml_str).unwrap();
+        let data: SantaConfig = serde_yaml::from_str(yaml_str).unwrap();
         data
     }
 
@@ -48,34 +48,34 @@ impl SantaConfig {
         }
     }
 
-    pub fn is_elf_enabled(self, elf: &Elf) -> bool {
-        trace!("Checking if {} is enabled", elf);
-        return self.sources.contains(&elf.name);
+    pub fn source_is_enabled(self, source: &PackageSource) -> bool {
+        trace!("Checking if {} is enabled", source);
+        return self.sources.contains(&source.name);
     }
 
-    /// Groups the configured (enabled) packages by elf.
-    pub fn groups(mut self, data: &SantaData) -> HashMap<KnownElves, Vec<String>> {
+    /// Groups the configured (enabled) packages by source.
+    pub fn groups(mut self, data: &SantaData) -> HashMap<KnownSources, Vec<String>> {
         match &self._groups {
             Some(groups) => groups.clone(),
             None => {
-                let configured_sources: Vec<KnownElves> = self.sources;
+                let configured_sources: Vec<KnownSources> = self.sources;
                 // let s2 = self.sources.clone();
-                let mut groups: HashMap<KnownElves, Vec<String>> = HashMap::new();
-                for elf in configured_sources.clone() {
-                    groups.insert(elf, Vec::new());
+                let mut groups: HashMap<KnownSources, Vec<String>> = HashMap::new();
+                for source in configured_sources.clone() {
+                    groups.insert(source, Vec::new());
                 }
 
                 for pkg in &self.packages {
-                    for elf in configured_sources.clone() {
+                    for source in configured_sources.clone() {
                         if data.packages.contains_key(pkg) {
                             let available_sources = data.packages.get(pkg).unwrap();
                             trace!("available_sources: {:?}", available_sources);
 
-                            if available_sources.contains_key(&elf) {
-                                trace!("Adding {} to {} list.", pkg, elf);
-                                match groups.get_mut(&elf) {
+                            if available_sources.contains_key(&source) {
+                                trace!("Adding {} to {} list.", pkg, source);
+                                match groups.get_mut(&source) {
                                     Some(v) => {
-                                        // trace!("Adding {} to {} list.", pkg, elf);
+                                        // trace!("Adding {} to {} list.", pkg, source);
                                         v.push(pkg.to_string());
                                         break;
                                     }

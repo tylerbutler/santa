@@ -19,102 +19,73 @@ on:
   #   branches:
   #     - main
   #     - dev
+
+env:
+  # The project name specified in your Cargo.toml
+  PROJECT_NAME: santa
+
 jobs:
-  # docs:
-  #   name: Documentation
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Checkout repository
-  #       uses: actions/checkout@v2
-  #     - name: Install Rust
-  #       uses: actions-rs/toolchain@v1
-  #       with:
-  #         toolchain: stable
-  #         override: true
-  #         profile: minimal
-  #         components: rustfmt
-  #     - name: Check documentation
-  #       env:
-  #         RUSTDOCFLAGS: -D warnings
-  #       run: cargo doc --no-deps --document-private-items --workspace
-
   build:
-    name: Build - ${{ matrix.rust }} - ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
+    name: Build - ${{ matrix.name }}
+    runs-on: ${{ matrix.runner }}
     strategy:
       fail-fast: false
       matrix:
         include:
-          - {
-              rust: stable,
-              os: macos-latest,
-              artifact_name: santa-macos,
-              asset_name: santa-macos,
-            }
-          - {
-              rust: stable,
-              os: ubuntu-latest,
-              artifact_name: santa-linux,
-              asset_name: santa-linux,
-            }
-          - {
-              rust: stable,
-              os: windows-latest,
-              artifact_name: santa.exe,
-              asset_name: santa-windows.exe,
-            }
-          # - { rust: stable-x86_64-gnu, os: windows-latest }
-          # - { rust: stable-i686-msvc, os: windows-latest }
-          # - { rust: stable-i686-gnu, os: windows-latest }
-    steps:
-      - uses: actions/checkout@v2
-      - name: Install Rust
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: ${{ matrix.rust }}
-          override: true
-          profile: minimal
-      - uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: --release --all-features
-      - uses: actions/upload-artifact@v3
-        with:
-          name: ${{ matrix.asset_name }}
-          path: target/release/${{ matrix.artifact_name }}
-
-  build-cross:
-    name: Build - ${{ matrix.target }} - cross
-    runs-on: ubuntu-latest
-    if: github.event.inputs.extended_targets == true
-    strategy:
-      fail-fast: false
-      matrix:
-        target:
-          # 32-bit x86
-          - i686-unknown-linux-gnu
-          # 32-bit ARM (on Android)
-          - armv7-linux-androideabi
-          # 64-bit ARM (on Android)
-          - aarch64-linux-android
-        include:
-          - { asset_name: santa }
+          - name: linux-amd64
+            runner: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            asset_name: santa
+            command: cargo
+          # - name: linux-arm64
+          #   runner: ubuntu-latest
+          #   target: aarch64-unknown-linux-gnu
+          #   asset_name: santa
+          #   command: cross
+          - name: win-amd64
+            runner: windows-latest
+            target: x86_64-pc-windows-msvc
+            asset_name: santa.exe
+            command: cargo
+          # - name: macos-amd64
+          #   runner: macos-latest
+          #   target: x86_64-apple-darwin
+          #   asset_name: santa
+          #   command: cross
+          - name: macos-arm64
+            runner: macos-latest
+            target: aarch64-apple-darwin
+            asset_name: santa
+            command: cargo
 
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout
+        uses: actions/checkout@v4
+
       - name: Install Rust
-        uses: actions-rs/toolchain@v1
+        uses: dtolnay/rust-toolchain@stable
         with:
-          toolchain: stable
-          override: true
-          profile: minimal
-          target: ${{ matrix.target }}
-      - uses: actions-rs/cargo@v1
+          targets: "${{ matrix.target }}"
+
+      - name: Setup Cache
+        uses: Swatinem/rust-cache@v2
+
+      - uses: taiki-e/install-action@v2
         with:
-          command: build
-          args: --release --target=${{ matrix.target }} --all-features
-          use-cross: true
+          tool: "just,cargo-binstall,cargo-udeps"
+
+      # Only install cross if we need it
+      # Install via cargo-binstall which is typically faster
+      - name: Install Cross
+        if: matrix.command == 'cross'
+        uses: taiki-e/install-action@v2
+        with:
+          tool: "cross"
+
+      - name: Build Binary
+        run: ${{ matrix.command }} build --locked --release --target ${{ matrix.target }}
+
       - uses: actions/upload-artifact@v3
         with:
-          name: ${{ matrix.asset_name }}-${{ matrix.target }}
-          path: target/${{ matrix.target }}/release/${{ matrix.asset_name }}
+          name: ${{ matrix.target }}
+          path: target/release/${{ matrix.asset_name }}

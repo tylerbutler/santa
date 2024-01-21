@@ -2,7 +2,7 @@
 #[macro_use]
 // extern crate clap_verbosity_flag;
 use anyhow::bail;
-use clap::{AppSettings, Parser, Subcommand};
+use clap::{ArgAction, Parser, Subcommand};
 use config::{Config, File, FileSourceFile, Value};
 use configuration::SantaConfig;
 use log::{debug, info, trace, warn, LevelFilter};
@@ -20,13 +20,13 @@ use std::path::{Path, PathBuf};
 
 use crate::commands::*;
 use crate::data::SantaData;
-use crate::elves::PackageCache;
+use crate::sources::PackageCache;
 use crate::traits::Exportable;
 
 mod commands;
 mod configuration;
 mod data;
-mod elves;
+mod sources;
 mod traits;
 
 // static CONFIG: Config = ;
@@ -51,8 +51,8 @@ struct Cli {
     builtin_only: bool,
 
     /// Increase logging level
-    #[clap(short, long, global = true, parse(from_occurrences))]
-    verbose: usize,
+    #[clap(short, long, global = true, action = ArgAction::Count)]
+    verbose: u8,
 }
 
 #[derive(Subcommand)]
@@ -64,11 +64,11 @@ enum Commands {
         all: bool,
     },
     /// Installs packages
-    Install { elf: Option<String> },
-    /// Asks an elf to add a package to its tracking list
+    Install { source: Option<String> },
+    /// Adds a package to the tracking list for a package source
     Add {
         package: Option<String>,
-        elf: Option<String>,
+        source: Option<String>,
     },
     Config {
         /// Show full config
@@ -136,12 +136,12 @@ pub fn run() -> Result<(), anyhow::Error> {
             debug!("santa status");
             commands::status_command(&config, &data, cache, all);
         }
-        Commands::Install { elf } => {
-            // println!("NYI: santa install {:?}", elf);
+        Commands::Install { source } => {
+            // println!("NYI: santa install {:?}", source);
             commands::install_command(&config, &data, cache);
         }
-        Commands::Add { elf, package } => {
-            println!("NYI: santa add {:?} {:?}", elf, package);
+        Commands::Add { source, package } => {
+            println!("NYI: santa add {:?} {:?}", source, package);
             todo!();
         }
         Commands::Config { packages, pipe } => {

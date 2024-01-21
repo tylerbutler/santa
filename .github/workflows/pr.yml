@@ -4,63 +4,61 @@ on:
   pull_request:
     branches: [main]
   # push:
-  #   branches: [dev]
+  #   branches: [main]
+
 jobs:
-  rustfmt:
-    name: Formatting
+  checks:
+    name: PR Checks
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
+
       - name: Install Rust
-        uses: actions-rs/toolchain@v1
+        uses: dtolnay/rust-toolchain@stable
         with:
-          toolchain: stable
-          profile: minimal
-          components: rustfmt
+          components: "clippy,rustfmt"
+
+      - name: Setup Cache
+        uses: Swatinem/rust-cache@v2
+        with:
+          # Determines whether workspace `target` directories are cached.
+          # If `false`, only the cargo registry will be cached.
+          # default: "true"
+          cache-targets: true
+
+          # Determines if the cache should be saved even when the workflow has failed.
+          # default: "false"
+          cache-on-failure: true
+
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: "just,cargo-udeps"
+
       - name: Check formatting
         run: |
-          cargo fmt --all -- --check
+          just format --check
 
-  lint:
-    name: clippy (lint)
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-        if: ${{ !env.ACT }}
-      - name: Install Rust
-        uses: actions-rs/toolchain@v1
-        if: ${{ !env.ACT }}
-        with:
-          toolchain: stable
-          profile: minimal
-      - name: Annotate commit with clippy warnings
-        uses: actions-rs/clippy-check@v1
-        if: ${{ !env.ACT }}
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          args: --all-features
+      - name: Clippy check (lint)
+        run:
+          just lint
 
-  build-pr:
-    name: Build
-    runs-on: ubuntu-latest
-    needs: [rustfmt]
-    steps:
-      - uses: actions/checkout@v2
-      - name: Install Rust
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-          profile: minimal
-      - uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: --release --all-features
+      - name: Debug build
+        run: |
+          just build
+
+      # - name: Annotate commit with clippy warnings
+      #   uses: actions-rs/clippy-check@v1
+      #   if: ${{ !env.ACT }}
+      #   with:
+      #     token: ${{ secrets.GITHUB_TOKEN }}
+      #     args: --all-features
+
   # test:
   #   name: Test
   #   runs-on: ubuntu-latest
   #   steps:
-  #     - uses: actions/checkout@v2
+  #     - uses: actions/checkout@v4
   #     - name: Install Rust
   #       uses: actions-rs/toolchain@v1
   #       with:
