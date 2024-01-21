@@ -1,8 +1,8 @@
-use crate::data::ElfList;
-use crate::data::KnownElves;
-use crate::elves::Elf;
+use crate::data::SourceList;
+use crate::data::KnownSources;
+use crate::sources::PackageSource;
 use crate::traits::Exportable;
-use crate::{configuration::SantaConfig, elves::PackageCache};
+use crate::{configuration::SantaConfig, sources::PackageCache};
 use std::collections::HashSet;
 use std::{collections::HashMap, fmt::format};
 
@@ -11,25 +11,25 @@ use log::{debug, error, info, trace, warn};
 use crate::data::SantaData;
 
 pub fn status_command(config: &SantaConfig, data: &SantaData, mut cache: PackageCache, all: &bool) {
-    // filter elves to those enabled in the config
-    let elves: ElfList = data
-        .elves
+    // filter sources to those enabled in the config
+    let sources: SourceList = data
+        .sources
         .clone()
         .into_iter()
-        .filter(|elf| config.clone().is_elf_enabled(&elf))
+        .filter(|source| config.clone().is_source_enabled(&source))
         .collect();
-    // let serialized = serde_yaml::to_string(&elves).unwrap();
+    // let serialized = serde_yaml::to_string(&sources).unwrap();
 
-    for elf in &elves {
-        cache.cache_for(&elf);
+    for source in &sources {
+        cache.cache_for(&source);
     }
-    for elf in &elves {
+    for source in &sources {
         let groups = config.clone().groups(data);
         for (key, pkgs) in groups {
-            if elf.name == key {
+            if source.name == key {
                 let pkg_count = pkgs.len();
-                let table = format!("{}", elf.table(&pkgs, &cache, *all).to_string());
-                println!("{} ({} packages total)", elf, pkg_count);
+                let table = format!("{}", source.table(&pkgs, &cache, *all).to_string());
+                println!("{} ({} packages total)", source, pkg_count);
                 println!("{}", table);
                 break;
             }
@@ -46,41 +46,41 @@ pub fn config_command(config: &SantaConfig, data: &SantaData, packages: bool, bu
         if packages {
             println!("{}", data.export());
         } else {
-            println!("{}", data.elves.export())
+            println!("{}", data.sources.export())
         }
     }
 }
 
 pub fn install_command(config: &SantaConfig, data: &SantaData, mut cache: PackageCache) {
     // let config = config.clone();
-    // filter elves to those enabled in the config
-    let elves: ElfList = data
-        .elves
+    // filter sources to those enabled in the config
+    let sources: SourceList = data
+        .sources
         .clone()
         .into_iter()
-        .filter(|elf| config.clone().is_elf_enabled(&elf))
+        .filter(|source| config.clone().is_source_enabled(&source))
         .collect();
 
     // for (k, v) in config.groups(&data) {
     //     error!("{} {:?}", k, v);
     // }
 
-    for elf in &elves {
-        debug!("Stats for {}", elf.name);
-        cache.cache_for(&elf);
+    for source in &sources {
+        debug!("Stats for {}", source.name);
+        cache.cache_for(&source);
     }
 
     // let config = config.clone();
-    for elf in &elves {
+    for source in &sources {
         let groups = config.clone().groups(data);
         for (key, pkgs) in groups {
-            if elf.name == key {
+            if source.name == key {
                 let pkgs: Vec<String> = pkgs
                     .iter()
-                    .filter(|p| !cache.check(&elf, p))
+                    .filter(|p| !cache.check(&source, p))
                     .map(|p| p.to_string())
                     .collect();
-                elf.exec_install(&config, data, pkgs);
+                source.exec_install(&config, data, pkgs);
             }
         }
     }

@@ -6,8 +6,6 @@ pub trait Package {
     fn name(&self) -> String;
 }
 
-// pub trait Elf {}
-
 // pub trait Printable {
 //     fn title(&self) -> String;
 

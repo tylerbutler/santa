@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize, __private::de::IdentifierDeserializer};
 use subprocess::Exec;
 use tabular::{Row, Table};
 
-use crate::data::{KnownElves, PackageData, Platform, SantaData};
+use crate::data::{KnownSources, PackageData, Platform, SantaData};
 
 pub mod traits;
 
@@ -31,35 +31,35 @@ impl PackageCache {
     }
 
     /// Checks for a package in the cache. This accesses the cache only, and will not modify it.
-    pub fn check(&self, elf: &Elf, pkg: &str) -> bool {
-        match self.cache.get(&elf.name_str()) {
+    pub fn check(&self, source: &PackageSource, pkg: &str) -> bool {
+        match self.cache.get(&source.name_str()) {
             Some(pkgs) => pkgs.contains(&pkg.to_string()),
             _ => {
-                debug!("No package cache for {}", elf);
+                debug!("No package cache for {}", source);
                 false
             }
         }
     }
 
-    pub fn cache_for(&mut self, elf: &Elf) {
-        info!("Caching data for {}", elf);
-        let pkgs = elf.packages();
-        self.cache.insert(elf.name_str(), pkgs.clone());
+    pub fn cache_for(&mut self, source: &PackageSource) {
+        info!("Caching data for {}", source);
+        let pkgs = source.packages();
+        self.cache.insert(source.name_str(), pkgs.clone());
     }
 
-    /// Returns all packages for an Elf. This will call the Elf's check_command and populate the cache if needed.
-    /// If the Elf can't be found, or the cache population fails, then None will be returned.
-    pub fn packages_for(cache: &mut PackageCache, elf: &Elf) -> Option<Vec<String>> {
+    /// Returns all packages for a PackageSource. This will call the PackageSource's check_command and populate the cache if needed.
+    /// If the PackageSource can't be found, or the cache population fails, then None will be returned.
+    pub fn packages_for(cache: &mut PackageCache, source: &PackageSource) -> Option<Vec<String>> {
         let c = cache.clone();
-        match c.cache.get(&elf.name_str()) {
+        match c.cache.get(&source.name_str()) {
             Some(pkgs) => {
                 trace!("Cache hit");
                 Some(pkgs.to_vec())
             }
             None => {
-                debug!("Cache miss, filling cache for {}", elf.name);
-                let pkgs = elf.packages();
-                cache.cache_for(elf);
+                debug!("Cache miss, filling cache for {}", source.name);
+                let pkgs = source.packages();
+                cache.cache_for(source);
                 Some(pkgs)
                 // None
             }
@@ -68,16 +68,16 @@ impl PackageCache {
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, Eq, PartialEq, Hash)]
-pub struct ElfOverride {
+pub struct SourceOverride {
     platform: Platform,
     pub shell_command: Option<String>,
     pub install_command: Option<String>,
     pub check_command: Option<String>,
 }
 
-impl ElfOverride {
+impl SourceOverride {
     pub fn default() -> Self {
-        ElfOverride {
+        SourceOverride {
             platform: Platform::default(),
             shell_command: None,
             check_command: None,
@@ -87,9 +87,9 @@ impl ElfOverride {
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, Eq, PartialEq, Hash)]
-pub struct Elf {
+pub struct PackageSource {
     /// The name of the package manager.
-    pub name: KnownElves,
+    pub name: KnownSources,
     /// An icon that represents the package manager.
     emoji: String,
     /// The command that executes the package manager. For example, for npm this is `npm`.
@@ -100,11 +100,11 @@ pub struct Elf {
     /// The command that will be run to query the list of installed packages. For example,
     /// for brew this is `brew leaves --installed-on-request`.
     check_command: String,
-    /// A string to prepend to every package name for this elf.
+    /// A string to prepend to every package name for this source.
     pub prepend_to_package_name: Option<String>,
 
     /// Override the commands per platform.
-    pub overrides: Option<Vec<ElfOverride>>,
+    pub overrides: Option<Vec<SourceOverride>>,
     // #[serde(skip)]
     // pub _packages: Vec<String>,
 
@@ -112,7 +112,7 @@ pub struct Elf {
     // pub _checked: bool,
 }
 
-impl Elf {
+impl PackageSource {
     pub fn name_str(&self) -> String {
         self.name.to_string()
     }
@@ -164,7 +164,7 @@ impl Elf {
     }
 
     /// Returns an override for the current platform, if defined.
-    pub fn get_override_for_current_platform(&self) -> Option<ElfOverride> {
+    pub fn get_override_for_current_platform(&self) -> Option<SourceOverride> {
         let current = Platform::current();
         match &self.overrides {
             Some(overrides) => match overrides.into_iter().find(|&o| o.platform == current) {
@@ -251,7 +251,7 @@ impl Elf {
     }
 }
 
-impl std::fmt::Display for Elf {
+impl std::fmt::Display for PackageSource {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{} {}", self.emoji, self.name)
     }

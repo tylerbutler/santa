@@ -11,13 +11,13 @@ use serde::{Deserialize, Serialize};
 use serde_enum_str::{Deserialize_enum_str, Serialize_enum_str};
 // use yaml_rust::{Yaml, YamlEmitter, YamlLoader};
 
-use crate::{data::constants::DEFAULT_CONFIG, elves::Elf, traits::Exportable};
+use crate::{data::constants::DEFAULT_CONFIG, sources::PackageSource, traits::Exportable};
 
 pub mod constants;
 
 #[derive(Serialize_enum_str, Deserialize_enum_str, Debug, Clone, Eq, PartialEq, Hash)]
 #[serde(rename_all = "camelCase")]
-pub enum KnownElves {
+pub enum KnownSources {
     Apt,
     Aur,
     Brew,
@@ -28,10 +28,6 @@ pub enum KnownElves {
     #[serde(other)]
     Unknown(String),
 }
-
-// impl std::convert::From<&str> for KnownElves {
-
-// }
 
 #[derive(Serialize, Deserialize, Debug, Clone, Eq, PartialEq, Hash)]
 #[serde(rename_all = "camelCase")]
@@ -149,8 +145,8 @@ pub struct PackageData {
     pub pre: Option<String>,
     /// A string to postpend to the install string
     pub post: Option<String>,
-    // Elves that can install this package
-    // pub elves: Option<Vec<String>>,
+    // Sources that can install this package
+    // pub sources: Option<Vec<String>>,
 }
 
 impl PackageData {
@@ -161,26 +157,25 @@ impl PackageData {
             after: None,
             pre: None,
             post: None,
-            // elves: None,
+            // sources: None,
         }
     }
-
-    // pub fn name(self) -> Option<String> {
-    //     self.name
-    // }
-
-    // pub fn string_for(&self, elf: &Elf) -> String {
-
-    // }
 }
 
 // #[derive(Serialize, Deserialize, Clone, Debug)]
 /// A map of package names (strings)
-pub type PackageDataList = HashMap<String, HashMap<KnownElves, Option<PackageData>>>;
+pub type PackageDataList = HashMap<String, HashMap<KnownSources, Option<PackageData>>>;
 
 impl LoadFromFile for PackageDataList {
     fn load_from_str(yaml_str: &str) -> Self {
-        let data: PackageDataList = serde_yaml::from_str(&yaml_str).unwrap();
+        let data: PackageDataList = match serde_yaml::from_str(&yaml_str) {
+            Ok(data) => data,
+            Err(e) => {
+                error!("Error loading data: {}", e);
+                error!("Using default data");
+                PackageDataList::load_from_str(DEFAULT_CONFIG)
+            }
+        };
         data
     }
 }
@@ -196,22 +191,21 @@ impl Exportable for PackageDataList {
     }
 }
 
-// pub type ElfList = HashSet<Elf>;
-pub type ElfList = Vec<Elf>;
+pub type SourceList = Vec<PackageSource>;
 
-impl LoadFromFile for ElfList {
+impl LoadFromFile for SourceList {
     fn load_from_str(yaml_str: &str) -> Self {
-        let data: ElfList = serde_yaml::from_str(&yaml_str).unwrap();
+        let data: SourceList = serde_yaml::from_str(&yaml_str).unwrap();
         data
     }
 }
 
-impl Exportable for ElfList {
+impl Exportable for SourceList {
     fn export_min(&self) -> String
     where
         Self: Serialize,
     {
-        let list: Vec<String> = self.iter().map(|elf| format!("{}", elf)).collect();
+        let list: Vec<String> = self.iter().map(|source| format!("{}", source)).collect();
         let serialized = serde_yaml::to_string(&list).unwrap();
         serialized
     }
@@ -220,35 +214,30 @@ impl Exportable for ElfList {
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct SantaData {
     pub packages: PackageDataList,
-    // pub elf_settings: HashMap<KnownElves, PackageData>,
-    pub elves: ElfList,
+    pub sources: SourceList,
 }
 
 impl SantaData {
-    pub fn load_from_str(packages_str: &str, elves_str: &str) -> Self {
+    pub fn load_from_str(packages_str: &str, sources_str: &str) -> Self {
         let packages = PackageDataList::load_from_str(packages_str);
-        let elves = ElfList::load_from_str(elves_str);
-        SantaData { packages, elves }
+        let sources = SourceList::load_from_str(sources_str);
+        SantaData { packages, sources }
     }
 
     // pub fn update_from_config(&mut self, config: &SantaConfig) {
-    pub fn elves(&self, config: &SantaConfig) -> ElfList {
-        match &config.elves {
-            None => self.elves.clone(),
-            Some(elves) => {
-                let mut ret: ElfList = self.elves.clone();
-                // let add: ElfList = elves.clone();
-                ret.extend(elves.clone());
-                // ret.extend_from_slice(&config.elves.as_ref());
-                ret
-            }
+    pub fn sources(&self, config: &SantaConfig) -> SourceList {
+        if config.sources.is_empty() {
+            self.sources.clone()
+        } else {
+            let mut ret: SourceList = self.sources.clone();
+            ret.extend(self.sources.clone());
+            ret
         }
     }
 
-    pub fn name_for(&self, package: &str, elf: &Elf) -> String {
-        // let elves =;
+    pub fn name_for(&self, package: &str, source: &PackageSource) -> String {
         match self.packages.get(package) {
-            Some(elves) => match elves.get(&elf.name) {
+            Some(sources) => match sources.get(&source.name) {
                 Some(pkgs) => match pkgs {
                     Some(name) => name
                         .name
@@ -266,7 +255,7 @@ impl SantaData {
 
 impl Default for SantaData {
     fn default() -> Self {
-        SantaData::load_from_str(constants::BUILTIN_PACKAGES, constants::BUILTIN_ELVES)
+        SantaData::load_from_str(constants::BUILTIN_PACKAGES, constants::BUILTIN_SOURCES)
     }
 }
 
