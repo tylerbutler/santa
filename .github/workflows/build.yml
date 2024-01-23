@@ -15,9 +15,9 @@ on:
         required: false
         default: false
 
-  push:
-    branches:
-      - main
+  # push:
+  #   branches:
+  #     - main
   #     - dev
 
 env:
@@ -29,29 +29,34 @@ jobs:
     name: Build - ${{ matrix.name }}
     runs-on: ${{ matrix.runner }}
     strategy:
-      fail-fast: false
+      # fail-fast: false
       matrix:
         include:
           - name: linux-amd64
             runner: ubuntu-latest
             target: x86_64-unknown-linux-gnu
-            command: cargo
-          - name: win-amd64
-            runner: windows-latest
-            target: x86_64-pc-windows-msvc
-            command: cargo
-          - name: linux-amd64
-            runner: macos-latest
-            target: x86_64-apple-darwin
-            command: cross
-          - name: macos-arm64
-            runner: macos-latest
-            target: aarch64-apple-darwin
+            asset_name: santa
             command: cargo
           - name: linux-arm64
             runner: ubuntu-latest
             target: aarch64-unknown-linux-gnu
+            asset_name: santa
             command: cross
+          - name: win-amd64
+            runner: windows-latest
+            target: x86_64-pc-windows-msvc
+            asset_name: santa.exe
+            command: cargo
+          - name: macos-amd64
+            runner: macos-latest
+            target: x86_64-apple-darwin
+            asset_name: santa
+            command: cross
+          - name: macos-arm64
+            runner: macos-latest
+            target: aarch64-apple-darwin
+            asset_name: santa
+            command: cargo
 
     steps:
       - name: Checkout
@@ -82,5 +87,43 @@ jobs:
 
       - uses: actions/upload-artifact@v3
         with:
-          name: ${{ matrix.asset_name }}
+          # name: ${{ matrix.asset_name }}
           path: target/release/${{ matrix.artifact_name }}
+
+
+
+  build-cross:
+    name: Build - ${{ matrix.target }} - cross
+    runs-on: ubuntu-latest
+    if: github.event.inputs.extended_targets == true
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          # 32-bit x86
+          - i686-unknown-linux-gnu
+          # 32-bit ARM (on Android)
+          - armv7-linux-androideabi
+          # 64-bit ARM (on Android)
+          - aarch64-linux-android
+        include:
+          - { asset_name: santa }
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+          profile: minimal
+          target: ${{ matrix.target }}
+      - uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --release --target=${{ matrix.target }} --all-features
+          use-cross: true
+      - uses: actions/upload-artifact@v3
+        with:
+          name: ${{ matrix.asset_name }}-${{ matrix.target }}
+          path: target/${{ matrix.target }}/release/${{ matrix.asset_name }}
