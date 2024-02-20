@@ -3,8 +3,9 @@ on:
   workflow_dispatch:
   pull_request:
     branches: [main]
-  # push:
-  #   branches: [dev]
+  push:
+    branches: [main]
+
 jobs:
   rustfmt:
     name: Formatting
@@ -12,34 +13,25 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
+
       - name: Install Rust
-        uses: actions-rs/toolchain@v1
+        uses: dtolnay/rust-toolchain@stable
         with:
-          toolchain: stable
-          profile: minimal
-          components: rustfmt
+          components: "clippy,rustfmt"
+
+      - name: Setup Cache
+        uses: Swatinem/rust-cache@v2
+
       - name: Check formatting
         run: |
           cargo fmt --all -- --check
 
-  lint:
-    name: clippy (lint)
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-        if: ${{ !env.ACT }}
-      - name: Install Rust
-        uses: actions-rs/toolchain@v1
-        if: ${{ !env.ACT }}
-        with:
-          toolchain: stable
-          profile: minimal
-      - name: Annotate commit with clippy warnings
-        uses: actions-rs/clippy-check@v1
-        if: ${{ !env.ACT }}
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          args: --all-features
+      # - name: Annotate commit with clippy warnings
+      #   uses: actions-rs/clippy-check@v1
+      #   if: ${{ !env.ACT }}
+      #   with:
+      #     token: ${{ secrets.GITHUB_TOKEN }}
+      #     args: --all-features
 
   build-pr:
     name: Build
@@ -47,15 +39,21 @@ jobs:
     needs: [rustfmt]
     steps:
       - uses: actions/checkout@v2
+
       - name: Install Rust
-        uses: actions-rs/toolchain@v1
+        uses: dtolnay/rust-toolchain@stable
         with:
-          toolchain: stable
-          profile: minimal
-      - uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: --release --all-features
+          targets: "${{ matrix.target }}"
+
+      - name: Setup Cache
+        uses: Swatinem/rust-cache@v2
+
+      - uses: extractions/setup-just@v1
+        # with:
+        #   just-version: 1.5.0  # optional semver specification, otherwise latest
+
+      - run: just release
+
   # test:
   #   name: Test
   #   runs-on: ubuntu-latest
