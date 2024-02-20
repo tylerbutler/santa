@@ -25,7 +25,7 @@ jobs:
           # Determines whether workspace `target` directories are cached.
           # If `false`, only the cargo registry will be cached.
           # default: "true"
-          cache-targets: false
+          cache-targets: true
 
           # Determines if the cache should be saved even when the workflow has failed.
           # default: "false"
@@ -33,7 +33,7 @@ jobs:
 
       - uses: taiki-e/install-action@v2
         with:
-          tool: just,cargo-udeps
+          tool: "just,cargo-udeps"
 
       - name: Check formatting
         run: |
@@ -43,9 +43,9 @@ jobs:
         run:
           just lint
 
-      - name: Do release build
+      - name: Debug build
         run: |
-          just release
+          just build
 
       # - name: Annotate commit with clippy warnings
       #   uses: actions-rs/clippy-check@v1
