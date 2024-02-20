@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
@@ -31,9 +31,9 @@ jobs:
           # default: "false"
           cache-on-failure: true
 
-      - uses: extractions/setup-just@v1
-        # with:
-        #   just-version: 1.5.0  # optional semver specification, otherwise latest
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: just,cargo-udeps
 
       - name: Check formatting
         run: |
@@ -58,7 +58,7 @@ jobs:
   #   name: Test
   #   runs-on: ubuntu-latest
   #   steps:
-  #     - uses: actions/checkout@v2
+  #     - uses: actions/checkout@v3
   #     - name: Install Rust
   #       uses: actions-rs/toolchain@v1
   #       with:
