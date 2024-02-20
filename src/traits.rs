@@ -17,7 +17,6 @@ pub trait Exportable {
     where
         Self: Serialize,
     {
-        
         serde_yaml::to_string(&self).unwrap()
     }
 

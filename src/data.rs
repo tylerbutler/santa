@@ -186,7 +186,7 @@ impl Exportable for PackageDataList {
         Self: Serialize,
     {
         let list: Vec<String> = self.keys().map(|key| key.to_string()).collect();
-        
+
         serde_yaml::to_string(&list).unwrap()
     }
 }
@@ -206,7 +206,7 @@ impl Exportable for SourceList {
         Self: Serialize,
     {
         let list: Vec<String> = self.iter().map(|source| format!("{}", source)).collect();
-        
+
         serde_yaml::to_string(&list).unwrap()
     }
 }
@@ -264,7 +264,6 @@ impl Exportable for SantaData {
     where
         Self: Serialize,
     {
-        
         serde_yaml::to_string(&self).unwrap()
     }
 }
