@@ -2,6 +2,9 @@ use crate::SantaConfig;
 use std::collections::{HashMap, HashSet};
 
 // use cached::proc_macro::cached;
+use colored::*;
+// use anstream::println;
+use dialoguer::{theme::ColorfulTheme, Confirm};
 use log::{debug, error, info, trace};
 use serde::{Deserialize, Serialize, __private::de::IdentifierDeserializer};
 use subprocess::Exec;
@@ -156,10 +159,42 @@ impl PackageSource {
 
         if packages.len() != 0 {
             let renamed: Vec<String> = packages.iter().map(|p| data.name_for(p, self)).collect();
-            println!("To install missing {} packages, run:", self);
-            println!("{} {}\n", self.install_command, renamed.join(" "));
+            let install_command = self.install_packages_command(renamed);
+
+            if Confirm::with_theme(&ColorfulTheme::default())
+                .with_prompt(format!("Run '{}'?", install_command))
+                .default(true)
+                .interact()
+                .unwrap()
+            {
+                let ex: Exec;
+
+                if MACHINE_KIND != "windows" {
+                    ex = Exec::shell(install_command);
+                } else {
+                    ex = Exec::cmd("pwsh.exe").args(&[
+                        "-NonInteractive",
+                        "-NoLogo",
+                        "-NoProfile",
+                        "-Command",
+                        &install_command,
+                    ]);
+                }
+                match ex.capture() {
+                    Ok(data) => {
+                        let val = data.stdout_str();
+                        println!("{}", val);
+                    }
+                    Err(e) => {
+                        error!("Subprocess error: {}", e);
+                    }
+                }
+            } else {
+                println!("To install missing {} packages manually, run:", self);
+                println!("{}\n", install_command.bold());
+            }
         } else {
-            info!("No missing packages for {}", self);
+            println!("No missing packages for {}", self);
         }
     }
 
@@ -186,6 +221,23 @@ impl PackageSource {
             }
             None => self.shell_command.to_string(),
         }
+    }
+
+    /// Returns the configured install command, taking into account any platform overrides.
+    pub fn install_command(&self) -> String {
+        match self.get_override_for_current_platform() {
+            Some(ov) => {
+                return match ov.install_command {
+                    Some(cmd) => cmd,
+                    None => self.install_command.to_string(),
+                };
+            }
+            None => self.shell_command.to_string(),
+        }
+    }
+
+    pub fn install_packages_command(&self, packages: Vec<String>) -> String {
+        format!("{} {}", self.install_command, packages.join(" "))
     }
 
     /// Returns the configured check command, taking into account any platform overrides.

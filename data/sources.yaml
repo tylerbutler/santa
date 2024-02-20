@@ -3,11 +3,13 @@
   shell_command: brew
   install_command: "brew install"
   check_command: "brew leaves --installed-on-request"
+
 - name: pacman
   emoji: 👾
   shell_command: pacman
   install_command: "sudo pacman -Syyu"
   check_command: 'pacman -Qe | cut -f 1 -d " "'
+
 - name: npm
   emoji: 🕸
   shell_command: npm
@@ -18,6 +20,7 @@
         os: windows
         arch: x64
       check_command: "npm root -g | gci -Name"
+
 - name: cargo
   emoji: 📦
   shell_command: cargo
@@ -28,12 +31,14 @@
         os: windows
         arch: x64
       check_command: "cargo install --list | Where-Object { $_.endsWith(':')[0] } |% { $_.split(' ')[0] }"
+
 - name: nix
   emoji: 📈
-  shell_command: nix
+  shell_command: "nix-env"
   install_command: "nix-env -iA"
   check_command: "nix-env -q | rev | cut -d'-' -f2- | rev"
   prepend_to_package_name: "nixpkgs."
+
 - name: scoop
   emoji: 🍨
   shell_command: scoop

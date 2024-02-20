@@ -2,7 +2,7 @@
 #[macro_use]
 // extern crate clap_verbosity_flag;
 use anyhow::bail;
-use clap::{AppSettings, Parser, Subcommand};
+use clap::{ArgAction, Parser, Subcommand};
 use config::{Config, File, FileSourceFile, Value};
 use configuration::SantaConfig;
 use log::{debug, info, trace, warn, LevelFilter};
@@ -51,7 +51,7 @@ struct Cli {
     builtin_only: bool,
 
     /// Increase logging level
-    #[clap(short, long, global = true, parse(from_occurrences))]
+    #[clap(short, long, global = true, action = ArgAction::Count)]
     verbose: usize,
 }
 

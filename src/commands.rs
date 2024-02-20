@@ -1,5 +1,6 @@
-use crate::data::SourceList;
 use crate::data::KnownSources;
+use crate::data::SantaData;
+use crate::data::SourceList;
 use crate::sources::PackageSource;
 use crate::traits::Exportable;
 use crate::{configuration::SantaConfig, sources::PackageCache};
@@ -8,7 +9,7 @@ use std::{collections::HashMap, fmt::format};
 
 use log::{debug, error, info, trace, warn};
 
-use crate::data::SantaData;
+use colored::*;
 
 pub fn status_command(config: &SantaConfig, data: &SantaData, mut cache: PackageCache, all: &bool) {
     // filter sources to those enabled in the config
@@ -35,8 +36,6 @@ pub fn status_command(config: &SantaConfig, data: &SantaData, mut cache: Package
             }
         }
     }
-
-    install_command(config, data, cache);
 }
 
 pub fn config_command(config: &SantaConfig, data: &SantaData, packages: bool, builtin: bool) {

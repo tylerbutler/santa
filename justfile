@@ -15,5 +15,8 @@ release:
 test:
   cargo test
 
+deps:
+  cargo +nightly udeps
+
 cbuild target='x86_64-unknown-linux-gnu':
   cross build --verbose --locked --release --target {{target}}

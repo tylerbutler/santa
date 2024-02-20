@@ -97,7 +97,8 @@ lsd:
   pacman: ~
   nix: ~
 mc:
-  brew: ~
+  brew:
+    name: "midnight-commander"
   scoop: ~
   apt: ~
   pacman: ~
