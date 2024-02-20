@@ -168,7 +168,7 @@ pub type PackageDataList = HashMap<String, HashMap<KnownSources, Option<PackageD
 
 impl LoadFromFile for PackageDataList {
     fn load_from_str(yaml_str: &str) -> Self {
-        let data: PackageDataList = match serde_yaml::from_str(&yaml_str) {
+        let data: PackageDataList = match serde_yaml::from_str(yaml_str) {
             Ok(data) => data,
             Err(e) => {
                 error!("Error loading data: {}", e);
@@ -185,9 +185,9 @@ impl Exportable for PackageDataList {
     where
         Self: Serialize,
     {
-        let list: Vec<String> = self.keys().map(|key| format!("{}", key)).collect();
-        let serialized = serde_yaml::to_string(&list).unwrap();
-        serialized
+        let list: Vec<String> = self.keys().map(|key| key.to_string()).collect();
+        
+        serde_yaml::to_string(&list).unwrap()
     }
 }
 
@@ -195,7 +195,7 @@ pub type SourceList = Vec<PackageSource>;
 
 impl LoadFromFile for SourceList {
     fn load_from_str(yaml_str: &str) -> Self {
-        let data: SourceList = serde_yaml::from_str(&yaml_str).unwrap();
+        let data: SourceList = serde_yaml::from_str(yaml_str).unwrap();
         data
     }
 }
@@ -206,8 +206,8 @@ impl Exportable for SourceList {
         Self: Serialize,
     {
         let list: Vec<String> = self.iter().map(|source| format!("{}", source)).collect();
-        let serialized = serde_yaml::to_string(&list).unwrap();
-        serialized
+        
+        serde_yaml::to_string(&list).unwrap()
     }
 }
 
@@ -264,7 +264,7 @@ impl Exportable for SantaData {
     where
         Self: Serialize,
     {
-        let serialized = serde_yaml::to_string(&self).unwrap();
-        serialized
+        
+        serde_yaml::to_string(&self).unwrap()
     }
 }

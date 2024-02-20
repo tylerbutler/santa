@@ -18,7 +18,7 @@ pub struct SantaConfig {
     #[serde(skip)]
     _groups: Option<HashMap<KnownSources, Vec<String>>>,
     #[serde(skip)]
-    pub log_level: usize,
+    pub log_level: u8,
 }
 
 impl Default for SantaConfig {
@@ -31,7 +31,7 @@ impl Exportable for SantaConfig {}
 
 impl SantaConfig {
     pub fn load_from_str(yaml_str: &str) -> Self {
-        let data: SantaConfig = serde_yaml::from_str(&yaml_str).unwrap();
+        let data: SantaConfig = serde_yaml::from_str(yaml_str).unwrap();
         data
     }
 

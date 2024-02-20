@@ -52,7 +52,7 @@ struct Cli {
 
     /// Increase logging level
     #[clap(short, long, global = true, action = ArgAction::Count)]
-    verbose: usize,
+    verbose: u8,
 }
 
 #[derive(Subcommand)]

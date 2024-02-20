@@ -15,6 +15,9 @@ release:
 test:
   cargo test
 
+lint +args:
+  cargo clippy {{args}} -- -A clippy::needless_return
+
 deps:
   cargo +nightly udeps
 

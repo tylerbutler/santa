@@ -157,7 +157,7 @@ impl PackageSource {
         //     println!("{} {}\n", self.install_command, pkgs.join(" "));
         // }
 
-        if packages.len() != 0 {
+        if !packages.is_empty() {
             let renamed: Vec<String> = packages.iter().map(|p| data.name_for(p, self)).collect();
             let install_command = self.install_packages_command(renamed);
 
@@ -202,10 +202,7 @@ impl PackageSource {
     pub fn get_override_for_current_platform(&self) -> Option<SourceOverride> {
         let current = Platform::current();
         match &self.overrides {
-            Some(overrides) => match overrides.into_iter().find(|&o| o.platform == current) {
-                Some(ov) => Some(ov.clone()),
-                None => None,
-            },
+            Some(overrides) => overrides.iter().find(|&o| o.platform == current).cloned(),
             None => None,
         }
     }
@@ -292,7 +289,7 @@ impl PackageSource {
     ) -> Table {
         let mut table = Table::new("{:<} {:<}");
         for pkg in pkgs {
-            let installed = cache.check(&self, &pkg);
+            let installed = cache.check(self, pkg);
             let emoji = if installed { "✅" } else { "❌" };
 
             if !installed || (installed && include_installed) {

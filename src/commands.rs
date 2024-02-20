@@ -17,19 +17,19 @@ pub fn status_command(config: &SantaConfig, data: &SantaData, mut cache: Package
         .sources
         .clone()
         .into_iter()
-        .filter(|source| config.clone().is_source_enabled(&source))
+        .filter(|source| config.clone().is_source_enabled(source))
         .collect();
     // let serialized = serde_yaml::to_string(&sources).unwrap();
 
     for source in &sources {
-        cache.cache_for(&source);
+        cache.cache_for(source);
     }
     for source in &sources {
         let groups = config.clone().groups(data);
         for (key, pkgs) in groups {
             if source.name == key {
                 let pkg_count = pkgs.len();
-                let table = format!("{}", source.table(&pkgs, &cache, *all).to_string());
+                let table = format!("{}", source.table(&pkgs, &cache, *all));
                 println!("{} ({} packages total)", source, pkg_count);
                 println!("{}", table);
                 break;
@@ -41,12 +41,10 @@ pub fn status_command(config: &SantaConfig, data: &SantaData, mut cache: Package
 pub fn config_command(config: &SantaConfig, data: &SantaData, packages: bool, builtin: bool) {
     if !builtin {
         println!("{}", config.export());
+    } else if packages {
+        println!("{}", data.export());
     } else {
-        if packages {
-            println!("{}", data.export());
-        } else {
-            println!("{}", data.sources.export())
-        }
+        println!("{}", data.sources.export())
     }
 }
 
@@ -57,7 +55,7 @@ pub fn install_command(config: &SantaConfig, data: &SantaData, mut cache: Packag
         .sources
         .clone()
         .into_iter()
-        .filter(|source| config.clone().is_source_enabled(&source))
+        .filter(|source| config.clone().is_source_enabled(source))
         .collect();
 
     // for (k, v) in config.groups(&data) {
@@ -66,7 +64,7 @@ pub fn install_command(config: &SantaConfig, data: &SantaData, mut cache: Packag
 
     for source in &sources {
         debug!("Stats for {}", source.name);
-        cache.cache_for(&source);
+        cache.cache_for(source);
     }
 
     // let config = config.clone();
@@ -76,10 +74,10 @@ pub fn install_command(config: &SantaConfig, data: &SantaData, mut cache: Packag
             if source.name == key {
                 let pkgs: Vec<String> = pkgs
                     .iter()
-                    .filter(|p| !cache.check(&source, p))
+                    .filter(|p| !cache.check(source, p))
                     .map(|p| p.to_string())
                     .collect();
-                source.exec_install(&config, data, pkgs);
+                source.exec_install(config, data, pkgs);
             }
         }
     }
