@@ -6,8 +6,11 @@ alias b := build
 alias r := release
 alias t := test
 
-build *args:
-  cargo build {{args}}
+build *ARGS='':
+  cargo build {{ARGS}}
+
+ci-build TARGET='x86_64-unknown-linux-gnu' *ARGS='':
+  cargo build --locked --release --target {{TARGET}} {{ARGS}}
 
 release:
   cargo build --release
@@ -15,14 +18,14 @@ release:
 test:
   cargo test
 
-lint *args:
-  cargo clippy {{args}} -- -A clippy::needless_return
+lint *ARGS='':
+  cargo clippy {{ARGS}} -- -A clippy::needless_return
 
-format *args:
-  cargo fmt --all -- {{args}}
+format *ARGS='':
+  cargo fmt --all -- {{ARGS}}
 
 deps:
   cargo +nightly udeps
 
-cbuild target='x86_64-unknown-linux-gnu':
-  cross build --verbose --locked --release --target {{target}}
+cbuild target='x86_64-unknown-linux-gnu' *ARGS='':
+  cross build --locked --release --target {{target}} {{ARGS}}

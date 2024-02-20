@@ -37,21 +37,21 @@ jobs:
             target: x86_64-unknown-linux-gnu
             asset_name: santa
             command: cargo
-          - name: linux-arm64
-            runner: ubuntu-latest
-            target: aarch64-unknown-linux-gnu
-            asset_name: santa
-            command: cross
+          # - name: linux-arm64
+          #   runner: ubuntu-latest
+          #   target: aarch64-unknown-linux-gnu
+          #   asset_name: santa
+          #   command: cross
           - name: win-amd64
             runner: windows-latest
             target: x86_64-pc-windows-msvc
             asset_name: santa.exe
             command: cargo
-          - name: macos-amd64
-            runner: macos-latest
-            target: x86_64-apple-darwin
-            asset_name: santa
-            command: cross
+          # - name: macos-amd64
+          #   runner: macos-latest
+          #   target: x86_64-apple-darwin
+          #   asset_name: santa
+          #   command: cross
           - name: macos-arm64
             runner: macos-latest
             target: aarch64-apple-darwin
@@ -70,20 +70,20 @@ jobs:
       - name: Setup Cache
         uses: Swatinem/rust-cache@v2
 
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: "just,cargo-binstall,cargo-udeps"
+
       # Only install cross if we need it
       # Install via cargo-binstall which is typically faster
       - name: Install Cross
         if: matrix.command == 'cross'
-        shell: bash
-        run: |
-          curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
-          cargo binstall --no-confirm cross
-
-      # - name: Install just
-      #   uses: extractions/setup-just@v1
+        uses: taiki-e/install-action@v2
+        with:
+          tool: "cross"
 
       - name: Build Binary
-        run: ${{ matrix.command }} build --verbose --locked --release --target ${{ matrix.target }}
+        run: ${{ matrix.command }} build --locked --release --target ${{ matrix.target }}
 
       - uses: actions/upload-artifact@v3
         with:
