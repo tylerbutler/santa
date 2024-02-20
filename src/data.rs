@@ -237,6 +237,7 @@ impl SantaData {
 
     pub fn name_for(&self, package: &str, source: &PackageSource) -> String {
         match self.packages.get(package) {
+            #[allow(clippy::collapsible_match)]
             Some(sources) => match sources.get(&source.name) {
                 Some(pkgs) => match pkgs {
                     Some(name) => name

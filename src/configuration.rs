@@ -48,7 +48,7 @@ impl SantaConfig {
         }
     }
 
-    pub fn is_source_enabled(self, source: &PackageSource) -> bool {
+    pub fn source_is_enabled(self, source: &PackageSource) -> bool {
         trace!("Checking if {} is enabled", source);
         return self.sources.contains(&source.name);
     }

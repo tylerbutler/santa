@@ -17,7 +17,7 @@ pub fn status_command(config: &SantaConfig, data: &SantaData, mut cache: Package
         .sources
         .clone()
         .into_iter()
-        .filter(|source| config.clone().is_source_enabled(source))
+        .filter(|source| config.clone().source_is_enabled(source))
         .collect();
     // let serialized = serde_yaml::to_string(&sources).unwrap();
 
@@ -55,7 +55,7 @@ pub fn install_command(config: &SantaConfig, data: &SantaData, mut cache: Packag
         .sources
         .clone()
         .into_iter()
-        .filter(|source| config.clone().is_source_enabled(source))
+        .filter(|source| config.clone().source_is_enabled(source))
         .collect();
 
     // for (k, v) in config.groups(&data) {

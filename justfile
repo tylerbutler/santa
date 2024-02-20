@@ -6,8 +6,8 @@ alias b := build
 alias r := release
 alias t := test
 
-build:
-  cargo build
+build *args:
+  cargo build {{args}}
 
 release:
   cargo build --release
@@ -15,8 +15,11 @@ release:
 test:
   cargo test
 
-lint +args:
+lint *args:
   cargo clippy {{args}} -- -A clippy::needless_return
+
+format *args:
+  cargo fmt --all -- {{args}}
 
 deps:
   cargo +nightly udeps

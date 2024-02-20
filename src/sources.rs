@@ -123,21 +123,21 @@ impl PackageSource {
     // #[cfg(target_os = "windows")]
     fn exec_check(&self) -> String {
         let check = self.check_command();
-        let ex: Exec;
 
         debug!("Running shell command: {}", check);
 
-        if MACHINE_KIND != "windows" {
-            ex = Exec::shell(check);
+        let ex: Exec = if MACHINE_KIND != "windows" {
+            Exec::shell(check)
         } else {
-            ex = Exec::cmd("pwsh.exe").args(&[
+            Exec::cmd("pwsh.exe").args(&[
                 "-NonInteractive",
                 "-NoLogo",
                 "-NoProfile",
                 "-Command",
                 &check,
-            ]);
-        }
+            ])
+        };
+
         match ex.capture() {
             Ok(data) => {
                 let val = data.stdout_str();
@@ -169,17 +169,17 @@ impl PackageSource {
             {
                 let ex: Exec;
 
-                if MACHINE_KIND != "windows" {
-                    ex = Exec::shell(install_command);
+                let ex: Exec = if MACHINE_KIND != "windows" {
+                    Exec::shell(install_command)
                 } else {
-                    ex = Exec::cmd("pwsh.exe").args(&[
+                    Exec::cmd("pwsh.exe").args(&[
                         "-NonInteractive",
                         "-NoLogo",
                         "-NoProfile",
                         "-Command",
                         &install_command,
-                    ]);
-                }
+                    ])
+                };
                 match ex.capture() {
                     Ok(data) => {
                         let val = data.stdout_str();
@@ -292,6 +292,7 @@ impl PackageSource {
             let installed = cache.check(self, pkg);
             let emoji = if installed { "✅" } else { "❌" };
 
+            #[allow(clippy::nonminimal_bool)]
             if !installed || (installed && include_installed) {
                 table.add_row(Row::new().with_cell(emoji).with_cell(pkg));
             }
