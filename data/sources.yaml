@@ -32,12 +32,19 @@
         arch: x64
       check_command: "cargo install --list | Where-Object { $_.endsWith(':')[0] } |% { $_.split(' ')[0] }"
 
-- name: nix
+- name: nixpkgs
   emoji: 📈
   shell_command: "nix-env"
   install_command: "nix-env -iA"
   check_command: "nix-env -q | rev | cut -d'-' -f2- | rev"
   prepend_to_package_name: "nixpkgs."
+
+- name: flathub
+  emoji: 🗳️
+  shell_command: "flatpak"
+  install_command: "flatpak install"
+  check_command: "flatpak list --columns=application | cut -d'-' -f2-"
+  prepend_to_package_name: "flathub "
 
 - name: scoop
   emoji: 🍨

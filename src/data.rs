@@ -243,13 +243,13 @@ impl SantaData {
                     Some(name) => name
                         .name
                         .as_ref()
-                        .unwrap_or(&package.to_string())
+                        .unwrap_or(&source.adjust_package_name(package))
                         .to_string(),
-                    None => package.to_string(),
+                    None => source.adjust_package_name(package),
                 },
-                None => package.to_string(),
+                None => source.adjust_package_name(package),
             },
-            None => package.to_string(),
+            None => source.adjust_package_name(package),
         }
     }
 }
