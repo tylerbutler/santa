@@ -11,7 +11,7 @@
   check_command: 'pacman -Qe | cut -f 1 -d " "'
 
 - name: npm
-  emoji: 🕸
+  emoji: 📦
   shell_command: npm
   install_command: "npm install -g"
   check_command: "ls -1 `npm root -g`"
@@ -32,7 +32,7 @@
         arch: x64
       check_command: "cargo install --list | Where-Object { $_.endsWith(':')[0] } |% { $_.split(' ')[0] }"
 
-- name: nixpkgs
+- name: nix
   emoji: 📈
   shell_command: "nix-env"
   install_command: "nix-env -iA"
@@ -40,7 +40,7 @@
   prepend_to_package_name: "nixpkgs."
 
 - name: flathub
-  emoji: 🗳️
+  emoji: 📦
   shell_command: "flatpak"
   install_command: "flatpak install"
   check_command: "flatpak list --columns=application | cut -d'-' -f2-"
