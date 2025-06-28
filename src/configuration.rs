@@ -1,7 +1,7 @@
 use crate::data::SourceList;
 use crate::sources::PackageSource;
 use crate::Exportable;
-use std::{collections::HashMap, fs, path::Path};
+use std::{collections::{HashMap, HashSet}, fs, path::Path};
 use anyhow::Context;
 
 use tracing::{debug, trace, warn};
@@ -32,10 +32,87 @@ impl Default for SantaConfig {
 impl Exportable for SantaConfig {}
 
 impl SantaConfig {
+    /// Basic configuration validation
+    pub fn validate_basic(&self) -> Result<(), anyhow::Error> {
+        if self.sources.is_empty() {
+            return Err(anyhow::anyhow!("At least one source must be configured"));
+        }
+        
+        if self.packages.is_empty() {
+            warn!("No packages configured - santa will not track any packages");
+        }
+        
+        // Check for duplicate sources
+        let mut seen_sources = HashSet::new();
+        for source in &self.sources {
+            if !seen_sources.insert(source) {
+                return Err(anyhow::anyhow!("Duplicate source found: {:?}", source));
+            }
+        }
+        
+        // Check for duplicate packages
+        let mut seen_packages = HashSet::new();
+        for package in &self.packages {
+            if !seen_packages.insert(package) {
+                warn!("Duplicate package found: {}", package);
+            }
+        }
+        
+        Ok(())
+    }
+    
+    /// Custom validation for source/package combinations
+    pub fn validate_source_package_compatibility(&self, data: &SantaData) -> Result<(), anyhow::Error> {
+        for package in &self.packages {
+            let available_sources = data.packages.get(package);
+            if available_sources.is_none() {
+                warn!("Package '{}' not found in available packages database", package);
+                continue;
+            }
+            
+            let available_sources = available_sources.unwrap();
+            let mut has_valid_source = false;
+            
+            for configured_source in &self.sources {
+                if available_sources.contains_key(configured_source) {
+                    has_valid_source = true;
+                    break;
+                }
+            }
+            
+            if !has_valid_source {
+                return Err(anyhow::anyhow!(
+                    "Package '{}' is not available from any configured source. Available sources: {:?}",
+                    package,
+                    available_sources.keys().collect::<Vec<_>>()
+                ));
+            }
+        }
+        Ok(())
+    }
+    
     pub fn load_from_str(yaml_str: &str) -> Result<Self, anyhow::Error> {
         let data: SantaConfig = serde_yaml::from_str(yaml_str)
             .with_context(|| format!("Failed to parse config from YAML: {}", yaml_str))?;
+        
+        // Validate the configuration
+        data.validate_basic()
+            .with_context(|| "Configuration validation failed")?;
+            
         Ok(data)
+    }
+    
+    /// Comprehensive validation including custom business logic
+    pub fn validate_with_data(&self, data: &SantaData) -> Result<(), anyhow::Error> {
+        // First run basic validation
+        self.validate_basic()
+            .with_context(|| "Basic configuration validation failed")?;
+            
+        // Then run custom validation
+        self.validate_source_package_compatibility(data)
+            .with_context(|| "Source/package compatibility validation failed")?;
+            
+        Ok(())
     }
 
     pub fn load_from(file: &Path) -> Result<Self, anyhow::Error> {
