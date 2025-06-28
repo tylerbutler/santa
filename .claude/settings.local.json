@@ -5,7 +5,9 @@
       "Bash(git commit:*)",
       "Bash(cargo check:*)",
       "Bash(cargo:*)",
-      "Bash(./target/release/santa:*)"
+      "Bash(./target/release/santa:*)",
+      "Bash(find:*)",
+      "Bash(rg:*)"
     ],
     "deny": []
   }

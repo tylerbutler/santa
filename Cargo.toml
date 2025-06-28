@@ -29,6 +29,18 @@ tabular = "0.2.0"
 subprocess = "0.2.8"
 termcolor = "1.1.*"
 
+[dev-dependencies]
+# Testing framework
+rstest = "0.18"
+tempfile = "3.8"
+# Property-based testing
+proptest = "1.0"
+# Mocking for subprocess calls
+mockall = "0.12"
+# Test utilities
+assert_cmd = "2.0"
+predicates = "3.0"
+
 [[bin]]
 name = "santa"
 path = "src/main.rs"

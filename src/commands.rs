@@ -6,7 +6,12 @@ use anyhow::Result;
 
 use tracing::debug;
 
-pub fn status_command(config: &mut SantaConfig, data: &SantaData, mut cache: PackageCache, all: &bool) -> Result<()> {
+pub fn status_command(
+    config: &mut SantaConfig,
+    data: &SantaData,
+    mut cache: PackageCache,
+    all: &bool,
+) -> Result<()> {
     // filter sources to those enabled in the config
     let sources: SourceList = data
         .sources
@@ -33,7 +38,12 @@ pub fn status_command(config: &mut SantaConfig, data: &SantaData, mut cache: Pac
     Ok(())
 }
 
-pub fn config_command(config: &SantaConfig, data: &SantaData, packages: bool, builtin: bool) -> Result<()> {
+pub fn config_command(
+    config: &SantaConfig,
+    data: &SantaData,
+    packages: bool,
+    builtin: bool,
+) -> Result<()> {
     if !builtin {
         println!("{}", config.export());
     } else if packages {
@@ -44,7 +54,11 @@ pub fn config_command(config: &SantaConfig, data: &SantaData, packages: bool, bu
     Ok(())
 }
 
-pub fn install_command(config: &mut SantaConfig, data: &SantaData, mut cache: PackageCache) -> Result<()> {
+pub fn install_command(
+    config: &mut SantaConfig,
+    data: &SantaData,
+    mut cache: PackageCache,
+) -> Result<()> {
     // let config = config.clone();
     // filter sources to those enabled in the config
     let sources: SourceList = data

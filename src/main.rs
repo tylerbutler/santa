@@ -19,7 +19,6 @@ mod data;
 mod sources;
 mod traits;
 
-
 static DEFAULT_CONFIG_FILE_PATH: &str = ".config/santa/config.yaml";
 
 /// Manage default sets of packages for a variety of package managers.
@@ -108,7 +107,7 @@ fn build_cli() -> Command {
 
 pub fn run() -> Result<(), anyhow::Error> {
     let cli = Cli::parse();
-    
+
     // Handle shell completions
     if let Commands::Completions { shell } = &cli.command {
         let mut cmd = build_cli();
@@ -124,11 +123,11 @@ pub fn run() -> Result<(), anyhow::Error> {
         3 => Level::TRACE,
         _ => Level::TRACE,
     };
-    
+
     let env_filter = EnvFilter::builder()
         .with_default_directive(log_level.into())
         .from_env_lossy();
-    
+
     let subscriber = FmtSubscriber::builder()
         .with_env_filter(env_filter)
         .with_target(false)
@@ -136,7 +135,7 @@ pub fn run() -> Result<(), anyhow::Error> {
         .with_file(true)
         .with_line_number(true)
         .finish();
-        
+
     tracing::subscriber::set_global_default(subscriber)
         .context("Failed to set tracing subscriber")?;
 
@@ -167,7 +166,11 @@ pub fn run() -> Result<(), anyhow::Error> {
             crate::commands::install_command(&mut config, &data, cache)?;
         }
         Commands::Add { source, package } => {
-            bail!("Add command not yet implemented for source: {:?}, package: {:?}", source, package);
+            bail!(
+                "Add command not yet implemented for source: {:?}, package: {:?}",
+                source,
+                package
+            );
         }
         Commands::Config { packages, pipe: _ } => {
             crate::commands::config_command(&config, &data, *packages, cli.builtin_only)?;
