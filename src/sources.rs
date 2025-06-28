@@ -165,7 +165,7 @@ impl PackageSource {
                 .with_prompt(format!("Run '{}'?", install_command))
                 .default(true)
                 .interact()
-                .unwrap()
+                .expect("Failed to get user confirmation")
             {
                 let ex: Exec;
 

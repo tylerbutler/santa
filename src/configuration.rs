@@ -2,6 +2,7 @@ use crate::data::SourceList;
 use crate::sources::PackageSource;
 use crate::Exportable;
 use std::{collections::HashMap, fs, path::Path};
+use anyhow::Context;
 
 use log::{debug, trace, warn};
 // use memoize::memoize;
@@ -24,27 +25,29 @@ pub struct SantaConfig {
 impl Default for SantaConfig {
     fn default() -> Self {
         SantaConfig::load_from_str(constants::DEFAULT_CONFIG)
+            .expect("Failed to load default config - this should never fail")
     }
 }
 
 impl Exportable for SantaConfig {}
 
 impl SantaConfig {
-    pub fn load_from_str(yaml_str: &str) -> Self {
-        let data: SantaConfig = serde_yaml::from_str(yaml_str).unwrap();
-        data
+    pub fn load_from_str(yaml_str: &str) -> Result<Self, anyhow::Error> {
+        let data: SantaConfig = serde_yaml::from_str(yaml_str)
+            .with_context(|| format!("Failed to parse config from YAML: {}", yaml_str))?;
+        Ok(data)
     }
 
-    pub fn load_from(file: &Path) -> Self {
+    pub fn load_from(file: &Path) -> Result<Self, anyhow::Error> {
         debug!("Loading config from: {}", file.display());
-        let mut yaml_str: String;
         if file.exists() {
-            yaml_str = fs::read_to_string(file).unwrap();
+            let yaml_str = fs::read_to_string(file)
+                .with_context(|| format!("Failed to read config file: {}", file.display()))?;
             SantaConfig::load_from_str(&yaml_str)
         } else {
             warn!("Can't find config file: {}", file.display());
             warn!("Loading default config");
-            SantaConfig::default()
+            Ok(SantaConfig::default())
         }
     }
 
@@ -68,7 +71,7 @@ impl SantaConfig {
                 for pkg in &self.packages {
                     for source in configured_sources.clone() {
                         if data.packages.contains_key(pkg) {
-                            let available_sources = data.packages.get(pkg).unwrap();
+                            let available_sources = data.packages.get(pkg).expect("Package should exist in data");
                             trace!("available_sources: {:?}", available_sources);
 
                             if available_sources.contains_key(&source) {
@@ -80,7 +83,8 @@ impl SantaConfig {
                                         break;
                                     }
                                     None => {
-                                        todo!();
+                                        warn!("Group for source {} not found, creating new group", source);
+                                        groups.insert(source, vec![pkg.to_string()]);
                                     }
                                 }
                             }
@@ -88,7 +92,7 @@ impl SantaConfig {
                     }
                 }
                 self._groups = Some(groups);
-                self._groups.unwrap()
+                self._groups.expect("Groups should be populated")
             }
         }
     }

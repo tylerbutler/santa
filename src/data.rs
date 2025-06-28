@@ -9,6 +9,7 @@ use std::{
 use log::{debug, error, info, trace, warn};
 use serde::{Deserialize, Serialize};
 use serde_enum_str::{Deserialize_enum_str, Serialize_enum_str};
+use anyhow::Context;
 // use yaml_rust::{Yaml, YamlEmitter, YamlLoader};
 
 use crate::{data::constants::DEFAULT_CONFIG, sources::PackageSource, traits::Exportable};
@@ -108,7 +109,7 @@ impl Platform {
         match arch {
             "x86_64" => platform.arch = Arch::X64,
             "aarch64" => platform.arch = Arch::Aarch64,
-            _ => todo!(),
+            _ => panic!("Unsupported architecture: {}", arch),
         }
 
         platform
@@ -124,7 +125,9 @@ pub trait LoadFromFile {
         if !file.exists() {
             error!("Can't find data file: {}", file.display());
         }
-        let yaml_str = fs::read_to_string(file).unwrap();
+        let yaml_str = fs::read_to_string(file)
+            .with_context(|| format!("Failed to read file: {}", file.display()))
+            .expect("Failed to read data file");
         LoadFromFile::load_from_str(&yaml_str)
     }
 
@@ -187,7 +190,7 @@ impl Exportable for PackageDataList {
     {
         let list: Vec<String> = self.keys().map(|key| key.to_string()).collect();
 
-        serde_yaml::to_string(&list).unwrap()
+        serde_yaml::to_string(&list).expect("Failed to serialize list")
     }
 }
 
@@ -195,7 +198,8 @@ pub type SourceList = Vec<PackageSource>;
 
 impl LoadFromFile for SourceList {
     fn load_from_str(yaml_str: &str) -> Self {
-        let data: SourceList = serde_yaml::from_str(yaml_str).unwrap();
+        let data: SourceList = serde_yaml::from_str(yaml_str)
+            .expect("Failed to deserialize source list");
         data
     }
 }
@@ -207,7 +211,7 @@ impl Exportable for SourceList {
     {
         let list: Vec<String> = self.iter().map(|source| format!("{}", source)).collect();
 
-        serde_yaml::to_string(&list).unwrap()
+        serde_yaml::to_string(&list).expect("Failed to serialize source list")
     }
 }
 
@@ -243,7 +247,7 @@ impl SantaData {
                     Some(name) => name
                         .name
                         .as_ref()
-                        .unwrap_or(&source.adjust_package_name(package))
+                        .unwrap_or_else(|| &source.adjust_package_name(package))
                         .to_string(),
                     None => source.adjust_package_name(package),
                 },
@@ -265,6 +269,6 @@ impl Exportable for SantaData {
     where
         Self: Serialize,
     {
-        serde_yaml::to_string(&self).unwrap()
+        serde_yaml::to_string(&self).expect("Failed to serialize SantaData")
     }
 }

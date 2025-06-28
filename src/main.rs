@@ -1,7 +1,7 @@
 #![allow(unused)]
 #[macro_use]
 // extern crate clap_verbosity_flag;
-use anyhow::bail;
+use anyhow::{bail, Context};
 use clap::{ArgAction, Parser, Subcommand};
 use config::{Config, File, FileSourceFile, Value};
 use configuration::SantaConfig;
@@ -85,13 +85,13 @@ enum Commands {
     },
 }
 
-fn load_config(path: &Path) -> SantaConfig {
-    let dir = BaseDirs::new().unwrap();
+fn load_config(path: &Path) -> Result<SantaConfig, anyhow::Error> {
+    let dir = BaseDirs::new().context("Failed to get base directories")?;
     let home_dir = dir.home_dir();
     let config_file = home_dir.join(path);
-    let config = SantaConfig::load_from(&config_file);
+    let config = SantaConfig::load_from(&config_file)?;
     trace!("{:?}", config);
-    config
+    Ok(config)
 }
 
 pub fn run() -> Result<(), anyhow::Error> {
@@ -111,7 +111,7 @@ pub fn run() -> Result<(), anyhow::Error> {
         simplelog::Config::default(),
         TerminalMode::Mixed,
         simplelog::ColorChoice::Auto,
-    );
+    ).context("Failed to initialize logger")?;
 
     debug!("Argument parsing complete.");
     let data = SantaData::default();
@@ -122,7 +122,7 @@ pub fn run() -> Result<(), anyhow::Error> {
         info!("loading built-in config because of CLI flag.");
         SantaConfig::default()
     } else {
-        load_config(Path::new(DEFAULT_CONFIG_FILE_PATH))
+        load_config(Path::new(DEFAULT_CONFIG_FILE_PATH))?
     };
     config.log_level = cli.verbose;
 
@@ -141,8 +141,7 @@ pub fn run() -> Result<(), anyhow::Error> {
             commands::install_command(&config, &data, cache);
         }
         Commands::Add { source, package } => {
-            println!("NYI: santa add {:?} {:?}", source, package);
-            todo!();
+            bail!("Add command not yet implemented for source: {:?}, package: {:?}", source, package);
         }
         Commands::Config { packages, pipe } => {
             commands::config_command(&config, &data, *packages, cli.builtin_only);
