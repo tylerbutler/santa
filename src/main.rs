@@ -1,5 +1,6 @@
 use anyhow::{bail, Context};
-use clap::{ArgAction, Parser, Subcommand};
+use clap::{ArgAction, Command, Parser, Subcommand};
+use clap_complete::{generate, Shell};
 use configuration::SantaConfig;
 use log::{debug, info, trace, LevelFilter};
 use simplelog::{TermLogger, TerminalMode};
@@ -58,13 +59,13 @@ enum Commands {
         #[clap(short, long)]
         packages: bool,
 
-        // #[clap(short, long)]
-        // packages: bool,
-
-        // #[clap(short, long)]
-        // local: bool,
         #[clap(long)]
         pipe: bool,
+    },
+    /// Generate shell completions
+    Completions {
+        /// Shell to generate completions for
+        shell: Shell,
     },
 }
 
@@ -77,8 +78,43 @@ fn load_config(path: &Path) -> Result<SantaConfig, anyhow::Error> {
     Ok(config)
 }
 
+/// Build the modern CLI with enhanced features
+fn build_cli() -> Command {
+    Command::new("santa")
+        .about("Manage default sets of packages for a variety of package managers")
+        .version(clap::crate_version!())
+        .author("Tyler Butler <tyler@tylerbutler.com>")
+        .max_term_width(100)
+        .subcommand_required(true)
+        .arg_required_else_help(true)
+        .after_help("Use 'santa <command> --help' for more information about a specific command.")
+        .arg(
+            clap::Arg::new("builtin-only")
+                .short('b')
+                .long("builtin-only")
+                .help("Load ONLY the default config")
+                .action(ArgAction::SetTrue)
+                .global(true),
+        )
+        .arg(
+            clap::Arg::new("verbose")
+                .short('v')
+                .long("verbose")
+                .help("Increase logging level (-v: info, -vv: debug, -vvv: trace)")
+                .action(ArgAction::Count)
+                .global(true),
+        )
+}
+
 pub fn run() -> Result<(), anyhow::Error> {
     let cli = Cli::parse();
+    
+    // Handle shell completions
+    if let Commands::Completions { shell } = &cli.command {
+        let mut cmd = build_cli();
+        generate(*shell, &mut cmd, "santa", &mut std::io::stdout());
+        return Ok(());
+    }
 
     let mut log_level = LevelFilter::Info;
 
@@ -127,6 +163,10 @@ pub fn run() -> Result<(), anyhow::Error> {
         }
         Commands::Config { packages, pipe: _ } => {
             crate::commands::config_command(&config, &data, *packages, cli.builtin_only)?;
+        }
+        Commands::Completions { shell: _ } => {
+            // This is handled earlier in the function
+            unreachable!("Completions should be handled before this point");
         }
     }
 
