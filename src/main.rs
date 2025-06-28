@@ -1,24 +1,13 @@
-#![allow(unused)]
-#[macro_use]
-// extern crate clap_verbosity_flag;
 use anyhow::{bail, Context};
 use clap::{ArgAction, Parser, Subcommand};
-use config::{Config, File, FileSourceFile, Value};
 use configuration::SantaConfig;
-use log::{debug, info, trace, warn, LevelFilter};
+use log::{debug, info, trace, LevelFilter};
 use simplelog::{TermLogger, TerminalMode};
-use std::collections::HashSet;
-use std::sync::RwLock;
-use std::{env, fmt};
 extern crate directories;
-// use console::style;
 use directories::BaseDirs;
-// extern crate lazy_static;
-// use lazy_static::lazy_static;
 
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
-use crate::commands::*;
 use crate::data::SantaData;
 use crate::sources::PackageCache;
 use crate::traits::Exportable;
@@ -29,12 +18,6 @@ mod data;
 mod sources;
 mod traits;
 
-// static CONFIG: Config = ;
-
-// lazy_static! {
-//   // let Some(CONFIG_PATH) = BaseDirs::new();
-//   static ref SETTINGS: RwLock<Config> = RwLock::new(Config::new());
-// }
 
 static DEFAULT_CONFIG_FILE_PATH: &str = ".config/santa/config.yaml";
 
@@ -115,7 +98,7 @@ pub fn run() -> Result<(), anyhow::Error> {
 
     debug!("Argument parsing complete.");
     let data = SantaData::default();
-    let d = data.export();
+    // let d = data.export();
     // trace!("data: {}", d);
 
     let mut config = if cli.builtin_only {
@@ -129,22 +112,21 @@ pub fn run() -> Result<(), anyhow::Error> {
     // let mut data = data; // re-declare variable to make it mutable
     // data.update_from_config(&config);
 
-    let mut cache: PackageCache = PackageCache::new();
+    let cache: PackageCache = PackageCache::new();
 
     match &cli.command {
         Commands::Status { all } => {
             debug!("santa status");
-            commands::status_command(&config, &data, cache, all)?;
+            crate::commands::status_command(&mut config, &data, cache, all)?;
         }
-        Commands::Install { source } => {
-            // println!("NYI: santa install {:?}", source);
-            commands::install_command(&config, &data, cache)?;
+        Commands::Install { source: _ } => {
+            crate::commands::install_command(&mut config, &data, cache)?;
         }
         Commands::Add { source, package } => {
             bail!("Add command not yet implemented for source: {:?}, package: {:?}", source, package);
         }
-        Commands::Config { packages, pipe } => {
-            commands::config_command(&config, &data, *packages, cli.builtin_only)?;
+        Commands::Config { packages, pipe: _ } => {
+            crate::commands::config_command(&config, &data, *packages, cli.builtin_only)?;
         }
     }
 

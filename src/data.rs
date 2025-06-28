@@ -1,16 +1,14 @@
 use crate::SantaConfig;
 use std::{
-    collections::{hash_map::Entry, HashMap, HashSet},
+    collections::HashMap,
     fs,
-    path::{Path, PathBuf},
+    path::Path,
 };
 
-// extern crate yaml_rust;
-use log::{debug, error, info, trace, warn};
+use log::{debug, error, info};
 use serde::{Deserialize, Serialize};
 use serde_enum_str::{Deserialize_enum_str, Serialize_enum_str};
 use anyhow::Context;
-// use yaml_rust::{Yaml, YamlEmitter, YamlLoader};
 
 use crate::{data::constants::DEFAULT_CONFIG, sources::PackageSource, traits::Exportable};
 
@@ -165,7 +163,6 @@ impl PackageData {
     }
 }
 
-// #[derive(Serialize, Deserialize, Clone, Debug)]
 /// A map of package names (strings)
 pub type PackageDataList = HashMap<String, HashMap<KnownSources, Option<PackageData>>>;
 

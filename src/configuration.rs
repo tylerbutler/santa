@@ -51,17 +51,17 @@ impl SantaConfig {
         }
     }
 
-    pub fn source_is_enabled(self, source: &PackageSource) -> bool {
+    pub fn source_is_enabled(&self, source: &PackageSource) -> bool {
         trace!("Checking if {} is enabled", source);
         return self.sources.contains(&source.name);
     }
 
     /// Groups the configured (enabled) packages by source.
-    pub fn groups(mut self, data: &SantaData) -> HashMap<KnownSources, Vec<String>> {
+    pub fn groups(&mut self, data: &SantaData) -> HashMap<KnownSources, Vec<String>> {
         match &self._groups {
             Some(groups) => groups.clone(),
             None => {
-                let configured_sources: Vec<KnownSources> = self.sources;
+                let configured_sources: Vec<KnownSources> = self.sources.clone();
                 // let s2 = self.sources.clone();
                 let mut groups: HashMap<KnownSources, Vec<String>> = HashMap::new();
                 for source in configured_sources.clone() {
@@ -92,7 +92,7 @@ impl SantaConfig {
                     }
                 }
                 self._groups = Some(groups);
-                self._groups.expect("Groups should be populated")
+                self._groups.clone().expect("Groups should be populated")
             }
         }
     }

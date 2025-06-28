@@ -1,16 +1,14 @@
 use crate::SantaConfig;
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 
-// use cached::proc_macro::cached;
 use colored::*;
-// use anstream::println;
 use dialoguer::{theme::ColorfulTheme, Confirm};
 use log::{debug, error, info, trace};
-use serde::{Deserialize, Serialize, __private::de::IdentifierDeserializer};
+use serde::{Deserialize, Serialize};
 use subprocess::Exec;
 use tabular::{Row, Table};
 
-use crate::data::{KnownSources, PackageData, Platform, SantaData};
+use crate::data::{KnownSources, Platform, SantaData};
 
 pub mod traits;
 
@@ -108,11 +106,6 @@ pub struct PackageSource {
 
     /// Override the commands per platform.
     pub overrides: Option<Vec<SourceOverride>>,
-    // #[serde(skip)]
-    // pub _packages: Vec<String>,
-
-    // #[serde(skip)]
-    // pub _checked: bool,
 }
 
 impl PackageSource {
@@ -120,7 +113,6 @@ impl PackageSource {
         self.name.to_string()
     }
 
-    // #[cfg(target_os = "windows")]
     fn exec_check(&self) -> String {
         let check = self.check_command();
 
@@ -150,12 +142,7 @@ impl PackageSource {
         }
     }
 
-    pub fn exec_install(&self, config: &SantaConfig, data: &SantaData, packages: Vec<String>) {
-        // let pkgs: Vec<String> = config.clone().groups(data).keys().map(|i| i.to_string()).collect();
-        // for (k, v) in config.groups(data) {
-        //     println!("To install missing {} packages, run:", self);
-        //     println!("{} {}\n", self.install_command, pkgs.join(" "));
-        // }
+    pub fn exec_install(&self, _config: &mut SantaConfig, data: &SantaData, packages: Vec<String>) {
 
         if !packages.is_empty() {
             let renamed: Vec<String> = packages.iter().map(|p| data.name_for(p, self)).collect();
@@ -167,7 +154,6 @@ impl PackageSource {
                 .interact()
                 .expect("Failed to get user confirmation")
             {
-                let ex: Exec;
 
                 let ex: Exec = if MACHINE_KIND != "windows" {
                     Exec::shell(install_command)
@@ -261,14 +247,6 @@ impl PackageSource {
         packages
     }
 
-    // pub fn packages_to_install(&self, cache: &PackageCache) -> Vec<String> {
-    //     self.packages()
-    //         .clone()
-    //         .iter()
-    //         .filter(|p| self.package_is_installed(p.to_string(), cache))
-    //         .map(|s| s.to_string())
-    //         .collect()
-    // }
 
     pub fn adjust_package_name(&self, pkg: &str) -> String {
         match &self.prepend_to_package_name {
@@ -277,9 +255,6 @@ impl PackageSource {
         }
     }
 
-    // pub fn package_is_installed(&self, pkg: String, cache: &PackageCache) -> bool {
-    //     self.packages().contains(&pkg)
-    // }
 
     pub fn table(
         &self,
