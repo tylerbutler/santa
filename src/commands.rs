@@ -4,7 +4,7 @@ use crate::traits::Exportable;
 use crate::{configuration::SantaConfig, sources::PackageCache};
 use anyhow::Result;
 
-use log::debug;
+use tracing::debug;
 
 pub fn status_command(config: &mut SantaConfig, data: &SantaData, mut cache: PackageCache, all: &bool) -> Result<()> {
     // filter sources to those enabled in the config

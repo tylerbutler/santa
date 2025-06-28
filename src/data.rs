@@ -5,7 +5,7 @@ use std::{
     path::Path,
 };
 
-use log::{debug, error, info};
+use tracing::{error, info};
 use serde::{Deserialize, Serialize};
 use serde_enum_str::{Deserialize_enum_str, Serialize_enum_str};
 use anyhow::Context;

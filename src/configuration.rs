@@ -4,7 +4,7 @@ use crate::Exportable;
 use std::{collections::HashMap, fs, path::Path};
 use anyhow::Context;
 
-use log::{debug, trace, warn};
+use tracing::{debug, trace, warn};
 // use memoize::memoize;
 use serde::{Deserialize, Serialize};
 

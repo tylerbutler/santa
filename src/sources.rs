@@ -3,7 +3,7 @@ use std::collections::HashMap;
 
 use colored::*;
 use dialoguer::{theme::ColorfulTheme, Confirm};
-use log::{debug, error, info, trace};
+use tracing::{debug, error, info, trace};
 use serde::{Deserialize, Serialize};
 use subprocess::Exec;
 use tabular::{Row, Table};

@@ -1,5 +1,5 @@
 // use console::style;
-use log::{trace, warn};
+use tracing::{trace, warn};
 use serde::Serialize;
 
 pub trait Package {

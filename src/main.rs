@@ -2,8 +2,8 @@ use anyhow::{bail, Context};
 use clap::{ArgAction, Command, Parser, Subcommand};
 use clap_complete::{generate, Shell};
 use configuration::SantaConfig;
-use log::{debug, info, trace, LevelFilter};
-use simplelog::{TermLogger, TerminalMode};
+use tracing::{debug, info, trace, Level};
+use tracing_subscriber::{EnvFilter, FmtSubscriber};
 extern crate directories;
 use directories::BaseDirs;
 
@@ -116,21 +116,29 @@ pub fn run() -> Result<(), anyhow::Error> {
         return Ok(());
     }
 
-    let mut log_level = LevelFilter::Info;
-
-    match &cli.verbose {
-        1 => log_level = LevelFilter::Info,
-        2 => log_level = LevelFilter::Debug,
-        3 => log_level = LevelFilter::Trace,
-        _ => log_level = LevelFilter::Off,
-    }
-
-    TermLogger::init(
-        log_level,
-        simplelog::Config::default(),
-        TerminalMode::Mixed,
-        simplelog::ColorChoice::Auto,
-    ).context("Failed to initialize logger")?;
+    // Initialize tracing subscriber with structured logging
+    let log_level = match cli.verbose {
+        0 => Level::WARN,
+        1 => Level::INFO,
+        2 => Level::DEBUG,
+        3 => Level::TRACE,
+        _ => Level::TRACE,
+    };
+    
+    let env_filter = EnvFilter::builder()
+        .with_default_directive(log_level.into())
+        .from_env_lossy();
+    
+    let subscriber = FmtSubscriber::builder()
+        .with_env_filter(env_filter)
+        .with_target(false)
+        .with_thread_ids(false)
+        .with_file(true)
+        .with_line_number(true)
+        .finish();
+        
+    tracing::subscriber::set_global_default(subscriber)
+        .context("Failed to set tracing subscriber")?;
 
     debug!("Argument parsing complete.");
     let data = SantaData::default();

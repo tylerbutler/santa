@@ -1,5 +1,5 @@
 // use console::style;
-use log::warn;
+use tracing::warn;
 
 use crate::data::PackageData;
 
