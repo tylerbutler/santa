@@ -1,9 +1,7 @@
 // use console::style;
-use tracing::warn;
 
 use crate::data::PackageData;
 
-use super::PackageSource;
 
 // pub trait Package {
 //     fn name(&self) -> String;

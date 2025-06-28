@@ -1,6 +1,5 @@
 // use console::style;
 use serde::Serialize;
-use tracing::{trace, warn};
 
 pub trait Package {
     fn name(&self) -> String;
