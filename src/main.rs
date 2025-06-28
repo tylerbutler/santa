@@ -134,17 +134,17 @@ pub fn run() -> Result<(), anyhow::Error> {
     match &cli.command {
         Commands::Status { all } => {
             debug!("santa status");
-            commands::status_command(&config, &data, cache, all);
+            commands::status_command(&config, &data, cache, all)?;
         }
         Commands::Install { source } => {
             // println!("NYI: santa install {:?}", source);
-            commands::install_command(&config, &data, cache);
+            commands::install_command(&config, &data, cache)?;
         }
         Commands::Add { source, package } => {
             bail!("Add command not yet implemented for source: {:?}, package: {:?}", source, package);
         }
         Commands::Config { packages, pipe } => {
-            commands::config_command(&config, &data, *packages, cli.builtin_only);
+            commands::config_command(&config, &data, *packages, cli.builtin_only)?;
         }
     }
 

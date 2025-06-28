@@ -247,8 +247,8 @@ impl SantaData {
                     Some(name) => name
                         .name
                         .as_ref()
-                        .unwrap_or_else(|| &source.adjust_package_name(package))
-                        .to_string(),
+                        .map(|s| s.to_string())
+                        .unwrap_or_else(|| source.adjust_package_name(package)),
                     None => source.adjust_package_name(package),
                 },
                 None => source.adjust_package_name(package),

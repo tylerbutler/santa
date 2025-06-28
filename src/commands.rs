@@ -6,12 +6,13 @@ use crate::traits::Exportable;
 use crate::{configuration::SantaConfig, sources::PackageCache};
 use std::collections::HashSet;
 use std::{collections::HashMap, fmt::format};
+use anyhow::Result;
 
 use log::{debug, error, info, trace, warn};
 
 use colored::*;
 
-pub fn status_command(config: &SantaConfig, data: &SantaData, mut cache: PackageCache, all: &bool) {
+pub fn status_command(config: &SantaConfig, data: &SantaData, mut cache: PackageCache, all: &bool) -> Result<()> {
     // filter sources to those enabled in the config
     let sources: SourceList = data
         .sources
@@ -36,9 +37,10 @@ pub fn status_command(config: &SantaConfig, data: &SantaData, mut cache: Package
             }
         }
     }
+    Ok(())
 }
 
-pub fn config_command(config: &SantaConfig, data: &SantaData, packages: bool, builtin: bool) {
+pub fn config_command(config: &SantaConfig, data: &SantaData, packages: bool, builtin: bool) -> Result<()> {
     if !builtin {
         println!("{}", config.export());
     } else if packages {
@@ -46,9 +48,10 @@ pub fn config_command(config: &SantaConfig, data: &SantaData, packages: bool, bu
     } else {
         println!("{}", data.sources.export())
     }
+    Ok(())
 }
 
-pub fn install_command(config: &SantaConfig, data: &SantaData, mut cache: PackageCache) {
+pub fn install_command(config: &SantaConfig, data: &SantaData, mut cache: PackageCache) -> Result<()> {
     // let config = config.clone();
     // filter sources to those enabled in the config
     let sources: SourceList = data
@@ -81,4 +84,5 @@ pub fn install_command(config: &SantaConfig, data: &SantaData, mut cache: Packag
             }
         }
     }
+    Ok(())
 }
