@@ -9,6 +9,10 @@ repository = "https://github.com/tylerbutler/santa"
 readme = "README.md"
 rust-version = "1.70.0"
 
+[features]
+default = []
+bench = []
+
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]

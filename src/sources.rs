@@ -5,7 +5,6 @@ use std::time::Duration;
 use colored::*;
 use derive_builder::Builder;
 use dialoguer::{theme::ColorfulTheme, Confirm};
-use futures::future::try_join_all;
 use serde::{Deserialize, Serialize};
 use subprocess::Exec;
 use tabular::{Row, Table};
@@ -144,7 +143,7 @@ impl PackageSource {
         self.overrides.as_ref()
     }
 
-    #[cfg(test)]
+    #[cfg(any(test, feature = "bench"))]
     pub fn new_for_test(
         name: KnownSources,
         emoji: &str,
@@ -312,11 +311,9 @@ impl PackageSource {
             // Use sh -c for Unix systems for better shell compatibility
             timeout(
                 Duration::from_secs(30), // 30 second timeout
-                Command::new("sh")
-                    .arg("-c")
-                    .arg(&check)
-                    .output()
-            ).await
+                Command::new("sh").arg("-c").arg(&check).output(),
+            )
+            .await
         } else {
             // Use PowerShell for Windows
             timeout(
@@ -324,13 +321,14 @@ impl PackageSource {
                 Command::new("pwsh.exe")
                     .args(&[
                         "-NonInteractive",
-                        "-NoLogo", 
+                        "-NoLogo",
                         "-NoProfile",
                         "-Command",
                         &check,
                     ])
-                    .output()
-            ).await
+                    .output(),
+            )
+            .await
         };
 
         match result {

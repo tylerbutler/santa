@@ -1,6 +1,6 @@
 use crate::data::SourceList;
 use crate::sources::PackageSource;
-use crate::Exportable;
+use crate::traits::Exportable;
 use anyhow::Context;
 use derive_builder::Builder;
 use std::{

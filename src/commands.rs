@@ -15,7 +15,7 @@ mod tests;
 pub async fn status_command(
     config: &mut SantaConfig,
     data: &SantaData,
-    mut cache: PackageCache,
+    cache: PackageCache,
     all: &bool,
 ) -> Result<()> {
     // filter sources to those enabled in the config
@@ -39,15 +39,15 @@ pub async fn status_command(
             }
         })
         .collect();
-    
+
     // All tasks are structured under this scope - they'll be awaited together
     match try_join_all(cache_tasks).await {
         Ok(_) => debug!("Successfully cached data for all sources"),
         Err(e) => tracing::error!("Some cache operations failed: {}", e),
     }
-    
+
     // Extract cache from Arc<Mutex<>> for further use
-    let mut cache = Arc::try_unwrap(cache)
+    let cache = Arc::try_unwrap(cache)
         .map_err(|_| anyhow::anyhow!("Failed to unwrap cache"))?
         .into_inner();
     for source in &sources {
@@ -84,7 +84,7 @@ pub fn config_command(
 pub async fn install_command(
     config: &mut SantaConfig,
     data: &SantaData,
-    mut cache: PackageCache,
+    cache: PackageCache,
 ) -> Result<()> {
     // let config = config.clone();
     // filter sources to those enabled in the config
@@ -99,7 +99,7 @@ pub async fn install_command(
     //     error!("{} {:?}", k, v);
     // }
 
-    // Use structured concurrency to cache data for all sources concurrently  
+    // Use structured concurrency to cache data for all sources concurrently
     let cache = Arc::new(Mutex::new(cache));
     let cache_tasks: Vec<_> = sources
         .iter()
@@ -113,15 +113,15 @@ pub async fn install_command(
             }
         })
         .collect();
-    
+
     // All caching tasks are structured under this scope
     match try_join_all(cache_tasks).await {
         Ok(_) => debug!("Successfully cached data for install operation"),
         Err(e) => tracing::error!("Some install cache operations failed: {}", e),
     }
-    
+
     // Extract cache from Arc<Mutex<>> for further use
-    let mut cache = Arc::try_unwrap(cache)
+    let cache = Arc::try_unwrap(cache)
         .map_err(|_| anyhow::anyhow!("Failed to unwrap install cache"))?
         .into_inner();
 
