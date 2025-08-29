@@ -51,7 +51,13 @@ mockall = "0.12"
 # Test utilities
 assert_cmd = "2.0"
 predicates = "3.0"
+# Benchmarking
+criterion = { version = "0.5", features = ["html_reports", "async_tokio"] }
 
 [[bin]]
 name = "santa"
 path = "src/main.rs"
+
+[[bench]]
+name = "subprocess_performance"
+harness = false
