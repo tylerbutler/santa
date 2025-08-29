@@ -27,11 +27,11 @@ pub struct PackageCache {
 
 impl PackageCache {
     pub fn new() -> Self {
-        let map: HashMap<String, Vec<String>> = HashMap::new();
-        PackageCache { cache: map }
+        Self::default()
     }
 
     /// Checks for a package in the cache. This accesses the cache only, and will not modify it.
+    #[must_use]
     pub fn check(&self, source: &PackageSource, pkg: &str) -> bool {
         match self.cache.get(&source.name_str()) {
             Some(pkgs) => pkgs.contains(&pkg.to_string()),
@@ -50,6 +50,7 @@ impl PackageCache {
 
     /// Returns all packages for a PackageSource. This will call the PackageSource's check_command and populate the cache if needed.
     /// If the PackageSource can't be found, or the cache population fails, then None will be returned.
+    #[must_use]
     pub fn packages_for(cache: &mut PackageCache, source: &PackageSource) -> Option<Vec<String>> {
         let c = cache.clone();
         match c.cache.get(&source.name_str()) {
@@ -76,21 +77,11 @@ pub struct SourceOverride {
     pub check_command: Option<String>,
 }
 
-impl SourceOverride {
-    pub fn default() -> Self {
-        SourceOverride {
-            platform: Platform::default(),
-            shell_command: None,
-            check_command: None,
-            install_command: None,
-        }
-    }
-}
 
 #[derive(Serialize, Deserialize, Clone, Debug, Eq, PartialEq, Hash)]
 pub struct PackageSource {
     /// The name of the package manager.
-    pub name: KnownSources,
+    name: KnownSources,
     /// An icon that represents the package manager.
     emoji: String,
     /// The command that executes the package manager. For example, for npm this is `npm`.
@@ -102,15 +93,41 @@ pub struct PackageSource {
     /// for brew this is `brew leaves --installed-on-request`.
     check_command: String,
     /// A string to prepend to every package name for this source.
-    pub prepend_to_package_name: Option<String>,
+    prepend_to_package_name: Option<String>,
 
     /// Override the commands per platform.
-    pub overrides: Option<Vec<SourceOverride>>,
+    overrides: Option<Vec<SourceOverride>>,
 }
 
 impl PackageSource {
+    /// Get the package source name
+    #[must_use]
+    pub fn name(&self) -> &KnownSources {
+        &self.name
+    }
+
+    /// Get the package source name as string
+    #[must_use]
     pub fn name_str(&self) -> String {
         self.name.to_string()
+    }
+
+    /// Get the emoji for this package source
+    #[must_use]
+    pub fn emoji(&self) -> &str {
+        &self.emoji
+    }
+
+    /// Get the prepend string for package names
+    #[must_use]
+    pub fn prepend_to_package_name(&self) -> Option<&String> {
+        self.prepend_to_package_name.as_ref()
+    }
+
+    /// Get the platform overrides
+    #[must_use]
+    pub fn overrides(&self) -> Option<&Vec<SourceOverride>> {
+        self.overrides.as_ref()
     }
 
     #[cfg(test)]
@@ -204,6 +221,7 @@ impl PackageSource {
     }
 
     /// Returns an override for the current platform, if defined.
+    #[must_use]
     pub fn get_override_for_current_platform(&self) -> Option<SourceOverride> {
         let current = Platform::current();
         match &self.overrides {
@@ -213,6 +231,7 @@ impl PackageSource {
     }
 
     /// Returns the configured shell command, taking into account any platform overrides.
+    #[must_use]
     pub fn shell_command(&self) -> String {
         match self.get_override_for_current_platform() {
             Some(ov) => {
@@ -226,6 +245,7 @@ impl PackageSource {
     }
 
     /// Returns the configured install command, taking into account any platform overrides.
+    #[must_use]
     pub fn install_command(&self) -> String {
         match self.get_override_for_current_platform() {
             Some(ov) => {
@@ -238,11 +258,13 @@ impl PackageSource {
         }
     }
 
+    #[must_use]
     pub fn install_packages_command(&self, packages: Vec<String>) -> String {
         format!("{} {}", self.install_command, packages.join(" "))
     }
 
     /// Returns the configured check command, taking into account any platform overrides.
+    #[must_use]
     pub fn check_command(&self) -> String {
         match self.get_override_for_current_platform() {
             Some(ov) => {
@@ -257,6 +279,7 @@ impl PackageSource {
         }
     }
 
+    #[must_use]
     pub fn packages(&self) -> Vec<String> {
         let pkg_list = self.exec_check();
         let lines = pkg_list.lines();
@@ -266,6 +289,7 @@ impl PackageSource {
         packages
     }
 
+    #[must_use]
     pub fn adjust_package_name(&self, pkg: &str) -> String {
         match &self.prepend_to_package_name {
             Some(pre) => format!("{}{}", pre, pkg),
@@ -273,6 +297,7 @@ impl PackageSource {
         }
     }
 
+    #[must_use]
     pub fn table(
         &self,
         pkgs: &Vec<String>,
@@ -290,6 +315,25 @@ impl PackageSource {
             }
         }
         table
+    }
+}
+
+impl Default for PackageCache {
+    fn default() -> Self {
+        PackageCache {
+            cache: HashMap::new(),
+        }
+    }
+}
+
+impl Default for SourceOverride {
+    fn default() -> Self {
+        SourceOverride {
+            platform: Platform::default(),
+            shell_command: None,
+            check_command: None,
+            install_command: None,
+        }
     }
 }
 

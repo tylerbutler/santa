@@ -2,6 +2,7 @@ use crate::SantaConfig;
 use std::{collections::HashMap, fs, path::Path};
 
 use anyhow::Context;
+use derive_more::{Display, From, Into};
 use serde::{Deserialize, Serialize};
 use serde_enum_str::{Deserialize_enum_str, Serialize_enum_str};
 use tracing::{error, info};
@@ -10,8 +11,24 @@ use crate::{sources::PackageSource, traits::Exportable};
 
 pub mod constants;
 
+/// Strong type for package names to prevent mixing up with other strings
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Display, From, Into)]
+#[derive(Serialize, Deserialize)]
+pub struct PackageName(pub String);
+
+/// Strong type for source names to prevent mixing up with other strings  
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Display, From, Into)]
+#[derive(Serialize, Deserialize)]
+pub struct SourceName(pub String);
+
+/// Strong type for command names to prevent command/package name confusion
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Display, From, Into)]
+#[derive(Serialize, Deserialize)]
+pub struct CommandName(pub String);
+
 #[derive(Serialize_enum_str, Deserialize_enum_str, Debug, Clone, Eq, PartialEq, Hash)]
 #[serde(rename_all = "camelCase")]
+#[non_exhaustive]
 pub enum KnownSources {
     Apt,
     Aur,
@@ -26,6 +43,7 @@ pub enum KnownSources {
 
 #[derive(Serialize, Deserialize, Debug, Clone, Eq, PartialEq, Hash)]
 #[serde(rename_all = "camelCase")]
+#[non_exhaustive]
 pub enum OS {
     Macos,
     Linux,
@@ -34,6 +52,7 @@ pub enum OS {
 
 #[derive(Serialize, Deserialize, Debug, Clone, Eq, PartialEq, Hash)]
 #[serde(rename_all = "camelCase")]
+#[non_exhaustive]
 pub enum Arch {
     X64,
     Aarch64,
@@ -41,6 +60,7 @@ pub enum Arch {
 
 #[derive(Serialize, Deserialize, Debug, Clone, Eq, PartialEq, Hash)]
 #[serde(rename_all = "camelCase")]
+#[non_exhaustive]
 pub enum Distro {
     None,
     ArchLinux,
@@ -79,34 +99,118 @@ impl std::fmt::Display for Platform {
 }
 
 impl Platform {
+    /// Get current platform using compile-time detection where possible
     pub fn current() -> Self {
-        let family = std::env::consts::FAMILY;
-        let os = std::env::consts::OS;
-        let arch = std::env::consts::ARCH;
-        let mut platform: Platform = Platform::default();
-
-        if family == "windows" {
+        let mut platform = Platform::default();
+        
+        // Compile-time OS detection
+        if cfg!(target_os = "windows") {
             platform.os = OS::Windows;
+        } else if cfg!(target_os = "macos") {
+            platform.os = OS::Macos;
+        } else if cfg!(target_os = "linux") {
+            platform.os = OS::Linux;
         } else {
-            match os {
-                "macos" | "ios" => {
-                    platform.os = OS::Macos;
-                }
-                "windows" => {
-                    // unnecessary
-                    platform.os = OS::Windows;
-                }
+            // Fallback to runtime detection for unknown platforms
+            match std::env::consts::OS {
+                "windows" => platform.os = OS::Windows,
+                "macos" | "ios" => platform.os = OS::Macos,
                 _ => platform.os = OS::Linux,
             }
         }
 
-        match arch {
-            "x86_64" => platform.arch = Arch::X64,
-            "aarch64" => platform.arch = Arch::Aarch64,
-            _ => panic!("Unsupported architecture: {}", arch),
+        // Compile-time architecture detection
+        if cfg!(target_arch = "x86_64") {
+            platform.arch = Arch::X64;
+        } else if cfg!(target_arch = "aarch64") {
+            platform.arch = Arch::Aarch64;
+        } else {
+            // Fallback to runtime detection
+            match std::env::consts::ARCH {
+                "x86_64" => platform.arch = Arch::X64,
+                "aarch64" => platform.arch = Arch::Aarch64,
+                _ => panic!("Unsupported architecture: {}", std::env::consts::ARCH),
+            }
         }
 
         platform
+    }
+
+    /// Detect available package managers on the current system
+    pub fn detect_available_package_managers() -> Vec<KnownSources> {
+        let mut sources = Vec::new();
+        
+        if cfg!(target_os = "macos") {
+            if which::which("brew").is_ok() {
+                sources.push(KnownSources::Brew);
+            }
+        } else if cfg!(target_os = "linux") {
+            // Check common Linux package managers
+            if which::which("apt").is_ok() {
+                sources.push(KnownSources::Apt);
+            }
+            if which::which("pacman").is_ok() {
+                sources.push(KnownSources::Pacman);
+            }
+            if which::which("yay").is_ok() {
+                sources.push(KnownSources::Aur);
+            }
+        } else if cfg!(target_os = "windows") {
+            if which::which("scoop").is_ok() {
+                sources.push(KnownSources::Scoop);
+            }
+        }
+
+        // Universal package managers (available on multiple platforms)
+        if which::which("cargo").is_ok() {
+            sources.push(KnownSources::Cargo);
+        }
+        if which::which("nix").is_ok() || which::which("nix-env").is_ok() {
+            sources.push(KnownSources::Nix);
+        }
+
+        sources
+    }
+
+    /// Get default package sources for the current platform
+    #[must_use]
+    pub fn get_default_sources() -> Vec<KnownSources> {
+        if cfg!(target_os = "macos") {
+            vec![KnownSources::Brew, KnownSources::Cargo]
+        } else if cfg!(target_os = "linux") {
+            // Use runtime detection for accuracy in containerized environments
+            Self::detect_linux_package_managers()
+        } else if cfg!(target_os = "windows") {
+            vec![KnownSources::Scoop, KnownSources::Cargo]
+        } else {
+            vec![KnownSources::Cargo] // Fallback to universal package manager
+        }
+    }
+
+    /// Detect Linux package managers with runtime checks
+    fn detect_linux_package_managers() -> Vec<KnownSources> {
+        let mut sources = Vec::new();
+        
+        // Check for actual package manager presence
+        if which::which("apt").is_ok() {
+            sources.push(KnownSources::Apt);
+        }
+        if which::which("pacman").is_ok() {
+            sources.push(KnownSources::Pacman);
+        }
+        if which::which("yay").is_ok() {
+            sources.push(KnownSources::Aur);
+        }
+        
+        // Always add cargo as it's commonly available
+        sources.push(KnownSources::Cargo);
+        
+        // Fallback to apt if no package manager detected
+        if sources.is_empty() {
+            sources.push(KnownSources::Apt);
+        }
+        
+        sources
     }
 }
 
@@ -161,6 +265,9 @@ impl PackageData {
 
 /// A map of package names (strings)
 pub type PackageDataList = HashMap<String, HashMap<KnownSources, Option<PackageData>>>;
+
+/// Type alias for mapping source names to package sources
+pub type SourceMap = HashMap<SourceName, PackageSource>;
 
 impl LoadFromFile for PackageDataList {
     fn load_from_str(yaml_str: &str) -> Self {
@@ -235,7 +342,7 @@ impl SantaData {
     pub fn name_for(&self, package: &str, source: &PackageSource) -> String {
         match self.packages.get(package) {
             #[allow(clippy::collapsible_match)]
-            Some(sources) => match sources.get(&source.name) {
+            Some(sources) => match sources.get(source.name()) {
                 Some(pkgs) => match pkgs {
                     Some(name) => name
                         .name

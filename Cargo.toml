@@ -29,6 +29,13 @@ tabular = "0.2.0"
 subprocess = "0.2.8"
 termcolor = "1.1.*"
 
+# Phase 2: API Design Improvements
+derive_builder = "0.12"
+which = "4.4"
+derive_more = "0.99"
+validator = { version = "0.16", features = ["derive"] }
+string-interner = "0.14"
+
 [dev-dependencies]
 # Testing framework
 rstest = "0.18"

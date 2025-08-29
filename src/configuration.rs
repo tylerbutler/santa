@@ -138,9 +138,10 @@ impl SantaConfig {
         }
     }
 
+    #[must_use]
     pub fn source_is_enabled(&self, source: &PackageSource) -> bool {
         trace!("Checking if {} is enabled", source);
-        return self.sources.contains(&source.name);
+        return self.sources.contains(source.name());
     }
 
     /// Groups the configured (enabled) packages by source.

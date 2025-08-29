@@ -26,7 +26,7 @@ pub fn status_command(
     for source in &sources {
         let groups = config.groups(data);
         for (key, pkgs) in groups {
-            if source.name == key {
+            if source.name() == &key {
                 let pkg_count = pkgs.len();
                 let table = format!("{}", source.table(&pkgs, &cache, *all));
                 println!("{} ({} packages total)", source, pkg_count);
@@ -73,7 +73,7 @@ pub fn install_command(
     // }
 
     for source in &sources {
-        debug!("Stats for {}", source.name);
+        debug!("Stats for {}", source.name());
         cache.cache_for(source);
     }
 
@@ -81,7 +81,7 @@ pub fn install_command(
     for source in &sources {
         let groups = config.groups(data);
         for (key, pkgs) in groups {
-            if source.name == key {
+            if source.name() == &key {
                 let pkgs: Vec<String> = pkgs
                     .iter()
                     .filter(|p| !cache.check(source, p))
