@@ -3,13 +3,16 @@ use crate::data::SourceList;
 use crate::traits::Exportable;
 use crate::{configuration::SantaConfig, sources::PackageCache};
 use anyhow::Result;
+use futures::future::try_join_all;
+use std::sync::Arc;
+use tokio::sync::Mutex;
 
 use tracing::debug;
 
 #[cfg(test)]
 mod tests;
 
-pub fn status_command(
+pub async fn status_command(
     config: &mut SantaConfig,
     data: &SantaData,
     mut cache: PackageCache,
@@ -23,9 +26,30 @@ pub fn status_command(
         .filter(|source| config.source_is_enabled(source))
         .collect();
 
-    for source in &sources {
-        cache.cache_for(source);
+    // Use structured concurrency to cache data for all sources concurrently
+    let cache = Arc::new(Mutex::new(cache));
+    let cache_tasks: Vec<_> = sources
+        .iter()
+        .map(|source| {
+            let cache_clone: Arc<Mutex<PackageCache>> = Arc::clone(&cache);
+            let source = source.clone();
+            async move {
+                let mut cache = cache_clone.lock().await;
+                cache.cache_for_async(&source).await
+            }
+        })
+        .collect();
+    
+    // All tasks are structured under this scope - they'll be awaited together
+    match try_join_all(cache_tasks).await {
+        Ok(_) => debug!("Successfully cached data for all sources"),
+        Err(e) => tracing::error!("Some cache operations failed: {}", e),
     }
+    
+    // Extract cache from Arc<Mutex<>> for further use
+    let mut cache = Arc::try_unwrap(cache)
+        .map_err(|_| anyhow::anyhow!("Failed to unwrap cache"))?
+        .into_inner();
     for source in &sources {
         let groups = config.groups(data);
         for (key, pkgs) in groups {
@@ -57,7 +81,7 @@ pub fn config_command(
     Ok(())
 }
 
-pub fn install_command(
+pub async fn install_command(
     config: &mut SantaConfig,
     data: &SantaData,
     mut cache: PackageCache,
@@ -75,10 +99,31 @@ pub fn install_command(
     //     error!("{} {:?}", k, v);
     // }
 
-    for source in &sources {
-        debug!("Stats for {}", source.name());
-        cache.cache_for(source);
+    // Use structured concurrency to cache data for all sources concurrently  
+    let cache = Arc::new(Mutex::new(cache));
+    let cache_tasks: Vec<_> = sources
+        .iter()
+        .map(|source| {
+            let cache_clone: Arc<Mutex<PackageCache>> = Arc::clone(&cache);
+            let source = source.clone();
+            async move {
+                debug!("Async stats for {}", source.name());
+                let mut cache = cache_clone.lock().await;
+                cache.cache_for_async(&source).await
+            }
+        })
+        .collect();
+    
+    // All caching tasks are structured under this scope
+    match try_join_all(cache_tasks).await {
+        Ok(_) => debug!("Successfully cached data for install operation"),
+        Err(e) => tracing::error!("Some install cache operations failed: {}", e),
     }
+    
+    // Extract cache from Arc<Mutex<>> for further use
+    let mut cache = Arc::try_unwrap(cache)
+        .map_err(|_| anyhow::anyhow!("Failed to unwrap install cache"))?
+        .into_inner();
 
     // let config = config.clone();
     for source in &sources {

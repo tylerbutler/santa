@@ -78,18 +78,20 @@ mod status_command_tests {
     use super::*;
 
     #[rstest]
-    fn test_status_command_basic_execution(
+    #[tokio::test]
+    async fn test_status_command_basic_execution(
         mut basic_config: SantaConfig,
         test_data: SantaData,
         empty_cache: PackageCache,
     ) {
         // Test that status_command executes without error
-        let result = status_command(&mut basic_config, &test_data, empty_cache, &false);
+        let result = status_command(&mut basic_config, &test_data, empty_cache, &false).await;
         assert!(result.is_ok(), "status_command should execute successfully");
     }
 
     #[rstest]
-    fn test_status_command_with_disabled_sources(
+    #[tokio::test]
+    async fn test_status_command_with_disabled_sources(
         test_data: SantaData,
         empty_cache: PackageCache,
     ) {
@@ -97,23 +99,25 @@ mod status_command_tests {
         let mut config = SantaConfig::default();
         config.sources = vec![]; // No sources enabled
         
-        let result = status_command(&mut config, &test_data, empty_cache, &false);
+        let result = status_command(&mut config, &test_data, empty_cache, &false).await;
         assert!(result.is_ok(), "status_command should handle disabled sources gracefully");
     }
 
     #[rstest]
-    fn test_status_command_with_all_flag(
+    #[tokio::test]
+    async fn test_status_command_with_all_flag(
         mut basic_config: SantaConfig,
         test_data: SantaData,
         empty_cache: PackageCache,
     ) {
         // Test with all=true flag
-        let result = status_command(&mut basic_config, &test_data, empty_cache, &true);
+        let result = status_command(&mut basic_config, &test_data, empty_cache, &true).await;
         assert!(result.is_ok(), "status_command should handle all flag correctly");
     }
 
     #[rstest]
-    fn test_status_command_filters_enabled_sources(
+    #[tokio::test]
+    async fn test_status_command_filters_enabled_sources(
         test_data: SantaData,
         empty_cache: PackageCache,
     ) {
@@ -122,7 +126,7 @@ mod status_command_tests {
         config.sources = vec![KnownSources::Brew];
         config.packages = vec!["git".to_string()];
         
-        let result = status_command(&mut config, &test_data, empty_cache, &false);
+        let result = status_command(&mut config, &test_data, empty_cache, &false).await;
         assert!(result.is_ok(), "status_command should filter to enabled sources only");
     }
 }
@@ -177,7 +181,8 @@ mod install_command_tests {
     use super::*;
 
     #[rstest]
-    fn test_install_command_basic_execution(
+    #[tokio::test]
+    async fn test_install_command_basic_execution(
         mut basic_config: SantaConfig,
         test_data: SantaData,
         empty_cache: PackageCache,
@@ -186,12 +191,13 @@ mod install_command_tests {
         // This avoids the terminal interaction by using empty cache (so all packages are "missing")
         // but with empty package list in config
         basic_config.packages = vec![]; // No packages to install
-        let result = install_command(&mut basic_config, &test_data, empty_cache);
+        let result = install_command(&mut basic_config, &test_data, empty_cache).await;
         assert!(result.is_ok(), "install_command should execute successfully");
     }
 
     #[rstest]
-    fn test_install_command_with_no_enabled_sources(
+    #[tokio::test]
+    async fn test_install_command_with_no_enabled_sources(
         test_data: SantaData,
         empty_cache: PackageCache,
     ) {
@@ -199,12 +205,13 @@ mod install_command_tests {
         let mut config = SantaConfig::default();
         config.sources = vec![]; // No sources enabled
         
-        let result = install_command(&mut config, &test_data, empty_cache);
+        let result = install_command(&mut config, &test_data, empty_cache).await;
         assert!(result.is_ok(), "install_command should handle no enabled sources gracefully");
     }
 
     #[rstest]
-    fn test_install_command_filters_enabled_sources(
+    #[tokio::test]
+    async fn test_install_command_filters_enabled_sources(
         test_data: SantaData,
         empty_cache: PackageCache,
     ) {
@@ -214,7 +221,7 @@ mod install_command_tests {
         config.sources = vec![KnownSources::Brew];
         config.packages = vec![]; // Empty packages to avoid installation
         
-        let result = install_command(&mut config, &test_data, empty_cache);
+        let result = install_command(&mut config, &test_data, empty_cache).await;
         assert!(result.is_ok(), "install_command should filter to enabled sources only");
     }
 
@@ -251,7 +258,8 @@ mod install_command_tests {
     }
 
     #[rstest]
-    fn test_install_command_with_empty_packages(
+    #[tokio::test]
+    async fn test_install_command_with_empty_packages(
         test_data: SantaData,
         empty_cache: PackageCache,
     ) {
@@ -260,7 +268,7 @@ mod install_command_tests {
         config.sources = vec![KnownSources::Brew];
         config.packages = vec![]; // No packages
         
-        let result = install_command(&mut config, &test_data, empty_cache);
+        let result = install_command(&mut config, &test_data, empty_cache).await;
         assert!(result.is_ok(), "install_command should handle empty package list gracefully");
     }
 }
@@ -270,7 +278,8 @@ mod integration_tests {
     use super::*;
 
     #[rstest]
-    fn test_command_chain_status_then_config(
+    #[tokio::test]
+    async fn test_command_chain_status_then_config(
         basic_config: SantaConfig,
         test_data: SantaData,
         empty_cache: PackageCache,
@@ -279,7 +288,7 @@ mod integration_tests {
         let mut config_clone = basic_config.clone();
         
         // First run status
-        let status_result = status_command(&mut config_clone, &test_data, empty_cache, &false);
+        let status_result = status_command(&mut config_clone, &test_data, empty_cache, &false).await;
         assert!(status_result.is_ok(), "status_command should succeed");
         
         // Then run config 
@@ -288,7 +297,8 @@ mod integration_tests {
     }
 
     #[rstest]
-    fn test_all_commands_with_minimal_data(
+    #[tokio::test]
+    async fn test_all_commands_with_minimal_data(
         empty_cache: PackageCache,
     ) {
         // Test all commands with minimal data structures
@@ -304,10 +314,10 @@ mod integration_tests {
         
         // All commands should handle minimal data gracefully
         assert!(config_command(&minimal_config, &minimal_data, false, false).is_ok());
-        assert!(status_command(&mut config_clone, &minimal_data, cache_clone1, &false).is_ok());
+        assert!(status_command(&mut config_clone, &minimal_data, cache_clone1, &false).await.is_ok());
         
         // For install command, ensure no packages to avoid terminal interaction
         config_clone.packages = vec![];
-        assert!(install_command(&mut config_clone, &minimal_data, cache_clone2).is_ok());
+        assert!(install_command(&mut config_clone, &minimal_data, cache_clone2).await.is_ok());
     }
 }

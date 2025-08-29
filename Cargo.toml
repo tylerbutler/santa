@@ -26,6 +26,10 @@ serde_yaml = "0.9"
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
 tabular = "0.2.0"
+# Async process execution replacing subprocess
+tokio = { version = "1.35", features = ["process", "rt-multi-thread", "macros", "time", "sync"] }
+futures = "0.3"
+# Keep subprocess temporarily for compatibility during transition
 subprocess = "0.2.8"
 termcolor = "1.1.*"
 

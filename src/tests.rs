@@ -42,7 +42,7 @@ fn temp_dir() -> TempDir {
 }
 
 /// Helper function to create a testable version of run() that accepts CLI args
-fn run_with_args(args: Vec<&str>) -> Result<(), anyhow::Error> {
+async fn run_with_args(args: Vec<&str>) -> Result<(), anyhow::Error> {
     // We can't easily test the full run() function due to Cli::parse() reading from command line
     // Instead, we'll test the individual components that run() orchestrates
     

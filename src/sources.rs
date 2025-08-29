@@ -1,12 +1,16 @@
 use crate::SantaConfig;
 use std::collections::HashMap;
+use std::time::Duration;
 
 use colored::*;
 use derive_builder::Builder;
 use dialoguer::{theme::ColorfulTheme, Confirm};
+use futures::future::try_join_all;
 use serde::{Deserialize, Serialize};
 use subprocess::Exec;
 use tabular::{Row, Table};
+use tokio::process::Command;
+use tokio::time::timeout;
 use tracing::{debug, error, info, trace};
 
 use crate::data::{KnownSources, Platform, SantaData};
@@ -47,6 +51,14 @@ impl PackageCache {
         info!("Caching data for {}", source);
         let pkgs = source.packages();
         self.cache.insert(source.name_str(), pkgs.clone());
+    }
+
+    /// Async version of cache_for with timeout and better error handling
+    pub async fn cache_for_async(&mut self, source: &PackageSource) -> Result<(), anyhow::Error> {
+        info!("Async caching data for {}", source);
+        let pkgs = source.packages_async().await;
+        self.cache.insert(source.name_str(), pkgs.clone());
+        Ok(())
     }
 
     /// Returns all packages for a PackageSource. This will call the PackageSource's check_command and populate the cache if needed.
@@ -289,6 +301,76 @@ impl PackageSource {
         debug!("{} - {} packages installed", self.name, packages.len());
         trace!("{:?}", packages);
         packages
+    }
+
+    /// Async version of exec_check using tokio::process with timeout support
+    async fn exec_check_async(&self) -> Result<String, anyhow::Error> {
+        let check = self.check_command();
+        debug!("Running async shell command: {}", check);
+
+        let result = if MACHINE_KIND != "windows" {
+            // Use sh -c for Unix systems for better shell compatibility
+            timeout(
+                Duration::from_secs(30), // 30 second timeout
+                Command::new("sh")
+                    .arg("-c")
+                    .arg(&check)
+                    .output()
+            ).await
+        } else {
+            // Use PowerShell for Windows
+            timeout(
+                Duration::from_secs(30),
+                Command::new("pwsh.exe")
+                    .args(&[
+                        "-NonInteractive",
+                        "-NoLogo", 
+                        "-NoProfile",
+                        "-Command",
+                        &check,
+                    ])
+                    .output()
+            ).await
+        };
+
+        match result {
+            Ok(Ok(output)) => {
+                if output.status.success() {
+                    let stdout = String::from_utf8_lossy(&output.stdout);
+                    Ok(stdout.to_string())
+                } else {
+                    let stderr = String::from_utf8_lossy(&output.stderr);
+                    error!("Command failed: {}", stderr);
+                    Ok(String::new()) // Return empty string on failure like sync version
+                }
+            }
+            Ok(Err(e)) => {
+                error!("Process error: {}", e);
+                Ok(String::new())
+            }
+            Err(_) => {
+                error!("Command timed out after 30 seconds: {}", check);
+                Ok(String::new())
+            }
+        }
+    }
+
+    /// Async version of packages() with better error handling and performance
+    #[must_use]
+    pub async fn packages_async(&self) -> Vec<String> {
+        match self.exec_check_async().await {
+            Ok(pkg_list) => {
+                let lines = pkg_list.lines();
+                let packages: Vec<String> = lines.map(|s| self.adjust_package_name(s)).collect();
+                debug!("{} - {} packages installed", self.name, packages.len());
+                trace!("{:?}", packages);
+                packages
+            }
+            Err(e) => {
+                error!("Failed to get packages for {}: {}", self.name, e);
+                Vec::new()
+            }
+        }
     }
 
     #[must_use]

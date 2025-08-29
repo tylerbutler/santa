@@ -108,7 +108,7 @@ fn build_cli() -> Command {
         )
 }
 
-pub fn run() -> Result<(), anyhow::Error> {
+pub async fn run() -> Result<(), anyhow::Error> {
     let cli = Cli::parse();
 
     // Handle shell completions
@@ -163,10 +163,10 @@ pub fn run() -> Result<(), anyhow::Error> {
     match &cli.command {
         Commands::Status { all } => {
             debug!("santa status");
-            crate::commands::status_command(&mut config, &data, cache, all)?;
+            crate::commands::status_command(&mut config, &data, cache, all).await?;
         }
         Commands::Install { source: _ } => {
-            crate::commands::install_command(&mut config, &data, cache)?;
+            crate::commands::install_command(&mut config, &data, cache).await?;
         }
         Commands::Add { source, package } => {
             bail!(
@@ -187,8 +187,9 @@ pub fn run() -> Result<(), anyhow::Error> {
     Ok(())
 }
 
-fn main() {
-    match run() {
+#[tokio::main]
+async fn main() {
+    match run().await {
         Ok(()) => {}
         Err(err) => {
             eprintln!("error: {}", err);
