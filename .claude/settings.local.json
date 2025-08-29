@@ -7,7 +7,8 @@
       "Bash(cargo:*)",
       "Bash(./target/release/santa:*)",
       "Bash(find:*)",
-      "Bash(rg:*)"
+      "Bash(rg:*)",
+      "Bash(git rm:*)"
     ],
     "deny": []
   }

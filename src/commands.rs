@@ -6,6 +6,9 @@ use anyhow::Result;
 
 use tracing::debug;
 
+#[cfg(test)]
+mod tests;
+
 pub fn status_command(
     config: &mut SantaConfig,
     data: &SantaData,
