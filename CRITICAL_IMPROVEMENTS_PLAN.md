@@ -163,17 +163,99 @@ let data: SantaConfig = serde_yaml::from_str(yaml_str)
 - **Modern dependencies**: All dependencies updated to latest compatible versions
 - **Cleaner codebase**: Removed dead code and unused imports
 
+## Priority 4: Test Coverage Enhancement (High Impact)
+
+### 4.1 Current Test Status
+**Existing Tests:**
+- **Unit tests**: 29 passing tests across core modules (configuration, data, sources)
+- **Integration tests**: 18 passing CLI integration tests 
+- **Test frameworks**: rstest, proptest, mockall, assert_cmd, predicates
+
+### 4.2 Critical Missing Test Areas
+
+**Command Layer Testing** (`commands.rs`)
+- `status_command()` - package status reporting logic
+- `config_command()` - configuration display logic  
+- `install_command()` - package installation workflow
+
+**Main Application Logic** (`main.rs:108-195`)
+- `run()` function - core application orchestration
+- CLI argument parsing edge cases
+- Logging configuration scenarios
+- Error handling paths
+
+**Core Data Operations** (`data.rs`)
+- `Platform::detect_available_package_managers()` - platform detection
+- `SantaData::sources()` - source filtering logic
+- `SantaData::name_for()` - package name transformation
+- File loading error scenarios
+
+**Package Source Operations** (`sources.rs`)
+- `PackageSource::exec_install()` - installation execution
+- `PackageSource::packages()` - package enumeration
+- `PackageSource::table()` - output formatting
+- Override selection logic
+
+**Trait Implementations** (`traits.rs`)
+- Exportable trait implementations
+- Package trait (currently unused but defined)
+
+### 4.3 Test Improvement Implementation Plan
+
+**Phase 1: Command Layer Testing** (Priority: High)
+- Add unit tests for all command functions with mocked dependencies
+- Test error handling in status/config/install commands
+- Validate output formatting and user interaction flows
+- **Estimated effort**: 4-6 hours
+
+**Phase 2: Core Logic Testing** (Priority: High)
+- Test main `run()` function with various CLI scenarios
+- Add property-based tests for configuration validation
+- Test platform detection across different environments
+- **Estimated effort**: 6-8 hours
+
+**Phase 3: Integration Enhancement** (Priority: Medium)
+- Add end-to-end workflow tests combining multiple commands
+- Test configuration file loading/parsing edge cases
+- Add performance tests for large package lists
+- **Estimated effort**: 4-6 hours
+
+**Phase 4: Error Handling & Security** (Priority: Medium)
+- Expand injection prevention tests
+- Add comprehensive error scenario coverage
+- Test subprocess execution security measures
+- **Estimated effort**: 3-4 hours
+
+**Phase 5: Property-Based Testing** (Priority: Low)
+- Use proptest for configuration validation fuzzing
+- Generate random package/source combinations for testing
+- Test serialization/deserialization with arbitrary inputs
+- **Estimated effort**: 4-6 hours
+
+### 4.4 Success Criteria for Testing
+- [ ] >90% line coverage on core business logic
+- [ ] All command functions have comprehensive unit tests
+- [ ] Error scenarios are thoroughly tested
+- [ ] Integration tests cover complete user workflows
+- [ ] Property-based tests validate edge cases
+- [ ] Performance benchmarks for critical paths
+
+**Total estimated effort for comprehensive test coverage**: 21-30 hours
+
 ## Risk Assessment
 
 **Low Risk:**
 - Dependency updates (can be rolled back easily)
 - Memory optimization (maintains same API)
+- Unit test additions (no production code changes)
 
 **Medium Risk:**
 - Error handling changes (affects API contracts)
+- Integration test additions (may reveal existing bugs)
 - Requires comprehensive testing
 
 **Mitigation:**
 - Implement changes incrementally
 - Add integration tests before refactoring
 - Use feature flags for major changes
+- Test critical paths thoroughly before deployment
