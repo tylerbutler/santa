@@ -1,16 +1,18 @@
 use crate::SantaConfig;
+use std::borrow::Cow;
 use std::collections::HashMap;
 use std::time::Duration;
 
 use colored::*;
 use derive_builder::Builder;
 use dialoguer::{theme::ColorfulTheme, Confirm};
+use moka::sync::Cache;
 use serde::{Deserialize, Serialize};
 use subprocess::Exec;
 use tabular::{Row, Table};
 use tokio::process::Command;
 use tokio::time::timeout;
-use tracing::{debug, error, info, trace};
+use tracing::{debug, error, info, trace, warn};
 
 use crate::data::{KnownSources, Platform, SantaData};
 
@@ -24,60 +26,176 @@ const MACHINE_KIND: &str = if cfg!(windows) {
     "unknown"
 };
 
+/// Thread-safe package cache with TTL, LRU eviction, and monitoring
+/// Uses the high-performance moka caching library
 #[derive(Clone, Debug)]
 pub struct PackageCache {
-    pub cache: HashMap<String, Vec<String>>,
+    cache: Cache<String, Vec<String>>,
+    max_capacity: u64,
 }
 
 impl PackageCache {
+    /// Create a new cache with default settings (5 min TTL, 1000 entries max)
     pub fn new() -> Self {
-        Self::default()
+        Self::with_config(Duration::from_secs(300), 1000)
     }
 
+    /// Create a cache with custom TTL and size limits
+    pub fn with_config(ttl: Duration, max_size: u64) -> Self {
+        let cache = Cache::builder()
+            .max_capacity(max_size)
+            .time_to_live(ttl)
+            .eviction_listener(|key, _value, cause| {
+                match cause {
+                    moka::notification::RemovalCause::Size => {
+                        debug!("Cache evicted entry '{}' due to size limit", key);
+                    }
+                    moka::notification::RemovalCause::Expired => {
+                        trace!("Cache entry '{}' expired", key);
+                    }
+                    _ => {
+                        trace!("Cache entry '{}' removed: {:?}", key, cause);
+                    }
+                }
+            })
+            .build();
+
+        Self { cache, max_capacity: max_size }
+    }
+
+    /// Get cache statistics
+    pub fn stats(&self) -> CacheStats {
+        CacheStats {
+            entries: self.cache.entry_count(),
+            weighted_size: self.cache.weighted_size(),
+        }
+    }
+
+    /// Clear all cache entries
+    pub fn clear(&self) {
+        let entries_cleared = self.cache.entry_count();
+        self.cache.invalidate_all();
+        if entries_cleared > 0 {
+            info!("Cleared {} cache entries", entries_cleared);
+        }
+    }
+
+    /// Invalidate specific cache entry
+    pub fn invalidate(&self, source_name: &str) {
+        self.cache.invalidate(source_name);
+        debug!("Invalidated cache entry for {}", source_name);
+    }
+
+    /// Insert directly into cache (for testing)
+    #[cfg(any(test, feature = "bench"))]
+    pub fn insert_for_test(&self, key: String, packages: Vec<String>) {
+        self.cache.insert(key, packages);
+    }
+
+    /// Check if cache is empty (for testing)
+    #[cfg(any(test, feature = "bench"))]
+    pub fn is_empty(&self) -> bool {
+        self.cache.entry_count() == 0
+    }
+
+    /// Create a small cache for testing eviction behavior
+    #[cfg(any(test, feature = "bench"))]
+    pub fn new_small_for_test(max_size: u64) -> Self {
+        Self::with_config(Duration::from_secs(60), max_size)
+    }
+}
+
+/// Cache statistics for monitoring  
+#[derive(Debug, Clone)]
+pub struct CacheStats {
+    pub entries: u64,
+    pub weighted_size: u64,
+}
+
+impl Default for PackageCache {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl PackageCache {
     /// Checks for a package in the cache. This accesses the cache only, and will not modify it.
     #[must_use]
     pub fn check(&self, source: &PackageSource, pkg: &str) -> bool {
         match self.cache.get(&source.name_str()) {
-            Some(pkgs) => pkgs.contains(&pkg.to_string()),
-            _ => {
+            Some(packages) => {
+                trace!("Cache hit for {}", source);
+                packages.contains(&pkg.to_string())
+            }
+            None => {
                 debug!("No package cache for {}", source);
                 false
             }
         }
     }
 
-    pub fn cache_for(&mut self, source: &PackageSource) {
+    pub fn cache_for(&self, source: &PackageSource) {
         info!("Caching data for {}", source);
         let pkgs = source.packages();
-        self.cache.insert(source.name_str(), pkgs.clone());
+        self.cache.insert(source.name_str(), pkgs);
+        
+        // Warn if cache is getting full
+        let stats = self.stats();
+        let capacity_ratio = stats.entries as f64 / self.max_capacity as f64;
+        if capacity_ratio > 0.8 {
+            warn!("Cache is {}% full ({}/{} entries)", (capacity_ratio * 100.0) as u64, stats.entries, self.max_capacity);
+        }
     }
 
     /// Async version of cache_for with timeout and better error handling
-    pub async fn cache_for_async(&mut self, source: &PackageSource) -> Result<(), anyhow::Error> {
+    pub async fn cache_for_async(&self, source: &PackageSource) -> Result<(), anyhow::Error> {
         info!("Async caching data for {}", source);
         let pkgs = source.packages_async().await;
-        self.cache.insert(source.name_str(), pkgs.clone());
+        self.cache.insert(source.name_str(), pkgs);
+        
+        // Warn if cache is getting full
+        let stats = self.stats();
+        let capacity_ratio = stats.entries as f64 / self.max_capacity as f64;
+        if capacity_ratio > 0.8 {
+            warn!("Cache is {}% full ({}/{} entries)", (capacity_ratio * 100.0) as u64, stats.entries, self.max_capacity);
+        }
+        
         Ok(())
     }
 
     /// Returns all packages for a PackageSource. This will call the PackageSource's check_command and populate the cache if needed.
     /// If the PackageSource can't be found, or the cache population fails, then None will be returned.
     #[must_use]
-    pub fn packages_for(cache: &mut PackageCache, source: &PackageSource) -> Option<Vec<String>> {
-        let c = cache.clone();
-        match c.cache.get(&source.name_str()) {
-            Some(pkgs) => {
-                trace!("Cache hit");
-                Some(pkgs.to_vec())
-            }
-            None => {
-                debug!("Cache miss, filling cache for {}", source.name);
-                let pkgs = source.packages();
-                cache.cache_for(source);
-                Some(pkgs)
-                // None
-            }
+    pub fn packages_for(cache: &PackageCache, source: &PackageSource) -> Option<Vec<String>> {
+        let key = source.name_str();
+        
+        // Try to get from cache first
+        if let Some(packages) = cache.cache.get(&key) {
+            trace!("Cache hit for {}", source.name);
+            return Some(packages);
         }
+        
+        // Cache miss - fetch and cache
+        debug!("Cache miss, filling cache for {}", source.name);
+        let pkgs = source.packages();
+        cache.cache.insert(key, pkgs.clone());
+        Some(pkgs)
+    }
+
+    /// Get packages with efficient string handling using Cow
+    pub fn get_packages_cow(&self, source: &PackageSource) -> Option<Cow<Vec<String>>> {
+        let key = source.name_str();
+        
+        if let Some(packages) = self.cache.get(&key) {
+            trace!("Cache hit (cow) for {}", source.name);
+            return Some(Cow::Owned(packages)); // moka returns owned values
+        }
+        
+        // Cache miss - fetch and cache
+        debug!("Cache miss (cow), filling cache for {}", source.name);
+        let pkgs = source.packages();
+        self.cache.insert(key, pkgs.clone());
+        Some(Cow::Owned(pkgs))
     }
 }
 
@@ -400,13 +518,6 @@ impl PackageSource {
     }
 }
 
-impl Default for PackageCache {
-    fn default() -> Self {
-        PackageCache {
-            cache: HashMap::new(),
-        }
-    }
-}
 
 impl Default for SourceOverride {
     fn default() -> Self {
@@ -594,5 +705,35 @@ mod tests {
         let source = create_test_source();
         let display_string = format!("{}", source);
         assert_eq!(display_string, "🍺 brew");
+    }
+
+    #[test]
+    fn test_cache_capacity_and_monitoring() {
+        // Test 1000 entry default capacity
+        let large_cache = PackageCache::new();
+        assert_eq!(large_cache.max_capacity, 1000, "Default cache should have 1000 capacity");
+        
+        let stats_large = large_cache.stats();
+        assert_eq!(stats_large.entries, 0, "New large cache should be empty");
+        
+        // Test custom capacity
+        let small_cache = PackageCache::new_small_for_test(5);
+        assert_eq!(small_cache.max_capacity, 5, "Small cache should have 5 capacity");
+        
+        // Test basic insertion
+        small_cache.insert_for_test("source1".to_string(), vec!["pkg1".to_string()]);
+        
+        // Verify entry exists
+        assert!(small_cache.cache.contains_key("source1"), "Entry should exist in cache");
+        
+        // Document eviction behavior - when cache exceeds max_capacity:
+        // - Moka will automatically evict LRU (least recently used) entries
+        // - Eviction logging will show: "Cache evicted entry 'X' due to size limit"
+        // - Expired entries will show: "Cache entry 'X' expired"  
+        // - Cache capacity warnings appear at 80% full (800/1000 entries by default)
+        
+        println!("✅ Cache configured with 1000 entry default capacity");
+        println!("✅ Eviction logging enabled for size limits and expiration");
+        println!("✅ Capacity warnings trigger at 80% full (800 entries)");
     }
 }

@@ -497,7 +497,7 @@ mod integration_tests {
 
         // Test that PackageCache can be created
         let cache = PackageCache::new();
-        assert!(cache.cache.is_empty(), "New cache should be empty");
+        assert!(cache.is_empty(), "New cache should be empty");
     }
 
     #[test]

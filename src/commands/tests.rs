@@ -62,7 +62,7 @@ fn empty_cache() -> PackageCache {
 fn populated_cache() -> PackageCache {
     let mut cache = PackageCache::default();
     let source_cache = vec!["git".to_string(), "vim".to_string()]; // Only git and vim are "installed"
-    cache.cache.insert("brew".to_string(), source_cache);
+    cache.insert_for_test("brew".to_string(), source_cache);
     cache
 }
 
@@ -241,16 +241,11 @@ mod install_command_tests {
     fn test_install_command_skips_cached_packages() {
         // Test the package filtering logic without calling exec_install
         // This tests the core logic: packages in cache should be filtered out
-        let cache = PackageCache {
-            cache: {
-                let mut map = std::collections::HashMap::new();
-                map.insert(
-                    "brew".to_string(),
-                    vec!["git".to_string(), "vim".to_string()],
-                );
-                map
-            },
-        };
+        let cache = PackageCache::new();
+        cache.insert_for_test(
+            "brew".to_string(), 
+            vec!["git".to_string(), "vim".to_string()]
+        );
 
         let source = PackageSource::new_for_test(
             KnownSources::Brew,
