@@ -19,6 +19,9 @@ mod data;
 mod sources;
 mod traits;
 
+#[cfg(test)]
+mod tests;
+
 static DEFAULT_CONFIG_FILE_PATH: &str = ".config/santa/config.yaml";
 
 /// Manage default sets of packages for a variety of package managers.
