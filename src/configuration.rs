@@ -1,3 +1,5 @@
+pub mod watcher;
+
 use crate::data::SourceList;
 use crate::sources::PackageSource;
 use crate::traits::Exportable;
@@ -196,6 +198,11 @@ impl SantaConfig {
                 self._groups.clone().expect("Groups should be populated")
             }
         }
+    }
+
+    /// Create a configuration watcher for hot-reloading
+    pub fn create_watcher(&self, config_path: std::path::PathBuf) -> Result<crate::configuration::watcher::ConfigWatcher, anyhow::Error> {
+        crate::configuration::watcher::ConfigWatcher::new(config_path, self.clone())
     }
 }
 
