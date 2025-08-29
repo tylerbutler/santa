@@ -12,18 +12,15 @@ use crate::{sources::PackageSource, traits::Exportable};
 pub mod constants;
 
 /// Strong type for package names to prevent mixing up with other strings
-#[derive(Debug, Clone, PartialEq, Eq, Hash, Display, From, Into)]
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Display, From, Into, Serialize, Deserialize)]
 pub struct PackageName(pub String);
 
 /// Strong type for source names to prevent mixing up with other strings  
-#[derive(Debug, Clone, PartialEq, Eq, Hash, Display, From, Into)]
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Display, From, Into, Serialize, Deserialize)]
 pub struct SourceName(pub String);
 
 /// Strong type for command names to prevent command/package name confusion
-#[derive(Debug, Clone, PartialEq, Eq, Hash, Display, From, Into)]
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Display, From, Into, Serialize, Deserialize)]
 pub struct CommandName(pub String);
 
 #[derive(Serialize_enum_str, Deserialize_enum_str, Debug, Clone, Eq, PartialEq, Hash)]
@@ -102,7 +99,7 @@ impl Platform {
     /// Get current platform using compile-time detection where possible
     pub fn current() -> Self {
         let mut platform = Platform::default();
-        
+
         // Compile-time OS detection
         if cfg!(target_os = "windows") {
             platform.os = OS::Windows;
@@ -139,7 +136,7 @@ impl Platform {
     /// Detect available package managers on the current system
     pub fn detect_available_package_managers() -> Vec<KnownSources> {
         let mut sources = Vec::new();
-        
+
         if cfg!(target_os = "macos") {
             if which::which("brew").is_ok() {
                 sources.push(KnownSources::Brew);
@@ -190,7 +187,7 @@ impl Platform {
     /// Detect Linux package managers with runtime checks
     fn detect_linux_package_managers() -> Vec<KnownSources> {
         let mut sources = Vec::new();
-        
+
         // Check for actual package manager presence
         if which::which("apt").is_ok() {
             sources.push(KnownSources::Apt);
@@ -201,15 +198,15 @@ impl Platform {
         if which::which("yay").is_ok() {
             sources.push(KnownSources::Aur);
         }
-        
+
         // Always add cargo as it's commonly available
         sources.push(KnownSources::Cargo);
-        
+
         // Fallback to apt if no package manager detected
         if sources.is_empty() {
             sources.push(KnownSources::Apt);
         }
-        
+
         sources
     }
 }

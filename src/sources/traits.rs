@@ -2,7 +2,6 @@
 
 use crate::data::PackageData;
 
-
 // pub trait Package {
 //     fn name(&self) -> String;
 // }

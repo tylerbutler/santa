@@ -2,6 +2,7 @@ use crate::SantaConfig;
 use std::collections::HashMap;
 
 use colored::*;
+use derive_builder::Builder;
 use dialoguer::{theme::ColorfulTheme, Confirm};
 use serde::{Deserialize, Serialize};
 use subprocess::Exec;
@@ -69,7 +70,8 @@ impl PackageCache {
     }
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, Eq, PartialEq, Hash)]
+#[derive(Serialize, Deserialize, Clone, Debug, Eq, PartialEq, Hash, Builder)]
+#[builder(setter(into))]
 pub struct SourceOverride {
     platform: Platform,
     pub shell_command: Option<String>,
@@ -77,8 +79,8 @@ pub struct SourceOverride {
     pub check_command: Option<String>,
 }
 
-
-#[derive(Serialize, Deserialize, Clone, Debug, Eq, PartialEq, Hash)]
+#[derive(Serialize, Deserialize, Clone, Debug, Eq, PartialEq, Hash, Builder)]
+#[builder(setter(into))]
 pub struct PackageSource {
     /// The name of the package manager.
     name: KnownSources,

@@ -2,6 +2,7 @@ use crate::data::SourceList;
 use crate::sources::PackageSource;
 use crate::Exportable;
 use anyhow::Context;
+use derive_builder::Builder;
 use std::{
     collections::{HashMap, HashSet},
     fs,
@@ -9,14 +10,20 @@ use std::{
 };
 
 use tracing::{debug, trace, warn};
+use validator::{Validate, ValidationError};
 // use memoize::memoize;
 use serde::{Deserialize, Serialize};
 
 use crate::data::{constants, KnownSources, SantaData};
 
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug, Builder, Validate)]
+#[builder(setter(into))]
 pub struct SantaConfig {
+    #[validate(length(min = 1, message = "At least one source must be configured"))]
+    #[validate(custom = "validate_no_duplicate_sources")]
     pub sources: Vec<KnownSources>,
+    #[validate(length(min = 1, message = "At least one package should be configured"))]
+    #[validate(custom = "validate_no_duplicate_packages")]
     pub packages: Vec<String>,
     pub custom_sources: Option<SourceList>,
 
@@ -190,6 +197,28 @@ impl SantaConfig {
             }
         }
     }
+}
+
+/// Custom validator function to check for duplicate sources
+fn validate_no_duplicate_sources(sources: &Vec<KnownSources>) -> Result<(), ValidationError> {
+    let mut seen = HashSet::new();
+    for source in sources {
+        if !seen.insert(source) {
+            return Err(ValidationError::new("duplicate_source"));
+        }
+    }
+    Ok(())
+}
+
+/// Custom validator function to check for duplicate packages  
+fn validate_no_duplicate_packages(packages: &Vec<String>) -> Result<(), ValidationError> {
+    let mut seen = HashSet::new();
+    for package in packages {
+        if !seen.insert(package) {
+            return Err(ValidationError::new("duplicate_package"));
+        }
+    }
+    Ok(())
 }
 
 #[cfg(test)]
