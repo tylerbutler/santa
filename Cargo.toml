@@ -48,6 +48,8 @@ string-interner = "0.14"
 
 # Advanced Features: Configuration Hot-Reloading
 notify = "6.1"
+# Security: Shell escape for command injection prevention
+shell-escape = "0.1"
 
 [dev-dependencies]
 # Testing framework

