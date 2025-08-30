@@ -1,5 +1,7 @@
 pub mod watcher;
 
+pub mod env;
+
 use crate::data::SourceList;
 use crate::sources::PackageSource;
 use crate::traits::Exportable;
@@ -30,7 +32,7 @@ pub struct SantaConfig {
     pub custom_sources: Option<SourceList>,
 
     #[serde(skip)]
-    _groups: Option<HashMap<KnownSources, Vec<String>>>,
+    pub _groups: Option<HashMap<KnownSources, Vec<String>>>,
     #[serde(skip)]
     pub log_level: u8,
 }
@@ -203,6 +205,17 @@ impl SantaConfig {
     /// Create a configuration watcher for hot-reloading
     pub fn create_watcher(&self, config_path: std::path::PathBuf) -> Result<crate::configuration::watcher::ConfigWatcher, anyhow::Error> {
         crate::configuration::watcher::ConfigWatcher::new(config_path, self.clone())
+    }
+
+    /// Load configuration with environment variable support
+    pub fn load_with_env(config_path: Option<&str>, builtin_only: bool) -> Result<Self, anyhow::Error> {
+        crate::configuration::env::load_config_with_env(config_path, builtin_only)
+    }
+
+    /// Print environment variable help
+    pub fn print_env_help() {
+        let env_config = crate::configuration::env::EnvironmentConfig::default();
+        env_config.print_env_help();
     }
 }
 

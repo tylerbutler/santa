@@ -1,7 +1,9 @@
 use anyhow::{bail, Context};
 use clap::{ArgAction, Command, Parser, Subcommand};
 use clap_complete::{generate, Shell};
-use configuration::SantaConfig;
+use santa::completions::EnhancedCompletions;
+use santa::configuration::SantaConfig;
+use santa::data::SantaData;
 use tracing::{debug, info, trace, Level};
 use tracing_subscriber::{EnvFilter, FmtSubscriber};
 extern crate directories;
@@ -9,15 +11,8 @@ use directories::BaseDirs;
 
 use std::path::Path;
 
-use crate::data::SantaData;
-use crate::sources::PackageCache;
-use crate::traits::Exportable;
-
-mod commands;
-mod configuration;
-mod data;
-mod sources;
-mod traits;
+use santa::commands;
+use santa::sources::PackageCache;
 
 #[cfg(test)]
 mod tests;
@@ -111,10 +106,33 @@ fn build_cli() -> Command {
 pub async fn run() -> Result<(), anyhow::Error> {
     let cli = Cli::parse();
 
-    // Handle shell completions
+    // Handle shell completions with enhanced suggestions
     if let Commands::Completions { shell } = &cli.command {
         let mut cmd = build_cli();
-        generate(*shell, &mut cmd, "santa", &mut std::io::stdout());
+        
+        // Try to load config and data for enhanced completions
+        let config_result = if cli.builtin_only {
+            Ok(SantaConfig::default())
+        } else {
+            load_config(Path::new(DEFAULT_CONFIG_FILE_PATH))
+        };
+        
+        match config_result {
+            Ok(config) => {
+                let data = SantaData::default();
+                // Use enhanced completions with config and data
+                EnhancedCompletions::generate_enhanced_shell_completions(
+                    *shell, &mut cmd, "santa", &mut std::io::stdout(), &config, &data
+                ).unwrap_or_else(|_| {
+                    // Fall back to standard completions if enhanced ones fail
+                    generate(*shell, &mut cmd, "santa", &mut std::io::stdout());
+                });
+            }
+            Err(_) => {
+                // Fall back to standard completions if config loading fails
+                generate(*shell, &mut cmd, "santa", &mut std::io::stdout());
+            }
+        }
         return Ok(());
     }
 
