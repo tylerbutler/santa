@@ -194,7 +194,7 @@ impl PackageCache {
     }
 
     /// Get packages with efficient string handling using Cow
-    pub fn get_packages_cow(&self, source: &PackageSource) -> Option<Cow<Vec<String>>> {
+    pub fn get_packages_cow(&self, source: &PackageSource) -> Option<Cow<'_, Vec<String>>> {
         let key = source.name_str();
 
         if let Some(packages) = self.cache.get(&key) {
