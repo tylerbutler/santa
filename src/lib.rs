@@ -14,13 +14,13 @@
 //! # fn example() -> Result<(), Box<dyn std::error::Error>> {
 //! // Load configuration from a file
 //! let config = SantaConfig::load_from(Path::new("santa.yaml"))?;
-//! 
+//!
 //! // Create Santa data manager with default built-in data
 //! let santa_data = SantaData::default();
-//! 
+//!
 //! // Get sources for the current platform
 //! let sources = santa_data.sources(&config);
-//! 
+//!
 //! // Use specific package managers
 //! for source in sources {
 //!     println!("Available source: {}", source.name_str());

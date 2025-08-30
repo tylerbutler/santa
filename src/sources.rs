@@ -1,6 +1,6 @@
-use crate::SantaConfig;
 use crate::errors::{Result, SantaError};
 use crate::traits::{Cacheable, PackageManager};
+use crate::SantaConfig;
 use std::borrow::Cow;
 use std::time::Duration;
 
@@ -448,11 +448,17 @@ impl PackageSource {
             }
             Ok(Err(e)) => {
                 error!("Process error: {}", e);
-                Err(SantaError::command_failed(&check, format!("Process error: {}", e)))
+                Err(SantaError::command_failed(
+                    &check,
+                    format!("Process error: {}", e),
+                ))
             }
             Err(_) => {
                 error!("Command timed out after 30 seconds: {}", check);
-                Err(SantaError::command_failed(&check, "Command timed out after 30 seconds"))
+                Err(SantaError::command_failed(
+                    &check,
+                    "Command timed out after 30 seconds",
+                ))
             }
         }
     }
@@ -517,7 +523,7 @@ impl PackageSource {
             Ok(Ok(output)) => {
                 let stdout = String::from_utf8_lossy(&output.stdout);
                 let stderr = String::from_utf8_lossy(&output.stderr);
-                
+
                 if output.status.success() {
                     Ok(stdout.to_string())
                 } else {
@@ -528,11 +534,20 @@ impl PackageSource {
             }
             Ok(Err(e)) => {
                 error!("Process error during install: {}", e);
-                Err(SantaError::command_failed(install_command, format!("Process error: {}", e)))
+                Err(SantaError::command_failed(
+                    install_command,
+                    format!("Process error: {}", e),
+                ))
             }
             Err(_) => {
-                error!("Install command timed out after 5 minutes: {}", install_command);
-                Err(SantaError::command_failed(install_command, "Command timed out after 5 minutes"))
+                error!(
+                    "Install command timed out after 5 minutes: {}",
+                    install_command
+                );
+                Err(SantaError::command_failed(
+                    install_command,
+                    "Command timed out after 5 minutes",
+                ))
             }
         }
     }
@@ -555,7 +570,7 @@ impl PackageSource {
         // First, handle dangerous characters by filtering/escaping them
         let mut cleaned = String::new();
         let mut has_suspicious_patterns = false;
-        
+
         for ch in pkg.chars() {
             match ch {
                 // Remove null bytes completely
@@ -573,24 +588,24 @@ impl PackageSource {
                 _ => cleaned.push(ch),
             }
         }
-        
+
         // Check for additional suspicious patterns
-        let has_additional_patterns = cleaned.contains("../") || 
-                                     cleaned.contains("..\\") ||
-                                     cleaned.contains(';') ||
-                                     cleaned.contains('&') ||
-                                     cleaned.contains('|') ||
-                                     cleaned.contains('`') ||
-                                     cleaned.contains('$') ||
-                                     cleaned.contains('(') ||
-                                     cleaned.contains(')') ||
-                                     cleaned.contains('<') ||
-                                     cleaned.contains('>') ||
-                                     cleaned.contains('\n') ||
-                                     cleaned.contains('\r');
-        
+        let has_additional_patterns = cleaned.contains("../")
+            || cleaned.contains("..\\")
+            || cleaned.contains(';')
+            || cleaned.contains('&')
+            || cleaned.contains('|')
+            || cleaned.contains('`')
+            || cleaned.contains('$')
+            || cleaned.contains('(')
+            || cleaned.contains(')')
+            || cleaned.contains('<')
+            || cleaned.contains('>')
+            || cleaned.contains('\n')
+            || cleaned.contains('\r');
+
         has_suspicious_patterns = has_suspicious_patterns || has_additional_patterns;
-        
+
         // Handle path traversal by escaping dots
         if cleaned.contains("../") {
             cleaned = cleaned.replace("../", "\\.\\.\\./");
@@ -600,15 +615,18 @@ impl PackageSource {
             cleaned = cleaned.replace("..\\", "\\.\\.\\/");
             has_suspicious_patterns = true;
         }
-        
+
         // Log suspicious packages
         if has_suspicious_patterns {
-            warn!("Package name contains suspicious characters, using sanitized version: {} -> {}", pkg, cleaned);
+            warn!(
+                "Package name contains suspicious characters, using sanitized version: {} -> {}",
+                pkg, cleaned
+            );
         }
-        
+
         // Always escape shell metacharacters using shell-escape on the cleaned string
         let escaped = escape(cleaned.into()).into_owned();
-        
+
         escaped
     }
 
@@ -659,7 +677,7 @@ impl PackageManager for PackageSource {
     async fn install_packages(&self, packages: &[&str]) -> Result<()> {
         let packages_vec: Vec<String> = packages.iter().map(|s| s.to_string()).collect();
         let install_cmd = self.install_packages_command(packages_vec);
-        
+
         // Use the existing install infrastructure
         self.exec_install_command_async(&install_cmd).await?;
         Ok(())

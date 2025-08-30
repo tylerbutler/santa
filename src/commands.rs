@@ -122,7 +122,9 @@ pub async fn install_command(
 
     // Extract cache from Arc<Mutex<>> for further use
     let cache = Arc::try_unwrap(cache)
-        .map_err(|_| SantaError::Concurrency("Failed to unwrap install cache - still in use".to_string()))?
+        .map_err(|_| {
+            SantaError::Concurrency("Failed to unwrap install cache - still in use".to_string())
+        })?
         .into_inner();
 
     // let config = config.clone();

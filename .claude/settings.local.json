@@ -17,7 +17,8 @@
       "Bash(RUST_BACKTRACE=1 cargo test --test security_tests_old --color=always)",
       "WebFetch(domain:docs.rs)",
       "Bash(grep:*)",
-      "Bash(time cargo build --release)"
+      "Bash(time cargo build --release)",
+      "Bash(cloc:*)"
     ],
     "deny": []
   }

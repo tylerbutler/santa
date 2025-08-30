@@ -3,7 +3,7 @@ use serde::Serialize;
 use std::path::Path;
 
 /// Core trait for package managers providing unified interface across different platforms.
-/// 
+///
 /// This trait abstracts over different package managers (apt, brew, cargo, etc.) to provide
 /// a common interface for package operations. Implementations should handle platform-specific
 /// details while providing consistent behavior.
@@ -41,7 +41,7 @@ use std::path::Path;
 /// - `install_packages` and `list_packages` are async and may take significant time
 /// - `is_package_installed` should be fast (default implementation is O(n) via list_packages)
 /// - Other methods are typically fast metadata operations
-/// 
+///
 /// # Error Conditions
 ///
 /// Implementations should return errors for:
@@ -137,7 +137,10 @@ pub trait PackageManager {
     /// # Ok(())
     /// # }
     /// ```
-    fn install_packages(&self, packages: &[&str]) -> impl std::future::Future<Output = Result<()>> + Send;
+    fn install_packages(
+        &self,
+        packages: &[&str],
+    ) -> impl std::future::Future<Output = Result<()>> + Send;
 
     /// Asynchronously retrieves the list of installed packages.
     ///
@@ -299,6 +302,7 @@ pub trait Exportable {
     where
         Self: Serialize,
     {
-        serde_json::to_string_pretty(&self).unwrap_or_else(|_| r#"{"error": "Export failed"}"#.to_string())
+        serde_json::to_string_pretty(&self)
+            .unwrap_or_else(|_| r#"{"error": "Export failed"}"#.to_string())
     }
 }

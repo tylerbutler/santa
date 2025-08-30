@@ -51,19 +51,17 @@ impl Configurable for SantaConfig {
     type Config = SantaConfig;
 
     fn load_config(path: &Path) -> Result<Self::Config> {
-        let contents = std::fs::read_to_string(path)
-            .map_err(SantaError::Io)?;
-        
+        let contents = std::fs::read_to_string(path).map_err(SantaError::Io)?;
+
         let config: SantaConfig = serde_yaml::from_str(&contents)
             .map_err(|e| SantaError::Config(anyhow::Error::from(e)))?;
-        
+
         Self::validate_config(&config)?;
         Ok(config)
     }
 
     fn validate_config(config: &Self::Config) -> Result<()> {
-        config.validate_basic()
-            .map_err(SantaError::Config)?;
+        config.validate_basic().map_err(SantaError::Config)?;
         Ok(())
     }
 
@@ -252,7 +250,9 @@ impl SantaConfig {
 }
 
 /// Custom validator function to check for duplicate sources
-fn validate_no_duplicate_sources(sources: &Vec<KnownSources>) -> std::result::Result<(), ValidationError> {
+fn validate_no_duplicate_sources(
+    sources: &Vec<KnownSources>,
+) -> std::result::Result<(), ValidationError> {
     let mut seen = HashSet::new();
     for source in sources {
         if !seen.insert(source) {
@@ -263,7 +263,9 @@ fn validate_no_duplicate_sources(sources: &Vec<KnownSources>) -> std::result::Re
 }
 
 /// Custom validator function to check for duplicate packages  
-fn validate_no_duplicate_packages(packages: &Vec<String>) -> std::result::Result<(), ValidationError> {
+fn validate_no_duplicate_packages(
+    packages: &Vec<String>,
+) -> std::result::Result<(), ValidationError> {
     let mut seen = HashSet::new();
     for package in packages {
         if !seen.insert(package) {

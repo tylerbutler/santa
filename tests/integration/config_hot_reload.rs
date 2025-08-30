@@ -1,11 +1,11 @@
 //! Integration tests for configuration hot-reload behavior
-//! 
+//!
 //! These tests validate that Santa properly handles configuration changes,
 //! including hot-reloading when supported and graceful fallback when not.
 
 use santa::configuration::SantaConfig;
-use santa::traits::Configurable;
 use santa::data::KnownSources;
+use santa::traits::Configurable;
 use std::fs;
 use tempfile::{NamedTempFile, TempDir};
 
@@ -32,13 +32,17 @@ custom_sources:
     fs::write(&config_path, config_content).expect("Failed to write config");
 
     let result = SantaConfig::load_config(&config_path);
-    assert!(result.is_ok(), "Config loading should succeed: {:?}", result);
+    assert!(
+        result.is_ok(),
+        "Config loading should succeed: {:?}",
+        result
+    );
 
     let config = result.unwrap();
     assert!(!config.sources.is_empty());
     assert!(!config.packages.is_empty());
     assert!(config.custom_sources.is_some());
-    
+
     let custom_sources = config.custom_sources.unwrap();
     assert_eq!(custom_sources.len(), 1);
     assert_eq!(custom_sources[0].name_str(), "test-source");
@@ -132,7 +136,7 @@ custom_sources:
 
     let config = result.unwrap();
     let custom_sources = config.custom_sources.expect("Should have custom sources");
-    
+
     assert_eq!(custom_sources.len(), 2);
     assert_eq!(custom_sources[0].name_str(), "custom-apt");
     assert_eq!(custom_sources[1].name_str(), "custom-snap");
@@ -157,7 +161,7 @@ custom_sources: []
 
     let initial_result = SantaConfig::load_config(config_path);
     assert!(initial_result.is_ok());
-    
+
     let initial_config = initial_result.unwrap();
     assert_eq!(initial_config.custom_sources.unwrap().len(), 0);
 
@@ -180,7 +184,7 @@ custom_sources:
 
     let updated_result = SantaConfig::load_config(config_path);
     assert!(updated_result.is_ok());
-    
+
     let updated_config = updated_result.unwrap();
     assert_eq!(updated_config.custom_sources.unwrap().len(), 1);
 }

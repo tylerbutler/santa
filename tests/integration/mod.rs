@@ -1,12 +1,12 @@
 //! Integration test modules for Santa Package Manager
-//! 
+//!
 //! This module contains integration tests that test the full behavior
 //! of Santa components working together, including mock implementations
 //! for safe testing without system package manager execution.
 
+pub mod cache_behavior;
 pub mod command_execution;
 pub mod config_hot_reload;
-pub mod cache_behavior;
 
 use santa::errors::{Result, SantaError};
 use santa::traits::PackageManager;
@@ -58,13 +58,19 @@ impl PackageManager for MockPackageSource {
         &self.list_cmd
     }
 
-    fn install_packages(&self, packages: &[&str]) -> impl std::future::Future<Output = Result<()>> + Send {
+    fn install_packages(
+        &self,
+        packages: &[&str],
+    ) -> impl std::future::Future<Output = Result<()>> + Send {
         let should_fail = self.should_fail;
         let package_list = packages.join(" ");
-        
+
         async move {
             if should_fail {
-                Err(SantaError::CommandFailed(format!("mock install {}", package_list)))
+                Err(SantaError::CommandFailed(format!(
+                    "mock install {}",
+                    package_list
+                )))
             } else {
                 // Simulate successful installation
                 tokio::time::sleep(std::time::Duration::from_millis(10)).await;
@@ -76,7 +82,7 @@ impl PackageManager for MockPackageSource {
     fn list_packages(&self) -> impl std::future::Future<Output = Result<Vec<String>>> + Send {
         let packages = self.packages.clone();
         let should_fail = self.should_fail;
-        
+
         async move {
             if should_fail {
                 Err(SantaError::CommandFailed("mock list".to_string()))

