@@ -1,4 +1,5 @@
 use crate::SantaConfig;
+use crate::errors::{Result, SantaError};
 use std::borrow::Cow;
 use std::time::Duration;
 
@@ -8,7 +9,7 @@ use dialoguer::{theme::ColorfulTheme, Confirm};
 use moka::sync::Cache;
 use serde::{Deserialize, Serialize};
 use shell_escape::escape;
-use subprocess::Exec;
+// Removed subprocess::Exec - now standardized on tokio::process
 use tabular::{Row, Table};
 use tokio::process::Command;
 use tokio::time::timeout;
@@ -154,7 +155,7 @@ impl PackageCache {
     }
 
     /// Async version of cache_for with timeout and better error handling
-    pub async fn cache_for_async(&self, source: &PackageSource) -> Result<(), anyhow::Error> {
+    pub async fn cache_for_async(&self, source: &PackageSource) -> Result<()> {
         info!("Async caching data for {}", source);
         let pkgs = source.packages_async().await;
         self.cache.insert(source.name_str(), pkgs);
@@ -294,27 +295,13 @@ impl PackageSource {
     }
 
     fn exec_check(&self) -> String {
-        let check = self.check_command();
-
-        debug!("Running shell command: {}", check);
-
-        let ex: Exec = if MACHINE_KIND != "windows" {
-            Exec::shell(check)
-        } else {
-            Exec::cmd("pwsh.exe").args(&[
-                "-NonInteractive",
-                "-NoLogo",
-                "-NoProfile",
-                "-Command",
-                &check,
-            ])
-        };
-
-        match ex.capture() {
-            Ok(data) => data.stdout_str(),
+        // Use async version with a tokio runtime for sync compatibility
+        let rt = tokio::runtime::Runtime::new().expect("Failed to create tokio runtime");
+        match rt.block_on(self.exec_check_async()) {
+            Ok(result) => result,
             Err(e) => {
-                error!("Subprocess error: {}", e);
-                "".to_string()
+                error!("Command execution error: {}", e);
+                String::new()
             }
         }
     }
@@ -330,24 +317,14 @@ impl PackageSource {
                 .interact()
                 .expect("Failed to get user confirmation")
             {
-                let ex: Exec = if MACHINE_KIND != "windows" {
-                    Exec::shell(install_command)
-                } else {
-                    Exec::cmd("pwsh.exe").args(&[
-                        "-NonInteractive",
-                        "-NoLogo",
-                        "-NoProfile",
-                        "-Command",
-                        &install_command,
-                    ])
-                };
-                match ex.capture() {
-                    Ok(data) => {
-                        let val = data.stdout_str();
-                        println!("{val}");
+                // Execute command using tokio::process with sync wrapper
+                let rt = tokio::runtime::Runtime::new().expect("Failed to create tokio runtime");
+                match rt.block_on(self.exec_install_command_async(&install_command)) {
+                    Ok(output) => {
+                        println!("{output}");
                     }
                     Err(e) => {
-                        error!("Subprocess error: {}", e);
+                        error!("Command execution error: {}", e);
                     }
                 }
             } else {
@@ -429,7 +406,7 @@ impl PackageSource {
     }
 
     /// Async version of exec_check using tokio::process with timeout support
-    async fn exec_check_async(&self) -> Result<String, anyhow::Error> {
+    async fn exec_check_async(&self) -> Result<String> {
         let check = self.check_command();
         debug!("Running async shell command: {}", check);
 
@@ -465,16 +442,16 @@ impl PackageSource {
                 } else {
                     let stderr = String::from_utf8_lossy(&output.stderr);
                     error!("Command failed: {}", stderr);
-                    Ok(String::new()) // Return empty string on failure like sync version
+                    Err(SantaError::command_failed(&check, stderr.to_string()))
                 }
             }
             Ok(Err(e)) => {
                 error!("Process error: {}", e);
-                Ok(String::new())
+                Err(SantaError::command_failed(&check, format!("Process error: {}", e)))
             }
             Err(_) => {
                 error!("Command timed out after 30 seconds: {}", check);
-                Ok(String::new())
+                Err(SantaError::command_failed(&check, "Command timed out after 30 seconds"))
             }
         }
     }
@@ -493,6 +470,68 @@ impl PackageSource {
             Err(e) => {
                 error!("Failed to get packages for {}: {}", self.name, e);
                 Vec::new()
+            }
+        }
+    }
+
+    /// Async version of packages() that returns Result for better error propagation
+    pub async fn packages_async_result(&self) -> Result<Vec<String>> {
+        let pkg_list = self.exec_check_async().await?;
+        let lines = pkg_list.lines();
+        let packages: Vec<String> = lines.map(|s| self.adjust_package_name(s)).collect();
+        debug!("{} - {} packages installed", self.name, packages.len());
+        trace!("{:?}", packages);
+        Ok(packages)
+    }
+
+    /// Async helper for executing install commands using tokio::process
+    async fn exec_install_command_async(&self, install_command: &str) -> Result<String> {
+        debug!("Running async install command: {}", install_command);
+
+        let result = if MACHINE_KIND != "windows" {
+            // Use sh -c for Unix systems for better shell compatibility
+            timeout(
+                Duration::from_secs(300), // 5 minute timeout for installation
+                Command::new("sh").arg("-c").arg(install_command).output(),
+            )
+            .await
+        } else {
+            // Use PowerShell for Windows
+            timeout(
+                Duration::from_secs(300),
+                Command::new("pwsh.exe")
+                    .args([
+                        "-NonInteractive",
+                        "-NoLogo",
+                        "-NoProfile",
+                        "-Command",
+                        install_command,
+                    ])
+                    .output(),
+            )
+            .await
+        };
+
+        match result {
+            Ok(Ok(output)) => {
+                let stdout = String::from_utf8_lossy(&output.stdout);
+                let stderr = String::from_utf8_lossy(&output.stderr);
+                
+                if output.status.success() {
+                    Ok(stdout.to_string())
+                } else {
+                    error!("Install command failed: {}", stderr);
+                    // For installs, we want to show both stdout and stderr
+                    Ok(format!("{}\n{}", stdout, stderr))
+                }
+            }
+            Ok(Err(e)) => {
+                error!("Process error during install: {}", e);
+                Err(SantaError::command_failed(install_command, format!("Process error: {}", e)))
+            }
+            Err(_) => {
+                error!("Install command timed out after 5 minutes: {}", install_command);
+                Err(SantaError::command_failed(install_command, "Command timed out after 5 minutes"))
             }
         }
     }

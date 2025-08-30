@@ -1,11 +1,11 @@
 use crate::data::SantaData;
 use crate::data::SourceList;
+use crate::errors::{Result, SantaError};
 use crate::traits::Exportable;
 use crate::{configuration::SantaConfig, sources::PackageCache};
-use anyhow::Result;
 use futures::future::try_join_all;
 use std::sync::Arc;
-use tokio::sync::Mutex;
+use tokio::sync::RwLock;
 
 use tracing::debug;
 
@@ -27,14 +27,14 @@ pub async fn status_command(
         .collect();
 
     // Use structured concurrency to cache data for all sources concurrently
-    let cache = Arc::new(Mutex::new(cache));
+    let cache = Arc::new(RwLock::new(cache));
     let cache_tasks: Vec<_> = sources
         .iter()
         .map(|source| {
-            let cache_clone: Arc<Mutex<PackageCache>> = Arc::clone(&cache);
+            let cache_clone: Arc<RwLock<PackageCache>> = Arc::clone(&cache);
             let source = source.clone();
             async move {
-                let cache = cache_clone.lock().await;
+                let cache = cache_clone.write().await;
                 cache.cache_for_async(&source).await
             }
         })
@@ -48,7 +48,7 @@ pub async fn status_command(
 
     // Extract cache from Arc<Mutex<>> for further use
     let cache = Arc::try_unwrap(cache)
-        .map_err(|_| anyhow::anyhow!("Failed to unwrap cache"))?
+        .map_err(|_| SantaError::Concurrency("Failed to unwrap cache - still in use".to_string()))?
         .into_inner();
     for source in &sources {
         let groups = config.groups(data);
@@ -100,15 +100,15 @@ pub async fn install_command(
     // }
 
     // Use structured concurrency to cache data for all sources concurrently
-    let cache = Arc::new(Mutex::new(cache));
+    let cache = Arc::new(RwLock::new(cache));
     let cache_tasks: Vec<_> = sources
         .iter()
         .map(|source| {
-            let cache_clone: Arc<Mutex<PackageCache>> = Arc::clone(&cache);
+            let cache_clone: Arc<RwLock<PackageCache>> = Arc::clone(&cache);
             let source = source.clone();
             async move {
                 debug!("Async stats for {}", source.name());
-                let cache = cache_clone.lock().await;
+                let cache = cache_clone.write().await;
                 cache.cache_for_async(&source).await
             }
         })
@@ -122,7 +122,7 @@ pub async fn install_command(
 
     // Extract cache from Arc<Mutex<>> for further use
     let cache = Arc::try_unwrap(cache)
-        .map_err(|_| anyhow::anyhow!("Failed to unwrap install cache"))?
+        .map_err(|_| SantaError::Concurrency("Failed to unwrap install cache - still in use".to_string()))?
         .into_inner();
 
     // let config = config.clone();

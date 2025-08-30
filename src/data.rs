@@ -1155,9 +1155,8 @@ git:
                 }
                 _ => {
                     // Other invalid YAML should panic (current behavior)
-                    if result.is_ok() {
+                    if let Ok(_sources) = result {
                         // Some invalid YAML might be parsed as empty list
-                        let _sources = result.unwrap();
                         // This is acceptable behavior
                     } else {
                         // Panicking is also acceptable for invalid YAML

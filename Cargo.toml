@@ -35,8 +35,7 @@ tokio = { version = "1.35", features = ["process", "rt-multi-thread", "macros", 
 futures = "0.3"
 # High-performance caching with TTL and LRU
 moka = { version = "0.12", features = ["future", "sync", "logging"] }
-# Keep subprocess temporarily for compatibility during transition
-subprocess = "0.2.8"
+# Removed subprocess - now standardized on tokio::process
 termcolor = "1.1.*"
 
 # Phase 2: API Design Improvements
@@ -50,6 +49,8 @@ string-interner = "0.14"
 notify = "6.1"
 # Security: Shell escape for command injection prevention
 shell-escape = "0.1"
+# Structured error handling
+thiserror = "1.0"
 
 [dev-dependencies]
 # Testing framework
