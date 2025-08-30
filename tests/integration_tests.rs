@@ -3,6 +3,9 @@ use predicates::prelude::*;
 use std::io::Write;
 use tempfile::NamedTempFile;
 
+// Include the new integration test modules
+mod integration;
+
 #[test]
 fn test_cli_help() {
     let mut cmd = Command::cargo_bin("santa").unwrap();

@@ -52,7 +52,7 @@ impl Configurable for SantaConfig {
 
     fn load_config(path: &Path) -> Result<Self::Config> {
         let contents = std::fs::read_to_string(path)
-            .map_err(|e| SantaError::Io(e))?;
+            .map_err(SantaError::Io)?;
         
         let config: SantaConfig = serde_yaml::from_str(&contents)
             .map_err(|e| SantaError::Config(anyhow::Error::from(e)))?;
@@ -63,7 +63,7 @@ impl Configurable for SantaConfig {
 
     fn validate_config(config: &Self::Config) -> Result<()> {
         config.validate_basic()
-            .map_err(|e| SantaError::Config(e))?;
+            .map_err(SantaError::Config)?;
         Ok(())
     }
 
