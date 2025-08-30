@@ -512,31 +512,63 @@ impl PackageSource {
     /// Sanitizes package names to prevent command injection
     #[must_use]
     fn sanitize_package_name(&self, pkg: &str) -> String {
-        // Always escape shell metacharacters using shell-escape
-        let escaped = escape(pkg.into()).into_owned();
+        // First, handle dangerous characters by filtering/escaping them
+        let mut cleaned = String::new();
+        let mut has_suspicious_patterns = false;
         
-        // Check for suspicious patterns that should always be escaped
-        let has_suspicious_patterns = pkg.contains("../") || 
-                                     pkg.contains("..\\") ||
-                                     pkg.contains(';') ||
-                                     pkg.contains('&') ||
-                                     pkg.contains('|') ||
-                                     pkg.contains('`') ||
-                                     pkg.contains('$') ||
-                                     pkg.contains('(') ||
-                                     pkg.contains(')') ||
-                                     pkg.contains('<') ||
-                                     pkg.contains('>') ||
-                                     pkg.contains('\n') ||
-                                     pkg.contains('\r') ||
-                                     pkg.contains('\0');
+        for ch in pkg.chars() {
+            match ch {
+                // Remove null bytes completely
+                '\0' => {
+                    has_suspicious_patterns = true;
+                    // Skip null bytes entirely
+                }
+                // Remove dangerous Unicode characters
+                '\u{200B}' | '\u{FEFF}' | '\u{202E}' => {
+                    has_suspicious_patterns = true;
+                    // Replace with escaped version
+                    cleaned.push_str(&format!("\\u{{{:04x}}}", ch as u32));
+                }
+                // Keep other characters
+                _ => cleaned.push(ch),
+            }
+        }
+        
+        // Check for additional suspicious patterns
+        let has_additional_patterns = cleaned.contains("../") || 
+                                     cleaned.contains("..\\") ||
+                                     cleaned.contains(';') ||
+                                     cleaned.contains('&') ||
+                                     cleaned.contains('|') ||
+                                     cleaned.contains('`') ||
+                                     cleaned.contains('$') ||
+                                     cleaned.contains('(') ||
+                                     cleaned.contains(')') ||
+                                     cleaned.contains('<') ||
+                                     cleaned.contains('>') ||
+                                     cleaned.contains('\n') ||
+                                     cleaned.contains('\r');
+        
+        has_suspicious_patterns = has_suspicious_patterns || has_additional_patterns;
+        
+        // Handle path traversal by escaping dots
+        if cleaned.contains("../") {
+            cleaned = cleaned.replace("../", "\\.\\.\\./");
+            has_suspicious_patterns = true;
+        }
+        if cleaned.contains("..\\") {
+            cleaned = cleaned.replace("..\\", "\\.\\.\\/");
+            has_suspicious_patterns = true;
+        }
         
         // Log suspicious packages
         if has_suspicious_patterns {
-            warn!("Package name contains suspicious characters, using escaped version: {}", pkg);
+            warn!("Package name contains suspicious characters, using sanitized version: {} -> {}", pkg, cleaned);
         }
         
-        // Return the escaped version (shell-escape handles the quoting appropriately)
+        // Always escape shell metacharacters using shell-escape on the cleaned string
+        let escaped = escape(cleaned.into()).into_owned();
+        
         escaped
     }
 
@@ -689,10 +721,10 @@ mod tests {
             assert_eq!(adjusted, format!("'{}'", dangerous_pkg));
         }
 
-        // Path traversal doesn't contain shell metacharacters, so it's not quoted
+        // Path traversal gets sanitized by our security implementation
         let path_traversal = "../../../etc/passwd";
         let adjusted_path = source.adjust_package_name(path_traversal);
-        assert_eq!(adjusted_path, path_traversal); // No quoting needed for path traversal
+        assert_eq!(adjusted_path, "'\\.\\.\\./\\.\\.\\./\\.\\.\\./etc/passwd'"); // Path traversal is sanitized and quoted
 
         // Test install command construction with dangerous package names
         let command = source.install_packages_command(vec!["git; rm -rf /".to_string()]);

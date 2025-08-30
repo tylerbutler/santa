@@ -1,26 +1,26 @@
-//! Fixed security tests that properly validate shell-escape behavior
+//! Security tests for command injection prevention and input validation
 //! 
-//! This module contains tests for command injection prevention,
-//! input validation, and other security-related functionality.
+//! This module contains comprehensive tests for security-related functionality,
+//! focusing on realistic threats and proper shell-escape behavior.
 
 use santa::sources::*;
 use santa::data::KnownSources;
 
+fn create_test_source() -> PackageSource {
+    PackageSource::new_for_test(
+        KnownSources::Brew,
+        "🍺",
+        "brew",
+        "brew install",
+        "brew list",
+        None,
+        None,
+    )
+}
+
 /// Test suite for command injection prevention with realistic expectations
 mod command_injection {
     use super::*;
-
-    fn create_test_source() -> PackageSource {
-        PackageSource::new_for_test(
-            KnownSources::Brew,
-            "🍺",
-            "brew",
-            "brew install",
-            "brew list",
-            None,
-            None,
-        )
-    }
 
     #[test]
     fn test_package_name_with_shell_metacharacters() {
@@ -56,39 +56,6 @@ mod command_injection {
             assert!(
                 install_cmd.contains("brew install"),
                 "Install command should contain base command: {}",
-                install_cmd
-            );
-        }
-    }
-
-    #[test]
-    fn test_path_traversal_in_package_names() {
-        let source = create_test_source();
-        
-        let path_traversal_packages = vec![
-            "../../../etc/passwd",
-            "../../bin/sh", 
-            "../../../usr/bin/curl",
-        ];
-
-        for traversal_pkg in path_traversal_packages {
-            let adjusted = source.adjust_package_name(traversal_pkg);
-            let install_cmd = source.install_packages_command(vec![traversal_pkg.to_string()]);
-            
-            // Path traversal doesn't contain shell metacharacters, so shell-escape won't quote it
-            // But the application should log a warning about suspicious patterns
-            // The key security is that it can't break out of the command structure
-            assert!(
-                install_cmd.contains("brew install"),
-                "Command structure should be preserved: {}",
-                install_cmd
-            );
-            
-            // The path traversal should be passed as a literal string to the package manager
-            assert!(
-                install_cmd.contains(traversal_pkg),
-                "Path traversal should be included literally: {} -> {}",
-                traversal_pkg,
                 install_cmd
             );
         }
@@ -148,6 +115,7 @@ mod command_injection {
             "some_package",
             "package-name",
             "package.name",
+            "@scope/package", // npm scoped packages
         ];
 
         for benign_pkg in benign_packages {
@@ -163,54 +131,106 @@ mod command_injection {
             );
         }
     }
+
+    #[test]
+    fn test_path_traversal_in_package_names() {
+        let source = create_test_source();
+        
+        let path_traversal_packages = vec![
+            "../../../etc/passwd",
+            "../../bin/sh", 
+            "../../../usr/bin/curl",
+            "..\\..\\windows\\system32\\cmd.exe",
+        ];
+
+        for traversal_pkg in path_traversal_packages {
+            let install_cmd = source.install_packages_command(vec![traversal_pkg.to_string()]);
+            
+            // Command structure should be preserved
+            assert!(
+                install_cmd.contains("brew install"),
+                "Command structure should be preserved: {}",
+                install_cmd
+            );
+            
+            // Path traversal sequences get escaped by our sanitizer
+            // They should be safely handled (escaped dots) and quoted by shell-escape
+            assert!(
+                install_cmd.contains("'") || !traversal_pkg.contains("../"),
+                "Path traversal should be safely handled: {} -> {}",
+                traversal_pkg,
+                install_cmd
+            );
+        }
+    }
 }
 
-/// Test suite for input validation
+/// Test suite for input validation and edge cases
 mod input_validation {
     use super::*;
 
     #[test]
     fn test_null_byte_handling() {
-        let source = PackageSource::new_for_test(
-            KnownSources::Brew,
-            "🍺",
-            "brew",
-            "brew install",
-            "brew list",
-            None,
-            None,
-        );
+        let source = create_test_source();
 
         let null_byte_packages = vec![
             "git\0rm -rf /",
             "git\x00evil",
+            "package\0\0evil",
         ];
 
         for null_pkg in null_byte_packages {
             let adjusted = source.adjust_package_name(null_pkg);
             
-            // Shell-escape should handle null bytes by escaping the entire string
+            // Our sanitization removes null bytes completely
             assert!(
-                adjusted.starts_with('\'') && adjusted.ends_with('\''),
-                "Null byte package not properly escaped: {} -> {}",
-                null_pkg,
-                adjusted
+                !adjusted.contains('\0'),
+                "Null byte should be removed: original={:?}, adjusted={}",
+                null_pkg.as_bytes(), adjusted
             );
         }
     }
 
     #[test]
-    fn test_empty_package_names() {
-        let source = PackageSource::new_for_test(
-            KnownSources::Brew,
-            "🍺",
-            "brew",
-            "brew install",
-            "brew list",
-            None,
-            None,
-        );
+    fn test_unicode_normalization_attacks() {
+        let source = create_test_source();
+        
+        // Unicode characters that could be used for attacks
+        let unicode_packages = vec![
+            "git\u{200B}", // Zero-width space
+            "git\u{FEFF}", // Byte order mark
+            "git\u{202E}evil", // Right-to-left override
+            "café", // Normal Unicode is fine
+            "package名前", // Non-Latin scripts are fine
+        ];
 
+        for unicode_pkg in unicode_packages {
+            let adjusted = source.adjust_package_name(unicode_pkg);
+            
+            // Dangerous Unicode characters should be handled by our sanitizer
+            if unicode_pkg.contains('\u{200B}') || unicode_pkg.contains('\u{FEFF}') || unicode_pkg.contains('\u{202E}') {
+                assert!(
+                    !adjusted.contains('\u{200B}') && 
+                    !adjusted.contains('\u{FEFF}') && 
+                    !adjusted.contains('\u{202E}'),
+                    "Dangerous Unicode should be sanitized: {} -> {}",
+                    unicode_pkg, adjusted
+                );
+            } else {
+                // Normal Unicode should be preserved or properly escaped
+                let install_cmd = source.install_packages_command(vec![unicode_pkg.to_string()]);
+                assert!(
+                    install_cmd.contains("brew install"),
+                    "Normal Unicode should not break commands: {}",
+                    install_cmd
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn test_empty_package_names() {
+        let source = create_test_source();
         let empty_packages = vec!["", " ", "\t", "\n"];
 
         for empty_pkg in empty_packages {
@@ -223,6 +243,28 @@ mod input_validation {
                 install_cmd
             );
         }
+    }
+
+    #[test]
+    fn test_extremely_long_package_names() {
+        let source = create_test_source();
+        
+        // Test with very long package name (potential DoS or buffer issues)
+        let long_package = "a".repeat(10000);
+        let adjusted = source.adjust_package_name(&long_package);
+        let install_cmd = source.install_packages_command(vec![long_package]);
+        
+        // Should not crash and should handle long names appropriately
+        assert!(
+            adjusted.len() <= 10000 + 100, // Allow for some escaping overhead
+            "Package name handling should not cause excessive memory usage"
+        );
+        
+        // Command should still be valid
+        assert!(
+            install_cmd.contains("brew install"),
+            "Long package name should not break command structure"
+        );
     }
 }
 
@@ -263,15 +305,7 @@ mod platform_security {
 
     #[test]
     fn test_unix_specific_injection() {
-        let source = PackageSource::new_for_test(
-            KnownSources::Brew,
-            "🍺",
-            "brew",
-            "brew install",
-            "brew list",
-            None,
-            None,
-        );
+        let source = create_test_source();
 
         let unix_dangerous = vec![
             "git; chmod +x /tmp/evil.sh && /tmp/evil.sh",
@@ -293,7 +327,7 @@ mod platform_security {
     }
 }
 
-/// Integration tests for the complete security pipeline
+/// Integration tests for complete security scenarios
 mod integration_security {
     use super::*;
 
@@ -360,5 +394,36 @@ mod integration_security {
         
         // The command should be safe to log/display (though not execute with malicious input)
         println!("Secure command with attack neutralized: {}", install_cmd);
+    }
+
+    #[test]
+    fn test_command_structure_integrity() {
+        let source = create_test_source();
+        
+        // Test that malicious packages don't break the command structure
+        let malicious_packages = vec![
+            "'; exit; echo '".to_string(),
+            "\"; exit; echo \"".to_string(),
+            "package\necho injected\n".to_string(),
+        ];
+
+        for pkg in malicious_packages {
+            let install_cmd = source.install_packages_command(vec![pkg.clone()]);
+            
+            // Command should start with the expected base
+            assert!(
+                install_cmd.starts_with("brew install"),
+                "Command should start correctly: {}",
+                install_cmd
+            );
+            
+            // Dangerous content should be safely escaped - shell-escape handles quotes properly
+            // by escaping them within the quoted string
+            assert!(
+                install_cmd.contains("'") || install_cmd.contains("\""),
+                "Malicious package should be quoted/escaped: {} -> {}",
+                pkg, install_cmd
+            );
+        }
     }
 }
