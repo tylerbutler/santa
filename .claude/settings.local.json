@@ -10,7 +10,8 @@
       "Bash(rg:*)",
       "Bash(git rm:*)",
       "WebSearch",
-      "Bash(RUST_BACKTRACE=1 cargo test tests::integration_tests::test_cli_help_generation -- --nocapture)"
+      "Bash(RUST_BACKTRACE=1 cargo test tests::integration_tests::test_cli_help_generation -- --nocapture)",
+      "Bash(just:*)"
     ],
     "deny": []
   }

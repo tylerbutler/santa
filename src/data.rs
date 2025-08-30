@@ -152,10 +152,8 @@ impl Platform {
             if which::which("yay").is_ok() {
                 sources.push(KnownSources::Aur);
             }
-        } else if cfg!(target_os = "windows") {
-            if which::which("scoop").is_ok() {
-                sources.push(KnownSources::Scoop);
-            }
+        } else if cfg!(target_os = "windows") && which::which("scoop").is_ok() {
+            sources.push(KnownSources::Scoop);
         }
 
         // Universal package managers (available on multiple platforms)
@@ -306,7 +304,7 @@ impl Exportable for SourceList {
     where
         Self: Serialize,
     {
-        let list: Vec<String> = self.iter().map(|source| format!("{}", source)).collect();
+        let list: Vec<String> = self.iter().map(|source| format!("{source}")).collect();
 
         serde_yaml::to_string(&list).expect("Failed to serialize source list")
     }
@@ -328,12 +326,12 @@ impl SantaData {
     // pub fn update_from_config(&mut self, config: &SantaConfig) {
     pub fn sources(&self, config: &SantaConfig) -> SourceList {
         let mut ret: SourceList = self.sources.clone();
-        
+
         // If config has custom sources, extend with them
         if let Some(ref custom_sources) = config.custom_sources {
             ret.extend(custom_sources.clone());
         }
-        
+
         ret
     }
 
@@ -401,7 +399,7 @@ mod tests {
         assert!(matches!(platform.arch, Arch::X64 | Arch::Aarch64));
 
         // Test platform display
-        let display_str = format!("{}", platform);
+        let display_str = format!("{platform}");
         assert!(!display_str.is_empty());
 
         // Test that current platform detection is consistent
@@ -424,8 +422,8 @@ mod tests {
             distro: None,
         };
 
-        let display_with = format!("{}", platform_with_distro);
-        let display_without = format!("{}", platform_without_distro);
+        let display_with = format!("{platform_with_distro}");
+        let display_without = format!("{platform_without_distro}");
 
         assert!(display_with.contains("Linux"));
         assert!(display_with.contains("X64"));
@@ -542,7 +540,7 @@ mod tests {
 
         // Test that package names are preserved (they should be sanitized during execution)
         for name in &dangerous_names {
-            assert!(data.packages.contains_key(&name.to_string()));
+            assert!(data.packages.contains_key(*name));
         }
 
         // Test export with dangerous names
@@ -570,15 +568,19 @@ mod tests {
     #[test]
     fn test_platform_detect_available_package_managers() {
         let detected = Platform::detect_available_package_managers();
-        
+
         // Should always return a vector (empty or with sources)
         assert!(detected.len() <= 10); // Reasonable upper bound
-        
+
         // All returned sources should be valid enum variants
         for source in &detected {
             match source {
-                KnownSources::Apt | KnownSources::Brew | KnownSources::Cargo
-                | KnownSources::Pacman | KnownSources::Aur | KnownSources::Scoop
+                KnownSources::Apt
+                | KnownSources::Brew
+                | KnownSources::Cargo
+                | KnownSources::Pacman
+                | KnownSources::Aur
+                | KnownSources::Scoop
                 | KnownSources::Nix => {
                     // Valid known sources
                 }
@@ -587,7 +589,7 @@ mod tests {
                 }
             }
         }
-        
+
         // Test that the function is deterministic (same results on repeated calls)
         let detected_again = Platform::detect_available_package_managers();
         assert_eq!(detected, detected_again);
@@ -596,13 +598,13 @@ mod tests {
     #[test]
     fn test_platform_get_default_sources() {
         let defaults = Platform::get_default_sources();
-        
+
         // Should always return at least one source
         assert!(!defaults.is_empty());
-        
+
         // Should include Cargo on all platforms as a universal package manager
         assert!(defaults.contains(&KnownSources::Cargo));
-        
+
         // Test platform-specific defaults (compile-time detection)
         if cfg!(target_os = "macos") {
             assert!(defaults.contains(&KnownSources::Brew));
@@ -610,13 +612,15 @@ mod tests {
             assert!(defaults.contains(&KnownSources::Scoop));
         } else if cfg!(target_os = "linux") {
             // Linux should have at least one Linux package manager
-            let has_linux_pm = defaults.iter().any(|s| matches!(
-                s,
-                KnownSources::Apt | KnownSources::Pacman | KnownSources::Aur
-            ));
+            let has_linux_pm = defaults.iter().any(|s| {
+                matches!(
+                    s,
+                    KnownSources::Apt | KnownSources::Pacman | KnownSources::Aur
+                )
+            });
             assert!(has_linux_pm);
         }
-        
+
         // All sources should be known (not Unknown variants)
         for source in &defaults {
             assert!(!matches!(source, KnownSources::Unknown(_)));
@@ -629,16 +633,21 @@ mod tests {
         // when running on Linux
         if cfg!(target_os = "linux") {
             let defaults = Platform::get_default_sources();
-            
+
             // Should contain at least Cargo
             assert!(defaults.contains(&KnownSources::Cargo));
-            
+
             // Should have at least one Linux-specific package manager
-            let linux_managers = defaults.iter().filter(|&s| matches!(
-                s,
-                KnownSources::Apt | KnownSources::Pacman | KnownSources::Aur
-            )).count();
-            
+            let linux_managers = defaults
+                .iter()
+                .filter(|&s| {
+                    matches!(
+                        s,
+                        KnownSources::Apt | KnownSources::Pacman | KnownSources::Aur
+                    )
+                })
+                .count();
+
             // Even if no Linux package managers are detected, should fall back to apt
             assert!(linux_managers >= 1 || defaults.contains(&KnownSources::Apt));
         }
@@ -647,7 +656,7 @@ mod tests {
     #[test]
     fn test_santa_data_sources_filtering() {
         use crate::SantaConfig;
-        
+
         // Create test data with some sources
         let test_sources = vec![
             crate::sources::PackageSource::new_for_test(
@@ -669,23 +678,24 @@ mod tests {
                 None,
             ),
         ];
-        
+
         let data = SantaData {
             packages: PackageDataList::new(),
             sources: test_sources.clone(),
         };
-        
+
         // Test with empty config (should return all sources)
-        let mut empty_config = SantaConfig::default();
-        empty_config.sources = vec![];
-        
+        let empty_config = SantaConfig {
+            sources: vec![],
+            ..Default::default()
+        };
+
         let filtered_empty = data.sources(&empty_config);
         assert_eq!(filtered_empty.len(), 2);
-        
+
         // Test with config containing custom sources (should extend with custom sources)
-        let mut config_with_custom_sources = SantaConfig::default();
-        config_with_custom_sources.custom_sources = Some(vec![
-            crate::sources::PackageSource::new_for_test(
+        let config_with_custom_sources = SantaConfig {
+            custom_sources: Some(vec![crate::sources::PackageSource::new_for_test(
                 KnownSources::Cargo,
                 "📦",
                 "cargo",
@@ -693,17 +703,20 @@ mod tests {
                 "cargo search",
                 None,
                 None,
-            ),
-        ]);
-        
+            )]),
+            ..Default::default()
+        };
+
         let filtered_with_custom = data.sources(&config_with_custom_sources);
         // Should be 2 original + 1 custom = 3
         assert_eq!(filtered_with_custom.len(), 3);
-        
+
         // Test with no custom sources (should return original sources only)
-        let mut config_no_custom = SantaConfig::default();
-        config_no_custom.custom_sources = None;
-        
+        let config_no_custom = SantaConfig {
+            custom_sources: None,
+            ..Default::default()
+        };
+
         let filtered_no_custom = data.sources(&config_no_custom);
         assert_eq!(filtered_no_custom.len(), 2);
     }
@@ -712,7 +725,7 @@ mod tests {
     fn test_load_from_file_actual_files() {
         use std::io::Write;
         use tempfile::NamedTempFile;
-        
+
         // Test successful file loading
         let valid_yaml = r#"
 git:
@@ -721,17 +734,17 @@ git:
     before: "echo before"
     after: "echo after"
 "#;
-        
+
         let mut temp_file = NamedTempFile::new().unwrap();
         temp_file.write_all(valid_yaml.as_bytes()).unwrap();
         temp_file.flush().unwrap();
-        
+
         let loaded_data = PackageDataList::load_from(temp_file.path());
         assert!(loaded_data.contains_key("git"));
-        
+
         let git_data = &loaded_data["git"];
         assert!(git_data.contains_key(&KnownSources::Brew));
-        
+
         if let Some(Some(pkg_data)) = git_data.get(&KnownSources::Brew) {
             assert_eq!(pkg_data.name, Some("git".to_string()));
             assert_eq!(pkg_data.before, Some("echo before".to_string()));
@@ -739,7 +752,7 @@ git:
         } else {
             panic!("Expected PackageData for git/brew");
         }
-        
+
         // Test file loading for SourceList
         let sources_yaml = r#"
 - name: brew
@@ -748,11 +761,11 @@ git:
   install_command: "brew install"
   check_command: "brew list"
 "#;
-        
+
         let mut sources_file = NamedTempFile::new().unwrap();
         sources_file.write_all(sources_yaml.as_bytes()).unwrap();
         sources_file.flush().unwrap();
-        
+
         let loaded_sources = SourceList::load_from(sources_file.path());
         assert_eq!(loaded_sources.len(), 1);
         assert_eq!(loaded_sources[0].emoji(), "🍺");
@@ -762,20 +775,20 @@ git:
     fn test_data_transformation_round_trip() {
         // Test full serialization/deserialization cycle
         let original_data = SantaData::default();
-        
+
         // Export to string
         let exported = original_data.export();
         assert!(!exported.is_empty());
-        
+
         // Should be valid YAML
         let _: SantaData = serde_yaml::from_str(&exported).unwrap();
-        
+
         // Test PackageDataList round trip
         let packages = original_data.packages;
         let packages_exported = packages.export_min();
         let packages_list: Vec<String> = serde_yaml::from_str(&packages_exported).unwrap();
         assert!(!packages_list.is_empty());
-        
+
         // Test SourceList round trip
         let sources = original_data.sources;
         let sources_exported = sources.export_min();
@@ -789,19 +802,19 @@ git:
         let package_name = PackageName::from("git".to_string());
         let source_name = SourceName::from("brew".to_string());
         let command_name = CommandName::from("install".to_string());
-        
+
         // Test Display trait
-        assert_eq!(format!("{}", package_name), "git");
-        assert_eq!(format!("{}", source_name), "brew"); 
-        assert_eq!(format!("{}", command_name), "install");
-        
+        assert_eq!(format!("{package_name}"), "git");
+        assert_eq!(format!("{source_name}"), "brew");
+        assert_eq!(format!("{command_name}"), "install");
+
         // Test Into/From traits
         let pkg_string: String = package_name.into();
         assert_eq!(pkg_string, "git");
-        
+
         let new_pkg = PackageName::from("vim".to_string());
         assert_ne!(new_pkg, PackageName::from("git".to_string()));
-        
+
         // Test serialization
         let serialized = serde_yaml::to_string(&new_pkg).unwrap();
         let deserialized: PackageName = serde_yaml::from_str(&serialized).unwrap();
@@ -814,19 +827,19 @@ git:
         let os_variants = vec![OS::Linux, OS::Macos, OS::Windows];
         let arch_variants = vec![Arch::X64, Arch::Aarch64];
         let distro_variants = vec![Distro::None, Distro::ArchLinux, Distro::Ubuntu];
-        
+
         for os in os_variants {
             let serialized = serde_yaml::to_string(&os).unwrap();
             let deserialized: OS = serde_yaml::from_str(&serialized).unwrap();
             assert_eq!(os, deserialized);
         }
-        
+
         for arch in arch_variants {
-            let serialized = serde_yaml::to_string(&arch).unwrap(); 
+            let serialized = serde_yaml::to_string(&arch).unwrap();
             let deserialized: Arch = serde_yaml::from_str(&serialized).unwrap();
             assert_eq!(arch, deserialized);
         }
-        
+
         for distro in distro_variants {
             let serialized = serde_yaml::to_string(&distro).unwrap();
             let deserialized: Distro = serde_yaml::from_str(&serialized).unwrap();
@@ -838,30 +851,50 @@ git:
     fn test_platform_with_all_combinations() {
         // Test various platform combinations
         let platforms = vec![
-            Platform { os: OS::Linux, arch: Arch::X64, distro: Some(Distro::Ubuntu) },
-            Platform { os: OS::Linux, arch: Arch::Aarch64, distro: Some(Distro::ArchLinux) },
-            Platform { os: OS::Macos, arch: Arch::X64, distro: None },
-            Platform { os: OS::Macos, arch: Arch::Aarch64, distro: None },
-            Platform { os: OS::Windows, arch: Arch::X64, distro: None },
+            Platform {
+                os: OS::Linux,
+                arch: Arch::X64,
+                distro: Some(Distro::Ubuntu),
+            },
+            Platform {
+                os: OS::Linux,
+                arch: Arch::Aarch64,
+                distro: Some(Distro::ArchLinux),
+            },
+            Platform {
+                os: OS::Macos,
+                arch: Arch::X64,
+                distro: None,
+            },
+            Platform {
+                os: OS::Macos,
+                arch: Arch::Aarch64,
+                distro: None,
+            },
+            Platform {
+                os: OS::Windows,
+                arch: Arch::X64,
+                distro: None,
+            },
         ];
-        
+
         for platform in platforms {
             // Test serialization
             let serialized = serde_yaml::to_string(&platform).unwrap();
             let deserialized: Platform = serde_yaml::from_str(&serialized).unwrap();
             assert_eq!(platform, deserialized);
-            
+
             // Test display
-            let display = format!("{}", platform);
+            let display = format!("{platform}");
             assert!(!display.is_empty());
-            
+
             // Display should contain OS and arch
             assert!(display.contains(&format!("{:?}", platform.os)));
             assert!(display.contains(&format!("{:?}", platform.arch)));
-            
+
             // If distro is present, should be in display
             if let Some(ref distro) = platform.distro {
-                assert!(display.contains(&format!("{:?}", distro)));
+                assert!(display.contains(&format!("{distro:?}")));
             }
         }
     }
@@ -870,20 +903,22 @@ git:
     fn test_platform_detect_package_managers_edge_cases() {
         // Test that detect function handles missing commands gracefully
         let detected = Platform::detect_available_package_managers();
-        
+
         // Should never return duplicates
         let mut unique_sources = std::collections::HashSet::new();
         for source in &detected {
-            assert!(unique_sources.insert(source.clone()), 
-                "Duplicate source detected: {:?}", source);
+            assert!(
+                unique_sources.insert(source.clone()),
+                "Duplicate source detected: {source:?}"
+            );
         }
-        
+
         // Should be stable across multiple calls
         for _ in 0..5 {
             let detected_again = Platform::detect_available_package_managers();
             assert_eq!(detected, detected_again, "Detection should be stable");
         }
-        
+
         // Each detected source should be appropriate for the current platform
         for source in &detected {
             match source {
@@ -913,87 +948,107 @@ git:
     fn test_platform_default_sources_consistency() {
         let defaults = Platform::get_default_sources();
         let detected = Platform::detect_available_package_managers();
-        
+
         // Default sources should include some actually available package managers
         // (but may include more that aren't available yet)
-        let available_count = defaults.iter().filter(|&source| detected.contains(source)).count();
-        
+        let available_count = defaults
+            .iter()
+            .filter(|&source| detected.contains(source))
+            .count();
+
         // At least one default source should be available (Cargo is universal)
-        assert!(available_count >= 1, 
-            "At least one default source should be available. Defaults: {:?}, Detected: {:?}", 
-            defaults, detected);
-            
+        assert!(
+            available_count >= 1,
+            "At least one default source should be available. Defaults: {defaults:?}, Detected: {detected:?}"
+        );
+
         // Should not contain Unknown variants in defaults
         for source in &defaults {
-            assert!(!matches!(source, KnownSources::Unknown(_)), 
-                "Default sources should not contain Unknown variants");
+            assert!(
+                !matches!(source, KnownSources::Unknown(_)),
+                "Default sources should not contain Unknown variants"
+            );
         }
     }
 
     #[test]
     fn test_santa_data_sources_with_empty_custom_sources() {
         use crate::SantaConfig;
-        
-        let test_sources = vec![
-            crate::sources::PackageSource::new_for_test(
-                KnownSources::Brew,
-                "🍺",
-                "brew",
-                "brew install",
-                "brew list",
-                None,
-                None,
-            ),
-        ];
-        
+
+        let test_sources = vec![crate::sources::PackageSource::new_for_test(
+            KnownSources::Brew,
+            "🍺",
+            "brew",
+            "brew install",
+            "brew list",
+            None,
+            None,
+        )];
+
         let data = SantaData {
             packages: PackageDataList::new(),
             sources: test_sources.clone(),
         };
-        
+
         // Test with empty custom_sources vector (not None)
-        let mut config = SantaConfig::default();
-        config.custom_sources = Some(vec![]);
-        
+        let mut config = SantaConfig {
+            custom_sources: Some(vec![]),
+            ..Default::default()
+        };
+
         let filtered = data.sources(&config);
-        assert_eq!(filtered.len(), 1, "Should return original sources when custom_sources is empty");
-        
+        assert_eq!(
+            filtered.len(),
+            1,
+            "Should return original sources when custom_sources is empty"
+        );
+
         // Test with None custom_sources
         config.custom_sources = None;
         let filtered_none = data.sources(&config);
-        assert_eq!(filtered_none.len(), 1, "Should return original sources when custom_sources is None");
+        assert_eq!(
+            filtered_none.len(),
+            1,
+            "Should return original sources when custom_sources is None"
+        );
     }
 
     #[test]
     fn test_santa_data_name_for_edge_cases() {
         let mut packages = PackageDataList::new();
-        
+
         // Package with partial source data
         let mut git_sources = HashMap::new();
-        git_sources.insert(KnownSources::Brew, Some(PackageData {
-            name: None, // No name override
-            before: Some("echo before".to_string()),
-            after: None,
-            pre: None,
-            post: None,
-        }));
+        git_sources.insert(
+            KnownSources::Brew,
+            Some(PackageData {
+                name: None, // No name override
+                before: Some("echo before".to_string()),
+                after: None,
+                pre: None,
+                post: None,
+            }),
+        );
         git_sources.insert(KnownSources::Apt, None); // Source exists but no data
         packages.insert("git".to_string(), git_sources);
-        
+
         // Package with name override
         let mut vim_sources = HashMap::new();
-        vim_sources.insert(KnownSources::Brew, Some(PackageData {
-            name: Some("vim-override".to_string()),
-            before: None,
-            after: None,
-            pre: None,
-            post: None,
-        }));
+        vim_sources.insert(
+            KnownSources::Brew,
+            Some(PackageData {
+                name: Some("vim-override".to_string()),
+                before: None,
+                after: None,
+                pre: None,
+                post: None,
+            }),
+        );
         packages.insert("vim".to_string(), vim_sources);
 
-        let data = SantaData { 
-            packages, 
-            sources: SourceList::new() 
+        let data = SantaData {
+            packages,
+            sources: SourceList::new(),
         };
 
         let brew_source = crate::sources::PackageSource::new_for_test(
@@ -1005,7 +1060,7 @@ git:
             Some("prefix-".to_string()),
             None,
         );
-        
+
         let apt_source = crate::sources::PackageSource::new_for_test(
             KnownSources::Apt,
             "📦",
@@ -1018,19 +1073,31 @@ git:
 
         // Test git with brew (has PackageData but no name override)
         let git_brew_name = data.name_for("git", &brew_source);
-        assert_eq!(git_brew_name, "prefix-git", "Should use source adjustment when no name override");
+        assert_eq!(
+            git_brew_name, "prefix-git",
+            "Should use source adjustment when no name override"
+        );
 
         // Test git with apt (source exists but PackageData is None)
         let git_apt_name = data.name_for("git", &apt_source);
-        assert_eq!(git_apt_name, "git", "Should use source adjustment when PackageData is None");
+        assert_eq!(
+            git_apt_name, "git",
+            "Should use source adjustment when PackageData is None"
+        );
 
         // Test vim with brew (has name override)
         let vim_brew_name = data.name_for("vim", &brew_source);
-        assert_eq!(vim_brew_name, "vim-override", "Should use name override when provided");
+        assert_eq!(
+            vim_brew_name, "vim-override",
+            "Should use name override when provided"
+        );
 
         // Test unknown package
         let unknown_name = data.name_for("unknown-package", &brew_source);
-        assert_eq!(unknown_name, "prefix-unknown-package", "Should use source adjustment for unknown packages");
+        assert_eq!(
+            unknown_name, "prefix-unknown-package",
+            "Should use source adjustment for unknown packages"
+        );
 
         // Test with source not in package data
         let cargo_source = crate::sources::PackageSource::new_for_test(
@@ -1042,46 +1109,46 @@ git:
             None,
             None,
         );
-        
+
         let git_cargo_name = data.name_for("git", &cargo_source);
-        assert_eq!(git_cargo_name, "git", "Should use source adjustment when source not in package data");
+        assert_eq!(
+            git_cargo_name, "git",
+            "Should use source adjustment when source not in package data"
+        );
     }
 
     #[test]
     fn test_load_from_file_missing_file() {
         use std::path::PathBuf;
-        
+
         // Test behavior when file doesn't exist
         let nonexistent_path = PathBuf::from("/tmp/nonexistent_santa_test_file_12345.yaml");
         assert!(!nonexistent_path.exists());
-        
+
         // This should panic (expected behavior according to current implementation)
         // We use std::panic::catch_unwind to test panic behavior
-        let result = std::panic::catch_unwind(|| {
-            PackageDataList::load_from(&nonexistent_path)
-        });
-        
+        let result = std::panic::catch_unwind(|| PackageDataList::load_from(&nonexistent_path));
+
         assert!(result.is_err(), "Loading non-existent file should panic");
     }
 
     #[test]
     fn test_source_list_load_from_str_errors() {
         // Test various invalid YAML structures for SourceList
-        let invalid_yamls = vec![
+        let invalid_yamls = [
             "invalid: yaml: [structure",
             "- name: valid\n  emoji: 🍺\n- invalid_structure",
             "",
             "null",
             "[]", // Empty but valid
         ];
-        
+
         for (i, yaml) in invalid_yamls.iter().enumerate() {
-            let result = std::panic::catch_unwind(|| {
-                SourceList::load_from_str(yaml)
-            });
-            
+            let result = std::panic::catch_unwind(|| SourceList::load_from_str(yaml));
+
             match i {
-                4 => { // Empty array should succeed
+                4 => {
+                    // Empty array should succeed
                     assert!(result.is_ok(), "Empty YAML array should be valid");
                     let sources = result.unwrap();
                     assert!(sources.is_empty());
@@ -1103,34 +1170,36 @@ git:
     #[test]
     fn test_package_data_list_export_with_complex_data() {
         let mut packages = PackageDataList::new();
-        
+
         // Add packages with various Unicode characters and special names
         let test_packages = vec![
             "git",
-            "🦀-rust-package", 
+            "🦀-rust-package",
             "package-with-dashes",
             "package_with_underscores",
             "123numeric-start",
             "CamelCasePackage",
         ];
-        
+
         for pkg in &test_packages {
             let mut sources = HashMap::new();
             sources.insert(KnownSources::Brew, Some(PackageData::new(pkg)));
             packages.insert(pkg.to_string(), sources);
         }
-        
+
         let exported = packages.export_min();
-        
+
         // Should be valid YAML
         let deserialized: Vec<String> = serde_yaml::from_str(&exported).unwrap();
-        
+
         // All packages should be present
         for pkg in &test_packages {
-            assert!(deserialized.contains(&pkg.to_string()), 
-                "Exported data should contain package: {}", pkg);
+            assert!(
+                deserialized.contains(&pkg.to_string()),
+                "Exported data should contain package: {pkg}"
+            );
         }
-        
+
         assert_eq!(deserialized.len(), test_packages.len());
     }
 
@@ -1138,20 +1207,20 @@ git:
     fn test_known_sources_unknown_variant_handling() {
         // Test that Unknown variant works correctly
         let unknown_source = KnownSources::Unknown("custom-manager".to_string());
-        
+
         // Test serialization
         let serialized = serde_yaml::to_string(&unknown_source).unwrap();
         assert!(serialized.contains("custom-manager"));
-        
+
         // Test deserialization
         let deserialized: KnownSources = serde_yaml::from_str(&serialized).unwrap();
         assert_eq!(unknown_source, deserialized);
-        
+
         // Test that truly unknown strings deserialize to Unknown variant
         let unknown_yaml = "\"totally-unknown-package-manager\"";
         let parsed: KnownSources = serde_yaml::from_str(unknown_yaml).unwrap();
         assert!(matches!(parsed, KnownSources::Unknown(_)));
-        
+
         if let KnownSources::Unknown(name) = parsed {
             assert_eq!(name, "totally-unknown-package-manager");
         }

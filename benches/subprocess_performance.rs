@@ -32,8 +32,8 @@ fn create_mock_sources(count: usize) -> Vec<PackageSource> {
     (0..count)
         .map(|i| {
             create_mock_source(
-                &format!("mock{}", i),
-                &format!("package{}\npackage{}_2\npackage{}_3", i, i, i),
+                &format!("mock{i}"),
+                &format!("package{i}\npackage{i}_2\npackage{i}_3"),
             )
         })
         .collect()
@@ -45,7 +45,7 @@ fn bench_sync_cache_operations(c: &mut Criterion) {
 
     c.bench_function("sync_cache_sequential", |b| {
         b.iter(|| {
-            let mut cache = PackageCache::new();
+            let cache = PackageCache::new();
             for source in &sources {
                 cache.cache_for(black_box(source));
             }
@@ -61,7 +61,7 @@ fn bench_async_cache_operations(c: &mut Criterion) {
 
     c.bench_function("async_cache_concurrent", |b| {
         b.to_async(&rt).iter(|| async {
-            let mut cache = PackageCache::new();
+            let cache = PackageCache::new();
             // Simulate concurrent caching (though limited by &mut self)
             for source in &sources {
                 cache.cache_for_async(black_box(source)).await.unwrap();
@@ -84,7 +84,7 @@ fn bench_scalability(c: &mut Criterion) {
             size,
             |b, &_size| {
                 b.iter(|| {
-                    let mut cache = PackageCache::new();
+                    let cache = PackageCache::new();
                     for source in &sources {
                         let _packages = source.packages();
                         // Simulate processing time
@@ -219,7 +219,7 @@ fn bench_realistic_scenario(c: &mut Criterion) {
 
     c.bench_function("realistic_sync_sequential", |b| {
         b.iter(|| {
-            let mut cache = PackageCache::new();
+            let cache = PackageCache::new();
             for source in &realistic_sources {
                 cache.cache_for(black_box(source));
                 // Simulate network/disk latency
@@ -231,7 +231,7 @@ fn bench_realistic_scenario(c: &mut Criterion) {
 
     c.bench_function("realistic_async_concurrent", |b| {
         b.to_async(&rt).iter(|| async {
-            let mut cache = PackageCache::new();
+            let cache = PackageCache::new();
             // Simulate concurrent operations with realistic delays
             let tasks: Vec<_> = realistic_sources
                 .iter()

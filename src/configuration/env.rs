@@ -60,15 +60,18 @@ impl EnvironmentConfig {
 
     /// Load all Santa environment variables
     pub fn load_from_env(&mut self) -> Result<()> {
-        info!("Loading configuration from environment variables with prefix: {}", self.prefix);
-        
+        info!(
+            "Loading configuration from environment variables with prefix: {}",
+            self.prefix
+        );
+
         for (key, value) in env::vars() {
             if key.starts_with(&self.prefix) {
                 debug!("Found Santa environment variable: {}={}", key, value);
                 self.variables.insert(key, value);
             }
         }
-        
+
         info!("Loaded {} environment variables", self.variables.len());
         Ok(())
     }
@@ -81,7 +84,9 @@ impl EnvironmentConfig {
 
     /// Get environment variable value with fallback
     pub fn get_or(&self, key: &str, default: &str) -> String {
-        self.get(key).cloned().unwrap_or_else(|| default.to_string())
+        self.get(key)
+            .cloned()
+            .unwrap_or_else(|| default.to_string())
     }
 
     /// Set environment variable (for testing)
@@ -133,20 +138,27 @@ impl EnvironmentConfig {
 
         // Parse cache TTL
         if let Some(ttl) = self.get("CACHE_TTL_SECONDS") {
-            overrides.cache_ttl_seconds = Some(ttl.parse()
-                .with_context(|| format!("Invalid cache TTL: {}", ttl))?);
+            overrides.cache_ttl_seconds = Some(
+                ttl.parse()
+                    .with_context(|| format!("Invalid cache TTL: {ttl}"))?,
+            );
         }
 
         // Parse cache size
         if let Some(size) = self.get("CACHE_SIZE") {
-            overrides.cache_size = Some(size.parse()
-                .with_context(|| format!("Invalid cache size: {}", size))?);
+            overrides.cache_size = Some(
+                size.parse()
+                    .with_context(|| format!("Invalid cache size: {size}"))?,
+            );
         }
 
         // Parse verbose level
         if let Some(verbose) = self.get("VERBOSE") {
-            overrides.verbose = Some(verbose.parse()
-                .with_context(|| format!("Invalid verbose level: {}", verbose))?);
+            overrides.verbose = Some(
+                verbose
+                    .parse()
+                    .with_context(|| format!("Invalid verbose level: {verbose}"))?,
+            );
         }
 
         // Parse data directory
@@ -164,9 +176,9 @@ impl EnvironmentConfig {
 
     /// Apply environment overrides to configuration
     pub fn apply_overrides_to_config(
-        &self, 
-        mut config: SantaConfig, 
-        overrides: &EnvConfigOverrides
+        &self,
+        mut config: SantaConfig,
+        overrides: &EnvConfigOverrides,
     ) -> Result<SantaConfig> {
         info!("Applying environment variable overrides to configuration");
 
@@ -209,12 +221,12 @@ impl EnvironmentConfig {
     /// Parse comma-separated sources string
     fn parse_sources(sources_str: &str) -> Result<Vec<KnownSources>> {
         let mut sources = Vec::new();
-        
+
         for source_name in sources_str.split(',').map(|s| s.trim()) {
             if source_name.is_empty() {
                 continue;
             }
-            
+
             let source = match source_name.to_lowercase().as_str() {
                 "apt" => KnownSources::Apt,
                 "aur" => KnownSources::Aur,
@@ -228,10 +240,10 @@ impl EnvironmentConfig {
                     KnownSources::Unknown(source_name.to_string())
                 }
             };
-            
+
             sources.push(source);
         }
-        
+
         Ok(sources)
     }
 
@@ -248,48 +260,48 @@ impl EnvironmentConfig {
     pub fn get_supported_variables(&self) -> HashMap<String, String> {
         let mut vars = HashMap::new();
         let prefix = &self.prefix;
-        
+
         vars.insert(
-            format!("{}LOG_LEVEL", prefix),
-            "Set log level (trace, debug, info, warn, error)".to_string()
+            format!("{prefix}LOG_LEVEL"),
+            "Set log level (trace, debug, info, warn, error)".to_string(),
         );
         vars.insert(
-            format!("{}CONFIG_PATH", prefix), 
-            "Override path to configuration file".to_string()
+            format!("{prefix}CONFIG_PATH"),
+            "Override path to configuration file".to_string(),
         );
         vars.insert(
-            format!("{}SOURCES", prefix),
-            "Override package sources (comma-separated: brew,cargo,apt)".to_string()
+            format!("{prefix}SOURCES"),
+            "Override package sources (comma-separated: brew,cargo,apt)".to_string(),
         );
         vars.insert(
-            format!("{}PACKAGES", prefix),
-            "Override package list (comma-separated)".to_string()
+            format!("{prefix}PACKAGES"),
+            "Override package list (comma-separated)".to_string(),
         );
         vars.insert(
-            format!("{}BUILTIN_ONLY", prefix),
-            "Use builtin configuration only (true/false)".to_string()
+            format!("{prefix}BUILTIN_ONLY"),
+            "Use builtin configuration only (true/false)".to_string(),
         );
         vars.insert(
-            format!("{}CACHE_TTL_SECONDS", prefix),
-            "Set package cache TTL in seconds".to_string()
+            format!("{prefix}CACHE_TTL_SECONDS"),
+            "Set package cache TTL in seconds".to_string(),
         );
         vars.insert(
-            format!("{}CACHE_SIZE", prefix),
-            "Set maximum cache size (number of entries)".to_string()
+            format!("{prefix}CACHE_SIZE"),
+            "Set maximum cache size (number of entries)".to_string(),
         );
         vars.insert(
-            format!("{}VERBOSE", prefix),
-            "Set verbose logging level (0-3)".to_string()
+            format!("{prefix}VERBOSE"),
+            "Set verbose logging level (0-3)".to_string(),
         );
         vars.insert(
-            format!("{}DATA_DIR", prefix),
-            "Override data directory path".to_string()
+            format!("{prefix}DATA_DIR"),
+            "Override data directory path".to_string(),
         );
         vars.insert(
-            format!("{}HOT_RELOAD", prefix),
-            "Enable configuration hot-reloading (true/false)".to_string()
+            format!("{prefix}HOT_RELOAD"),
+            "Enable configuration hot-reloading (true/false)".to_string(),
         );
-        
+
         vars
     }
 
@@ -297,11 +309,11 @@ impl EnvironmentConfig {
     pub fn print_env_help(&self) {
         println!("Santa Environment Variables:");
         println!("============================");
-        
+
         for (var_name, description) in self.get_supported_variables() {
-            println!("  {:<25} {}", var_name, description);
+            println!("  {var_name:<25} {description}");
         }
-        
+
         println!("\nExamples:");
         println!("  export {}SOURCES=brew,cargo", self.prefix);
         println!("  export {}PACKAGES=git,rust,ripgrep", self.prefix);
@@ -314,34 +326,34 @@ impl EnvironmentConfig {
 pub fn load_config_with_env(config_path: Option<&str>, builtin_only: bool) -> Result<SantaConfig> {
     let mut env_config = EnvironmentConfig::default();
     env_config.load_from_env()?;
-    
+
     let overrides = env_config.parse_overrides()?;
-    
+
     // Determine config path (env var takes precedence)
-    let actual_config_path = overrides.config_path
+    let actual_config_path = overrides
+        .config_path
         .as_deref()
         .or(config_path)
         .unwrap_or("~/.config/santa/config.yaml");
-    
+
     // Determine if builtin-only (env var takes precedence)
     let actual_builtin_only = overrides.builtin_only.unwrap_or(builtin_only);
-    
+
     // Load base configuration
     let base_config = if actual_builtin_only {
         info!("Using builtin configuration (overridden by environment)");
         SantaConfig::default()
     } else {
         info!("Loading configuration from: {}", actual_config_path);
-        SantaConfig::load_from(std::path::Path::new(actual_config_path))
-            .unwrap_or_else(|e| {
-                warn!("Failed to load config file: {}. Using defaults.", e);
-                SantaConfig::default()
-            })
+        SantaConfig::load_from(std::path::Path::new(actual_config_path)).unwrap_or_else(|e| {
+            warn!("Failed to load config file: {}. Using defaults.", e);
+            SantaConfig::default()
+        })
     };
-    
+
     // Apply environment overrides
     let final_config = env_config.apply_overrides_to_config(base_config, &overrides)?;
-    
+
     info!("Configuration loaded with environment overrides applied");
     Ok(final_config)
 }
@@ -362,17 +374,17 @@ mod tests {
 
     #[test]
     fn test_boolean_parsing() {
-        assert_eq!(EnvironmentConfig::parse_bool("true").unwrap(), true);
-        assert_eq!(EnvironmentConfig::parse_bool("1").unwrap(), true);
-        assert_eq!(EnvironmentConfig::parse_bool("yes").unwrap(), true);
-        assert_eq!(EnvironmentConfig::parse_bool("on").unwrap(), true);
-        assert_eq!(EnvironmentConfig::parse_bool("enabled").unwrap(), true);
+        assert!(EnvironmentConfig::parse_bool("true").unwrap());
+        assert!(EnvironmentConfig::parse_bool("1").unwrap());
+        assert!(EnvironmentConfig::parse_bool("yes").unwrap());
+        assert!(EnvironmentConfig::parse_bool("on").unwrap());
+        assert!(EnvironmentConfig::parse_bool("enabled").unwrap());
 
-        assert_eq!(EnvironmentConfig::parse_bool("false").unwrap(), false);
-        assert_eq!(EnvironmentConfig::parse_bool("0").unwrap(), false);
-        assert_eq!(EnvironmentConfig::parse_bool("no").unwrap(), false);
-        assert_eq!(EnvironmentConfig::parse_bool("off").unwrap(), false);
-        assert_eq!(EnvironmentConfig::parse_bool("disabled").unwrap(), false);
+        assert!(!EnvironmentConfig::parse_bool("false").unwrap());
+        assert!(!EnvironmentConfig::parse_bool("0").unwrap());
+        assert!(!EnvironmentConfig::parse_bool("no").unwrap());
+        assert!(!EnvironmentConfig::parse_bool("off").unwrap());
+        assert!(!EnvironmentConfig::parse_bool("disabled").unwrap());
 
         assert!(EnvironmentConfig::parse_bool("maybe").is_err());
         assert!(EnvironmentConfig::parse_bool("").is_err());
@@ -418,11 +430,11 @@ mod tests {
         let mut env_config = EnvironmentConfig::default();
         env_config.set("LOG_LEVEL", "debug");
         env_config.set("SOURCES", "brew,cargo");
-        
+
         assert_eq!(env_config.get("LOG_LEVEL"), Some(&"debug".to_string()));
         assert_eq!(env_config.get("SOURCES"), Some(&"brew,cargo".to_string()));
         assert_eq!(env_config.get("NONEXISTENT"), None);
-        
+
         assert_eq!(env_config.get_or("NONEXISTENT", "default"), "default");
         assert_eq!(env_config.get_or("LOG_LEVEL", "default"), "debug");
     }
@@ -436,9 +448,9 @@ mod tests {
         env_config.set("BUILTIN_ONLY", "true");
         env_config.set("VERBOSE", "2");
         env_config.set("CACHE_TTL_SECONDS", "300");
-        
+
         let overrides = env_config.parse_overrides().unwrap();
-        
+
         assert_eq!(overrides.log_level, Some("debug".to_string()));
         assert_eq!(overrides.sources, Some("brew,cargo".to_string()));
         assert_eq!(overrides.packages, Some("git,rust".to_string()));
@@ -451,13 +463,13 @@ mod tests {
     fn test_supported_variables_list() {
         let env_config = EnvironmentConfig::default();
         let vars = env_config.get_supported_variables();
-        
+
         assert!(vars.contains_key("SANTA_LOG_LEVEL"));
         assert!(vars.contains_key("SANTA_CONFIG_PATH"));
         assert!(vars.contains_key("SANTA_SOURCES"));
         assert!(vars.contains_key("SANTA_PACKAGES"));
         assert!(vars.contains_key("SANTA_BUILTIN_ONLY"));
-        
+
         // Check that descriptions are provided
         for (_, description) in vars {
             assert!(!description.is_empty());
@@ -474,7 +486,7 @@ mod tests {
             _groups: None,
             log_level: 0,
         };
-        
+
         let overrides = EnvConfigOverrides {
             sources: Some("brew,cargo".to_string()),
             packages: Some("git,rust".to_string()),
@@ -487,17 +499,19 @@ mod tests {
             data_dir: None,
             hot_reload: None,
         };
-        
-        let result_config = env_config.apply_overrides_to_config(base_config, &overrides).unwrap();
-        
+
+        let result_config = env_config
+            .apply_overrides_to_config(base_config, &overrides)
+            .unwrap();
+
         assert_eq!(result_config.sources.len(), 2);
         assert!(result_config.sources.contains(&KnownSources::Brew));
         assert!(result_config.sources.contains(&KnownSources::Cargo));
-        
+
         assert_eq!(result_config.packages.len(), 2);
         assert!(result_config.packages.contains(&"git".to_string()));
         assert!(result_config.packages.contains(&"rust".to_string()));
-        
+
         assert_eq!(result_config.log_level, 2);
     }
 }

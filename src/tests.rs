@@ -10,7 +10,6 @@
 //! - Test error conditions and edge cases
 
 use super::*;
-use anyhow::Result;
 use clap::CommandFactory;
 use rstest::*;
 use std::fs;
@@ -39,52 +38,6 @@ packages:
 #[fixture]
 fn temp_dir() -> TempDir {
     TempDir::new().expect("Failed to create temp directory")
-}
-
-/// Helper function to create a testable version of run() that accepts CLI args
-async fn run_with_args(args: Vec<&str>) -> Result<(), anyhow::Error> {
-    // We can't easily test the full run() function due to Cli::parse() reading from command line
-    // Instead, we'll test the individual components that run() orchestrates
-
-    // Test argument parsing
-    let cli = Cli::try_parse_from(args)?;
-
-    // Test logging level determination
-    let _log_level = match cli.verbose {
-        0 => Level::WARN,
-        1 => Level::INFO,
-        2 => Level::DEBUG,
-        3 => Level::TRACE,
-        _ => Level::TRACE,
-    };
-
-    // Validate log level is reasonable
-    match cli.verbose {
-        0..=4 => {} // Valid range
-        _ => panic!("Invalid verbose level"),
-    }
-
-    // Test builtin_only flag
-    if cli.builtin_only {
-        let _config = SantaConfig::default();
-    }
-
-    // Test command variants exist
-    match &cli.command {
-        Commands::Status { all: _ } => {}
-        Commands::Install { source: _ } => {}
-        Commands::Add {
-            source: _,
-            package: _,
-        } => {}
-        Commands::Config {
-            packages: _,
-            pipe: _,
-        } => {}
-        Commands::Completions { shell: _ } => {}
-    }
-
-    Ok(())
 }
 
 #[cfg(test)]
@@ -282,10 +235,10 @@ mod config_loading_tests {
         let result = SantaConfig::load_from(&nonexistent_path);
 
         // This should either fail gracefully or fall back to default
-        match result {
-            Ok(_) => {}  // Fallback to default is acceptable
-            Err(_) => {} // Error is also acceptable for nonexistent file
+        if result.is_ok() {
+            // Fallback to default is acceptable
         }
+        // Error is also acceptable for nonexistent file
     }
 
     #[rstest]
@@ -367,7 +320,7 @@ mod logging_configuration_tests {
             .from_env_lossy();
 
         // Just verify it doesn't panic - actual filtering behavior is hard to test
-        assert!(format!("{:?}", env_filter).contains("EnvFilter"));
+        assert!(format!("{env_filter:?}").contains("EnvFilter"));
     }
 
     #[test]
@@ -386,7 +339,7 @@ mod logging_configuration_tests {
             .finish();
 
         // Just verify it can be created without panicking
-        assert!(format!("{:?}", subscriber).len() > 0);
+        assert!(!format!("{subscriber:?}").is_empty());
     }
 }
 
@@ -473,11 +426,11 @@ mod integration_tests {
         let help_str = help.to_string();
 
         // Debug: print the actual help text
-        println!("Help text: {}", help_str);
+        println!("Help text: {help_str}");
 
         assert!(help_str.contains("santa"), "Help should contain app name");
         // The build_cli() function doesn't define subcommands, so let's just test basic structure
-        assert!(help_str.len() > 0, "Help should not be empty");
+        assert!(!help_str.is_empty(), "Help should not be empty");
     }
 
     #[test]

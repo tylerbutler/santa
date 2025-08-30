@@ -109,21 +109,27 @@ pub async fn run() -> Result<(), anyhow::Error> {
     // Handle shell completions with enhanced suggestions
     if let Commands::Completions { shell } = &cli.command {
         let mut cmd = build_cli();
-        
+
         // Try to load config and data for enhanced completions
         let config_result = if cli.builtin_only {
             Ok(SantaConfig::default())
         } else {
             load_config(Path::new(DEFAULT_CONFIG_FILE_PATH))
         };
-        
+
         match config_result {
             Ok(config) => {
                 let data = SantaData::default();
                 // Use enhanced completions with config and data
                 EnhancedCompletions::generate_enhanced_shell_completions(
-                    *shell, &mut cmd, "santa", &mut std::io::stdout(), &config, &data
-                ).unwrap_or_else(|_| {
+                    *shell,
+                    &mut cmd,
+                    "santa",
+                    &mut std::io::stdout(),
+                    &config,
+                    &data,
+                )
+                .unwrap_or_else(|_| {
                     // Fall back to standard completions if enhanced ones fail
                     generate(*shell, &mut cmd, "santa", &mut std::io::stdout());
                 });
@@ -210,7 +216,7 @@ async fn main() {
     match run().await {
         Ok(()) => {}
         Err(err) => {
-            eprintln!("error: {}", err);
+            eprintln!("error: {err}");
             std::process::exit(1);
         }
     }

@@ -13,10 +13,11 @@ use std::collections::HashMap;
 /// Test fixture for creating a basic SantaConfig
 #[fixture]
 fn basic_config() -> SantaConfig {
-    let mut config = SantaConfig::default();
-    config.sources = vec![KnownSources::Brew];
-    config.packages = vec!["git".to_string(), "curl".to_string(), "vim".to_string()];
-    config
+    SantaConfig {
+        sources: vec![KnownSources::Brew],
+        packages: vec!["git".to_string(), "curl".to_string(), "vim".to_string()],
+        ..Default::default()
+    }
 }
 
 /// Test fixture for creating test SantaData
@@ -60,7 +61,7 @@ fn empty_cache() -> PackageCache {
 /// Test fixture for populated PackageCache
 #[fixture]
 fn populated_cache() -> PackageCache {
-    let mut cache = PackageCache::default();
+    let cache = PackageCache::default();
     let source_cache = vec!["git".to_string(), "vim".to_string()]; // Only git and vim are "installed"
     cache.insert_for_test("brew".to_string(), source_cache);
     cache
@@ -89,8 +90,10 @@ mod status_command_tests {
         empty_cache: PackageCache,
     ) {
         // Test with no enabled sources
-        let mut config = SantaConfig::default();
-        config.sources = vec![]; // No sources enabled
+        let mut config = SantaConfig {
+            sources: vec![], // No sources enabled
+            ..Default::default()
+        };
 
         let result = status_command(&mut config, &test_data, empty_cache, &false).await;
         assert!(
@@ -121,9 +124,11 @@ mod status_command_tests {
         empty_cache: PackageCache,
     ) {
         // Create config with specific enabled sources
-        let mut config = SantaConfig::default();
-        config.sources = vec![KnownSources::Brew];
-        config.packages = vec!["git".to_string()];
+        let mut config = SantaConfig {
+            sources: vec![KnownSources::Brew],
+            packages: vec!["git".to_string()],
+            ..Default::default()
+        };
 
         let result = status_command(&mut config, &test_data, empty_cache, &false).await;
         assert!(
@@ -208,8 +213,10 @@ mod install_command_tests {
         empty_cache: PackageCache,
     ) {
         // Test with no enabled sources
-        let mut config = SantaConfig::default();
-        config.sources = vec![]; // No sources enabled
+        let mut config = SantaConfig {
+            sources: vec![], // No sources enabled
+            ..Default::default()
+        };
 
         let result = install_command(&mut config, &test_data, empty_cache).await;
         assert!(
@@ -226,9 +233,11 @@ mod install_command_tests {
     ) {
         // Test that only enabled sources are processed
         // Use empty packages to avoid terminal interaction
-        let mut config = SantaConfig::default();
-        config.sources = vec![KnownSources::Brew];
-        config.packages = vec![]; // Empty packages to avoid installation
+        let mut config = SantaConfig {
+            sources: vec![KnownSources::Brew],
+            packages: vec![], // Empty packages to avoid installation
+            ..Default::default()
+        };
 
         let result = install_command(&mut config, &test_data, empty_cache).await;
         assert!(
@@ -243,8 +252,8 @@ mod install_command_tests {
         // This tests the core logic: packages in cache should be filtered out
         let cache = PackageCache::new();
         cache.insert_for_test(
-            "brew".to_string(), 
-            vec!["git".to_string(), "vim".to_string()]
+            "brew".to_string(),
+            vec!["git".to_string(), "vim".to_string()],
         );
 
         let source = PackageSource::new_for_test(
@@ -263,7 +272,7 @@ mod install_command_tests {
         assert!(!cache.check(&source, "curl"), "curl should not be in cache");
 
         // The actual filtering logic would be:
-        let packages = vec!["git", "curl", "vim"];
+        let packages = ["git", "curl", "vim"];
         let to_install: Vec<&str> = packages
             .iter()
             .filter(|p| !cache.check(&source, p))
@@ -284,9 +293,11 @@ mod install_command_tests {
         empty_cache: PackageCache,
     ) {
         // Test with no packages configured
-        let mut config = SantaConfig::default();
-        config.sources = vec![KnownSources::Brew];
-        config.packages = vec![]; // No packages
+        let mut config = SantaConfig {
+            sources: vec![KnownSources::Brew],
+            packages: vec![], // No packages
+            ..Default::default()
+        };
 
         let result = install_command(&mut config, &test_data, empty_cache).await;
         assert!(

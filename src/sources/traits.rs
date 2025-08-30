@@ -14,7 +14,7 @@ use crate::data::PackageData;
 // }
 
 pub trait InstallCapable {
-    fn install_packages(&self, pkg: &PackageData) {
+    fn install_packages(&self, _pkg: &PackageData) {
         unimplemented!();
     }
 }

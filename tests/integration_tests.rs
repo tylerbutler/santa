@@ -24,7 +24,7 @@ fn test_cli_version() {
 #[test]
 fn test_config_builtin_only() {
     let mut cmd = Command::cargo_bin("santa").unwrap();
-    cmd.args(&["config", "--builtin-only"]);
+    cmd.args(["config", "--builtin-only"]);
     cmd.assert()
         .success()
         .stdout(predicate::str::contains("name: brew"))
@@ -34,7 +34,7 @@ fn test_config_builtin_only() {
 #[test]
 fn test_completions_bash() {
     let mut cmd = Command::cargo_bin("santa").unwrap();
-    cmd.args(&["completions", "bash"]);
+    cmd.args(["completions", "bash"]);
     cmd.assert()
         .success()
         .stdout(predicate::str::contains("_santa"))
@@ -44,7 +44,7 @@ fn test_completions_bash() {
 #[test]
 fn test_completions_zsh() {
     let mut cmd = Command::cargo_bin("santa").unwrap();
-    cmd.args(&["completions", "zsh"]);
+    cmd.args(["completions", "zsh"]);
     cmd.assert()
         .success()
         .stdout(predicate::str::contains("#compdef santa"));
@@ -53,7 +53,7 @@ fn test_completions_zsh() {
 #[test]
 fn test_completions_fish() {
     let mut cmd = Command::cargo_bin("santa").unwrap();
-    cmd.args(&["completions", "fish"]);
+    cmd.args(["completions", "fish"]);
     cmd.assert()
         .success()
         .stdout(predicate::str::contains("complete"));
@@ -62,7 +62,7 @@ fn test_completions_fish() {
 #[test]
 fn test_status_with_builtin() {
     let mut cmd = Command::cargo_bin("santa").unwrap();
-    cmd.args(&["status", "--builtin-only"]);
+    cmd.args(["status", "--builtin-only"]);
 
     // This test documents current behavior - may show missing packages
     // which is expected since we don't have the actual package managers installed
@@ -72,7 +72,7 @@ fn test_status_with_builtin() {
 #[test]
 fn test_status_all_with_builtin() {
     let mut cmd = Command::cargo_bin("santa").unwrap();
-    cmd.args(&["status", "--all", "--builtin-only"]);
+    cmd.args(["status", "--all", "--builtin-only"]);
 
     cmd.assert().success();
 }
@@ -80,7 +80,7 @@ fn test_status_all_with_builtin() {
 #[test]
 fn test_add_command_not_implemented() {
     let mut cmd = Command::cargo_bin("santa").unwrap();
-    cmd.args(&["add", "git", "brew"]);
+    cmd.args(["add", "git", "brew"]);
     cmd.assert()
         .failure()
         .stderr(predicate::str::contains("Add command not yet implemented"));
@@ -89,7 +89,7 @@ fn test_add_command_not_implemented() {
 #[test]
 fn test_verbose_logging() {
     let mut cmd = Command::cargo_bin("santa").unwrap();
-    cmd.args(&["config", "--builtin-only", "-v"]);
+    cmd.args(["config", "--builtin-only", "-v"]);
     cmd.assert()
         .success()
         .stdout(predicate::str::contains("loading built-in config"));
@@ -98,7 +98,7 @@ fn test_verbose_logging() {
 #[test]
 fn test_very_verbose_logging() {
     let mut cmd = Command::cargo_bin("santa").unwrap();
-    cmd.args(&["config", "--builtin-only", "-vv"]);
+    cmd.args(["config", "--builtin-only", "-vv"]);
     cmd.assert()
         .success()
         .stdout(predicate::str::contains("DEBUG"));
@@ -122,12 +122,12 @@ packages: ["git", "rust"]
 "#;
 
     let mut temp_file = NamedTempFile::new().unwrap();
-    write!(temp_file, "{}", config_content).unwrap();
+    write!(temp_file, "{config_content}").unwrap();
 
     // Test that we can load custom config (this will fail since the file path is different)
     // This test documents the current behavior and the need for better config file handling
     let mut cmd = Command::cargo_bin("santa").unwrap();
-    cmd.args(&["config"]);
+    cmd.args(["config"]);
 
     // This will use default config since our temp file isn't in the expected location
     cmd.assert().success();
@@ -147,7 +147,7 @@ fn test_security_command_injection_protection() {
     for dangerous_arg in dangerous_args {
         // Test with add command (which should fail safely)
         let mut cmd = Command::cargo_bin("santa").unwrap();
-        cmd.args(&["add", dangerous_arg]);
+        cmd.args(["add", dangerous_arg]);
         cmd.assert()
             .failure()
             .stderr(predicate::str::contains("Add command not yet implemented"));
@@ -160,7 +160,7 @@ fn test_security_command_injection_protection() {
 #[test]
 fn test_config_output_format() {
     let mut cmd = Command::cargo_bin("santa").unwrap();
-    cmd.args(&["config", "--builtin-only"]);
+    cmd.args(["config", "--builtin-only"]);
     cmd.assert()
         .success()
         .stdout(predicate::str::contains("name: brew"))
@@ -179,7 +179,7 @@ fn test_no_arguments_shows_help() {
 #[test]
 fn test_config_packages_flag() {
     let mut cmd = Command::cargo_bin("santa").unwrap();
-    cmd.args(&["config", "--packages", "--builtin-only"]);
+    cmd.args(["config", "--packages", "--builtin-only"]);
     cmd.assert()
         .success()
         .stdout(predicate::str::contains("packages:"))
@@ -198,17 +198,17 @@ fn test_full_workflow_simulation() {
 
     // 2. Check current status
     let mut cmd = Command::cargo_bin("santa").unwrap();
-    cmd.args(&["status", "--builtin-only"]);
+    cmd.args(["status", "--builtin-only"]);
     cmd.assert().success();
 
     // 3. View configuration
     let mut cmd = Command::cargo_bin("santa").unwrap();
-    cmd.args(&["config", "--builtin-only"]);
+    cmd.args(["config", "--builtin-only"]);
     cmd.assert().success();
 
     // 4. Generate shell completions
     let mut cmd = Command::cargo_bin("santa").unwrap();
-    cmd.args(&["completions", "bash"]);
+    cmd.args(["completions", "bash"]);
     cmd.assert().success();
 
     // This test ensures the basic CLI workflow works end-to-end

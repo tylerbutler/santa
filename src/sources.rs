@@ -1,6 +1,5 @@
 use crate::SantaConfig;
 use std::borrow::Cow;
-use std::collections::HashMap;
 use std::time::Duration;
 
 use colored::*;
@@ -45,22 +44,23 @@ impl PackageCache {
         let cache = Cache::builder()
             .max_capacity(max_size)
             .time_to_live(ttl)
-            .eviction_listener(|key, _value, cause| {
-                match cause {
-                    moka::notification::RemovalCause::Size => {
-                        debug!("Cache evicted entry '{}' due to size limit", key);
-                    }
-                    moka::notification::RemovalCause::Expired => {
-                        trace!("Cache entry '{}' expired", key);
-                    }
-                    _ => {
-                        trace!("Cache entry '{}' removed: {:?}", key, cause);
-                    }
+            .eviction_listener(|key, _value, cause| match cause {
+                moka::notification::RemovalCause::Size => {
+                    debug!("Cache evicted entry '{}' due to size limit", key);
+                }
+                moka::notification::RemovalCause::Expired => {
+                    trace!("Cache entry '{}' expired", key);
+                }
+                _ => {
+                    trace!("Cache entry '{}' removed: {:?}", key, cause);
                 }
             })
             .build();
 
-        Self { cache, max_capacity: max_size }
+        Self {
+            cache,
+            max_capacity: max_size,
+        }
     }
 
     /// Get cache statistics
@@ -138,12 +138,17 @@ impl PackageCache {
         info!("Caching data for {}", source);
         let pkgs = source.packages();
         self.cache.insert(source.name_str(), pkgs);
-        
+
         // Warn if cache is getting full
         let stats = self.stats();
         let capacity_ratio = stats.entries as f64 / self.max_capacity as f64;
         if capacity_ratio > 0.8 {
-            warn!("Cache is {}% full ({}/{} entries)", (capacity_ratio * 100.0) as u64, stats.entries, self.max_capacity);
+            warn!(
+                "Cache is {}% full ({}/{} entries)",
+                (capacity_ratio * 100.0) as u64,
+                stats.entries,
+                self.max_capacity
+            );
         }
     }
 
@@ -152,14 +157,19 @@ impl PackageCache {
         info!("Async caching data for {}", source);
         let pkgs = source.packages_async().await;
         self.cache.insert(source.name_str(), pkgs);
-        
+
         // Warn if cache is getting full
         let stats = self.stats();
         let capacity_ratio = stats.entries as f64 / self.max_capacity as f64;
         if capacity_ratio > 0.8 {
-            warn!("Cache is {}% full ({}/{} entries)", (capacity_ratio * 100.0) as u64, stats.entries, self.max_capacity);
+            warn!(
+                "Cache is {}% full ({}/{} entries)",
+                (capacity_ratio * 100.0) as u64,
+                stats.entries,
+                self.max_capacity
+            );
         }
-        
+
         Ok(())
     }
 
@@ -168,13 +178,13 @@ impl PackageCache {
     #[must_use]
     pub fn packages_for(cache: &PackageCache, source: &PackageSource) -> Option<Vec<String>> {
         let key = source.name_str();
-        
+
         // Try to get from cache first
         if let Some(packages) = cache.cache.get(&key) {
             trace!("Cache hit for {}", source.name);
             return Some(packages);
         }
-        
+
         // Cache miss - fetch and cache
         debug!("Cache miss, filling cache for {}", source.name);
         let pkgs = source.packages();
@@ -185,12 +195,12 @@ impl PackageCache {
     /// Get packages with efficient string handling using Cow
     pub fn get_packages_cow(&self, source: &PackageSource) -> Option<Cow<Vec<String>>> {
         let key = source.name_str();
-        
+
         if let Some(packages) = self.cache.get(&key) {
             trace!("Cache hit (cow) for {}", source.name);
             return Some(Cow::Owned(packages)); // moka returns owned values
         }
-        
+
         // Cache miss - fetch and cache
         debug!("Cache miss (cow), filling cache for {}", source.name);
         let pkgs = source.packages();
@@ -201,6 +211,7 @@ impl PackageCache {
 
 #[derive(Serialize, Deserialize, Clone, Debug, Eq, PartialEq, Hash, Builder)]
 #[builder(setter(into))]
+#[derive(Default)]
 pub struct SourceOverride {
     platform: Platform,
     pub shell_command: Option<String>,
@@ -261,7 +272,6 @@ impl PackageSource {
         self.overrides.as_ref()
     }
 
-    #[cfg(any(test, feature = "bench"))]
     pub fn new_for_test(
         name: KnownSources,
         emoji: &str,
@@ -300,13 +310,10 @@ impl PackageSource {
         };
 
         match ex.capture() {
-            Ok(data) => {
-                let val = data.stdout_str();
-                return val;
-            }
+            Ok(data) => data.stdout_str(),
             Err(e) => {
                 error!("Subprocess error: {}", e);
-                return "".to_string();
+                "".to_string()
             }
         }
     }
@@ -317,7 +324,7 @@ impl PackageSource {
             let install_command = self.install_packages_command(renamed);
 
             if Confirm::with_theme(&ColorfulTheme::default())
-                .with_prompt(format!("Run '{}'?", install_command))
+                .with_prompt(format!("Run '{install_command}'?"))
                 .default(true)
                 .interact()
                 .expect("Failed to get user confirmation")
@@ -336,18 +343,18 @@ impl PackageSource {
                 match ex.capture() {
                     Ok(data) => {
                         let val = data.stdout_str();
-                        println!("{}", val);
+                        println!("{val}");
                     }
                     Err(e) => {
                         error!("Subprocess error: {}", e);
                     }
                 }
             } else {
-                println!("To install missing {} packages manually, run:", self);
+                println!("To install missing {self} packages manually, run:");
                 println!("{}\n", install_command.bold());
             }
         } else {
-            println!("No missing packages for {}", self);
+            println!("No missing packages for {self}");
         }
     }
 
@@ -365,12 +372,10 @@ impl PackageSource {
     #[must_use]
     pub fn shell_command(&self) -> String {
         match self.get_override_for_current_platform() {
-            Some(ov) => {
-                return match ov.shell_command {
-                    Some(cmd) => cmd,
-                    None => self.shell_command.to_string(),
-                };
-            }
+            Some(ov) => match ov.shell_command {
+                Some(cmd) => cmd,
+                None => self.shell_command.to_string(),
+            },
             None => self.shell_command.to_string(),
         }
     }
@@ -379,12 +384,10 @@ impl PackageSource {
     #[must_use]
     pub fn install_command(&self) -> String {
         match self.get_override_for_current_platform() {
-            Some(ov) => {
-                return match ov.install_command {
-                    Some(cmd) => cmd,
-                    None => self.install_command.to_string(),
-                };
-            }
+            Some(ov) => match ov.install_command {
+                Some(cmd) => cmd,
+                None => self.install_command.to_string(),
+            },
             None => self.shell_command.to_string(),
         }
     }
@@ -401,10 +404,10 @@ impl PackageSource {
             Some(ov) => {
                 debug!("Override found for {}", Platform::current());
                 trace!("Override: {:?}", ov);
-                return match ov.check_command {
+                match ov.check_command {
                     Some(cmd) => cmd,
                     None => self.check_command.to_string(),
-                };
+                }
             }
             None => self.check_command.to_string(),
         }
@@ -437,7 +440,7 @@ impl PackageSource {
             timeout(
                 Duration::from_secs(30),
                 Command::new("pwsh.exe")
-                    .args(&[
+                    .args([
                         "-NonInteractive",
                         "-NoLogo",
                         "-NoProfile",
@@ -492,7 +495,7 @@ impl PackageSource {
     #[must_use]
     pub fn adjust_package_name(&self, pkg: &str) -> String {
         match &self.prepend_to_package_name {
-            Some(pre) => format!("{}{}", pre, pkg),
+            Some(pre) => format!("{pre}{pkg}"),
             None => pkg.to_string(),
         }
     }
@@ -515,18 +518,6 @@ impl PackageSource {
             }
         }
         table
-    }
-}
-
-
-impl Default for SourceOverride {
-    fn default() -> Self {
-        SourceOverride {
-            platform: Platform::default(),
-            shell_command: None,
-            check_command: None,
-            install_command: None,
-        }
     }
 }
 
@@ -703,7 +694,7 @@ mod tests {
     #[test]
     fn test_source_display() {
         let source = create_test_source();
-        let display_string = format!("{}", source);
+        let display_string = format!("{source}");
         assert_eq!(display_string, "🍺 brew");
     }
 
@@ -711,27 +702,36 @@ mod tests {
     fn test_cache_capacity_and_monitoring() {
         // Test 1000 entry default capacity
         let large_cache = PackageCache::new();
-        assert_eq!(large_cache.max_capacity, 1000, "Default cache should have 1000 capacity");
-        
+        assert_eq!(
+            large_cache.max_capacity, 1000,
+            "Default cache should have 1000 capacity"
+        );
+
         let stats_large = large_cache.stats();
         assert_eq!(stats_large.entries, 0, "New large cache should be empty");
-        
+
         // Test custom capacity
         let small_cache = PackageCache::new_small_for_test(5);
-        assert_eq!(small_cache.max_capacity, 5, "Small cache should have 5 capacity");
-        
+        assert_eq!(
+            small_cache.max_capacity, 5,
+            "Small cache should have 5 capacity"
+        );
+
         // Test basic insertion
         small_cache.insert_for_test("source1".to_string(), vec!["pkg1".to_string()]);
-        
+
         // Verify entry exists
-        assert!(small_cache.cache.contains_key("source1"), "Entry should exist in cache");
-        
+        assert!(
+            small_cache.cache.contains_key("source1"),
+            "Entry should exist in cache"
+        );
+
         // Document eviction behavior - when cache exceeds max_capacity:
         // - Moka will automatically evict LRU (least recently used) entries
         // - Eviction logging will show: "Cache evicted entry 'X' due to size limit"
-        // - Expired entries will show: "Cache entry 'X' expired"  
+        // - Expired entries will show: "Cache entry 'X' expired"
         // - Cache capacity warnings appear at 80% full (800/1000 entries by default)
-        
+
         println!("✅ Cache configured with 1000 entry default capacity");
         println!("✅ Eviction logging enabled for size limits and expiration");
         println!("✅ Capacity warnings trigger at 80% full (800 entries)");

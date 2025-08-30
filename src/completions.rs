@@ -52,7 +52,11 @@ impl EnhancedCompletions {
     }
 
     /// Enhance clap command with dynamic completion hints
-    fn enhance_command_with_hints(cmd: Command, _config: &SantaConfig, _data: &SantaData) -> Command {
+    fn enhance_command_with_hints(
+        cmd: Command,
+        _config: &SantaConfig,
+        _data: &SantaData,
+    ) -> Command {
         // For now, just return the command as-is
         // In the future, this could add value hints and help text
         // The actual intelligent completion happens in the shell-specific functions
@@ -70,24 +74,47 @@ impl EnhancedCompletions {
         // Generate standard bash completions first
         let mut enhanced_cmd = Self::enhance_command_with_hints(cmd.clone(), config, data);
         generate(shells::Bash, &mut enhanced_cmd, bin_name, writer);
-        
+
         // Add custom completion functions
-        writeln!(writer, "\n# Enhanced completions for {}", bin_name)?;
-        writeln!(writer, "_{}_complete_packages() {{", bin_name)?;
-        writeln!(writer, "    local packages=({})", Self::get_available_packages_bash(data))?;
-        writeln!(writer, "    COMPREPLY=($(compgen -W \"${{packages[*]}}\" -- \"${{COMP_WORDS[COMP_CWORD]}}\"))")?;
+        writeln!(writer, "\n# Enhanced completions for {bin_name}")?;
+        writeln!(writer, "_{bin_name}_complete_packages() {{")?;
+        writeln!(
+            writer,
+            "    local packages=({})",
+            Self::get_available_packages_bash(data)
+        )?;
+        writeln!(
+            writer,
+            "    COMPREPLY=($(compgen -W \"${{packages[*]}}\" -- \"${{COMP_WORDS[COMP_CWORD]}}\"))"
+        )?;
         writeln!(writer, "}}")?;
-        
-        writeln!(writer, "\n_{}_complete_sources() {{", bin_name)?;
-        writeln!(writer, "    local sources=({})", Self::get_available_sources_bash(config, data))?;
-        writeln!(writer, "    COMPREPLY=($(compgen -W \"${{sources[*]}}\" -- \"${{COMP_WORDS[COMP_CWORD]}}\"))")?;
+
+        writeln!(writer, "\n_{bin_name}_complete_sources() {{")?;
+        writeln!(
+            writer,
+            "    local sources=({})",
+            Self::get_available_sources_bash(config, data)
+        )?;
+        writeln!(
+            writer,
+            "    COMPREPLY=($(compgen -W \"${{sources[*]}}\" -- \"${{COMP_WORDS[COMP_CWORD]}}\"))"
+        )?;
         writeln!(writer, "}}")?;
 
         // Hook into the main completion function
         writeln!(writer, "\n# Override package and source completions")?;
-        writeln!(writer, "_santa_add_package_completion() {{ _{}_complete_packages; }}", bin_name)?;
-        writeln!(writer, "_santa_add_source_completion() {{ _{}_complete_sources; }}", bin_name)?;
-        writeln!(writer, "_santa_install_source_completion() {{ _{}_complete_sources; }}", bin_name)?;
+        writeln!(
+            writer,
+            "_santa_add_package_completion() {{ _{bin_name}_complete_packages; }}"
+        )?;
+        writeln!(
+            writer,
+            "_santa_add_source_completion() {{ _{bin_name}_complete_sources; }}"
+        )?;
+        writeln!(
+            writer,
+            "_santa_install_source_completion() {{ _{bin_name}_complete_sources; }}"
+        )?;
 
         Ok(())
     }
@@ -103,18 +130,26 @@ impl EnhancedCompletions {
         // Generate standard zsh completions first
         let mut enhanced_cmd = Self::enhance_command_with_hints(cmd.clone(), config, data);
         generate(shells::Zsh, &mut enhanced_cmd, bin_name, writer);
-        
+
         // Add custom completion functions
-        writeln!(writer, "\n# Enhanced completions for {}", bin_name)?;
-        writeln!(writer, "_{}_complete_packages() {{", bin_name)?;
+        writeln!(writer, "\n# Enhanced completions for {bin_name}")?;
+        writeln!(writer, "_{bin_name}_complete_packages() {{")?;
         writeln!(writer, "    local -a packages")?;
-        writeln!(writer, "    packages=({})", Self::get_available_packages_zsh(data))?;
+        writeln!(
+            writer,
+            "    packages=({})",
+            Self::get_available_packages_zsh(data)
+        )?;
         writeln!(writer, "    _describe 'packages' packages")?;
         writeln!(writer, "}}")?;
-        
-        writeln!(writer, "\n_{}_complete_sources() {{", bin_name)?;
+
+        writeln!(writer, "\n_{bin_name}_complete_sources() {{")?;
         writeln!(writer, "    local -a sources")?;
-        writeln!(writer, "    sources=({})", Self::get_available_sources_zsh(config, data))?;
+        writeln!(
+            writer,
+            "    sources=({})",
+            Self::get_available_sources_zsh(config, data)
+        )?;
         writeln!(writer, "    _describe 'sources' sources")?;
         writeln!(writer, "}}")?;
 
@@ -132,22 +167,28 @@ impl EnhancedCompletions {
         // Generate standard fish completions first
         let mut enhanced_cmd = Self::enhance_command_with_hints(cmd.clone(), config, data);
         generate(shells::Fish, &mut enhanced_cmd, bin_name, writer);
-        
+
         // Add package completions
         writeln!(writer, "\n# Enhanced package completions")?;
         for package in data.packages.keys() {
-            writeln!(writer, "complete -c {} -n '__fish_seen_subcommand_from add' -f -a '{}'", bin_name, package)?;
+            writeln!(
+                writer,
+                "complete -c {bin_name} -n '__fish_seen_subcommand_from add' -f -a '{package}'"
+            )?;
         }
-        
+
         // Add source completions
         writeln!(writer, "\n# Enhanced source completions")?;
         for source in &config.sources {
-            let source_name = format!("{:?}", source).to_lowercase();
-            writeln!(writer, "complete -c {} -n '__fish_seen_subcommand_from add install' -f -a '{}'", bin_name, source_name)?;
+            let source_name = format!("{source:?}").to_lowercase();
+            writeln!(
+                writer,
+                "complete -c {bin_name} -n '__fish_seen_subcommand_from add install' -f -a '{source_name}'"
+            )?;
         }
-        
+
         // Add descriptions for sources
-        for (_, source_info) in data.sources.iter().enumerate() {
+        for source_info in data.sources.iter() {
             let source_name = source_info.name().to_string().to_lowercase();
             writeln!(writer, "complete -c {} -n '__fish_seen_subcommand_from add install' -f -a '{}' -d '{} package manager'", 
                 bin_name, source_name, source_info.emoji())?;
@@ -158,120 +199,139 @@ impl EnhancedCompletions {
 
     /// Get available packages for bash completion
     fn get_available_packages_bash(data: &SantaData) -> String {
-        data.packages.keys()
-            .map(|pkg| format!("\"{}\"", pkg))
+        data.packages
+            .keys()
+            .map(|pkg| format!("\"{pkg}\""))
             .collect::<Vec<_>>()
             .join(" ")
     }
 
     /// Get available sources for bash completion
     fn get_available_sources_bash(config: &SantaConfig, data: &SantaData) -> String {
-        let mut sources: Vec<String> = config.sources.iter()
-            .map(|src| format!("\"{:?}\"", src).to_lowercase().replace("\"", ""))
+        let mut sources: Vec<String> = config
+            .sources
+            .iter()
+            .map(|src| format!("\"{src:?}\"").to_lowercase().replace("\"", ""))
             .collect();
-        
+
         // Add sources from data as well
         for source in &data.sources {
             let source_name = source.name().to_string().to_lowercase();
             if !sources.contains(&source_name) {
-                sources.push(format!("\"{}\"", source_name));
+                sources.push(format!("\"{source_name}\""));
             }
         }
-        
+
         sources.join(" ")
     }
 
     /// Get available packages for zsh completion
     fn get_available_packages_zsh(data: &SantaData) -> String {
-        data.packages.keys()
-            .map(|pkg| format!("'{}'", pkg))
+        data.packages
+            .keys()
+            .map(|pkg| format!("'{pkg}'"))
             .collect::<Vec<_>>()
             .join(" ")
     }
 
     /// Get available sources for zsh completion
     fn get_available_sources_zsh(config: &SantaConfig, data: &SantaData) -> String {
-        let mut sources: Vec<String> = config.sources.iter()
-            .map(|src| format!("'{:?}'", src).to_lowercase().replace("'", ""))
+        let mut sources: Vec<String> = config
+            .sources
+            .iter()
+            .map(|src| format!("'{src:?}'").to_lowercase().replace("'", ""))
             .collect();
-        
+
         // Add sources from data as well
         for source in &data.sources {
             let source_name = source.name().to_string().to_lowercase();
             if !sources.contains(&source_name) {
-                sources.push(format!("'{}'", source_name));
+                sources.push(format!("'{source_name}'"));
             }
         }
-        
+
         sources.join(" ")
     }
 
     /// Get completion suggestions for current input
     pub fn get_package_suggestions(input: &str, data: &SantaData) -> Vec<String> {
-        data.packages.keys()
+        data.packages
+            .keys()
             .filter(|pkg| pkg.starts_with(input))
             .cloned()
             .collect()
     }
 
     /// Get source suggestions for current input
-    pub fn get_source_suggestions(input: &str, config: &SantaConfig, data: &SantaData) -> Vec<String> {
+    pub fn get_source_suggestions(
+        input: &str,
+        config: &SantaConfig,
+        data: &SantaData,
+    ) -> Vec<String> {
         let mut suggestions = Vec::new();
-        
+
         // Check configured sources
         for source in &config.sources {
-            let source_name = format!("{:?}", source).to_lowercase();
+            let source_name = format!("{source:?}").to_lowercase();
             if source_name.starts_with(&input.to_lowercase()) {
                 suggestions.push(source_name);
             }
         }
-        
+
         // Check available sources from data
         for source in &data.sources {
             let source_name = source.name().to_string().to_lowercase();
-            if source_name.starts_with(&input.to_lowercase()) && !suggestions.contains(&source_name) {
+            if source_name.starts_with(&input.to_lowercase()) && !suggestions.contains(&source_name)
+            {
                 suggestions.push(source_name);
             }
         }
-        
+
         suggestions
     }
 
     /// Install completion hooks for current shell
-    pub fn install_completion_hooks(shell: Shell, bin_name: &str) -> Result<String, std::io::Error> {
+    pub fn install_completion_hooks(
+        shell: Shell,
+        bin_name: &str,
+    ) -> Result<String, std::io::Error> {
         let hook_content = match shell {
             Shell::Bash => {
-                format!(r#"
+                format!(
+                    r#"
 # Add this to your ~/.bashrc
-if command -v {} >/dev/null 2>&1; then
-    eval "$({} completions bash)"
+if command -v {bin_name} >/dev/null 2>&1; then
+    eval "$({bin_name} completions bash)"
 fi
-"#, bin_name, bin_name)
+"#
+                )
             }
             Shell::Zsh => {
-                format!(r#"
+                format!(
+                    r#"
 # Add this to your ~/.zshrc
-if command -v {} >/dev/null 2>&1; then
-    eval "$({} completions zsh)"
+if command -v {bin_name} >/dev/null 2>&1; then
+    eval "$({bin_name} completions zsh)"
 fi
-"#, bin_name, bin_name)
+"#
+                )
             }
             Shell::Fish => {
-                format!(r#"
+                format!(
+                    r#"
 # Run this command to install completions
-{} completions fish | source
+{bin_name} completions fish | source
 
 # Or add to your Fish config
-if command -v {} >/dev/null 2>&1
-    {} completions fish | source
+if command -v {bin_name} >/dev/null 2>&1
+    {bin_name} completions fish | source
 end
-"#, bin_name, bin_name, bin_name)
+"#
+                )
             }
-            _ => {
-                format!("# Completion hooks not available for this shell")
-            }
+            _ => "# Completion hooks not available for this shell".to_string(),
         };
-        
+
         Ok(hook_content)
     }
 }
@@ -297,26 +357,26 @@ mod tests {
         let mut git_sources = HashMap::new();
         git_sources.insert(KnownSources::Brew, None);
         packages.insert("git".to_string(), git_sources);
-        
+
         let mut rust_sources = HashMap::new();
         rust_sources.insert(KnownSources::Cargo, None);
         packages.insert("rust".to_string(), rust_sources);
 
         let sources = SourceList::new(); // Empty for simplicity
-        
+
         SantaData { packages, sources }
     }
 
     #[test]
     fn test_package_suggestions() {
         let data = create_test_data();
-        
+
         let suggestions = EnhancedCompletions::get_package_suggestions("g", &data);
         assert!(suggestions.contains(&"git".to_string()));
-        
+
         let suggestions = EnhancedCompletions::get_package_suggestions("r", &data);
         assert!(suggestions.contains(&"rust".to_string()));
-        
+
         let suggestions = EnhancedCompletions::get_package_suggestions("xyz", &data);
         assert!(suggestions.is_empty());
     }
@@ -325,13 +385,13 @@ mod tests {
     fn test_source_suggestions() {
         let config = create_test_config();
         let data = create_test_data();
-        
+
         let suggestions = EnhancedCompletions::get_source_suggestions("b", &config, &data);
         assert!(suggestions.iter().any(|s| s.contains("brew")));
-        
+
         let suggestions = EnhancedCompletions::get_source_suggestions("c", &config, &data);
         assert!(suggestions.iter().any(|s| s.contains("cargo")));
-        
+
         let suggestions = EnhancedCompletions::get_source_suggestions("xyz", &config, &data);
         assert!(suggestions.is_empty());
     }
@@ -340,33 +400,35 @@ mod tests {
     fn test_bash_completions_generation() {
         let data = create_test_data();
         let bash_packages = EnhancedCompletions::get_available_packages_bash(&data);
-        
+
         assert!(bash_packages.contains("git"));
         assert!(bash_packages.contains("rust"));
-        assert!(bash_packages.contains("\""));  // Should be quoted
+        assert!(bash_packages.contains("\"")); // Should be quoted
     }
 
     #[test]
     fn test_zsh_completions_generation() {
         let data = create_test_data();
         let zsh_packages = EnhancedCompletions::get_available_packages_zsh(&data);
-        
+
         assert!(zsh_packages.contains("git"));
         assert!(zsh_packages.contains("rust"));
-        assert!(zsh_packages.contains("'"));  // Should be single quoted
+        assert!(zsh_packages.contains("'")); // Should be single quoted
     }
 
     #[test]
     fn test_completion_hooks() {
-        let bash_hook = EnhancedCompletions::install_completion_hooks(Shell::Bash, "santa").unwrap();
+        let bash_hook =
+            EnhancedCompletions::install_completion_hooks(Shell::Bash, "santa").unwrap();
         assert!(bash_hook.contains("bashrc"));
         assert!(bash_hook.contains("santa completions bash"));
-        
+
         let zsh_hook = EnhancedCompletions::install_completion_hooks(Shell::Zsh, "santa").unwrap();
         assert!(zsh_hook.contains("zshrc"));
         assert!(zsh_hook.contains("santa completions zsh"));
-        
-        let fish_hook = EnhancedCompletions::install_completion_hooks(Shell::Fish, "santa").unwrap();
+
+        let fish_hook =
+            EnhancedCompletions::install_completion_hooks(Shell::Fish, "santa").unwrap();
         assert!(fish_hook.contains("santa completions fish"));
     }
 
@@ -376,19 +438,20 @@ mod tests {
         let data = create_test_data();
         let cmd = clap::Command::new("santa")
             .subcommand(
-                clap::Command::new("install")
-                    .arg(clap::Arg::new("source").value_name("SOURCE"))
+                clap::Command::new("install").arg(clap::Arg::new("source").value_name("SOURCE")),
             )
             .subcommand(
                 clap::Command::new("add")
                     .arg(clap::Arg::new("package").value_name("PACKAGE"))
-                    .arg(clap::Arg::new("source").value_name("SOURCE"))
+                    .arg(clap::Arg::new("source").value_name("SOURCE")),
             );
 
         let enhanced = EnhancedCompletions::enhance_command_with_hints(cmd, &config, &data);
-        
+
         // Verify the command structure is maintained
-        assert!(enhanced.get_subcommands().any(|sc| sc.get_name() == "install"));
+        assert!(enhanced
+            .get_subcommands()
+            .any(|sc| sc.get_name() == "install"));
         assert!(enhanced.get_subcommands().any(|sc| sc.get_name() == "add"));
     }
 }

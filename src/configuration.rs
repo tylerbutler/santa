@@ -114,7 +114,7 @@ impl SantaConfig {
 
     pub fn load_from_str(yaml_str: &str) -> Result<Self, anyhow::Error> {
         let data: SantaConfig = serde_yaml::from_str(yaml_str)
-            .with_context(|| format!("Failed to parse config from YAML: {}", yaml_str))?;
+            .with_context(|| format!("Failed to parse config from YAML: {yaml_str}"))?;
 
         // Validate the configuration
         data.validate_basic()
@@ -152,7 +152,7 @@ impl SantaConfig {
     #[must_use]
     pub fn source_is_enabled(&self, source: &PackageSource) -> bool {
         trace!("Checking if {} is enabled", source);
-        return self.sources.contains(source.name());
+        self.sources.contains(source.name())
     }
 
     /// Groups the configured (enabled) packages by source.
@@ -203,12 +203,18 @@ impl SantaConfig {
     }
 
     /// Create a configuration watcher for hot-reloading
-    pub fn create_watcher(&self, config_path: std::path::PathBuf) -> Result<crate::configuration::watcher::ConfigWatcher, anyhow::Error> {
+    pub fn create_watcher(
+        &self,
+        config_path: std::path::PathBuf,
+    ) -> Result<crate::configuration::watcher::ConfigWatcher, anyhow::Error> {
         crate::configuration::watcher::ConfigWatcher::new(config_path, self.clone())
     }
 
     /// Load configuration with environment variable support
-    pub fn load_with_env(config_path: Option<&str>, builtin_only: bool) -> Result<Self, anyhow::Error> {
+    pub fn load_with_env(
+        config_path: Option<&str>,
+        builtin_only: bool,
+    ) -> Result<Self, anyhow::Error> {
         crate::configuration::env::load_config_with_env(config_path, builtin_only)
     }
 
@@ -350,7 +356,7 @@ mod tests {
         "#;
 
         let mut temp_file = NamedTempFile::new().unwrap();
-        write!(temp_file, "{}", yaml_content).unwrap();
+        write!(temp_file, "{yaml_content}").unwrap();
 
         let result = SantaConfig::load_from(temp_file.path());
         assert!(result.is_ok());

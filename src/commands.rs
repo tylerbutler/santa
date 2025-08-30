@@ -34,7 +34,7 @@ pub async fn status_command(
             let cache_clone: Arc<Mutex<PackageCache>> = Arc::clone(&cache);
             let source = source.clone();
             async move {
-                let mut cache = cache_clone.lock().await;
+                let cache = cache_clone.lock().await;
                 cache.cache_for_async(&source).await
             }
         })
@@ -56,8 +56,8 @@ pub async fn status_command(
             if source.name() == &key {
                 let pkg_count = pkgs.len();
                 let table = format!("{}", source.table(&pkgs, &cache, *all));
-                println!("{} ({} packages total)", source, pkg_count);
-                println!("{}", table);
+                println!("{source} ({pkg_count} packages total)");
+                println!("{table}");
                 break;
             }
         }
@@ -108,7 +108,7 @@ pub async fn install_command(
             let source = source.clone();
             async move {
                 debug!("Async stats for {}", source.name());
-                let mut cache = cache_clone.lock().await;
+                let cache = cache_clone.lock().await;
                 cache.cache_for_async(&source).await
             }
         })

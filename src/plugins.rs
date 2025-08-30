@@ -8,10 +8,10 @@ use crate::configuration::SantaConfig;
 use crate::data::SantaData;
 
 /// Plugin system foundation for Santa
-/// 
+///
 /// This provides a basic plugin architecture that can be extended in the future
 /// to support custom package sources, transformations, and behaviors.
-
+///
 /// Plugin metadata information
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PluginMetadata {
@@ -37,19 +37,19 @@ pub struct PluginMetadata {
 pub trait Plugin: Send + Sync {
     /// Get plugin metadata
     fn metadata(&self) -> &PluginMetadata;
-    
+
     /// Initialize the plugin
     fn initialize(&mut self, config: &SantaConfig, data: &SantaData) -> Result<()>;
-    
+
     /// Called before command execution
     fn before_command(&self, command: &str, args: &[String]) -> Result<()>;
-    
+
     /// Called after command execution
     fn after_command(&self, command: &str, args: &[String], result: &Result<()>) -> Result<()>;
-    
+
     /// Called when configuration changes (if hot-reloading is enabled)
     fn on_config_change(&self, new_config: &SantaConfig) -> Result<()>;
-    
+
     /// Shutdown the plugin
     fn shutdown(&mut self) -> Result<()>;
 }
@@ -111,7 +111,7 @@ impl PluginManager {
 
         let name = plugin.metadata().name.clone();
         info!("Registering plugin: {}", name);
-        
+
         self.plugins.insert(name, plugin);
         Ok(())
     }
@@ -123,13 +123,14 @@ impl PluginManager {
         }
 
         info!("Initializing {} plugins", self.plugins.len());
-        
+
         for (name, plugin) in &mut self.plugins {
             debug!("Initializing plugin: {}", name);
-            plugin.initialize(config, data)
-                .with_context(|| format!("Failed to initialize plugin: {}", name))?;
+            plugin
+                .initialize(config, data)
+                .with_context(|| format!("Failed to initialize plugin: {name}"))?;
         }
-        
+
         Ok(())
     }
 
@@ -140,12 +141,13 @@ impl PluginManager {
         }
 
         debug!("Calling before_command hooks for: {} {:?}", command, args);
-        
+
         for (name, plugin) in &self.plugins {
-            plugin.before_command(command, args)
-                .with_context(|| format!("Plugin '{}' before_command hook failed", name))?;
+            plugin
+                .before_command(command, args)
+                .with_context(|| format!("Plugin '{name}' before_command hook failed"))?;
         }
-        
+
         Ok(())
     }
 
@@ -156,12 +158,13 @@ impl PluginManager {
         }
 
         debug!("Calling after_command hooks for: {} {:?}", command, args);
-        
+
         for (name, plugin) in &self.plugins {
-            plugin.after_command(command, args, result)
-                .with_context(|| format!("Plugin '{}' after_command hook failed", name))?;
+            plugin
+                .after_command(command, args, result)
+                .with_context(|| format!("Plugin '{name}' after_command hook failed"))?;
         }
-        
+
         Ok(())
     }
 
@@ -172,12 +175,13 @@ impl PluginManager {
         }
 
         debug!("Calling on_config_change hooks");
-        
+
         for (name, plugin) in &self.plugins {
-            plugin.on_config_change(new_config)
-                .with_context(|| format!("Plugin '{}' on_config_change hook failed", name))?;
+            plugin
+                .on_config_change(new_config)
+                .with_context(|| format!("Plugin '{name}' on_config_change hook failed"))?;
         }
-        
+
         Ok(())
     }
 
@@ -188,13 +192,14 @@ impl PluginManager {
         }
 
         info!("Shutting down {} plugins", self.plugins.len());
-        
+
         for (name, plugin) in &mut self.plugins {
             debug!("Shutting down plugin: {}", name);
-            plugin.shutdown()
-                .with_context(|| format!("Failed to shutdown plugin: {}", name))?;
+            plugin
+                .shutdown()
+                .with_context(|| format!("Failed to shutdown plugin: {name}"))?;
         }
-        
+
         Ok(())
     }
 
@@ -216,26 +221,24 @@ impl PluginManager {
 
         info!("Plugin discovery is not yet implemented");
         info!("Plugin directories: {:?}", self.plugin_dirs);
-        
+
         // In the future, this would:
         // 1. Scan plugin directories for plugin manifests
         // 2. Load plugin metadata
         // 3. Dynamically load plugin libraries (if supported)
         // 4. Register discovered plugins
-        
+
         Ok(())
     }
 
     /// Create plugin manager with configuration
     pub fn with_config(_config: &SantaConfig) -> Self {
-        let manager = Self::new();
-        
         // In the future, this could read plugin settings from config:
         // - Disabled/enabled plugins
         // - Plugin directories
         // - Plugin-specific configuration
-        
-        manager
+
+        Self::new()
     }
 }
 
@@ -244,6 +247,12 @@ impl PluginManager {
 pub struct LoggingPlugin {
     metadata: PluginMetadata,
     enabled: bool,
+}
+
+impl Default for LoggingPlugin {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl LoggingPlugin {
@@ -278,7 +287,7 @@ impl Plugin for LoggingPlugin {
         if !self.enabled {
             return Ok(());
         }
-        
+
         info!("Executing command: {} {:?}", command, args);
         Ok(())
     }
@@ -287,7 +296,7 @@ impl Plugin for LoggingPlugin {
         if !self.enabled {
             return Ok(());
         }
-        
+
         match result {
             Ok(_) => info!("Command completed successfully: {} {:?}", command, args),
             Err(e) => warn!("Command failed: {} {:?} - Error: {}", command, args, e),
@@ -310,7 +319,14 @@ impl Plugin for LoggingPlugin {
 #[derive(Debug)]
 pub struct PerformancePlugin {
     metadata: PluginMetadata,
+    #[allow(dead_code)]
     start_time: Option<std::time::Instant>,
+}
+
+impl Default for PerformancePlugin {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl PerformancePlugin {
@@ -399,10 +415,10 @@ mod tests {
     fn test_plugin_manager_enable_disable() {
         let mut manager = PluginManager::new();
         assert!(manager.is_enabled());
-        
+
         manager.set_enabled(false);
         assert!(!manager.is_enabled());
-        
+
         manager.set_enabled(true);
         assert!(manager.is_enabled());
     }
@@ -411,7 +427,7 @@ mod tests {
     fn test_plugin_registration() {
         let mut manager = PluginManager::new();
         let plugin = Box::new(LoggingPlugin::new());
-        
+
         assert!(manager.register_plugin(plugin).is_ok());
         assert_eq!(manager.plugins.len(), 1);
         assert!(manager.get_plugin("logging").is_some());
@@ -421,7 +437,7 @@ mod tests {
     fn test_plugin_registration_when_disabled() {
         let mut manager = PluginManager::new();
         manager.set_enabled(false);
-        
+
         let plugin = Box::new(LoggingPlugin::new());
         assert!(manager.register_plugin(plugin).is_ok());
         // Plugin should not be added when system is disabled
@@ -432,12 +448,12 @@ mod tests {
     fn test_plugin_initialization() {
         let mut manager = PluginManager::new();
         let plugin = Box::new(LoggingPlugin::new());
-        
+
         manager.register_plugin(plugin).unwrap();
-        
+
         let config = create_test_config();
         let data = create_test_data();
-        
+
         assert!(manager.initialize_plugins(&config, &data).is_ok());
     }
 
@@ -445,23 +461,23 @@ mod tests {
     fn test_plugin_hooks() {
         let mut manager = PluginManager::new();
         let plugin = Box::new(LoggingPlugin::new());
-        
+
         manager.register_plugin(plugin).unwrap();
-        
+
         let config = create_test_config();
         let data = create_test_data();
         manager.initialize_plugins(&config, &data).unwrap();
-        
+
         // Test command hooks
         let args = vec!["arg1".to_string(), "arg2".to_string()];
         assert!(manager.before_command("test", &args).is_ok());
-        
+
         let result: Result<()> = Ok(());
         assert!(manager.after_command("test", &args, &result).is_ok());
-        
+
         // Test config change hook
         assert!(manager.on_config_change(&config).is_ok());
-        
+
         // Test shutdown
         assert!(manager.shutdown_plugins().is_ok());
     }
@@ -471,13 +487,13 @@ mod tests {
         let mut manager = PluginManager::new();
         let logging_plugin = Box::new(LoggingPlugin::new());
         let perf_plugin = Box::new(PerformancePlugin::new());
-        
+
         manager.register_plugin(logging_plugin).unwrap();
         manager.register_plugin(perf_plugin).unwrap();
-        
+
         let plugin_list = manager.list_plugins();
         assert_eq!(plugin_list.len(), 2);
-        
+
         let plugin_names: Vec<&str> = plugin_list.iter().map(|p| p.name.as_str()).collect();
         assert!(plugin_names.contains(&"logging"));
         assert!(plugin_names.contains(&"performance"));
@@ -487,16 +503,16 @@ mod tests {
     fn test_built_in_plugins_metadata() {
         let logging_plugin = LoggingPlugin::new();
         let metadata = logging_plugin.metadata();
-        
+
         assert_eq!(metadata.name, "logging");
         assert_eq!(metadata.version, "1.0.0");
         assert!(!metadata.description.is_empty());
         assert!(!metadata.author.is_empty());
         assert!(metadata.tags.contains(&"logging".to_string()));
-        
+
         let perf_plugin = PerformancePlugin::new();
         let perf_metadata = perf_plugin.metadata();
-        
+
         assert_eq!(perf_metadata.name, "performance");
         assert_eq!(perf_metadata.version, "1.0.0");
         assert!(perf_metadata.tags.contains(&"performance".to_string()));
@@ -506,7 +522,7 @@ mod tests {
     fn test_plugin_manager_with_config() {
         let config = create_test_config();
         let manager = PluginManager::with_config(&config);
-        
+
         assert!(manager.is_enabled());
         assert!(manager.plugins.is_empty()); // No plugins auto-registered yet
     }
@@ -514,7 +530,7 @@ mod tests {
     #[test]
     fn test_plugin_discovery_placeholder() {
         let mut manager = PluginManager::new();
-        
+
         // This should not fail even though discovery is not implemented
         assert!(manager.discover_plugins().is_ok());
     }
@@ -523,9 +539,11 @@ mod tests {
     fn test_plugin_add_directory() {
         let mut manager = PluginManager::new();
         let initial_count = manager.plugin_dirs.len();
-        
+
         manager.add_plugin_dir("/custom/plugin/path");
         assert_eq!(manager.plugin_dirs.len(), initial_count + 1);
-        assert!(manager.plugin_dirs.contains(&PathBuf::from("/custom/plugin/path")));
+        assert!(manager
+            .plugin_dirs
+            .contains(&PathBuf::from("/custom/plugin/path")));
     }
 }
