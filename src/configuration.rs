@@ -3,8 +3,9 @@ pub mod watcher;
 pub mod env;
 
 use crate::data::SourceList;
+use crate::errors::{Result, SantaError};
 use crate::sources::PackageSource;
-use crate::traits::Exportable;
+use crate::traits::{Configurable, Exportable};
 use anyhow::Context;
 use derive_builder::Builder;
 use std::{
@@ -46,9 +47,34 @@ impl Default for SantaConfig {
 
 impl Exportable for SantaConfig {}
 
+impl Configurable for SantaConfig {
+    type Config = SantaConfig;
+
+    fn load_config(path: &Path) -> Result<Self::Config> {
+        let contents = std::fs::read_to_string(path)
+            .map_err(|e| SantaError::Io(e))?;
+        
+        let config: SantaConfig = serde_yaml::from_str(&contents)
+            .map_err(|e| SantaError::Config(anyhow::Error::from(e)))?;
+        
+        Self::validate_config(&config)?;
+        Ok(config)
+    }
+
+    fn validate_config(config: &Self::Config) -> Result<()> {
+        config.validate_basic()
+            .map_err(|e| SantaError::Config(e))?;
+        Ok(())
+    }
+
+    fn hot_reload_supported(&self) -> bool {
+        true // Santa supports hot-reloading of configuration
+    }
+}
+
 impl SantaConfig {
     /// Basic configuration validation
-    pub fn validate_basic(&self) -> Result<(), anyhow::Error> {
+    pub fn validate_basic(&self) -> std::result::Result<(), anyhow::Error> {
         if self.sources.is_empty() {
             return Err(anyhow::anyhow!("At least one source must be configured"));
         }
@@ -80,7 +106,7 @@ impl SantaConfig {
     pub fn validate_source_package_compatibility(
         &self,
         data: &SantaData,
-    ) -> Result<(), anyhow::Error> {
+    ) -> std::result::Result<(), anyhow::Error> {
         for package in &self.packages {
             let available_sources = data.packages.get(package);
             if available_sources.is_none() {
@@ -112,7 +138,7 @@ impl SantaConfig {
         Ok(())
     }
 
-    pub fn load_from_str(yaml_str: &str) -> Result<Self, anyhow::Error> {
+    pub fn load_from_str(yaml_str: &str) -> std::result::Result<Self, anyhow::Error> {
         let data: SantaConfig = serde_yaml::from_str(yaml_str)
             .with_context(|| format!("Failed to parse config from YAML: {yaml_str}"))?;
 
@@ -124,7 +150,7 @@ impl SantaConfig {
     }
 
     /// Comprehensive validation including custom business logic
-    pub fn validate_with_data(&self, data: &SantaData) -> Result<(), anyhow::Error> {
+    pub fn validate_with_data(&self, data: &SantaData) -> std::result::Result<(), anyhow::Error> {
         // First run basic validation
         self.validate_basic()
             .with_context(|| "Basic configuration validation failed")?;
@@ -136,7 +162,7 @@ impl SantaConfig {
         Ok(())
     }
 
-    pub fn load_from(file: &Path) -> Result<Self, anyhow::Error> {
+    pub fn load_from(file: &Path) -> std::result::Result<Self, anyhow::Error> {
         debug!("Loading config from: {}", file.display());
         if file.exists() {
             let yaml_str = fs::read_to_string(file)
@@ -161,14 +187,14 @@ impl SantaConfig {
             Some(groups) => groups.clone(),
             None => {
                 let configured_sources: Vec<KnownSources> = self.sources.clone();
-                // let s2 = self.sources.clone();
                 let mut groups: HashMap<KnownSources, Vec<String>> = HashMap::new();
-                for source in configured_sources.clone() {
-                    groups.insert(source, Vec::new());
+                // Initialize groups for each source (avoid cloning for iteration)
+                for source in &configured_sources {
+                    groups.insert(source.clone(), Vec::new());
                 }
 
                 for pkg in &self.packages {
-                    for source in configured_sources.clone() {
+                    for source in &configured_sources {
                         if data.packages.contains_key(pkg) {
                             let available_sources = data
                                 .packages
@@ -176,9 +202,9 @@ impl SantaConfig {
                                 .expect("Package should exist in data");
                             trace!("available_sources: {:?}", available_sources);
 
-                            if available_sources.contains_key(&source) {
+                            if available_sources.contains_key(source) {
                                 trace!("Adding {} to {} list.", pkg, source);
-                                match groups.get_mut(&source) {
+                                match groups.get_mut(source) {
                                     Some(v) => {
                                         // trace!("Adding {} to {} list.", pkg, source);
                                         v.push(pkg.to_string());
@@ -189,7 +215,7 @@ impl SantaConfig {
                                             "Group for source {} not found, creating new group",
                                             source
                                         );
-                                        groups.insert(source, vec![pkg.to_string()]);
+                                        groups.insert(source.clone(), vec![pkg.to_string()]);
                                     }
                                 }
                             }
@@ -206,7 +232,7 @@ impl SantaConfig {
     pub fn create_watcher(
         &self,
         config_path: std::path::PathBuf,
-    ) -> Result<crate::configuration::watcher::ConfigWatcher, anyhow::Error> {
+    ) -> std::result::Result<crate::configuration::watcher::ConfigWatcher, anyhow::Error> {
         crate::configuration::watcher::ConfigWatcher::new(config_path, self.clone())
     }
 
@@ -214,7 +240,7 @@ impl SantaConfig {
     pub fn load_with_env(
         config_path: Option<&str>,
         builtin_only: bool,
-    ) -> Result<Self, anyhow::Error> {
+    ) -> std::result::Result<Self, anyhow::Error> {
         crate::configuration::env::load_config_with_env(config_path, builtin_only)
     }
 
@@ -226,7 +252,7 @@ impl SantaConfig {
 }
 
 /// Custom validator function to check for duplicate sources
-fn validate_no_duplicate_sources(sources: &Vec<KnownSources>) -> Result<(), ValidationError> {
+fn validate_no_duplicate_sources(sources: &Vec<KnownSources>) -> std::result::Result<(), ValidationError> {
     let mut seen = HashSet::new();
     for source in sources {
         if !seen.insert(source) {
@@ -237,7 +263,7 @@ fn validate_no_duplicate_sources(sources: &Vec<KnownSources>) -> Result<(), Vali
 }
 
 /// Custom validator function to check for duplicate packages  
-fn validate_no_duplicate_packages(packages: &Vec<String>) -> Result<(), ValidationError> {
+fn validate_no_duplicate_packages(packages: &Vec<String>) -> std::result::Result<(), ValidationError> {
     let mut seen = HashSet::new();
     for package in packages {
         if !seen.insert(package) {

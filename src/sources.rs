@@ -1,5 +1,6 @@
 use crate::SantaConfig;
 use crate::errors::{Result, SantaError};
+use crate::traits::{Cacheable, PackageManager};
 use std::borrow::Cow;
 use std::time::Duration;
 
@@ -635,6 +636,82 @@ impl PackageSource {
 impl std::fmt::Display for PackageSource {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{} {}", self.emoji, self.name)
+    }
+}
+
+// Trait implementations for PackageSource
+
+impl PackageManager for PackageSource {
+    type Error = SantaError;
+
+    fn name(&self) -> String {
+        self.name_str()
+    }
+
+    fn install_command(&self) -> &str {
+        &self.install_command
+    }
+
+    fn list_command(&self) -> &str {
+        &self.check_command
+    }
+
+    async fn install_packages(&self, packages: &[&str]) -> Result<()> {
+        let packages_vec: Vec<String> = packages.iter().map(|s| s.to_string()).collect();
+        let install_cmd = self.install_packages_command(packages_vec);
+        
+        // Use the existing install infrastructure
+        self.exec_install_command_async(&install_cmd).await?;
+        Ok(())
+    }
+
+    async fn list_packages(&self) -> Result<Vec<String>> {
+        self.packages_async_result().await
+    }
+
+    fn is_package_installed(&self, package: &str) -> bool {
+        // Use sync version for quick check
+        let packages = self.packages();
+        packages.iter().any(|p| p == package)
+    }
+
+    fn supports_batch_install(&self) -> bool {
+        true // Most package managers support batch installation
+    }
+
+    fn requires_elevation(&self) -> bool {
+        // Heuristic: if install command contains sudo, it requires elevation
+        self.install_command.contains("sudo")
+    }
+}
+
+impl Cacheable<String, Vec<String>> for PackageCache {
+    fn get(&self, key: &String) -> Option<Vec<String>> {
+        self.cache.get(key)
+    }
+
+    fn insert(&self, key: String, value: Vec<String>) {
+        self.cache.insert(key, value);
+    }
+
+    fn invalidate(&self, key: &String) {
+        self.cache.invalidate(key);
+    }
+
+    fn clear(&self) {
+        self.cache.invalidate_all();
+    }
+
+    fn size(&self) -> usize {
+        self.cache.weighted_size() as usize
+    }
+
+    fn stats(&self) -> crate::traits::CacheStats {
+        crate::traits::CacheStats {
+            entries: self.size(),
+            hits: 0, // moka doesn't expose hit/miss stats in the sync interface
+            misses: 0,
+        }
     }
 }
 

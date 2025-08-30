@@ -26,6 +26,7 @@ directories = "4.0"
 log = "0.4.14"
 serde = { version = "1.0.130", features = ["derive"] }
 serde-enum-str = "0.2.4"
+serde_json = "1.0"
 serde_yaml = "0.9"
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
@@ -43,7 +44,6 @@ derive_builder = "0.12"
 which = "4.4"
 derive_more = "0.99"
 validator = { version = "0.16", features = ["derive"] }
-string-interner = "0.14"
 
 # Advanced Features: Configuration Hot-Reloading
 notify = "6.1"

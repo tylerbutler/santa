@@ -18,12 +18,12 @@ pub async fn status_command(
     cache: PackageCache,
     all: &bool,
 ) -> Result<()> {
-    // filter sources to those enabled in the config
+    // filter sources to those enabled in the config (avoiding clone)
     let sources: SourceList = data
         .sources
-        .clone()
-        .into_iter()
+        .iter()
         .filter(|source| config.source_is_enabled(source))
+        .cloned()
         .collect();
 
     // Use structured concurrency to cache data for all sources concurrently
@@ -87,12 +87,12 @@ pub async fn install_command(
     cache: PackageCache,
 ) -> Result<()> {
     // let config = config.clone();
-    // filter sources to those enabled in the config
+    // filter sources to those enabled in the config (avoiding clone)
     let sources: SourceList = data
         .sources
-        .clone()
-        .into_iter()
+        .iter()
         .filter(|source| config.source_is_enabled(source))
+        .cloned()
         .collect();
 
     // for (k, v) in config.groups(&data) {

@@ -324,14 +324,27 @@ impl SantaData {
     }
 
     // pub fn update_from_config(&mut self, config: &SantaConfig) {
+    
+    /// Returns an iterator over sources (both built-in and custom) for memory efficiency.
+    /// Use this when you only need to iterate over sources without owning them.
+    pub fn sources_iter<'a>(&'a self, config: &'a SantaConfig) -> impl Iterator<Item = &'a PackageSource> + 'a {
+        self.sources.iter().chain(
+            config.custom_sources.as_ref()
+                .map(|sources| sources.iter())
+                .unwrap_or([].iter())
+        )
+    }
+
+    /// Returns owned sources list. Use only when you need to own/modify the collection.
+    /// For read-only iteration, prefer sources_iter() for better performance.
     pub fn sources(&self, config: &SantaConfig) -> SourceList {
-        let mut ret: SourceList = self.sources.clone();
-
-        // If config has custom sources, extend with them
+        let capacity = self.sources.len() + 
+            config.custom_sources.as_ref().map(|s| s.len()).unwrap_or(0);
+        let mut ret = SourceList::with_capacity(capacity);
+        ret.extend(self.sources.iter().cloned());
         if let Some(ref custom_sources) = config.custom_sources {
-            ret.extend(custom_sources.clone());
+            ret.extend(custom_sources.iter().cloned());
         }
-
         ret
     }
 
