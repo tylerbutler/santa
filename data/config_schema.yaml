@@ -1,0 +1,70 @@
+# Santa Configuration Schema
+# This schema defines the simplified format for user configuration files
+
+ConfigDefinition:
+  type: object
+  description: "User configuration for Santa package manager"
+  properties:
+    sources:
+      type: array
+      description: "List of package sources to use (in priority order)"
+      items:
+        type: string
+        enum: [brew, scoop, pacman, nix, npm, cargo, apt, aur, flathub]
+      example: [brew, npm, cargo]
+      
+    packages:
+      type: array  
+      description: "List of packages to install/manage"
+      items:
+        type: string
+      example: [rg, zoxide, bat, fzf]
+      
+    # Optional advanced settings
+    _settings:
+      type: object
+      description: "Advanced configuration options"
+      properties:
+        auto_update:
+          type: boolean
+          description: "Automatically update packages"
+          default: false
+          
+        parallel_installs:
+          type: integer
+          description: "Maximum parallel package installations"
+          default: 3
+          minimum: 1
+          maximum: 10
+          
+        confirm_before_install:
+          type: boolean
+          description: "Ask for confirmation before installing packages"
+          default: true
+
+# Simple format examples:
+examples:
+  # Minimal configuration
+  basic:
+    sources: [brew, npm]
+    packages: [git, node, rust]
+  
+  # More comprehensive setup
+  comprehensive:
+    sources: [brew, scoop, npm, cargo]
+    packages: 
+      - bat
+      - rg
+      - fzf
+      - exa
+      - git-delta
+    _settings:
+      auto_update: true
+      parallel_installs: 5
+
+# Migration Notes:
+# This format flattens the previous nested structure:
+# - Removes unnecessary nesting under "sources:" and "packages:" 
+# - Uses simple arrays for both sources and packages
+# - Adds optional _settings for advanced configuration
+# - Maintains backward compatibility with simple array format

@@ -9,6 +9,12 @@ use tracing::{error, info};
 
 use crate::{sources::PackageSource, traits::Exportable};
 
+pub mod schemas;
+pub mod loaders;
+
+#[cfg(test)]
+mod integration_tests;
+
 pub mod constants;
 
 /// Strong type for package names to prevent mixing up with other strings

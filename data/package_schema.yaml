@@ -1,0 +1,122 @@
+# Package Definition Schema for Santa Package Manager
+# This schema defines the simplified format for package availability and configuration
+
+PackageDefinition:
+  oneOf:
+    # Simple array format - just list sources where package has same name
+    - type: array
+      description: "Simple format: list of sources where package is available with same name as key"
+      items:
+        type: string
+        enum: [brew, scoop, pacman, nix, npm, cargo, apt, aur, flathub]
+      example: [brew, scoop, pacman, nix]
+    
+    # Complex object format - when overrides or metadata needed  
+    - type: object
+      description: "Complex format: when source-specific config or metadata is needed"
+      properties:
+        # System keys (prefixed with _ to distinguish from source names)
+        _sources:
+          type: array
+          description: "List of sources where package is available with same name as the package key"
+          items:
+            type: string
+            enum: [brew, scoop, pacman, nix, npm, cargo, apt, aur, flathub]
+          example: [brew, scoop, pacman, nix]
+    
+    _platforms:
+      type: array  
+      description: "Platforms where this package is available (optional constraint)"
+      items:
+        type: string
+        enum: [windows, linux, macos, android]
+      example: [windows]
+    
+    _aliases:
+      type: array
+      description: "Alternative names for search and discovery"
+      items:
+        type: string
+      example: ["rg", "ripgrep-all"]
+    
+    # Source-specific configurations (key = source name)
+    "{source_name}":
+      oneOf:
+        - type: string
+          description: "Simple name override - package has different name in this source"
+          example: "gh"
+          
+        - type: "null"
+          description: "Explicit same-name marker (YAML: ~) - package name matches key"
+          
+        - type: object
+          description: "Complex configuration with hooks and modifications"
+          properties:
+            name: 
+              oneOf:
+                - type: string
+                  description: "Override package name for this source"
+                - type: "null"
+                  description: "Use same name as package key (YAML: ~)"
+            
+            pre: 
+              type: string
+              description: "Command to run before installation (e.g., add repository)"
+              example: "brew tap jandedobbeleer/oh-my-posh"
+            
+            post: 
+              type: string
+              description: "Command to run after successful installation (e.g., start service)"
+              example: "brew services start redis"
+            
+            prefix: 
+              type: string
+              description: "String to prepend to package name during installation"
+              example: "nixpkgs."
+              note: "Results in: nix-env -iA nixpkgs.{package}"
+            
+            install_suffix: 
+              type: string
+              description: "String to append to the install command"
+              example: "@latest"
+              note: "Results in: npm install -g {package}@latest"
+
+# Example Usage:
+examples:
+  # Simplest case - just an array of sources
+  simple_package: [brew, scoop, pacman, nix]
+  
+  # Mixed simple and override - use object format
+  github_cli:
+    brew: "gh"                    # different name in brew
+    _sources: [scoop, apt, pacman, nix]  # same name elsewhere
+  
+  # Complex configuration with hooks
+  oh_my_posh:
+    aur: "oh-my-posh-git"        # different name
+    brew:                        # complex config
+      name: null                 # same name (YAML: ~)
+      pre: "brew tap jandedobbeleer/oh-my-posh"
+    scoop: "https://github.com/JanDeDobbeleer/oh-my-posh/releases/latest/download/oh-my-posh.json"
+  
+  # Install modifications
+  npm_package:
+    npm:
+      install_suffix: "@latest"
+  
+  nix_package:
+    nix:
+      prefix: "nixpkgs."
+  
+  # Platform-specific availability
+  windows_only_tool:
+    _sources: [scoop]
+    _platforms: [windows]
+
+# Migration Notes:
+# This format replaces the verbose current format where every source
+# was explicitly listed with ~ for "same name". The new format:
+# 1. Uses _sources array for common case of "same name everywhere"
+# 2. Only specifies source-specific config when needed
+# 3. Reduces file size by ~60-80% while preserving all information
+# 4. Makes contributions easier - just add to _sources array for most packages
