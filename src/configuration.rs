@@ -247,7 +247,6 @@ impl SantaConfig {
     }
 }
 
-
 #[cfg(test)]
 mod tests {
     use super::*;
