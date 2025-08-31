@@ -33,7 +33,7 @@ jobs:
 
       - uses: taiki-e/install-action@v2
         with:
-          tool: "just,cargo-udeps"
+          tool: "just,cargo-udeps,cargo-audit,cargo-deny"
 
       - name: Check formatting
         run: |
