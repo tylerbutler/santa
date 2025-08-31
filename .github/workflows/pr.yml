@@ -47,25 +47,10 @@ jobs:
         run: |
           just build
 
-      # - name: Annotate commit with clippy warnings
-      #   uses: actions-rs/clippy-check@v1
-      #   if: ${{ !env.ACT }}
-      #   with:
-      #     token: ${{ secrets.GITHUB_TOKEN }}
-      #     args: --all-features
+      - name: Run tests
+        run: |
+          just test
 
-  # test:
-  #   name: Test
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #     - name: Install Rust
-  #       uses: actions-rs/toolchain@v1
-  #       with:
-  #         toolchain: stable
-  #         override: true
-  #         profile: minimal
-  #     - uses: actions-rs/cargo@v1
-  #       with:
-  #         command: test
-  #         args: --verbose --all-features
+      - name: Security audit
+        run: |
+          just audit

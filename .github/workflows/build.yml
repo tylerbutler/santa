@@ -37,21 +37,21 @@ jobs:
             target: x86_64-unknown-linux-gnu
             asset_name: santa
             command: cargo
-          # - name: linux-arm64
-          #   runner: ubuntu-latest
-          #   target: aarch64-unknown-linux-gnu
-          #   asset_name: santa
-          #   command: cross
+          - name: linux-arm64
+            runner: ubuntu-latest
+            target: aarch64-unknown-linux-gnu
+            asset_name: santa
+            command: cross
           - name: win-amd64
             runner: windows-latest
             target: x86_64-pc-windows-msvc
             asset_name: santa.exe
             command: cargo
-          # - name: macos-amd64
-          #   runner: macos-latest
-          #   target: x86_64-apple-darwin
-          #   asset_name: santa
-          #   command: cross
+          - name: macos-amd64
+            runner: macos-latest
+            target: x86_64-apple-darwin
+            asset_name: santa
+            command: cargo
           - name: macos-arm64
             runner: macos-latest
             target: aarch64-apple-darwin
@@ -85,7 +85,17 @@ jobs:
       - name: Build Binary
         run: ${{ matrix.command }} build --locked --release --target ${{ matrix.target }}
 
+      - name: Prepare artifact path
+        id: artifact
+        shell: bash
+        run: |
+          if [[ "${{ matrix.command }}" == "cross" ]]; then
+            echo "path=target/${{ matrix.target }}/release/${{ matrix.asset_name }}" >> $GITHUB_OUTPUT
+          else
+            echo "path=target/release/${{ matrix.asset_name }}" >> $GITHUB_OUTPUT
+          fi
+
       - uses: actions/upload-artifact@v3
         with:
           name: ${{ matrix.target }}
-          path: target/release/${{ matrix.asset_name }}
+          path: ${{ steps.artifact.outputs.path }}

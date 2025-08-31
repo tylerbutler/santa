@@ -13,55 +13,99 @@ rust-version = "1.80.0"
 default = []
 bench = []
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
+# Error handling with context and chaining
 anyhow = "1.0.75"
+
+# Command-line argument parsing with derive macros and colors
 clap = { version = "4.4", features = ["color", "derive", "cargo", "wrap_help"] }
+
+# Shell completion generation for CLI commands
 clap_complete = "4.4"
+
+# Terminal color output for user-friendly messages
 colored = "2"
+
+# Configuration file loading and management
 config = "0.14"
+
+# Interactive CLI prompts and user input
 dialoguer = "0.11.0"
+
+# Cross-platform directory path resolution
 directories = "4.0"
+
+# Serialization framework with derive macros
 serde = { version = "1.0.130", features = ["derive"] }
+
+# String-based enum serialization for configuration
 serde-enum-str = "0.2.4"
+
+# JSON serialization for data exchange
 serde_json = "1.0"
+
+# YAML serialization for configuration files
 serde_yaml = "0.9"
+
+# Structured logging and tracing
 tracing = "0.1"
+
+# Tracing subscriber with environment-based filtering
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+# ASCII table formatting for command output
 tabular = "0.2.0"
-# Async process execution replacing subprocess
-tokio = { version = "1.35", features = ["process", "rt-multi-thread", "macros", "time", "sync"] }
+
+# Async runtime with process execution and synchronization primitives
+tokio = { version = "1.41", features = ["process", "rt-multi-thread", "macros", "time", "sync"] }
+
+# Async utilities and combinators
 futures = "0.3"
-# High-performance caching with TTL and LRU
+
+# High-performance caching with TTL and LRU eviction
 moka = { version = "0.12", features = ["sync", "logging"] }
-# Removed subprocess - now standardized on tokio::process
 
-# Phase 2: API Design Improvements
+# Builder pattern code generation
 derive_builder = "0.12"
-which = "4.4"
-derive_more = "0.99"
-validator = { version = "0.16", features = ["derive"] }
 
-# Advanced Features: Configuration Hot-Reloading
+# Cross-platform executable discovery
+which = "4.4"
+
+# Additional derive macros for common traits
+derive_more = "0.99"
+
+# Data validation with derive macros
+validator = { version = "0.20", features = ["derive"] }
+
+# File system change notifications for hot-reloading
 notify = "6.1"
-# Security: Shell escape for command injection prevention
+
+# Shell command escaping to prevent injection attacks
 shell-escape = "0.1"
-# Structured error handling
+
+# Structured error types with derive macros
 thiserror = "1.0"
 
 [dev-dependencies]
-# Testing framework
+# Parameterized testing framework with fixtures
 rstest = "0.18"
+
+# Temporary file and directory creation for tests
 tempfile = "3.8"
-# Property-based testing
+
+# Property-based testing with random input generation
 proptest = "1.0"
-# Mocking for subprocess calls
+
+# Mock generation for testing subprocess calls
 mockall = "0.12"
-# Test utilities
+
+# Integration testing for CLI applications
 assert_cmd = "2.0"
+
+# Predicate functions for test assertions
 predicates = "3.0"
-# Benchmarking
+
+# Benchmarking framework with HTML reports
 criterion = { version = "0.5", features = ["html_reports", "async_tokio"] }
 
 [[bin]]
