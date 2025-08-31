@@ -130,8 +130,8 @@ impl From<config::ConfigError> for SantaError {
     }
 }
 
-impl From<serde_yaml::Error> for SantaError {
-    fn from(err: serde_yaml::Error) -> Self {
+impl From<hocon::Error> for SantaError {
+    fn from(err: hocon::Error) -> Self {
         SantaError::Config(anyhow::Error::from(err))
     }
 }

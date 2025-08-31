@@ -7,6 +7,8 @@ use serde::{Deserialize, Serialize};
 use serde_enum_str::{Deserialize_enum_str, Serialize_enum_str};
 use tracing::{error, info};
 
+use hocon::HoconLoader;
+
 use crate::{sources::PackageSource, traits::Exportable};
 
 pub mod schemas;
@@ -271,13 +273,20 @@ pub type PackageDataList = HashMap<String, HashMap<KnownSources, Option<PackageD
 pub type SourceMap = HashMap<SourceName, PackageSource>;
 
 impl LoadFromFile for PackageDataList {
-    fn load_from_str(yaml_str: &str) -> Self {
-        let data: PackageDataList = match serde_yaml::from_str(yaml_str) {
-            Ok(data) => data,
+    fn load_from_str(config_str: &str) -> Self {
+        let data: PackageDataList = match HoconLoader::new().load_str(config_str) {
+            Ok(loader) => match loader.resolve() {
+                Ok(data) => data,
+                Err(e) => {
+                    error!("Error parsing HOCON data: {}", e);
+                    error!("Using default empty data");
+                    PackageDataList::new()
+                }
+            },
             Err(e) => {
-                error!("Error loading data: {}", e);
+                error!("Error loading HOCON data: {}", e);
                 error!("Using default empty data");
-                PackageDataList::new() // Return empty HashMap instead of recursion
+                PackageDataList::new()
             }
         };
         data
@@ -291,16 +300,19 @@ impl Exportable for PackageDataList {
     {
         let list: Vec<String> = self.keys().map(|key| key.to_string()).collect();
 
-        serde_yaml::to_string(&list).expect("Failed to serialize list")
+        serde_json::to_string_pretty(&list).expect("Failed to serialize list")
     }
 }
 
 pub type SourceList = Vec<PackageSource>;
 
 impl LoadFromFile for SourceList {
-    fn load_from_str(yaml_str: &str) -> Self {
-        let data: SourceList =
-            serde_yaml::from_str(yaml_str).expect("Failed to deserialize source list");
+    fn load_from_str(config_str: &str) -> Self {
+        let data: SourceList = HoconLoader::new()
+            .load_str(config_str)
+            .expect("Failed to load HOCON source list")
+            .resolve()
+            .expect("Failed to deserialize source list");
         data
     }
 }
@@ -312,7 +324,7 @@ impl Exportable for SourceList {
     {
         let list: Vec<String> = self.iter().map(|source| format!("{source}")).collect();
 
-        serde_yaml::to_string(&list).expect("Failed to serialize source list")
+        serde_json::to_string_pretty(&list).expect("Failed to serialize source list")
     }
 }
 
@@ -324,8 +336,26 @@ pub struct SantaData {
 
 impl SantaData {
     pub fn load_from_str(packages_str: &str, sources_str: &str) -> Self {
-        let packages = PackageDataList::load_from_str(packages_str);
-        let sources = SourceList::load_from_str(sources_str);
+        // Use the new schema loaders and convert to legacy format
+        use crate::data::loaders::{convert_to_legacy_packages, convert_to_legacy_sources};
+        
+        // Parse using schema loaders
+        let schema_packages = HoconLoader::new()
+            .load_str(packages_str)
+            .expect("Failed to load packages HOCON")
+            .resolve()
+            .expect("Failed to parse packages HOCON");
+            
+        let schema_sources = HoconLoader::new()
+            .load_str(sources_str)
+            .expect("Failed to load sources HOCON")
+            .resolve()
+            .expect("Failed to parse sources HOCON");
+        
+        // Convert to legacy format
+        let packages = convert_to_legacy_packages(schema_packages);
+        let sources = convert_to_legacy_sources(schema_sources);
+        
         SantaData { packages, sources }
     }
 
@@ -389,7 +419,7 @@ impl Exportable for SantaData {
     where
         Self: Serialize,
     {
-        serde_yaml::to_string(&self).expect("Failed to serialize SantaData")
+        serde_json::to_string_pretty(&self).expect("Failed to serialize SantaData")
     }
 }
 

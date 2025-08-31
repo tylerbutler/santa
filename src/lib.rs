@@ -85,6 +85,7 @@ pub mod completions;
 pub mod configuration;
 pub mod data;
 pub mod errors;
+pub mod migration;
 pub mod plugins;
 pub mod sources;
 pub mod traits;

@@ -6,6 +6,8 @@ use std::path::Path;
 use anyhow::{Context, Result};
 use tracing::{info, warn};
 
+use hocon::HoconLoader;
+
 use super::schemas::{PackageDefinition, SourcesDefinition, ConfigDefinition};
 use crate::data::{KnownSources, PackageData, PackageDataList, SourceList};
 use crate::sources::PackageSource;
@@ -15,8 +17,10 @@ pub fn load_packages_from_schema(path: &Path) -> Result<HashMap<String, PackageD
     let content = fs::read_to_string(path)
         .with_context(|| format!("Failed to read packages file: {:?}", path))?;
     
-    let packages: HashMap<String, PackageDefinition> = serde_yaml::from_str(&content)
-        .with_context(|| format!("Failed to parse packages YAML: {:?}", path))?;
+    let packages: HashMap<String, PackageDefinition> = HoconLoader::new()
+        .load_str(&content)?
+        .resolve()
+        .with_context(|| format!("Failed to parse HOCON packages: {:?}", path))?;
     
     info!("Loaded {} packages from schema format", packages.len());
     Ok(packages)
@@ -27,8 +31,10 @@ pub fn load_sources_from_schema(path: &Path) -> Result<SourcesDefinition> {
     let content = fs::read_to_string(path)
         .with_context(|| format!("Failed to read sources file: {:?}", path))?;
     
-    let sources: SourcesDefinition = serde_yaml::from_str(&content)
-        .with_context(|| format!("Failed to parse sources YAML: {:?}", path))?;
+    let sources: SourcesDefinition = HoconLoader::new()
+        .load_str(&content)?
+        .resolve()
+        .with_context(|| format!("Failed to parse HOCON sources: {:?}", path))?;
     
     info!("Loaded {} sources from schema format", sources.len());
     Ok(sources)
@@ -39,8 +45,10 @@ pub fn load_config_from_schema(path: &Path) -> Result<ConfigDefinition> {
     let content = fs::read_to_string(path)
         .with_context(|| format!("Failed to read config file: {:?}", path))?;
     
-    let config: ConfigDefinition = serde_yaml::from_str(&content)
-        .with_context(|| format!("Failed to parse config YAML: {:?}", path))?;
+    let config: ConfigDefinition = HoconLoader::new()
+        .load_str(&content)?
+        .resolve()
+        .with_context(|| format!("Failed to parse HOCON config: {:?}", path))?;
     
     info!("Loaded config with {} sources and {} packages", 
           config.sources.len(), config.packages.len());

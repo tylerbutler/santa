@@ -14,6 +14,9 @@ use std::{
     path::Path,
 };
 
+use hocon::HoconLoader;
+use crate::migration::ConfigMigrator;
+
 use tracing::{debug, trace, warn};
 use validator::Validate;
 // use memoize::memoize;
@@ -49,9 +52,16 @@ impl Configurable for SantaConfig {
     type Config = SantaConfig;
 
     fn load_config(path: &Path) -> Result<Self::Config> {
-        let contents = std::fs::read_to_string(path).map_err(SantaError::Io)?;
+        // Use migration system to transparently handle YAML→HOCON conversion
+        let migrator = ConfigMigrator::new();
+        let actual_path = migrator.resolve_config_path(path)
+            .map_err(|e| SantaError::Config(e))?;
 
-        let config: SantaConfig = serde_yaml::from_str(&contents)
+        let contents = std::fs::read_to_string(&actual_path).map_err(SantaError::Io)?;
+
+        let config: SantaConfig = HoconLoader::new()
+            .load_str(&contents)?
+            .resolve()
             .map_err(|e| SantaError::Config(anyhow::Error::from(e)))?;
 
         Self::validate_config(&config)?;
@@ -134,9 +144,11 @@ impl SantaConfig {
         Ok(())
     }
 
-    pub fn load_from_str(yaml_str: &str) -> std::result::Result<Self, anyhow::Error> {
-        let data: SantaConfig = serde_yaml::from_str(yaml_str)
-            .with_context(|| format!("Failed to parse config from YAML: {yaml_str}"))?;
+    pub fn load_from_str(config_str: &str) -> std::result::Result<Self, anyhow::Error> {
+        let data: SantaConfig = HoconLoader::new()
+            .load_str(config_str)?
+            .resolve()
+            .with_context(|| format!("Failed to parse HOCON config: {config_str}"))?;
 
         // Validate the configuration
         data.validate_basic()
@@ -160,10 +172,25 @@ impl SantaConfig {
 
     pub fn load_from(file: &Path) -> std::result::Result<Self, anyhow::Error> {
         debug!("Loading config from: {}", file.display());
-        if file.exists() {
-            let yaml_str = fs::read_to_string(file)
-                .with_context(|| format!("Failed to read config file: {}", file.display()))?;
-            SantaConfig::load_from_str(&yaml_str)
+        
+        // Use migration system to transparently handle YAML→HOCON conversion
+        let migrator = ConfigMigrator::new();
+        let actual_path = migrator.resolve_config_path(file)
+            .with_context(|| format!("Failed to resolve config path for: {}", file.display()))?;
+        
+        if actual_path.exists() {
+            let config_str = fs::read_to_string(&actual_path)
+                .with_context(|| format!("Failed to read config file: {}", actual_path.display()))?;
+            
+            let config: SantaConfig = HoconLoader::new()
+                .load_str(&config_str)?
+                .resolve()
+                .with_context(|| format!("Failed to parse HOCON config file: {}", actual_path.display()))?;
+            
+            config.validate_basic()
+                .with_context(|| "Configuration validation failed")?;
+            
+            Ok(config)
         } else {
             warn!("Can't find config file: {}", file.display());
             warn!("Loading default config");

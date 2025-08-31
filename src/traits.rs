@@ -286,7 +286,7 @@ pub trait Exportable {
     where
         Self: Serialize,
     {
-        serde_yaml::to_string(&self).unwrap_or_else(|_| "# Export failed".to_string())
+        serde_json::to_string_pretty(&self).unwrap_or_else(|_| "# Export failed".to_string())
     }
 
     /// Export to minimal format (same as export by default)
