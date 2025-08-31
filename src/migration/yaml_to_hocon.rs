@@ -29,7 +29,7 @@ fn format_value_as_hocon(value: &Value, indent_level: usize) -> Result<String> {
             }
             
             let mut result = String::new();
-            let indent = "  ".repeat(indent_level);
+            let _indent = "  ".repeat(indent_level);
             let child_indent = "  ".repeat(indent_level + 1);
             
             let mut items = map.iter().collect::<Vec<_>>();
@@ -155,23 +155,6 @@ fn escape_string(s: &str) -> String {
         .replace('\t', "\\t")
 }
 
-/// Generate a HOCON header comment for migrated files
-pub fn generate_migration_header(original_path: &str) -> String {
-    format!(
-        "# Santa Package Manager Configuration\n\
-         # Automatically migrated from YAML to HOCON format\n\
-         # Original file: {}\n\
-         # Migration date: {}\n\
-         #\n\
-         # This HOCON format is more readable and supports advanced features like:\n\
-         # - Unquoted keys and values\n\
-         # - Comments (like this one!)\n\
-         # - Includes and substitutions\n\
-         # - More flexible array syntax\n\n",
-        original_path,
-        chrono::Utc::now().format("%Y-%m-%d %H:%M:%S UTC")
-    )
-}
 
 #[cfg(test)]
 mod tests {

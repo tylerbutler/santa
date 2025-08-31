@@ -7,7 +7,7 @@
 use std::path::{Path, PathBuf};
 use std::fs;
 use anyhow::{Context, Result};
-use tracing::{info, warn, debug};
+use tracing::{info, debug};
 
 pub mod yaml_to_hocon;
 
@@ -195,8 +195,7 @@ impl ConfigMigrator {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use tempfile::{TempDir, NamedTempFile};
-    use std::io::Write;
+    use tempfile::TempDir;
     
     #[test]
     fn test_generate_path_variants() {

@@ -50,9 +50,6 @@ hocon = { version = "0.9", features = ["serde-support"] }
 # YAML parser for migration from legacy configs
 serde_yaml = "0.9"
 
-# Date/time for migration headers
-chrono = { version = "0.4", features = ["serde"] }
-
 # Structured logging and tracing
 tracing = "0.1"
 
