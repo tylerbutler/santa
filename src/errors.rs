@@ -50,6 +50,10 @@ pub enum SantaError {
     /// Plugin or extension loading errors
     #[error("Plugin error: {0}")]
     Plugin(String),
+
+    /// Template rendering or parsing errors
+    #[error("Template error: {0}")]
+    Template(String),
 }
 
 /// A type alias for Results that use SantaError.
@@ -118,6 +122,7 @@ impl SantaError {
             SantaError::InvalidPackage(_) => "invalid_package",
             SantaError::Concurrency(_) => "concurrency",
             SantaError::Plugin(_) => "plugin",
+            SantaError::Template(_) => "template",
         }
     }
 }

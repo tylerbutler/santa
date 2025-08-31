@@ -2,6 +2,7 @@ use crate::data::SantaData;
 use crate::data::SourceList;
 use crate::errors::{Result, SantaError};
 use crate::traits::Exportable;
+use crate::script_generator::{ExecutionMode, ScriptFormat};
 use crate::{configuration::SantaConfig, sources::PackageCache};
 use futures::future::try_join_all;
 use std::sync::Arc;
@@ -85,6 +86,9 @@ pub async fn install_command(
     config: &mut SantaConfig,
     data: &SantaData,
     cache: PackageCache,
+    execution_mode: ExecutionMode,
+    script_format: ScriptFormat,
+    output_dir: &std::path::Path,
 ) -> Result<()> {
     // let config = config.clone();
     // filter sources to those enabled in the config (avoiding clone)
@@ -137,7 +141,14 @@ pub async fn install_command(
                     .filter(|p| !cache.check(source, p))
                     .map(|p| p.to_string())
                     .collect();
-                source.exec_install(config, data, pkgs);
+                source.exec_install(
+                    config, 
+                    data, 
+                    pkgs, 
+                    execution_mode.clone(),
+                    script_format.clone(),
+                    output_dir
+                )?;
             }
         }
     }

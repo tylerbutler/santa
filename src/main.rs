@@ -1,5 +1,5 @@
 use anyhow::{bail, Context};
-use clap::{ArgAction, Command, Parser, Subcommand};
+use clap::{ArgAction, Command, Parser, Subcommand, ValueEnum};
 use clap_complete::{generate, Shell};
 use santa::completions::EnhancedCompletions;
 use santa::configuration::SantaConfig;
@@ -13,6 +13,7 @@ use std::path::Path;
 
 use santa::commands;
 use santa::sources::PackageCache;
+use santa::script_generator::{ExecutionMode, ScriptFormat};
 
 #[cfg(test)]
 mod tests;
@@ -34,6 +35,18 @@ struct Cli {
     /// Increase logging level
     #[clap(short, long, global = true, action = ArgAction::Count)]
     verbose: u8,
+
+    /// Enable dangerous direct execution mode (default: safe script generation)
+    #[clap(short = 'x', long, global = true)]
+    execute: bool,
+
+    /// Script format for safe mode (auto-detects based on platform)
+    #[clap(long, global = true, value_enum, default_value = "auto")]
+    format: ScriptFormatOption,
+
+    /// Output directory for generated scripts
+    #[clap(long, global = true)]
+    output_dir: Option<std::path::PathBuf>,
 }
 
 #[derive(Subcommand)]
@@ -64,6 +77,28 @@ enum Commands {
         /// Shell to generate completions for
         shell: Shell,
     },
+}
+
+/// Script format options for CLI
+#[derive(Clone, ValueEnum, Debug)]
+enum ScriptFormatOption {
+    /// Auto-detect based on platform (PowerShell on Windows, Shell elsewhere)
+    Auto,
+    /// Force shell script (.sh) - Unix/Linux/macOS
+    Shell,
+    /// Force PowerShell script (.ps1) - Windows
+    PowerShell,
+}
+
+impl ScriptFormatOption {
+    /// Convert to ScriptFormat, resolving Auto based on platform
+    fn to_script_format(&self) -> ScriptFormat {
+        match self {
+            ScriptFormatOption::Auto => ScriptFormat::auto_detect(),
+            ScriptFormatOption::Shell => ScriptFormat::Shell,
+            ScriptFormatOption::PowerShell => ScriptFormat::PowerShell,
+        }
+    }
 }
 
 fn load_config(path: &Path) -> Result<SantaConfig, anyhow::Error> {
@@ -99,6 +134,29 @@ fn build_cli() -> Command {
                 .long("verbose")
                 .help("Increase logging level (-v: info, -vv: debug, -vvv: trace)")
                 .action(ArgAction::Count)
+                .global(true),
+        )
+        .arg(
+            clap::Arg::new("execute")
+                .short('x')
+                .long("execute")
+                .help("Enable dangerous direct execution mode (default: safe script generation)")
+                .action(ArgAction::SetTrue)
+                .global(true),
+        )
+        .arg(
+            clap::Arg::new("format")
+                .long("format")
+                .help("Script format for safe mode (auto, shell, powershell)")
+                .value_parser(clap::value_parser!(ScriptFormatOption))
+                .default_value("auto")
+                .global(true),
+        )
+        .arg(
+            clap::Arg::new("output-dir")
+                .long("output-dir")
+                .help("Output directory for generated scripts")
+                .value_parser(clap::value_parser!(std::path::PathBuf))
                 .global(true),
         )
 }
@@ -183,6 +241,16 @@ pub async fn run() -> Result<(), anyhow::Error> {
     // data.update_from_config(&config);
 
     let cache: PackageCache = PackageCache::new();
+    
+    // Determine execution mode based on CLI flags
+    let execution_mode = if cli.execute {
+        ExecutionMode::Execute
+    } else {
+        ExecutionMode::Safe
+    };
+    
+    let script_format = cli.format.to_script_format();
+    let output_dir = cli.output_dir.unwrap_or_else(|| std::env::current_dir().expect("Failed to get current directory"));
 
     match &cli.command {
         Commands::Status { all } => {
@@ -190,7 +258,14 @@ pub async fn run() -> Result<(), anyhow::Error> {
             crate::commands::status_command(&mut config, &data, cache, all).await?;
         }
         Commands::Install { source: _ } => {
-            crate::commands::install_command(&mut config, &data, cache).await?;
+            crate::commands::install_command(
+                &mut config, 
+                &data, 
+                cache, 
+                execution_mode,
+                script_format,
+                &output_dir
+            ).await?;
         }
         Commands::Add { source, package } => {
             bail!(

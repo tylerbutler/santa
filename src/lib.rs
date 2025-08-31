@@ -87,6 +87,7 @@ pub mod data;
 pub mod errors;
 pub mod migration;
 pub mod plugins;
+pub mod script_generator;
 pub mod sources;
 pub mod traits;
 
@@ -94,4 +95,5 @@ pub mod traits;
 pub use configuration::SantaConfig;
 pub use data::{KnownSources, PackageData, SantaData};
 pub use errors::{Result, SantaError};
+pub use script_generator::{ExecutionMode, ScriptFormat, ScriptGenerator};
 pub use sources::{PackageCache, PackageSource};

@@ -1,5 +1,6 @@
 use crate::errors::{Result, SantaError};
 use crate::traits::{Cacheable, PackageManager};
+use crate::script_generator::{ScriptGenerator, ScriptFormat, ExecutionMode};
 use crate::SantaConfig;
 use std::borrow::Cow;
 use std::time::Duration;
@@ -307,34 +308,80 @@ impl PackageSource {
         }
     }
 
-    pub fn exec_install(&self, _config: &mut SantaConfig, data: &SantaData, packages: Vec<String>) {
-        if !packages.is_empty() {
-            let renamed: Vec<String> = packages.iter().map(|p| data.name_for(p, self)).collect();
-            let install_command = self.install_packages_command(renamed);
-
-            if Confirm::with_theme(&ColorfulTheme::default())
-                .with_prompt(format!("Run '{install_command}'?"))
-                .default(true)
-                .interact()
-                .expect("Failed to get user confirmation")
-            {
-                // Execute command using tokio::process with sync wrapper
-                let rt = tokio::runtime::Runtime::new().expect("Failed to create tokio runtime");
-                match rt.block_on(self.exec_install_command_async(&install_command)) {
-                    Ok(output) => {
-                        println!("{output}");
-                    }
-                    Err(e) => {
-                        error!("Command execution error: {}", e);
-                    }
-                }
-            } else {
-                println!("To install missing {self} packages manually, run:");
-                println!("{}\n", install_command.bold());
-            }
-        } else {
+    pub fn exec_install(
+        &self, 
+        _config: &mut SantaConfig, 
+        data: &SantaData, 
+        packages: Vec<String>,
+        execution_mode: ExecutionMode,
+        script_format: ScriptFormat,
+        output_dir: &std::path::Path,
+    ) -> Result<()> {
+        if packages.is_empty() {
             println!("No missing packages for {self}");
+            return Ok(());
         }
+        
+        let renamed: Vec<String> = packages.iter().map(|p| data.name_for(p, self)).collect();
+        
+        match execution_mode {
+            ExecutionMode::Safe => {
+                // Generate script instead of executing
+                let generator = ScriptGenerator::new()?;
+                let script = generator.generate_install_script(
+                    &renamed,
+                    &self.shell_command(),
+                    script_format.clone(),
+                    &self.name_str(),
+                )?;
+                
+                let filename = ScriptGenerator::generate_filename("santa_install", &script_format);
+                let script_path = output_dir.join(&filename);
+                
+                std::fs::write(&script_path, &script)?;
+                
+                println!("🛡️  {} (Safe Mode)", "Script generated".green());
+                println!("📝 Script saved to: {}", script_path.display().to_string().bold());
+                println!("📋 Packages to install: {}", renamed.len().to_string().bold());
+                for pkg in &renamed {
+                    println!("   • {}", pkg);
+                }
+                println!();
+                println!("▶️  To execute: {} {}", 
+                    if script_format == ScriptFormat::PowerShell { "pwsh" } else { "bash" },
+                    script_path.display().to_string().bold()
+                );
+                println!("🔧 For direct execution: santa install --execute");
+            }
+            ExecutionMode::Execute => {
+                // Dangerous mode - execute directly (existing behavior)
+                let install_command = self.install_packages_command(renamed);
+
+                if Confirm::with_theme(&ColorfulTheme::default())
+                    .with_prompt(format!("⚠️  DANGEROUS MODE: Run '{install_command}'?"))
+                    .default(false) // Default to NO for dangerous mode
+                    .interact()
+                    .expect("Failed to get user confirmation")
+                {
+                    // Execute command using tokio::process with sync wrapper
+                    let rt = tokio::runtime::Runtime::new().expect("Failed to create tokio runtime");
+                    match rt.block_on(self.exec_install_command_async(&install_command)) {
+                        Ok(output) => {
+                            println!("{output}");
+                        }
+                        Err(e) => {
+                            error!("Command execution error: {}", e);
+                            return Err(e);
+                        }
+                    }
+                } else {
+                    println!("To install missing {self} packages manually, run:");
+                    println!("{}\n", install_command.bold());
+                }
+            }
+        }
+        
+        Ok(())
     }
 
     /// Returns an override for the current platform, if defined.
