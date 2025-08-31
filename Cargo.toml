@@ -15,13 +15,13 @@ bench = []
 
 [dependencies]
 # Error handling with context and chaining
-anyhow = "1.0.75"
+anyhow = "1.0.99"
 
 # Command-line argument parsing with derive macros and colors
-clap = { version = "4.4", features = ["color", "derive", "cargo", "wrap_help"] }
+clap = { version = "4.5", features = ["color", "derive", "cargo", "wrap_help"] }
 
 # Shell completion generation for CLI commands
-clap_complete = "4.4"
+clap_complete = "4.5"
 
 # Terminal color output for user-friendly messages
 colored = "2"
@@ -36,10 +36,10 @@ dialoguer = "0.11.0"
 directories = "4.0"
 
 # Serialization framework with derive macros
-serde = { version = "1.0.130", features = ["derive"] }
+serde = { version = "1.0.219", features = ["derive"] }
 
 # String-based enum serialization for configuration
-serde-enum-str = "0.2.4"
+serde-enum-str = "0.2.5"
 
 # JSON serialization for data exchange
 serde_json = "1.0"
@@ -57,7 +57,7 @@ tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 tabular = "0.2.0"
 
 # Async runtime with process execution and synchronization primitives
-tokio = { version = "1.41", features = ["process", "rt-multi-thread", "macros", "time", "sync"] }
+tokio = { version = "1.47", features = ["process", "rt-multi-thread", "macros", "time", "sync"] }
 
 # Async utilities and combinators
 futures = "0.3"
@@ -91,10 +91,10 @@ thiserror = "1.0"
 rstest = "0.18"
 
 # Temporary file and directory creation for tests
-tempfile = "3.8"
+tempfile = "3.21"
 
 # Property-based testing with random input generation
-proptest = "1.0"
+proptest = "1.7"
 
 # Mock generation for testing subprocess calls
 mockall = "0.12"
@@ -103,7 +103,7 @@ mockall = "0.12"
 assert_cmd = "2.0"
 
 # Predicate functions for test assertions
-predicates = "3.0"
+predicates = "3.1"
 
 # Benchmarking framework with HTML reports
 criterion = { version = "0.5", features = ["html_reports", "async_tokio"] }
