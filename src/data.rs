@@ -11,8 +11,8 @@ use hocon::HoconLoader;
 
 use crate::{sources::PackageSource, traits::Exportable};
 
-pub mod schemas;
 pub mod loaders;
+pub mod schemas;
 
 #[cfg(test)]
 mod integration_tests;
@@ -338,24 +338,24 @@ impl SantaData {
     pub fn load_from_str(packages_str: &str, sources_str: &str) -> Self {
         // Use the new schema loaders and convert to legacy format
         use crate::data::loaders::{convert_to_legacy_packages, convert_to_legacy_sources};
-        
+
         // Parse using schema loaders
         let schema_packages = HoconLoader::new()
             .load_str(packages_str)
             .expect("Failed to load packages HOCON")
             .resolve()
             .expect("Failed to parse packages HOCON");
-            
+
         let schema_sources = HoconLoader::new()
             .load_str(sources_str)
             .expect("Failed to load sources HOCON")
             .resolve()
             .expect("Failed to parse sources HOCON");
-        
+
         // Convert to legacy format
         let packages = convert_to_legacy_packages(schema_packages);
         let sources = convert_to_legacy_sources(schema_sources);
-        
+
         SantaData { packages, sources }
     }
 

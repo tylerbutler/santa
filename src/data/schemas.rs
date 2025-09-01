@@ -1,9 +1,9 @@
 // Schema-based data structures for Santa Package Manager
 // These structs match the YAML schemas defined in /data/*.yaml files
 
+use crate::data::Platform;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use crate::data::Platform;
 
 /// Package definition matching package_schema.yaml
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -20,15 +20,15 @@ pub struct ComplexPackageDefinition {
     /// List of sources where package is available with same name as key
     #[serde(rename = "_sources", skip_serializing_if = "Option::is_none")]
     pub sources: Option<Vec<String>>,
-    
+
     /// Platforms where this package is available
     #[serde(rename = "_platforms", skip_serializing_if = "Option::is_none")]
     pub platforms: Option<Vec<String>>,
-    
+
     /// Alternative names for search and discovery
     #[serde(rename = "_aliases", skip_serializing_if = "Option::is_none")]
     pub aliases: Option<Vec<String>>,
-    
+
     /// Source-specific configurations (flatten other fields)
     #[serde(flatten)]
     pub source_configs: HashMap<String, SourceSpecificConfig>,
@@ -107,8 +107,12 @@ pub struct ConfigSettings {
     pub confirm_before_install: bool,
 }
 
-fn default_parallel_installs() -> u8 { 3 }
-fn default_true() -> bool { true }
+fn default_parallel_installs() -> u8 {
+    3
+}
+fn default_true() -> bool {
+    true
+}
 
 impl PackageDefinition {
     /// Get all sources where this package is available
@@ -117,20 +121,20 @@ impl PackageDefinition {
             PackageDefinition::Simple(sources) => sources.iter().map(|s| s.as_str()).collect(),
             PackageDefinition::Complex(complex) => {
                 let mut all_sources = Vec::new();
-                
+
                 // Add sources from _sources array
                 if let Some(sources) = &complex.sources {
                     all_sources.extend(sources.iter().map(|s| s.as_str()));
                 }
-                
+
                 // Add sources from explicit configurations
                 all_sources.extend(complex.source_configs.keys().map(|s| s.as_str()));
-                
+
                 all_sources
             }
         }
     }
-    
+
     /// Get source-specific configuration for a source
     pub fn get_source_config(&self, source: &str) -> Option<&SourceSpecificConfig> {
         match self {
@@ -138,7 +142,7 @@ impl PackageDefinition {
             PackageDefinition::Complex(complex) => complex.source_configs.get(source),
         }
     }
-    
+
     /// Check if package is available in a specific source
     pub fn is_available_in(&self, source: &str) -> bool {
         self.get_sources().contains(&source)
@@ -151,10 +155,10 @@ impl SourceDefinition {
         if let Some(overrides) = &self.overrides {
             let platform_key = match platform.os {
                 crate::data::OS::Windows => "windows",
-                crate::data::OS::Linux => "linux", 
+                crate::data::OS::Linux => "linux",
                 crate::data::OS::Macos => "macos",
             };
-            
+
             if let Some(platform_override) = overrides.get(platform_key) {
                 if let Some(install) = &platform_override.install {
                     return install;
@@ -163,16 +167,16 @@ impl SourceDefinition {
         }
         &self.install
     }
-    
+
     /// Get the appropriate check command for the current platform
     pub fn get_check_command(&self, platform: &Platform) -> &str {
         if let Some(overrides) = &self.overrides {
             let platform_key = match platform.os {
                 crate::data::OS::Windows => "windows",
                 crate::data::OS::Linux => "linux",
-                crate::data::OS::Macos => "macos", 
+                crate::data::OS::Macos => "macos",
             };
-            
+
             if let Some(platform_override) = overrides.get(platform_key) {
                 if let Some(check) = &platform_override.check {
                     return check;
@@ -186,12 +190,12 @@ impl SourceDefinition {
 #[cfg(test)]
 mod tests {
     use super::*;
-    
+
     #[test]
     fn test_simple_package_definition() {
         let yaml = r#"[brew, scoop, pacman, nix]"#;
         let def: PackageDefinition = serde_yaml::from_str(yaml).unwrap();
-        
+
         match def {
             PackageDefinition::Simple(sources) => {
                 assert_eq!(sources.len(), 4);
@@ -200,20 +204,20 @@ mod tests {
             _ => panic!("Expected simple package definition"),
         }
     }
-    
-    #[test] 
+
+    #[test]
     fn test_complex_package_definition() {
         let yaml = r#"
 brew: gh
 _sources: [scoop, apt, pacman, nix]
 "#;
         let def: PackageDefinition = serde_yaml::from_str(yaml).unwrap();
-        
+
         assert!(def.is_available_in("brew"));
-        assert!(def.is_available_in("scoop")); 
+        assert!(def.is_available_in("scoop"));
         assert!(def.get_source_config("brew").is_some());
     }
-    
+
     #[test]
     fn test_source_definition() {
         let yaml = r#"
@@ -222,7 +226,7 @@ install: brew install {package}
 check: brew leaves --installed-on-request
 "#;
         let def: SourceDefinition = serde_yaml::from_str(yaml).unwrap();
-        
+
         assert_eq!(def.emoji, "🍺");
         assert!(def.install.contains("{package}"));
     }

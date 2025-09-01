@@ -1,8 +1,8 @@
 use crate::data::SantaData;
 use crate::data::SourceList;
 use crate::errors::{Result, SantaError};
-use crate::traits::Exportable;
 use crate::script_generator::{ExecutionMode, ScriptFormat};
+use crate::traits::Exportable;
 use crate::{configuration::SantaConfig, sources::PackageCache};
 use futures::future::try_join_all;
 use std::sync::Arc;
@@ -142,12 +142,12 @@ pub async fn install_command(
                     .map(|p| p.to_string())
                     .collect();
                 source.exec_install(
-                    config, 
-                    data, 
-                    pkgs, 
+                    config,
+                    data,
+                    pkgs,
                     execution_mode.clone(),
                     script_format.clone(),
-                    output_dir
+                    output_dir,
                 )?;
             }
         }

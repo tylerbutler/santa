@@ -1,9 +1,9 @@
 use crate::errors::{Result, SantaError};
-use tera::{Tera, Context, Value};
-use shell_escape::escape;
-use std::collections::HashMap;
 use chrono::Utc;
 use serde::{Deserialize, Serialize};
+use shell_escape::escape;
+use std::collections::HashMap;
+use tera::{Context, Tera, Value};
 
 /// Execution modes for Santa - determines whether to execute directly or generate scripts
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -78,32 +78,32 @@ impl ScriptGenerator {
     /// Create new script generator with built-in templates
     pub fn new() -> Result<Self> {
         let mut tera = Tera::default();
-        
+
         // Add built-in templates for different script formats
         tera.add_raw_template("install.sh", include_str!("../templates/install.sh.tera"))
             .map_err(|e| SantaError::Template(e.to_string()))?;
-            
+
         tera.add_raw_template("install.ps1", include_str!("../templates/install.ps1.tera"))
             .map_err(|e| SantaError::Template(e.to_string()))?;
-            
+
         tera.add_raw_template("check.sh", include_str!("../templates/check.sh.tera"))
             .map_err(|e| SantaError::Template(e.to_string()))?;
-            
+
         tera.add_raw_template("check.ps1", include_str!("../templates/check.ps1.tera"))
             .map_err(|e| SantaError::Template(e.to_string()))?;
-        
+
         // Register custom filters for safe escaping
         tera.register_filter("shell_escape", shell_escape_filter);
         tera.register_filter("powershell_escape", powershell_escape_filter);
         tera.register_filter("validate_package", validate_package_filter);
-        
+
         Ok(Self { tera })
     }
-    
+
     /// Generate installation script for given packages and manager
     pub fn generate_install_script(
-        &self, 
-        packages: &[String], 
+        &self,
+        packages: &[String],
         manager: &str,
         format: ScriptFormat,
         source_name: &str,
@@ -115,15 +115,17 @@ impl ScriptGenerator {
         context.insert("timestamp", &Utc::now().to_rfc3339());
         context.insert("version", env!("CARGO_PKG_VERSION"));
         context.insert("package_count", &packages.len());
-        
+
         let template_name = format.install_template_name();
-        
-        self.tera.render(template_name, &context)
-            .map_err(|e| SantaError::Template(format!(
-                "Failed to render {} template: {}", template_name, e
-            )))
+
+        self.tera.render(template_name, &context).map_err(|e| {
+            SantaError::Template(format!(
+                "Failed to render {} template: {}",
+                template_name, e
+            ))
+        })
     }
-    
+
     /// Generate check script for listing installed packages
     pub fn generate_check_script(
         &self,
@@ -138,15 +140,17 @@ impl ScriptGenerator {
         context.insert("source_name", source_name);
         context.insert("timestamp", &Utc::now().to_rfc3339());
         context.insert("version", env!("CARGO_PKG_VERSION"));
-        
+
         let template_name = format.check_template_name();
-        
-        self.tera.render(template_name, &context)
-            .map_err(|e| SantaError::Template(format!(
-                "Failed to render {} template: {}", template_name, e
-            )))
+
+        self.tera.render(template_name, &context).map_err(|e| {
+            SantaError::Template(format!(
+                "Failed to render {} template: {}",
+                template_name, e
+            ))
+        })
     }
-    
+
     /// Generate script filename with timestamp
     pub fn generate_filename(prefix: &str, format: &ScriptFormat) -> String {
         let timestamp = Utc::now().format("%Y%m%d_%H%M%S");
@@ -201,17 +205,16 @@ fn escape_powershell_arg(arg: &str) -> String {
 fn is_safe_package_name(name: &str) -> bool {
     // Reject obviously dangerous patterns
     let dangerous_patterns = &[
-        "$(", "`", ">&", "|", ";", "&&", "||", 
-        "../", "..\\", "/dev/", "C:\\", "\\\\",
-        "curl", "wget", "rm -rf", "del /s", 
+        "$(", "`", ">&", "|", ";", "&&", "||", "../", "..\\", "/dev/", "C:\\", "\\\\", "curl",
+        "wget", "rm -rf", "del /s",
     ];
-    
+
     for pattern in dangerous_patterns {
         if name.contains(pattern) {
             return false;
         }
     }
-    
+
     // Additional checks: no null bytes, control characters
     !name.chars().any(|c| c.is_control() || c == '\0')
 }
@@ -246,7 +249,10 @@ mod tests {
     fn test_powershell_escaping() {
         assert_eq!(escape_powershell_arg("simple"), "'simple'");
         assert_eq!(escape_powershell_arg("with'quote"), "'with''quote'");
-        assert_eq!(escape_powershell_arg("complex'test'case"), "'complex''test''case'");
+        assert_eq!(
+            escape_powershell_arg("complex'test'case"),
+            "'complex''test''case'"
+        );
     }
 
     #[test]
@@ -256,7 +262,7 @@ mod tests {
         assert!(is_safe_package_name("node-sass"));
         assert!(is_safe_package_name("package_with_underscores"));
         assert!(is_safe_package_name("package-with-dashes"));
-        
+
         // Dangerous package names
         assert!(!is_safe_package_name("package; rm -rf /"));
         assert!(!is_safe_package_name("$(evil_command)"));
@@ -268,7 +274,10 @@ mod tests {
     #[test]
     fn test_script_generator_creation() {
         let generator = ScriptGenerator::new();
-        assert!(generator.is_ok(), "Script generator should initialize successfully");
+        assert!(
+            generator.is_ok(),
+            "Script generator should initialize successfully"
+        );
     }
 
     #[test]
@@ -276,8 +285,9 @@ mod tests {
         let filename = ScriptGenerator::generate_filename("santa_install", &ScriptFormat::Shell);
         assert!(filename.starts_with("santa_install_"));
         assert!(filename.ends_with(".sh"));
-        
-        let ps_filename = ScriptGenerator::generate_filename("santa_check", &ScriptFormat::PowerShell);
+
+        let ps_filename =
+            ScriptGenerator::generate_filename("santa_check", &ScriptFormat::PowerShell);
         assert!(ps_filename.starts_with("santa_check_"));
         assert!(ps_filename.ends_with(".ps1"));
     }

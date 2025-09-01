@@ -12,8 +12,8 @@ use directories::BaseDirs;
 use std::path::Path;
 
 use santa::commands;
-use santa::sources::PackageCache;
 use santa::script_generator::{ExecutionMode, ScriptFormat};
+use santa::sources::PackageCache;
 
 #[cfg(test)]
 mod tests;
@@ -241,16 +241,18 @@ pub async fn run() -> Result<(), anyhow::Error> {
     // data.update_from_config(&config);
 
     let cache: PackageCache = PackageCache::new();
-    
+
     // Determine execution mode based on CLI flags
     let execution_mode = if cli.execute {
         ExecutionMode::Execute
     } else {
         ExecutionMode::Safe
     };
-    
+
     let script_format = cli.format.to_script_format();
-    let output_dir = cli.output_dir.unwrap_or_else(|| std::env::current_dir().expect("Failed to get current directory"));
+    let output_dir = cli
+        .output_dir
+        .unwrap_or_else(|| std::env::current_dir().expect("Failed to get current directory"));
 
     match &cli.command {
         Commands::Status { all } => {
@@ -259,13 +261,14 @@ pub async fn run() -> Result<(), anyhow::Error> {
         }
         Commands::Install { source: _ } => {
             crate::commands::install_command(
-                &mut config, 
-                &data, 
-                cache, 
+                &mut config,
+                &data,
+                cache,
                 execution_mode,
                 script_format,
-                &output_dir
-            ).await?;
+                &output_dir,
+            )
+            .await?;
         }
         Commands::Add { source, package } => {
             bail!(

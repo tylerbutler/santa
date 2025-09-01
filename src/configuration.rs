@@ -14,8 +14,8 @@ use std::{
     path::Path,
 };
 
-use hocon::HoconLoader;
 use crate::migration::ConfigMigrator;
+use hocon::HoconLoader;
 
 use tracing::{debug, trace, warn};
 use validator::Validate;
@@ -54,7 +54,8 @@ impl Configurable for SantaConfig {
     fn load_config(path: &Path) -> Result<Self::Config> {
         // Use migration system to transparently handle YAML→HOCON conversion
         let migrator = ConfigMigrator::new();
-        let actual_path = migrator.resolve_config_path(path)
+        let actual_path = migrator
+            .resolve_config_path(path)
             .map_err(|e| SantaError::Config(e))?;
 
         let contents = std::fs::read_to_string(&actual_path).map_err(SantaError::Io)?;
@@ -172,24 +173,32 @@ impl SantaConfig {
 
     pub fn load_from(file: &Path) -> std::result::Result<Self, anyhow::Error> {
         debug!("Loading config from: {}", file.display());
-        
+
         // Use migration system to transparently handle YAML→HOCON conversion
         let migrator = ConfigMigrator::new();
-        let actual_path = migrator.resolve_config_path(file)
+        let actual_path = migrator
+            .resolve_config_path(file)
             .with_context(|| format!("Failed to resolve config path for: {}", file.display()))?;
-        
+
         if actual_path.exists() {
-            let config_str = fs::read_to_string(&actual_path)
-                .with_context(|| format!("Failed to read config file: {}", actual_path.display()))?;
-            
+            let config_str = fs::read_to_string(&actual_path).with_context(|| {
+                format!("Failed to read config file: {}", actual_path.display())
+            })?;
+
             let config: SantaConfig = HoconLoader::new()
                 .load_str(&config_str)?
                 .resolve()
-                .with_context(|| format!("Failed to parse HOCON config file: {}", actual_path.display()))?;
-            
-            config.validate_basic()
+                .with_context(|| {
+                    format!(
+                        "Failed to parse HOCON config file: {}",
+                        actual_path.display()
+                    )
+                })?;
+
+            config
+                .validate_basic()
                 .with_context(|| "Configuration validation failed")?;
-            
+
             Ok(config)
         } else {
             warn!("Can't find config file: {}", file.display());
