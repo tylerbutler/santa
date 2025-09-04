@@ -1,0 +1,8 @@
+[lint]
+select = ["ALL"]
+ignore = ["D203", "D213"]  # Example: ignore conflicting docstring rules
+
+[format]
+line-length = 88
+quote-style = "double"
+indent-style = "space"
