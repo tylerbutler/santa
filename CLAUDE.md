@@ -1,39 +1,40 @@
 # Santa Package Manager - Claude Code Configuration
 
 ## Project Overview
-Santa is a Rust-based package manager meta-tool that provides unified interfaces across different package managers. This project follows modern Rust practices with async/await, comprehensive testing, and modular architecture.
+Santa is a Rust-based package manager meta-tool that provides unified interfaces across different package managers. The project has evolved to focus on safe script generation rather than direct command execution, with comprehensive HOCON-based configuration and robust error handling.
 
-## Architecture & Improvement Plans
-**Primary Reference**: `ARCHITECTURE_IMPROVEMENT_PLAN.md`
+## Current Architecture (September 2024)
+The project has implemented significant architectural improvements:
 
-This file contains a comprehensive architectural review and improvement roadmap covering:
-- 🚨 Critical security vulnerabilities (command injection)
-- 🔥 High-priority architectural inconsistencies  
-- ⚡ Performance optimizations and code quality improvements
-- 📈 Long-term maintainability enhancements
+### Script Generation Model
+- **Safe-by-default execution**: Uses `ScriptGenerator` to create platform-specific scripts
+- **Execution modes**: `Safe` (generate scripts) vs `Execute` (direct execution) 
+- **Multi-platform support**: Shell scripts (.sh), PowerShell (.ps1), and Batch (.bat)
+- **Template-driven**: Uses Tera templating engine for flexible script generation
 
-**Start Here**: Always consult the Architecture Improvement Plan before making significant changes to understand:
-- Current architectural state and issues
-- Prioritized improvement recommendations
-- Implementation timeline and success metrics
-- Specific file locations and code patterns to address
+### Configuration System
+- **HOCON format**: Modern configuration using Human-Optimized Config Object Notation
+- **Migration support**: Transparent YAML-to-HOCON migration for legacy configs
+- **Hot-reloading**: Real-time configuration updates with file system watchers
 
 ## Development Guidelines
 
 ### Security First
-- All user inputs must be properly sanitized (see Phase 1 in improvement plan)
-- Use `shell-escape` crate for command execution
+- All user inputs are properly sanitized using `shell-escape` crate
+- Script generation prevents command injection by design
+- Safe-by-default execution mode requires explicit opt-in for direct command execution
 - Never trust package names or user-provided strings
 
 ### Error Handling Standards
-- Use unified `SantaError` types (defined in improvement plan Phase 2)
-- Provide contextual error information
-- Avoid silent failures
+- Unified `SantaError` types with `thiserror` for structured error handling
+- Contextual error information with `anyhow` for error chaining
+- Graceful failure handling and user-friendly error messages
 
 ### Async Patterns
-- Use `tokio::sync::RwLock` instead of `std::sync::Mutex` in async contexts
-- Standardize on `tokio::process::Command` for subprocess execution
-- Follow consistent async/await patterns
+- Standardized on `tokio::process::Command` for all subprocess execution
+- Consistent async/await patterns throughout codebase
+- Proper timeout handling for long-running operations
+- Use `tokio::sync::RwLock` for shared state in async contexts
 
 ### Code Quality
 - Minimize cloning in hot paths
@@ -44,52 +45,74 @@ This file contains a comprehensive architectural review and improvement roadmap 
 ## Key Files & Responsibilities
 
 ### Core Architecture
-- `src/main.rs` - CLI entry point
+- `src/main.rs` - CLI entry point with clap derive macros
 - `src/lib.rs` - Library exports and public API
-- `src/configuration/` - Config management with hot-reloading
-- `src/sources.rs` - Package source abstractions ⚠️ Contains security vulnerabilities
-- `src/commands.rs` - Command implementations ⚠️ Async consistency issues
+- `src/configuration/` - HOCON config management with hot-reloading
+- `src/sources.rs` - Package source abstractions with security improvements
+- `src/commands.rs` - Command implementations using script generation
+- `src/script_generator.rs` - Safe script generation with Tera templates
+- `src/migration/` - YAML-to-HOCON configuration migration
 
 ### Data & Models  
-- `src/data/` - Data models and platform detection
-- `src/traits.rs` - Trait definitions (needs expansion)
+- `src/data/` - Data models, schemas, and platform detection
+- `src/errors.rs` - Unified error types and handling
+- `src/traits.rs` - Core trait definitions for package managers
 
 ### Testing
-- `tests/` - Integration tests
-- Unit tests - Embedded in source files
+- `tests/` - Comprehensive integration tests including config hot-reload
+- `tests/security_tests.rs` - Security-focused tests
+- `tests/property_tests.rs` - Property-based testing with proptest
+- Unit tests - Embedded throughout source files
+- `benches/` - Performance benchmarks
 
-## Current State (as of Aug 30, 2025)
-- **Lines of Code**: ~5,650
-- **Critical Issues**: 2 command injection vulnerabilities
-- **Architecture**: Solid foundation with consistency issues
-- **Dependencies**: Some redundancy (subprocess + tokio::process)
-- **Test Coverage**: Good unit tests, needs integration test expansion
+### Scripts & Tooling
+- `scripts/` - Python-based package collection and analysis tools
+- `justfile` - Task runner with build, test, and deployment commands
 
-## Immediate Priorities
-1. **Fix security vulnerabilities** in `src/sources.rs` (command injection)
-2. **Implement unified error handling** across all modules
-3. **Standardize async patterns** for better performance
-4. **Clean up dependencies** and reduce redundancy
+## Current State (September 2024)
+- **Lines of Code**: ~8,100 Rust lines
+- **Architecture**: Mature script-generation model with security focus
+- **Configuration**: HOCON-based with migration support
+- **Dependencies**: Clean, well-documented dependency tree
+- **Security**: Command injection vulnerabilities resolved through script generation
+- **Test Coverage**: Comprehensive unit, integration, and property-based tests
 
-## Future Sessions
+## Current Focus Areas
+1. **Package collection automation** - Scripts to identify installable packages
+2. **Template system refinement** - Enhanced script generation capabilities  
+3. **Performance optimization** - Benchmarking and caching improvements
+4. **Cross-platform compatibility** - Windows, macOS, and Linux support
+
+## Development Workflow
 When working on this project:
-1. **Always start** by reviewing `ARCHITECTURE_IMPROVEMENT_PLAN.md`
-2. **Check current phase** of implementation timeline
-3. **Prioritize security fixes** before feature development
-4. **Follow established patterns** for consistency
-5. **Update the plan** as implementation progresses
+1. **Review recent changes** - Check git history and current branch state
+2. **Run tests first** - Execute `cargo test` to ensure baseline functionality
+3. **Follow security patterns** - Use script generation over direct execution
+4. **Maintain consistency** - Follow established async and error handling patterns
+5. **Update documentation** - Keep CLAUDE.md current with architectural changes
 
 ## Testing Strategy
-- Run `cargo test` for unit tests
-- Use `cargo check` for quick compilation checks  
-- Integration tests focus on command execution and config loading
-- Security tests prevent regression of vulnerability fixes
+- `cargo test` - Comprehensive unit and integration tests
+- `cargo check` - Fast compilation and type checking
+- `just test` - Run full test suite via justfile
+- Security tests validate script generation safety
+- Property-based tests with proptest for edge cases
+- Performance benchmarks in `benches/` directory
 
 ## Build & Quality Checks
-- `cargo clippy` for linting
-- `cargo fmt` for formatting
-- Consider adding `cargo audit` for security scanning
-- Profile performance with typical workloads
+- `cargo clippy` - Linting with custom rules in `deny.toml`
+- `cargo fmt` - Code formatting consistency
+- `just build` - Full build process via justfile
+- `cargo audit` - Dependency vulnerability scanning
+- Performance profiling for subprocess operations
+
+## Key Dependencies
+- **Script Generation**: `tera` (templating), `shell-escape` (safety)
+- **Configuration**: `hocon` (parsing), `config` (management)
+- **CLI**: `clap` (arguments), `dialoguer` (interactive prompts)
+- **Async**: `tokio` (runtime), `futures` (utilities)
+- **Error Handling**: `anyhow` (context), `thiserror` (structured errors)
+- **Testing**: `rstest` (fixtures), `proptest` (property-based), `mockall` (mocking)
 
 ---
-*This configuration file should be updated as the architecture improvement plan is implemented and new patterns emerge.*
+*This configuration reflects the current state as of September 2024. Update as new architectural patterns emerge.*
