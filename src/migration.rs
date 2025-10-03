@@ -1,10 +1,10 @@
 use anyhow::{Context, Result};
 use std::fs;
-/// Migration utilities for transparently converting YAML configs to HOCON
+/// Migration utilities for transparently converting YAML configs to CCL
 ///
 /// This module provides seamless migration from legacy YAML configuration files
-/// to the new HOCON format. When a user has an existing YAML config file,
-/// it will be automatically converted to HOCON format on first load.
+/// to the new CCL format. When a user has an existing YAML config file,
+/// it will be automatically converted to CCL format on first load.
 use std::path::{Path, PathBuf};
 use tracing::{debug, info};
 
@@ -38,10 +38,10 @@ impl ConfigMigrator {
     /// Transparently handle config file loading with automatic migration
     ///
     /// This function:
-    /// 1. Checks if HOCON version exists (.conf)
+    /// 1. Checks if CCL version exists (.ccl)
     /// 2. If not, looks for YAML version (.yaml/.yml)
-    /// 3. If YAML exists, converts it to HOCON
-    /// 4. Returns path to HOCON file (existing or newly created)
+    /// 3. If YAML exists, converts it to CCL
+    /// 4. Returns path to CCL file (existing or newly created)
     pub fn resolve_config_path(&self, requested_path: &Path) -> Result<PathBuf> {
         let requested_str = requested_path.to_string_lossy();
 
@@ -51,14 +51,14 @@ impl ConfigMigrator {
         debug!("Resolving config path for: {}", requested_str);
         debug!("Checking variants: {:?}", variants);
 
-        // First, check if HOCON version already exists
-        if let Some(hocon_path) = variants
+        // First, check if CCL version already exists
+        if let Some(ccl_path) = variants
             .iter()
-            .find(|p| p.extension().map_or(false, |ext| ext == "conf"))
+            .find(|p| p.extension().map_or(false, |ext| ext == "ccl"))
         {
-            if hocon_path.exists() {
-                debug!("Found existing HOCON config: {}", hocon_path.display());
-                return Ok(hocon_path.clone());
+            if ccl_path.exists() {
+                debug!("Found existing CCL config: {}", ccl_path.display());
+                return Ok(ccl_path.clone());
             }
         }
 
@@ -73,13 +73,13 @@ impl ConfigMigrator {
             }
         }
 
-        // No existing config found - return the preferred HOCON path
-        let preferred_hocon = self.yaml_path_to_hocon_path(requested_path);
+        // No existing config found - return the preferred CCL path
+        let preferred_ccl = self.yaml_path_to_ccl_path(requested_path);
         debug!(
             "No existing config found, will use: {}",
-            preferred_hocon.display()
+            preferred_ccl.display()
         );
-        Ok(preferred_hocon)
+        Ok(preferred_ccl)
     }
 
     /// Generate all possible path variants for a config file
@@ -92,7 +92,7 @@ impl ConfigMigrator {
         // Try with different extensions
         if let Some(stem) = base_path.file_stem() {
             if let Some(parent) = base_path.parent() {
-                variants.push(parent.join(format!("{}.conf", stem.to_string_lossy())));
+                variants.push(parent.join(format!("{}.ccl", stem.to_string_lossy())));
                 variants.push(parent.join(format!("{}.yaml", stem.to_string_lossy())));
                 variants.push(parent.join(format!("{}.yml", stem.to_string_lossy())));
             }
@@ -105,41 +105,41 @@ impl ConfigMigrator {
         variants
     }
 
-    /// Convert YAML config file to HOCON format
+    /// Convert YAML config file to CCL format
     fn migrate_yaml_to_hocon(&self, yaml_path: &Path) -> Result<PathBuf> {
-        let hocon_path = self.yaml_path_to_hocon_path(yaml_path);
+        let ccl_path = self.yaml_path_to_ccl_path(yaml_path);
 
         info!(
             "Migrating {} → {}",
             yaml_path.display(),
-            hocon_path.display()
+            ccl_path.display()
         );
 
         if self.dry_run {
-            info!("[DRY RUN] Would migrate YAML config to HOCON");
-            return Ok(hocon_path);
+            info!("[DRY RUN] Would migrate YAML config to CCL");
+            return Ok(ccl_path);
         }
 
         // Read the YAML file
         let yaml_content = fs::read_to_string(yaml_path)
             .with_context(|| format!("Failed to read YAML config: {}", yaml_path.display()))?;
 
-        // Convert YAML to HOCON
-        let hocon_content = yaml_to_hocon::convert_yaml_to_hocon(&yaml_content)
-            .with_context(|| "Failed to convert YAML content to HOCON")?;
+        // Convert YAML to CCL
+        let ccl_content = yaml_to_hocon::convert_yaml_to_hocon(&yaml_content)
+            .with_context(|| "Failed to convert YAML content to CCL")?;
 
         // Ensure parent directory exists
-        if let Some(parent) = hocon_path.parent() {
+        if let Some(parent) = ccl_path.parent() {
             fs::create_dir_all(parent).with_context(|| {
                 format!("Failed to create config directory: {}", parent.display())
             })?;
         }
 
-        // Write the HOCON file
-        fs::write(&hocon_path, hocon_content)
-            .with_context(|| format!("Failed to write HOCON config: {}", hocon_path.display()))?;
+        // Write the CCL file
+        fs::write(&ccl_path, ccl_content)
+            .with_context(|| format!("Failed to write CCL config: {}", ccl_path.display()))?;
 
-        info!("Successfully migrated to HOCON: {}", hocon_path.display());
+        info!("Successfully migrated to CCL: {}", ccl_path.display());
 
         // Create backup if requested
         if self.create_backups {
@@ -149,19 +149,19 @@ impl ConfigMigrator {
         // Always delete the original YAML file after successful migration
         self.remove_original_file(yaml_path)?;
 
-        Ok(hocon_path)
+        Ok(ccl_path)
     }
 
-    /// Convert YAML file path to corresponding HOCON path  
-    fn yaml_path_to_hocon_path(&self, yaml_path: &Path) -> PathBuf {
+    /// Convert YAML file path to corresponding CCL path
+    fn yaml_path_to_ccl_path(&self, yaml_path: &Path) -> PathBuf {
         if let Some(stem) = yaml_path.file_stem() {
             if let Some(parent) = yaml_path.parent() {
-                return parent.join(format!("{}.conf", stem.to_string_lossy()));
+                return parent.join(format!("{}.ccl", stem.to_string_lossy()));
             }
         }
 
         // Fallback: just change extension
-        yaml_path.with_extension("conf")
+        yaml_path.with_extension("ccl")
     }
 
     /// Create backup of original YAML file
@@ -226,33 +226,33 @@ mod tests {
 
         // Should include the original path and variants with different extensions
         assert!(variants.contains(&PathBuf::from("/home/user/.config/santa/config.yaml")));
-        assert!(variants.contains(&PathBuf::from("/home/user/.config/santa/config.conf")));
+        assert!(variants.contains(&PathBuf::from("/home/user/.config/santa/config.ccl")));
         assert!(variants.contains(&PathBuf::from("/home/user/.config/santa/config.yml")));
     }
 
     #[test]
-    fn test_yaml_path_to_hocon_path() {
+    fn test_yaml_path_to_ccl_path() {
         let migrator = ConfigMigrator::new();
 
         let yaml_path = Path::new("/config/santa.yaml");
-        let hocon_path = migrator.yaml_path_to_hocon_path(yaml_path);
+        let ccl_path = migrator.yaml_path_to_ccl_path(yaml_path);
 
-        assert_eq!(hocon_path, PathBuf::from("/config/santa.conf"));
+        assert_eq!(ccl_path, PathBuf::from("/config/santa.ccl"));
     }
 
     #[test]
-    fn test_resolve_config_path_hocon_exists() -> Result<()> {
+    fn test_resolve_config_path_ccl_exists() -> Result<()> {
         let temp_dir = TempDir::new()?;
-        let hocon_file = temp_dir.path().join("config.conf");
-        fs::write(&hocon_file, "sources = [npm]\npackages = [git]")?;
+        let ccl_file = temp_dir.path().join("config.ccl");
+        fs::write(&ccl_file, "sources = [npm]\npackages = [git]")?;
 
         let migrator = ConfigMigrator::new();
         let requested = temp_dir.path().join("config.yaml");
 
         let resolved = migrator.resolve_config_path(&requested)?;
 
-        // Should prefer existing HOCON file
-        assert_eq!(resolved, hocon_file);
+        // Should prefer existing CCL file
+        assert_eq!(resolved, ccl_file);
         Ok(())
     }
 
@@ -265,11 +265,11 @@ mod tests {
         let migrator = ConfigMigrator::new();
         let resolved = migrator.resolve_config_path(&yaml_file)?;
 
-        let expected_hocon = temp_dir.path().join("config.conf");
-        assert_eq!(resolved, expected_hocon);
+        let expected_ccl = temp_dir.path().join("config.ccl");
+        assert_eq!(resolved, expected_ccl);
 
-        // Check that HOCON file was created
-        assert!(expected_hocon.exists());
+        // Check that CCL file was created
+        assert!(expected_ccl.exists());
 
         // Check that backup was created
         let backup_path = temp_dir.path().join("config.yaml.bak");

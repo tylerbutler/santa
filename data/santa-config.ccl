@@ -1,5 +1,5 @@
 # Santa Package Manager - User Configuration
-# HOCON format for Santa configuration
+# CCL format for Santa configuration
 # Defines preferred sources and default packages
 
 # Preferred package manager sources in order of preference

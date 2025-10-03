@@ -1,5 +1,5 @@
 # Santa Package Manager - Source Configurations
-# HOCON format for package manager source definitions
+# CCL format for package manager source definitions
 # Defines installation commands, check commands, and platform-specific overrides
 
 brew = {

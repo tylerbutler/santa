@@ -1,5 +1,5 @@
 # Santa Package Manager - Known Packages Configuration
-# HOCON format for package definitions with sources
+# CCL format for package definitions with sources
 # This file maps package names to their available sources and any source-specific overrides
 
 # Packages with simple source lists

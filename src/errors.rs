@@ -135,8 +135,8 @@ impl From<config::ConfigError> for SantaError {
     }
 }
 
-impl From<hocon::Error> for SantaError {
-    fn from(err: hocon::Error) -> Self {
+impl From<serde_ccl::Error> for SantaError {
+    fn from(err: serde_ccl::Error) -> Self {
         SantaError::Config(anyhow::Error::from(err))
     }
 }

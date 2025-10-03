@@ -6,7 +6,6 @@ use std::fs;
 use std::path::Path;
 use tracing::{info, warn};
 
-use hocon::HoconLoader;
 
 use super::schemas::{ConfigDefinition, PackageDefinition, SourcesDefinition};
 use crate::data::{KnownSources, PackageData, PackageDataList, SourceList};
@@ -17,10 +16,8 @@ pub fn load_packages_from_schema(path: &Path) -> Result<HashMap<String, PackageD
     let content = fs::read_to_string(path)
         .with_context(|| format!("Failed to read packages file: {:?}", path))?;
 
-    let packages: HashMap<String, PackageDefinition> = HoconLoader::new()
-        .load_str(&content)?
-        .resolve()
-        .with_context(|| format!("Failed to parse HOCON packages: {:?}", path))?;
+    let packages: HashMap<String, PackageDefinition> = serde_ccl::from_str(&content)
+        .with_context(|| format!("Failed to parse CCL packages: {:?}", path))?;
 
     info!("Loaded {} packages from schema format", packages.len());
     Ok(packages)
@@ -31,10 +28,8 @@ pub fn load_sources_from_schema(path: &Path) -> Result<SourcesDefinition> {
     let content = fs::read_to_string(path)
         .with_context(|| format!("Failed to read sources file: {:?}", path))?;
 
-    let sources: SourcesDefinition = HoconLoader::new()
-        .load_str(&content)?
-        .resolve()
-        .with_context(|| format!("Failed to parse HOCON sources: {:?}", path))?;
+    let sources: SourcesDefinition = serde_ccl::from_str(&content)
+        .with_context(|| format!("Failed to parse CCL sources: {:?}", path))?;
 
     info!("Loaded {} sources from schema format", sources.len());
     Ok(sources)
@@ -45,10 +40,8 @@ pub fn load_config_from_schema(path: &Path) -> Result<ConfigDefinition> {
     let content = fs::read_to_string(path)
         .with_context(|| format!("Failed to read config file: {:?}", path))?;
 
-    let config: ConfigDefinition = HoconLoader::new()
-        .load_str(&content)?
-        .resolve()
-        .with_context(|| format!("Failed to parse HOCON config: {:?}", path))?;
+    let config: ConfigDefinition = serde_ccl::from_str(&content)
+        .with_context(|| format!("Failed to parse CCL config: {:?}", path))?;
 
     info!(
         "Loaded config with {} sources and {} packages",

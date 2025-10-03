@@ -18,7 +18,13 @@
       "WebFetch(domain:docs.rs)",
       "Bash(grep:*)",
       "Bash(time cargo build --release)",
-      "Bash(cloc:*)"
+      "Bash(cloc:*)",
+      "mcp__serena__get_current_config",
+      "mcp__serena__check_onboarding_performed",
+      "mcp__serena__list_memories",
+      "mcp__context7__resolve-library-id",
+      "mcp__context7__get-library-docs",
+      "WebFetch(domain:github.com)"
     ],
     "deny": []
   }

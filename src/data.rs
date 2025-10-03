@@ -7,7 +7,6 @@ use serde::{Deserialize, Serialize};
 use serde_enum_str::{Deserialize_enum_str, Serialize_enum_str};
 use tracing::{error, info};
 
-use hocon::HoconLoader;
 
 use crate::{sources::PackageSource, traits::Exportable};
 
@@ -274,22 +273,14 @@ pub type SourceMap = HashMap<SourceName, PackageSource>;
 
 impl LoadFromFile for PackageDataList {
     fn load_from_str(config_str: &str) -> Self {
-        let data: PackageDataList = match HoconLoader::new().load_str(config_str) {
-            Ok(loader) => match loader.resolve() {
-                Ok(data) => data,
-                Err(e) => {
-                    error!("Error parsing HOCON data: {}", e);
-                    error!("Using default empty data");
-                    PackageDataList::new()
-                }
-            },
+        match serde_ccl::from_str(config_str) {
+            Ok(data) => data,
             Err(e) => {
-                error!("Error loading HOCON data: {}", e);
+                error!("Error parsing CCL data: {}", e);
                 error!("Using default empty data");
                 PackageDataList::new()
             }
-        };
-        data
+        }
     }
 }
 
@@ -308,12 +299,8 @@ pub type SourceList = Vec<PackageSource>;
 
 impl LoadFromFile for SourceList {
     fn load_from_str(config_str: &str) -> Self {
-        let data: SourceList = HoconLoader::new()
-            .load_str(config_str)
-            .expect("Failed to load HOCON source list")
-            .resolve()
-            .expect("Failed to deserialize source list");
-        data
+        serde_ccl::from_str(config_str)
+            .expect("Failed to load CCL source list")
     }
 }
 
@@ -340,17 +327,11 @@ impl SantaData {
         use crate::data::loaders::{convert_to_legacy_packages, convert_to_legacy_sources};
 
         // Parse using schema loaders
-        let schema_packages = HoconLoader::new()
-            .load_str(packages_str)
-            .expect("Failed to load packages HOCON")
-            .resolve()
-            .expect("Failed to parse packages HOCON");
+        let schema_packages = serde_ccl::from_str(packages_str)
+            .expect("Failed to load packages CCL");
 
-        let schema_sources = HoconLoader::new()
-            .load_str(sources_str)
-            .expect("Failed to load sources HOCON")
-            .resolve()
-            .expect("Failed to parse sources HOCON");
+        let schema_sources = serde_ccl::from_str(sources_str)
+            .expect("Failed to load sources CCL");
 
         // Convert to legacy format
         let packages = convert_to_legacy_packages(schema_packages);

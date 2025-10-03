@@ -1,7 +1,7 @@
 # Santa Package Manager - Claude Code Configuration
 
 ## Project Overview
-Santa is a Rust-based package manager meta-tool that provides unified interfaces across different package managers. The project has evolved to focus on safe script generation rather than direct command execution, with comprehensive HOCON-based configuration and robust error handling.
+Santa is a Rust-based package manager meta-tool that provides unified interfaces across different package managers. The project has evolved to focus on safe script generation rather than direct command execution, with comprehensive CCL-based configuration and robust error handling.
 
 ## Current Architecture (September 2024)
 The project has implemented significant architectural improvements:
@@ -13,8 +13,8 @@ The project has implemented significant architectural improvements:
 - **Template-driven**: Uses Tera templating engine for flexible script generation
 
 ### Configuration System
-- **HOCON format**: Modern configuration using Human-Optimized Config Object Notation
-- **Migration support**: Transparent YAML-to-HOCON migration for legacy configs
+- **CCL format**: Modern configuration using Categorical Configuration Language
+- **Migration support**: Transparent YAML-to-CCL migration for legacy configs
 - **Hot-reloading**: Real-time configuration updates with file system watchers
 
 ## Development Guidelines
@@ -47,11 +47,11 @@ The project has implemented significant architectural improvements:
 ### Core Architecture
 - `src/main.rs` - CLI entry point with clap derive macros
 - `src/lib.rs` - Library exports and public API
-- `src/configuration/` - HOCON config management with hot-reloading
+- `src/configuration/` - CCL config management with hot-reloading
 - `src/sources.rs` - Package source abstractions with security improvements
 - `src/commands.rs` - Command implementations using script generation
 - `src/script_generator.rs` - Safe script generation with Tera templates
-- `src/migration/` - YAML-to-HOCON configuration migration
+- `src/migration/` - YAML-to-CCL configuration migration
 
 ### Data & Models  
 - `src/data/` - Data models, schemas, and platform detection
@@ -72,7 +72,7 @@ The project has implemented significant architectural improvements:
 ## Current State (September 2024)
 - **Lines of Code**: ~8,100 Rust lines
 - **Architecture**: Mature script-generation model with security focus
-- **Configuration**: HOCON-based with migration support
+- **Configuration**: CCL-based with migration support
 - **Dependencies**: Clean, well-documented dependency tree
 - **Security**: Command injection vulnerabilities resolved through script generation
 - **Test Coverage**: Comprehensive unit, integration, and property-based tests
@@ -108,7 +108,7 @@ When working on this project:
 
 ## Key Dependencies
 - **Script Generation**: `tera` (templating), `shell-escape` (safety)
-- **Configuration**: `hocon` (parsing), `config` (management)
+- **Configuration**: `serde_ccl` (parsing), `config` (management)
 - **CLI**: `clap` (arguments), `dialoguer` (interactive prompts)
 - **Async**: `tokio` (runtime), `futures` (utilities)
 - **Error Handling**: `anyhow` (context), `thiserror` (structured errors)
