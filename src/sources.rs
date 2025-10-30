@@ -1,3 +1,30 @@
+//! Package source implementations and caching layer.
+//!
+//! This module provides the core abstractions for interacting with different package
+//! managers (apt, brew, cargo, etc.) and includes a high-performance caching layer
+//! to minimize redundant operations.
+//!
+//! # Architecture
+//!
+//! - [`PackageSource`]: Individual package manager implementations
+//! - [`PackageCache`]: Thread-safe caching with TTL and LRU eviction
+//! - [`PackageManager`]: Trait defining common package manager operations
+//! - [`Cacheable`]: Trait for cache-aware operations
+//!
+//! # Examples
+//!
+//! ```rust,no_run
+//! use santa::sources::PackageCache;
+//! use std::time::Duration;
+//!
+//! // Create a cache with 5 minute TTL and 1000 entry limit
+//! let cache = PackageCache::with_config(Duration::from_secs(300), 1000);
+//!
+//! // Cache statistics
+//! let stats = cache.stats();
+//! println!("Cache entries: {}", stats.entries);
+//! ```
+
 use crate::errors::{Result, SantaError};
 use crate::script_generator::{ExecutionMode, ScriptFormat, ScriptGenerator};
 use crate::traits::{Cacheable, PackageManager};

@@ -1,130 +1,366 @@
-# Santa Package Manager - Known Packages Configuration
-# CCL format for package definitions with sources
-# This file maps package names to their available sources and any source-specific overrides
+act =
+  _sources =
+    = brew
+    = scoop
 
-# Packages with simple source lists
-act = [brew, scoop]
-aria2 = [brew, scoop, pacman]
-atuin = [brew, scoop, pacman, nix]
-bat = [brew, scoop, pacman, nix]
+aria2 =
+  _sources =
+    = brew
+    = scoop
+    = pacman
 
-# Package with source-specific name override
-bottom = {
+atuin =
+  _sources =
+    = brew
+    = scoop
+    = pacman
+    = nix
+
+bat =
+  _sources =
+    = brew
+    = scoop
+    = pacman
+    = nix
+
+bottom =
   nix = bottom-rs
-  _sources = [brew, scoop, pacman]
-}
+  _sources =
+    = brew
+    = scoop
+    = pacman
 
-chezmoi = [brew, scoop, pacman, nix]
-direnv = [brew, scoop, pacman, nix]
-difftastic = [brew, scoop, pacman, nix]
-dust = [brew, scoop, pacman]
-eza = [brew, pacman, nix]
-fd = [brew, scoop, pacman, nix]
+chezmoi =
+  _sources =
+    = brew
+    = scoop
+    = pacman
+    = nix
 
-# Package with AUR override
-fnm = {
+direnv =
+  _sources =
+    = brew
+    = scoop
+    = pacman
+    = nix
+
+difftastic =
+  _sources =
+    = brew
+    = scoop
+    = pacman
+    = nix
+
+dust =
+  _sources =
+    = brew
+    = scoop
+    = pacman
+
+eza =
+  _sources =
+    = brew
+    = pacman
+    = nix
+
+fd =
+  _sources =
+    = brew
+    = scoop
+    = pacman
+    = nix
+
+fnm =
   aur = fnm-bin
-  _sources = [brew, scoop, nix]
-}
+  _sources =
+    = brew
+    = scoop
+    = nix
 
-fzf = [brew, scoop, pacman, nix]
+fzf =
+  _sources =
+    = brew
+    = scoop
+    = pacman
+    = nix
 
-# Package with Homebrew name override
-github-cli = {
+github-cli =
   brew = gh
-  _sources = [scoop, apt, pacman, nix]
-}
+  _sources =
+    = scoop
+    = apt
+    = pacman
+    = nix
 
-ghq = [brew, scoop, nix]
+ghq =
+  _sources =
+    = brew
+    = scoop
+    = nix
 
-# Package with Scoop name override
-git-delta = {
+git-delta =
   scoop = delta
-  _sources = [brew, pacman]
-}
+  _sources =
+    = brew
+    = pacman
 
-gitui = [brew, scoop, pacman, nix]
+gitui =
+  _sources =
+    = brew
+    = scoop
+    = pacman
+    = nix
 
-# Package with Homebrew name override
-go = {
+go =
   brew = golang
-  _sources = [scoop, apt, pacman, nix]
-}
+  _sources =
+    = scoop
+    = apt
+    = pacman
+    = nix
 
-grex = [brew, scoop, pacman, nix]
-hub = [brew, scoop, pacman, nix]
-jq = [brew, scoop, pacman, nix]
-lsd = [brew, scoop, pacman, nix]
+grex =
+  _sources =
+    = brew
+    = scoop
+    = pacman
+    = nix
 
-# Package with Homebrew name override
-mc = {
+hub =
+  _sources =
+    = brew
+    = scoop
+    = pacman
+    = nix
+
+jq =
+  _sources =
+    = brew
+    = scoop
+    = pacman
+    = nix
+
+lsd =
+  _sources =
+    = brew
+    = scoop
+    = pacman
+    = nix
+
+mc =
   brew = midnight-commander
-  _sources = [scoop, apt, pacman, nix]
-}
+  _sources =
+    = scoop
+    = apt
+    = pacman
+    = nix
 
-micro = [brew, scoop, pacman, nix]
-nnn = [brew, pacman, nix]
+micro =
+  _sources =
+    = brew
+    = scoop
+    = pacman
+    = nix
 
-# Complex package with multiple overrides
-oh-my-posh = {
+nnn =
+  _sources =
+    = brew
+    = pacman
+    = nix
+
+oh-my-posh =
   aur = oh-my-posh-git
-  brew = {
-    pre = "brew tap jandedobbeleer/oh-my-posh"
-  }
-  scoop = "https://github.com/JanDeDobbeleer/oh-my-posh/releases/latest/download/oh-my-posh.json"
-}
+  brew =
+    pre = brew tap jandedobbeleer/oh-my-posh
+  scoop = https://github.com/JanDeDobbeleer/oh-my-posh/releases/latest/download/oh-my-posh.json
 
-pueue = [brew, scoop, pacman, nix]
-procs = [brew, scoop, pacman, nix]
-pyenv = [brew, scoop, pacman]
-python = [brew, scoop, apt, pacman, nix]
+pueue =
+  _sources =
+    = brew
+    = scoop
+    = pacman
+    = nix
 
-# Package with Homebrew name override
-ripgrep = {
+procs =
+  _sources =
+    = brew
+    = scoop
+    = pacman
+    = nix
+
+pyenv =
+  _sources =
+    = brew
+    = scoop
+    = pacman
+
+python =
+  _sources =
+    = brew
+    = scoop
+    = apt
+    = pacman
+    = nix
+
+ripgrep =
   brew = rg
-  _sources = [scoop, pacman, nix]
-}
+  _sources =
+    = scoop
+    = pacman
+    = nix
 
-rustup = [brew, scoop, pacman, nix]
-sd = [brew, scoop, pacman, nix]
-tealdeer = [brew, scoop, pacman, nix]
-topgrade = [brew, scoop, pacman, nix]
-thefuck = [brew, apt, nix]
-tmux = [brew, apt, pacman, nix]
-viu = [brew, pacman, nix]
-when-cli = [cargo]
-zellij = [brew, pacman, nix]
-zoxide = [brew, scoop, pacman, nix]
+rustup =
+  _sources =
+    = brew
+    = scoop
+    = pacman
+    = nix
 
-# Windows-specific packages
-emplace = [scoop]
-findutils = [scoop]
-gsudo = [scoop]
-ln = [scoop]
-nircmd = [scoop]
-nvs = [scoop]
-tre-command = [brew, scoop]
-wget = [brew, scoop, pacman, apt]
-which = [scoop]
+sd =
+  _sources =
+    = brew
+    = scoop
+    = pacman
+    = nix
 
-# NPM packages
-"@fluidframework/build-tools" = {
-  npm = {
-    install_suffix = "@latest"
-  }
-}
+tealdeer =
+  _sources =
+    = brew
+    = scoop
+    = pacman
+    = nix
 
-generate = [npm]
-generate-license = [npm]
-auto-install = [npm]
-npkill = [npm]
-npm-check-updates = [npm]
-rimraf = [npm]
-sort-package-json = [npm]
-tiged = [npm]
-vsts-npm-auth = [npm]
-yarn = [npm]
+topgrade =
+  _sources =
+    = brew
+    = scoop
+    = pacman
+    = nix
 
-# Cargo packages
-blindspot = [cargo]
-cargo-update = [cargo]
+thefuck =
+  _sources =
+    = brew
+    = apt
+    = nix
+
+tmux =
+  _sources =
+    = brew
+    = apt
+    = pacman
+    = nix
+
+viu =
+  _sources =
+    = brew
+    = pacman
+    = nix
+
+when-cli =
+  _sources =
+    = cargo
+
+zellij =
+  _sources =
+    = brew
+    = pacman
+    = nix
+
+zoxide =
+  _sources =
+    = brew
+    = scoop
+    = pacman
+    = nix
+
+emplace =
+  _sources =
+    = scoop
+
+findutils =
+  _sources =
+    = scoop
+
+gsudo =
+  _sources =
+    = scoop
+
+ln =
+  _sources =
+    = scoop
+
+nircmd =
+  _sources =
+    = scoop
+
+nvs =
+  _sources =
+    = scoop
+
+tre-command =
+  _sources =
+    = brew
+    = scoop
+
+wget =
+  _sources =
+    = brew
+    = scoop
+    = pacman
+    = apt
+
+which =
+  _sources =
+    = scoop
+
+@fluidframework/build-tools =
+  npm =
+    install_suffix = @latest
+
+generate =
+  _sources =
+    = npm
+
+generate-license =
+  _sources =
+    = npm
+
+auto-install =
+  _sources =
+    = npm
+
+npkill =
+  _sources =
+    = npm
+
+npm-check-updates =
+  _sources =
+    = npm
+
+rimraf =
+  _sources =
+    = npm
+
+sort-package-json =
+  _sources =
+    = npm
+
+tiged =
+  _sources =
+    = npm
+
+vsts-npm-auth =
+  _sources =
+    = npm
+
+yarn =
+  _sources =
+    = npm
+
+blindspot =
+  _sources =
+    = cargo
+
+cargo-update =
+  _sources =
+    = cargo

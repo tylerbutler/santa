@@ -1,9 +1,15 @@
-# Santa Package Manager - User Configuration
-# CCL format for Santa configuration
-# Defines preferred sources and default packages
+/= Santa Package Manager - User Configuration
+/= CCL format for Santa configuration
+/= Defines preferred sources and default packages
 
-# Preferred package manager sources in order of preference
-sources = [npm, cargo]
+/= Preferred package manager sources in order of preference
+sources =
+  = npm
+  = cargo
 
-# Default packages to install
-packages = [rg, zoxide, yarn, cargo-update]
+/= Default packages to install
+packages =
+  = cargo-update
+  = rg
+  = yarn
+  = zoxide

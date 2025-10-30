@@ -1,3 +1,46 @@
+//! Safe script generation for package manager operations.
+//!
+//! This module provides the core script generation functionality that makes Santa
+//! secure by default. Instead of directly executing potentially dangerous commands,
+//! Santa generates platform-specific scripts that can be reviewed before execution.
+//!
+//! # Architecture
+//!
+//! - [`ScriptGenerator`]: Tera-based template engine for script generation
+//! - [`ExecutionMode`]: Safe (script generation) vs Execute (direct execution)
+//! - [`ScriptFormat`]: Platform-specific script formats (Shell, PowerShell, Batch)
+//!
+//! # Security
+//!
+//! All user inputs are sanitized using:
+//! - Shell escaping via `shell-escape` crate
+//! - PowerShell escaping with custom filters
+//! - Package name validation
+//! - Template-based command construction
+//!
+//! # Examples
+//!
+//! ```rust,no_run
+//! use santa::script_generator::{ScriptGenerator, ScriptFormat};
+//!
+//! # fn example() -> Result<(), Box<dyn std::error::Error>> {
+//! let generator = ScriptGenerator::new()?;
+//! let packages = vec!["git".to_string(), "rust".to_string()];
+//!
+//! // Generate a safe shell script
+//! let script = generator.generate_install_script(
+//!     &packages,
+//!     "brew",
+//!     ScriptFormat::Shell,
+//!     "homebrew"
+//! )?;
+//!
+//! // Script can now be reviewed and executed manually
+//! println!("{}", script);
+//! # Ok(())
+//! # }
+//! ```
+
 use crate::errors::{Result, SantaError};
 use chrono::Utc;
 use serde::{Deserialize, Serialize};
@@ -5,7 +48,11 @@ use shell_escape::escape;
 use std::collections::HashMap;
 use tera::{Context, Tera, Value};
 
-/// Execution modes for Santa - determines whether to execute directly or generate scripts
+/// Execution modes for Santa - determines whether to execute directly or generate scripts.
+///
+/// The default mode is [`ExecutionMode::Safe`], which generates scripts that can be
+/// reviewed before execution. [`ExecutionMode::Execute`] directly runs commands and
+/// requires explicit opt-in
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum ExecutionMode {
     /// Generate scripts only (safe default mode)
@@ -20,14 +67,29 @@ impl Default for ExecutionMode {
     }
 }
 
-/// Script formats for different platforms and shells
+/// Script formats for different platforms and shells.
+///
+/// Santa automatically detects the appropriate format based on the current
+/// platform, but users can explicitly specify a format if needed.
+///
+/// # Examples
+///
+/// ```rust
+/// use santa::script_generator::ScriptFormat;
+///
+/// // Auto-detect based on platform
+/// let format = ScriptFormat::auto_detect();
+///
+/// // Get file extension
+/// assert_eq!(format.extension(), if cfg!(windows) { "ps1" } else { "sh" });
+/// ```
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum ScriptFormat {
-    /// Unix shell script (.sh)
+    /// Unix shell script (.sh) for Linux and macOS
     Shell,
-    /// Windows PowerShell script (.ps1)
+    /// Windows PowerShell script (.ps1) - modern Windows default
     PowerShell,
-    /// Windows Batch file (.bat) - fallback option
+    /// Windows Batch file (.bat) - legacy Windows fallback
     Batch,
 }
 
@@ -69,13 +131,56 @@ impl ScriptFormat {
     }
 }
 
-/// Script generator using Tera templates for safe script generation
+/// Script generator using Tera templates for safe script generation.
+///
+/// The generator uses embedded Tera templates to create platform-specific
+/// scripts with proper escaping and validation. This design prevents command
+/// injection attacks and allows users to review generated scripts before execution.
+///
+/// # Security Features
+///
+/// - Shell escaping for Unix commands
+/// - PowerShell escaping for Windows commands
+/// - Package name validation
+/// - Template-based construction (no string interpolation)
+///
+/// # Examples
+///
+/// ```rust,no_run
+/// use santa::script_generator::{ScriptGenerator, ScriptFormat};
+///
+/// # fn example() -> Result<(), Box<dyn std::error::Error>> {
+/// let generator = ScriptGenerator::new()?;
+///
+/// // Generate installation script
+/// let packages = vec!["git".to_string(), "curl".to_string()];
+/// let script = generator.generate_install_script(
+///     &packages,
+///     "apt-get",
+///     ScriptFormat::Shell,
+///     "apt"
+/// )?;
+///
+/// // Write script to file or execute
+/// std::fs::write("install.sh", script)?;
+/// # Ok(())
+/// # }
+/// ```
 pub struct ScriptGenerator {
     tera: Tera,
 }
 
 impl ScriptGenerator {
-    /// Create new script generator with built-in templates
+    /// Create new script generator with built-in templates.
+    ///
+    /// Initializes the Tera template engine with embedded templates for
+    /// Shell, PowerShell, and Batch formats, and registers custom filters
+    /// for secure escaping.
+    ///
+    /// # Returns
+    ///
+    /// Returns a new [`ScriptGenerator`] or a [`SantaError::Template`] if
+    /// template initialization fails.
     pub fn new() -> Result<Self> {
         let mut tera = Tera::default();
 
