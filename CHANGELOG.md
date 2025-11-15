@@ -7,6 +7,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.1](https://github.com/tylerbutler/santa/compare/v0.1.0...v0.1.1) - 2025-11-15
+
+### Added
+
+- modernize architecture with security fixes and release automation ([#1](https://github.com/tylerbutler/santa/pull/1))
+
+### Other
+
+- Update known packages
+- Fix sources
+- Fix prepending and add flathub
+- CI updates
+- Use checkout v4 action
+- Debug build
+- Use checkout v3 action
+- Lint fixes/ignores
+- Formatting
+- CI
+- lint fixes
+- Add support for executing install commands
+- CI
+- CI
+- CI
+- CI
+- justfile
+- Replace "Elf" term/concept.
+
 ### Added
 - Initial release of Santa package manager
 - CCL-based configuration system with hot-reloading
