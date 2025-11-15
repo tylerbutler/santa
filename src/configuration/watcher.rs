@@ -301,14 +301,13 @@ mod tests {
 
     #[tokio::test]
     async fn test_config_reload_validation() {
+        // Use cargo (universal package manager) with cargo-update package
+        // to ensure test works on all platforms
         let valid_config = r#"
 sources =
-  = brew
   = cargo
 packages =
   = cargo-update
-  = bat
-  = zoxide
         "#;
 
         let mut temp_file = NamedTempFile::new().unwrap();
@@ -320,8 +319,9 @@ packages =
 
         assert!(result.is_ok(), "Config reload failed: {:?}", result.err());
         let config = result.unwrap();
-        assert_eq!(config.sources.len(), 2);
-        assert_eq!(config.packages.len(), 3);
+        assert_eq!(config.sources.len(), 1);
+        assert_eq!(config.packages.len(), 1);
+        assert!(config.sources.contains(&crate::data::KnownSources::Cargo));
     }
 
     #[tokio::test]

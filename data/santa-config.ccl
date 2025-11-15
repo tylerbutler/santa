@@ -3,12 +3,12 @@
 /= Defines preferred sources and default packages
 
 /= Preferred package manager sources in order of preference
+/= Note: These will be filtered to platform-available sources automatically
 sources =
   = brew
   = cargo
 
 /= Default packages to install
+/= Note: Only includes packages available from cargo (universal package manager)
 packages =
   = cargo-update
-  = bat
-  = zoxide
