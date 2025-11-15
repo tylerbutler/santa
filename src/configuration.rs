@@ -330,13 +330,17 @@ mod tests {
     }
 
     #[test]
-    fn test_load_from_str_valid_yaml() {
-        let yaml = r#"
-            sources: ["brew", "cargo"]
-            packages: ["git", "rust"]
+    fn test_load_from_str_valid_ccl() {
+        let ccl = r#"
+sources =
+  = brew
+  = cargo
+packages =
+  = git
+  = rust
         "#;
 
-        let result = SantaConfig::load_from_str(yaml);
+        let result = SantaConfig::load_from_str(ccl);
         assert!(result.is_ok());
 
         let config = result.unwrap();
@@ -347,25 +351,26 @@ mod tests {
     }
 
     #[test]
-    fn test_load_from_str_invalid_yaml() {
-        let yaml = "invalid: yaml: content: ["; // Malformed YAML
+    fn test_load_from_str_invalid_ccl() {
+        let ccl = "invalid = yaml = content = ["; // Malformed CCL
 
-        let result = SantaConfig::load_from_str(yaml);
+        let result = SantaConfig::load_from_str(ccl);
         assert!(result.is_err());
         assert!(result
             .unwrap_err()
             .to_string()
-            .contains("Failed to parse config from YAML"));
+            .contains("Failed to parse CCL config"));
     }
 
     #[test]
     fn test_load_from_str_validation_failure() {
-        let yaml = r#"
-            sources: []
-            packages: ["git"]
+        let ccl = r#"
+sources =
+packages =
+  = git
         "#;
 
-        let result = SantaConfig::load_from_str(yaml);
+        let result = SantaConfig::load_from_str(ccl);
         assert!(result.is_err());
         assert!(result
             .unwrap_err()
@@ -375,13 +380,15 @@ mod tests {
 
     #[test]
     fn test_load_from_file_existing() {
-        let yaml_content = r#"
-            sources: ["brew"]
-            packages: ["git"]
+        let ccl_content = r#"
+sources =
+  = brew
+packages =
+  = git
         "#;
 
-        let mut temp_file = NamedTempFile::new().unwrap();
-        write!(temp_file, "{yaml_content}").unwrap();
+        let mut temp_file = NamedTempFile::with_suffix(".ccl").unwrap();
+        write!(temp_file, "{ccl_content}").unwrap();
 
         let result = SantaConfig::load_from(temp_file.path());
         assert!(result.is_ok());
@@ -435,12 +442,16 @@ mod tests {
 
     #[test]
     fn test_unknown_source_handling() {
-        let yaml = r#"
-            sources: ["brew", "unknown_source", "cargo"]
-            packages: ["git"]
+        let ccl = r#"
+sources =
+  = brew
+  = unknown_source
+  = cargo
+packages =
+  = git
         "#;
 
-        let result = SantaConfig::load_from_str(yaml);
+        let result = SantaConfig::load_from_str(ccl);
         assert!(result.is_ok());
 
         let config = result.unwrap();
