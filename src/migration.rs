@@ -109,11 +109,7 @@ impl ConfigMigrator {
     fn migrate_yaml_to_hocon(&self, yaml_path: &Path) -> Result<PathBuf> {
         let ccl_path = self.yaml_path_to_ccl_path(yaml_path);
 
-        info!(
-            "Migrating {} → {}",
-            yaml_path.display(),
-            ccl_path.display()
-        );
+        info!("Migrating {} → {}", yaml_path.display(), ccl_path.display());
 
         if self.dry_run {
             info!("[DRY RUN] Would migrate YAML config to CCL");

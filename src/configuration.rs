@@ -180,13 +180,9 @@ impl SantaConfig {
                 format!("Failed to read config file: {}", actual_path.display())
             })?;
 
-            let config: SantaConfig = serde_ccl::from_str(&config_str)
-                .with_context(|| {
-                    format!(
-                        "Failed to parse CCL config file: {}",
-                        actual_path.display()
-                    )
-                })?;
+            let config: SantaConfig = serde_ccl::from_str(&config_str).with_context(|| {
+                format!("Failed to parse CCL config file: {}", actual_path.display())
+            })?;
 
             config
                 .validate_basic()

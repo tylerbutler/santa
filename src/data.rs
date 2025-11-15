@@ -7,7 +7,6 @@ use serde::{Deserialize, Serialize};
 use serde_enum_str::{Deserialize_enum_str, Serialize_enum_str};
 use tracing::{error, info};
 
-
 use crate::{sources::PackageSource, traits::Exportable};
 
 pub mod loaders;
@@ -299,8 +298,7 @@ pub type SourceList = Vec<PackageSource>;
 
 impl LoadFromFile for SourceList {
     fn load_from_str(config_str: &str) -> Self {
-        serde_ccl::from_str(config_str)
-            .expect("Failed to load CCL source list")
+        serde_ccl::from_str(config_str).expect("Failed to load CCL source list")
     }
 }
 
@@ -327,11 +325,10 @@ impl SantaData {
         use crate::data::loaders::{convert_to_legacy_packages, convert_to_legacy_sources};
 
         // Parse using schema loaders
-        let schema_packages = serde_ccl::from_str(packages_str)
-            .expect("Failed to load packages CCL");
+        let schema_packages =
+            serde_ccl::from_str(packages_str).expect("Failed to load packages CCL");
 
-        let schema_sources = serde_ccl::from_str(sources_str)
-            .expect("Failed to load sources CCL");
+        let schema_sources = serde_ccl::from_str(sources_str).expect("Failed to load sources CCL");
 
         // Convert to legacy format
         let packages = convert_to_legacy_packages(schema_packages);

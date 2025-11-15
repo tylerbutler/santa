@@ -6,7 +6,6 @@ use std::fs;
 use std::path::Path;
 use tracing::{info, warn};
 
-
 use super::schemas::{ConfigDefinition, PackageDefinition, SourcesDefinition};
 use crate::data::{KnownSources, PackageData, PackageDataList, SourceList};
 use crate::sources::PackageSource;
