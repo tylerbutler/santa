@@ -29,7 +29,7 @@ setup:
     @echo "🔧 Setting up development environment..."
     cargo install cargo-udeps --locked || echo "cargo-udeps already installed"
     cargo install cargo-nextest --locked || echo "cargo-nextest already installed"
-    cargo install cargo-tarpaulin --locked || echo "cargo-tarpaulin already installed" 
+    cargo install cargo-llvm-cov --locked || echo "cargo-llvm-cov already installed"
     cargo install cargo-audit --locked || echo "cargo-audit already installed"
     cargo install cargo-deny --locked || echo "cargo-deny already installed"
     cargo install cargo-watch --locked || echo "cargo-watch already installed"
@@ -87,11 +87,14 @@ test-integration:
     @echo "🧪 Running integration tests..."
     cargo test --test '*'
 
-# Run tests with coverage reporting
+# Run tests with coverage reporting (uses nextest for speed)
 test-coverage:
-    @echo "🧪 Running tests with coverage..."
-    cargo tarpaulin --out Html --output-dir coverage/ --ignore-tests
-    @echo "📊 Coverage report: coverage/tarpaulin-report.html"
+    @echo "🧪 Running tests with coverage (nextest + llvm-cov)..."
+    cargo llvm-cov nextest --all-features --workspace --lcov --output-path coverage/lcov.info
+    cargo llvm-cov report --html --output-dir coverage/html
+    @echo "📊 Coverage reports generated:"
+    @echo "  - LCOV: coverage/lcov.info"
+    @echo "  - HTML: coverage/html/index.html"
 
 # Run tests in watch mode
 test-watch:

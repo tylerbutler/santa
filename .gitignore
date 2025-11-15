@@ -1,2 +1,9 @@
 /target
 .claude
+
+# Coverage outputs
+coverage/
+lcov.info
+*.profraw
+*.profdata
+target/llvm-cov/
