@@ -42,8 +42,8 @@ pub fn parse_to_hashmap(ccl_content: &str) -> Result<HashMap<String, Value>> {
     // First try serde_ccl for the outer structure
     // serde_ccl returns HashMap<String, String> where the values are
     // the raw CCL content as strings
-    let raw: HashMap<String, String> = serde_ccl::from_str(ccl_content)
-        .context("Failed to parse CCL with serde_ccl")?;
+    let raw: HashMap<String, String> =
+        serde_ccl::from_str(ccl_content).context("Failed to parse CCL with serde_ccl")?;
 
     let mut result = HashMap::new();
 
@@ -80,8 +80,8 @@ fn parse_simple_array(s: &str) -> Result<Value> {
         .lines()
         .filter_map(|line| {
             let trimmed = line.trim();
-            if trimmed.starts_with('=') {
-                let value = trimmed[1..].trim();
+            if let Some(stripped) = trimmed.strip_prefix('=') {
+                let value = stripped.trim();
                 if !value.is_empty() {
                     Some(value.to_string())
                 } else {
@@ -93,9 +93,7 @@ fn parse_simple_array(s: &str) -> Result<Value> {
         })
         .collect();
 
-    Ok(Value::Array(
-        items.into_iter().map(Value::String).collect(),
-    ))
+    Ok(Value::Array(items.into_iter().map(Value::String).collect()))
 }
 
 /// Parse complex object format: "_sources =\n  = brew\nbrew = gh"
@@ -146,7 +144,10 @@ fn parse_complex_object(s: &str) -> Result<Value> {
 
             if !field_value.is_empty() {
                 // Value on same line
-                obj.insert(field_name.to_string(), Value::String(field_value.to_string()));
+                obj.insert(
+                    field_name.to_string(),
+                    Value::String(field_value.to_string()),
+                );
             } else {
                 // Value on next lines
                 current_key = Some(field_name.to_string());
