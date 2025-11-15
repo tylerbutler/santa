@@ -19,9 +19,59 @@ use crate::migration::ConfigMigrator;
 use tracing::{debug, trace, warn};
 use validator::Validate;
 // use memoize::memoize;
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Deserializer, Serialize};
 
 use crate::data::{constants, KnownSources, SantaData};
+
+use std::collections::BTreeMap;
+
+/// Helper struct to deserialize custom source with name from HashMap key
+#[derive(Deserialize)]
+struct CustomSourceWithoutName {
+    emoji: String,
+    shell_command: String,
+    #[serde(alias = "install")]
+    install_command: String,
+    #[serde(alias = "check")]
+    check_command: String,
+    #[serde(default)]
+    prepend_to_package_name: Option<String>,
+    #[serde(default)]
+    overrides: Option<Vec<crate::sources::SourceOverride>>,
+}
+
+/// Custom deserializer for custom_sources that converts HashMap to Vec and sets names
+fn deserialize_custom_sources<'de, D>(
+    deserializer: D,
+) -> std::result::Result<Option<SourceList>, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    // Use BTreeMap to maintain sorted order by key name
+    let map_opt: Option<BTreeMap<String, CustomSourceWithoutName>> =
+        Option::deserialize(deserializer)?;
+
+    match map_opt {
+        None => Ok(None),
+        Some(map) => {
+            let mut sources = Vec::new();
+            for (name, source_data) in map {
+                // Create PackageSource with name from HashMap key
+                let source = PackageSource::new_for_test(
+                    KnownSources::Unknown(name),
+                    &source_data.emoji,
+                    &source_data.shell_command,
+                    &source_data.install_command,
+                    &source_data.check_command,
+                    source_data.prepend_to_package_name,
+                    source_data.overrides,
+                );
+                sources.push(source);
+            }
+            Ok(Some(sources))
+        }
+    }
+}
 
 #[derive(Serialize, Deserialize, Clone, Debug, Builder, Validate)]
 #[builder(setter(into))]
@@ -30,6 +80,11 @@ pub struct SantaConfig {
     pub sources: Vec<KnownSources>,
     #[validate(length(min = 1, message = "At least one package should be configured"))]
     pub packages: Vec<String>,
+    #[serde(
+        default,
+        deserialize_with = "deserialize_custom_sources",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub custom_sources: Option<SourceList>,
 
     #[serde(skip)]

@@ -12,21 +12,22 @@ use tempfile::{NamedTempFile, TempDir};
 #[tokio::test]
 async fn test_config_load_and_validation() {
     let temp_dir = TempDir::new().expect("Failed to create temp dir");
-    let config_path = temp_dir.path().join("santa.yaml");
+    let config_path = temp_dir.path().join("santa.ccl");
 
     let config_content = r#"
-sources:
-  - apt
-packages:
-  - curl
-custom_sources:
-  - name: "test-source"
-    emoji: "🧪"
-    shell_command: "test"
-    install_command: "test install"
-    check_command: "test list"
-    prepend_to_package_name: null
-    overrides: null
+/= Test configuration for Santa
+sources =
+  = apt
+
+packages =
+  = curl
+
+custom_sources =
+  test-source =
+    emoji = 🧪
+    shell_command = test
+    install = test install
+    check = test list
 "#;
 
     fs::write(&config_path, config_content).expect("Failed to write config");
@@ -51,10 +52,10 @@ custom_sources:
 #[tokio::test]
 async fn test_invalid_config_handling() {
     let temp_dir = TempDir::new().expect("Failed to create temp dir");
-    let config_path = temp_dir.path().join("invalid.yaml");
+    let config_path = temp_dir.path().join("invalid.ccl");
 
     let invalid_config = r#"
-invalid_yaml: [
+invalid_ccl = [
   unclosed_bracket
 "#;
 
@@ -67,7 +68,7 @@ invalid_yaml: [
 #[tokio::test]
 async fn test_missing_config_file() {
     let temp_dir = TempDir::new().expect("Failed to create temp dir");
-    let nonexistent_path = temp_dir.path().join("nonexistent.yaml");
+    let nonexistent_path = temp_dir.path().join("nonexistent.ccl");
 
     let result = SantaConfig::load_config(&nonexistent_path);
     assert!(result.is_err(), "Missing config file should cause error");
@@ -105,28 +106,27 @@ async fn test_hot_reload_capability() {
 #[tokio::test]
 async fn test_config_with_custom_sources() {
     let temp_dir = TempDir::new().expect("Failed to create temp dir");
-    let config_path = temp_dir.path().join("custom_sources.yaml");
+    let config_path = temp_dir.path().join("custom_sources.ccl");
 
     let config_content = r#"
-sources:
-  - apt
-packages:
-  - curl
-custom_sources:
-  - name: "custom-apt"
-    emoji: "📦"
-    shell_command: "apt"
-    install_command: "apt install"
-    check_command: "apt list --installed"
-    prepend_to_package_name: null
-    overrides: null
-  - name: "custom-snap"
-    emoji: "🚀"
-    shell_command: "snap"
-    install_command: "snap install"
-    check_command: "snap list"
-    prepend_to_package_name: null
-    overrides: null
+/= Configuration with custom sources
+sources =
+  = apt
+
+packages =
+  = curl
+
+custom_sources =
+  custom-apt =
+    emoji = 📦
+    shell_command = apt
+    install = apt install
+    check = apt list --installed
+  custom-snap =
+    emoji = 🚀
+    shell_command = snap
+    install = snap install
+    check = snap list
 "#;
 
     fs::write(&config_path, config_content).expect("Failed to write config");
@@ -146,43 +146,54 @@ custom_sources:
 
 #[tokio::test]
 async fn test_config_update_detection() {
-    let temp_file = NamedTempFile::new().expect("Failed to create temp file");
-    let config_path = temp_file.path();
+    let temp_dir = TempDir::new().expect("Failed to create temp dir");
+    let config_path = temp_dir.path().join("config.ccl");
 
     // Write initial config
     let initial_config = r#"
-sources:
-  - apt
-packages:
-  - curl
-custom_sources: []
-"#;
-    fs::write(config_path, initial_config).expect("Failed to write initial config");
+/= Initial configuration
+sources =
+  = apt
 
-    let initial_result = SantaConfig::load_config(config_path);
-    assert!(initial_result.is_ok());
+packages =
+  = curl
+
+custom_sources =
+"#;
+    fs::write(&config_path, initial_config).expect("Failed to write initial config");
+
+    let initial_result = SantaConfig::load_config(&config_path);
+    assert!(
+        initial_result.is_ok(),
+        "Failed to load config: {:?}",
+        initial_result.err()
+    );
 
     let initial_config = initial_result.unwrap();
-    assert_eq!(initial_config.custom_sources.unwrap().len(), 0);
+    assert!(
+        initial_config.custom_sources.is_none()
+            || initial_config.custom_sources.unwrap().len() == 0
+    );
 
     // Update config
     let updated_config = r#"
-sources:
-  - apt
-packages:
-  - curl
-custom_sources:
-  - name: "new-source"
-    emoji: "🆕"
-    shell_command: "new"
-    install_command: "new install"
-    check_command: "new list"
-    prepend_to_package_name: null
-    overrides: null
-"#;
-    fs::write(config_path, updated_config).expect("Failed to write updated config");
+/= Updated configuration
+sources =
+  = apt
 
-    let updated_result = SantaConfig::load_config(config_path);
+packages =
+  = curl
+
+custom_sources =
+  new-source =
+    emoji = 🆕
+    shell_command = new
+    install = new install
+    check = new list
+"#;
+    fs::write(&config_path, updated_config).expect("Failed to write updated config");
+
+    let updated_result = SantaConfig::load_config(&config_path);
     assert!(updated_result.is_ok());
 
     let updated_config = updated_result.unwrap();

@@ -797,7 +797,7 @@ git =
         let original_data = SantaData::default();
 
         // Export to string (exports as JSON)
-        let exported = original_data.export();
+        let exported = original_data.export_min();
         assert!(!exported.is_empty());
 
         // Should be valid JSON

@@ -261,9 +261,11 @@ pub struct PackageSource {
     shell_command: String,
     /// The command that will be run to query the list of installed packages. For example,
     /// for brew this is `brew install`.
+    #[serde(alias = "install")]
     install_command: String,
     /// The command that will be run to query the list of installed packages. For example,
     /// for brew this is `brew leaves --installed-on-request`.
+    #[serde(alias = "check")]
     check_command: String,
     /// A string to prepend to every package name for this source.
     prepend_to_package_name: Option<String>,
