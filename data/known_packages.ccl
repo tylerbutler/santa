@@ -1,0 +1,366 @@
+act =
+  _sources =
+    = brew
+    = scoop
+
+aria2 =
+  _sources =
+    = brew
+    = scoop
+    = pacman
+
+atuin =
+  _sources =
+    = brew
+    = scoop
+    = pacman
+    = nix
+
+bat =
+  _sources =
+    = brew
+    = scoop
+    = pacman
+    = nix
+
+bottom =
+  nix = bottom-rs
+  _sources =
+    = brew
+    = scoop
+    = pacman
+
+chezmoi =
+  _sources =
+    = brew
+    = scoop
+    = pacman
+    = nix
+
+direnv =
+  _sources =
+    = brew
+    = scoop
+    = pacman
+    = nix
+
+difftastic =
+  _sources =
+    = brew
+    = scoop
+    = pacman
+    = nix
+
+dust =
+  _sources =
+    = brew
+    = scoop
+    = pacman
+
+eza =
+  _sources =
+    = brew
+    = pacman
+    = nix
+
+fd =
+  _sources =
+    = brew
+    = scoop
+    = pacman
+    = nix
+
+fnm =
+  aur = fnm-bin
+  _sources =
+    = brew
+    = scoop
+    = nix
+
+fzf =
+  _sources =
+    = brew
+    = scoop
+    = pacman
+    = nix
+
+github-cli =
+  brew = gh
+  _sources =
+    = scoop
+    = apt
+    = pacman
+    = nix
+
+ghq =
+  _sources =
+    = brew
+    = scoop
+    = nix
+
+git-delta =
+  scoop = delta
+  _sources =
+    = brew
+    = pacman
+
+gitui =
+  _sources =
+    = brew
+    = scoop
+    = pacman
+    = nix
+
+go =
+  brew = golang
+  _sources =
+    = scoop
+    = apt
+    = pacman
+    = nix
+
+grex =
+  _sources =
+    = brew
+    = scoop
+    = pacman
+    = nix
+
+hub =
+  _sources =
+    = brew
+    = scoop
+    = pacman
+    = nix
+
+jq =
+  _sources =
+    = brew
+    = scoop
+    = pacman
+    = nix
+
+lsd =
+  _sources =
+    = brew
+    = scoop
+    = pacman
+    = nix
+
+mc =
+  brew = midnight-commander
+  _sources =
+    = scoop
+    = apt
+    = pacman
+    = nix
+
+micro =
+  _sources =
+    = brew
+    = scoop
+    = pacman
+    = nix
+
+nnn =
+  _sources =
+    = brew
+    = pacman
+    = nix
+
+oh-my-posh =
+  aur = oh-my-posh-git
+  brew =
+    pre = brew tap jandedobbeleer/oh-my-posh
+  scoop = https://github.com/JanDeDobbeleer/oh-my-posh/releases/latest/download/oh-my-posh.json
+
+pueue =
+  _sources =
+    = brew
+    = scoop
+    = pacman
+    = nix
+
+procs =
+  _sources =
+    = brew
+    = scoop
+    = pacman
+    = nix
+
+pyenv =
+  _sources =
+    = brew
+    = scoop
+    = pacman
+
+python =
+  _sources =
+    = brew
+    = scoop
+    = apt
+    = pacman
+    = nix
+
+ripgrep =
+  brew = rg
+  _sources =
+    = scoop
+    = pacman
+    = nix
+
+rustup =
+  _sources =
+    = brew
+    = scoop
+    = pacman
+    = nix
+
+sd =
+  _sources =
+    = brew
+    = scoop
+    = pacman
+    = nix
+
+tealdeer =
+  _sources =
+    = brew
+    = scoop
+    = pacman
+    = nix
+
+topgrade =
+  _sources =
+    = brew
+    = scoop
+    = pacman
+    = nix
+
+thefuck =
+  _sources =
+    = brew
+    = apt
+    = nix
+
+tmux =
+  _sources =
+    = brew
+    = apt
+    = pacman
+    = nix
+
+viu =
+  _sources =
+    = brew
+    = pacman
+    = nix
+
+when-cli =
+  _sources =
+    = cargo
+
+zellij =
+  _sources =
+    = brew
+    = pacman
+    = nix
+
+zoxide =
+  _sources =
+    = brew
+    = scoop
+    = pacman
+    = nix
+
+emplace =
+  _sources =
+    = scoop
+
+findutils =
+  _sources =
+    = scoop
+
+gsudo =
+  _sources =
+    = scoop
+
+ln =
+  _sources =
+    = scoop
+
+nircmd =
+  _sources =
+    = scoop
+
+nvs =
+  _sources =
+    = scoop
+
+tre-command =
+  _sources =
+    = brew
+    = scoop
+
+wget =
+  _sources =
+    = brew
+    = scoop
+    = pacman
+    = apt
+
+which =
+  _sources =
+    = scoop
+
+@fluidframework/build-tools =
+  npm =
+    install_suffix = @latest
+
+generate =
+  _sources =
+    = npm
+
+generate-license =
+  _sources =
+    = npm
+
+auto-install =
+  _sources =
+    = npm
+
+npkill =
+  _sources =
+    = npm
+
+npm-check-updates =
+  _sources =
+    = npm
+
+rimraf =
+  _sources =
+    = npm
+
+sort-package-json =
+  _sources =
+    = npm
+
+tiged =
+  _sources =
+    = npm
+
+vsts-npm-auth =
+  _sources =
+    = npm
+
+yarn =
+  _sources =
+    = npm
+
+blindspot =
+  _sources =
+    = cargo
+
+cargo-update =
+  _sources =
+    = cargo

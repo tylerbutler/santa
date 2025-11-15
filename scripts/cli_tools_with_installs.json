@@ -1,0 +1,2429 @@
+[
+  {
+    "name": "newsboat",
+    "description": "An extendable RSS feed reader for text terminals.",
+    "homepage": "https://github.com/newsboat/newsboat",
+    "source": "awesome-cli-apps",
+    "install": {
+      "brew": "brew install newsboat",
+      "apt": "sudo apt install newsboat",
+      "snap": "sudo snap install newsboat"
+    }
+  },
+  {
+    "name": "cmus",
+    "description": "Small, fast and powerful console music player.",
+    "homepage": "https://github.com/cmus/cmus",
+    "source": "awesome-cli-apps",
+    "install": {
+      "brew": "brew install cmus",
+      "apt": "sudo apt install cmus"
+    }
+  },
+  {
+    "name": "Instant-Music-Downloader",
+    "description": "Instant music downloader.",
+    "homepage": "https://github.com/yask123/Instant-Music-Downloader",
+    "source": "awesome-cli-apps",
+    "install": {}
+  },
+  {
+    "name": "itunes-remote",
+    "description": "Control iTunes via CLI.",
+    "homepage": "https://github.com/mischah/itunes-remote",
+    "source": "awesome-cli-apps",
+    "install": {}
+  },
+  {
+    "name": "pianobar",
+    "description": "Pandora client.",
+    "homepage": "https://6xq.net/pianobar/",
+    "source": "awesome-cli-apps",
+    "install": {
+      "brew": "brew install pianobar",
+      "apt": "sudo apt install pianobar"
+    }
+  },
+  {
+    "name": "somafm-cli",
+    "description": "Listen to SomaFM in your terminal.",
+    "homepage": "https://github.com/rockymadden/somafm-cli",
+    "source": "awesome-cli-apps",
+    "install": {}
+  },
+  {
+    "name": "mpd",
+    "description": "Music Player Daemon.",
+    "homepage": "https://github.com/MusicPlayerDaemon/MPD",
+    "source": "awesome-cli-apps",
+    "install": {
+      "brew": "brew install mpd",
+      "apt": "sudo apt install mpd"
+    }
+  },
+  {
+    "name": "ncmpcpp",
+    "description": "mpd client.",
+    "homepage": "https://github.com/arybczak/ncmpcpp",
+    "source": "awesome-cli-apps",
+    "install": {
+      "brew": "brew install ncmpcpp",
+      "apt": "sudo apt install ncmpcpp"
+    }
+  },
+  {
+    "name": "moc",
+    "description": "Console audio player for Linux/UNIX.",
+    "homepage": "http://moc.daper.net/",
+    "source": "awesome-cli-apps",
+    "install": {
+      "brew": "brew install moc",
+      "apt": "sudo apt install moc"
+    }
+  },
+  {
+    "name": "musikcube",
+    "description": "Cross-platform, terminal-based music player, audio engine, metadata indexer, and server.",
+    "homepage": "https://github.com/clangen/musikcube",
+    "source": "awesome-cli-apps",
+    "install": {
+      "brew": "brew install musikcube",
+      "snap": "sudo snap install musikcube"
+    }
+  },
+  {
+    "name": "beets",
+    "description": "Music library manager and tagger.",
+    "homepage": "https://github.com/beetbox/beets",
+    "source": "awesome-cli-apps",
+    "install": {
+      "apt": "sudo apt install beets",
+      "snap": "sudo snap install beets"
+    }
+  },
+  {
+    "name": "spotify-tui",
+    "description": "Spotify client.",
+    "homepage": "https://github.com/Rigellute/spotify-tui",
+    "source": "awesome-cli-apps",
+    "install": {}
+  },
+  {
+    "name": "swaglyrics-for-spotify",
+    "description": "Spotify lyrics.",
+    "homepage": "https://github.com/SwagLyrics/SwagLyrics-For-Spotify",
+    "source": "awesome-cli-apps",
+    "install": {}
+  },
+  {
+    "name": "dzr",
+    "description": "deezer.com player.",
+    "homepage": "https://github.com/yne/dzr",
+    "source": "awesome-cli-apps",
+    "install": {
+      "brew": "brew install dzr",
+      "snap": "sudo snap install dzr"
+    }
+  },
+  {
+    "name": "radio-active",
+    "description": "Internet radio player with 40k+ stations.",
+    "homepage": "https://github.com/deep5050/radio-active",
+    "source": "awesome-cli-apps",
+    "install": {}
+  },
+  {
+    "name": "mpvc",
+    "description": "Music player interfacing mpv.",
+    "homepage": "https://github.com/gmt4/mpvc",
+    "source": "awesome-cli-apps",
+    "install": {}
+  },
+  {
+    "name": "youtube-dl",
+    "description": "Download videos from YouTube.com and many other video sites.",
+    "homepage": "https://github.com/ytdl-org/youtube-dl",
+    "source": "awesome-cli-apps",
+    "install": {
+      "brew": "brew install youtube-dl",
+      "apt": "sudo apt install youtube-dl",
+      "snap": "sudo snap install youtube-dl"
+    }
+  },
+  {
+    "name": "streamlink",
+    "description": "Extract streams from various websites to a video player of your choosing.",
+    "homepage": "https://github.com/streamlink/streamlink",
+    "source": "awesome-cli-apps",
+    "install": {
+      "brew": "brew install streamlink",
+      "apt": "sudo apt install streamlink"
+    }
+  },
+  {
+    "name": "mps-youtube",
+    "description": "Youtube player.",
+    "homepage": "https://github.com/mps-youtube/mps-youtube",
+    "source": "awesome-cli-apps",
+    "install": {
+      "brew": "brew install mps-youtube"
+    }
+  },
+  {
+    "name": "mpv",
+    "description": "Superior video player.",
+    "homepage": "https://mpv.io",
+    "source": "awesome-cli-apps",
+    "install": {
+      "brew": "brew install mpv",
+      "apt": "sudo apt install mpv",
+      "snap": "sudo snap install mpv"
+    }
+  },
+  {
+    "name": "editly",
+    "description": "Declarative video editing.",
+    "homepage": "https://github.com/mifi/editly",
+    "source": "awesome-cli-apps",
+    "install": {}
+  },
+  {
+    "name": "yt-dlp",
+    "description": "A `youtube-dl` fork with additional features and fixes.",
+    "homepage": "https://github.com/yt-dlp/yt-dlp",
+    "source": "awesome-cli-apps",
+    "install": {
+      "brew": "brew install yt-dlp",
+      "apt": "sudo apt install yt-dlp",
+      "snap": "sudo snap install yt-dlp"
+    }
+  },
+  {
+    "name": "moviemon",
+    "description": "Everything about your movies.",
+    "homepage": "https://github.com/iCHAIT/moviemon",
+    "source": "awesome-cli-apps",
+    "install": {}
+  },
+  {
+    "name": "movie",
+    "description": "Get movie info or compare movies.",
+    "homepage": "https://github.com/mayankchd/movie",
+    "source": "awesome-cli-apps",
+    "install": {}
+  },
+  {
+    "name": "Dwarf Fortress",
+    "description": "Roguelike construction and management simulation.",
+    "homepage": "http://www.bay12games.com/dwarves/",
+    "source": "awesome-cli-apps",
+    "install": {}
+  },
+  {
+    "name": "Cataclysm-DDA",
+    "description": "Turn-based survival game set in a post-apocalyptic world.",
+    "homepage": "https://cataclysmdda.org",
+    "source": "awesome-cli-apps",
+    "install": {
+      "apt": "sudo apt install cataclysm-dda"
+    }
+  },
+  {
+    "name": "Pokete",
+    "description": "Pokemon-like.",
+    "homepage": "https://github.com/lxgr-linux/Pokete",
+    "source": "awesome-cli-apps",
+    "install": {
+      "snap": "sudo snap install pokete"
+    }
+  },
+  {
+    "name": "epr",
+    "description": "epub reader.",
+    "homepage": "https://github.com/wustho/epr",
+    "source": "awesome-cli-apps",
+    "install": {
+      "brew": "brew install epr"
+    }
+  },
+  {
+    "name": "Bible.Js CLI",
+    "description": "Bible.",
+    "homepage": "https://github.com/BibleJS/BibleApp",
+    "source": "awesome-cli-apps",
+    "install": {}
+  },
+  {
+    "name": "SpeedRead",
+    "description": "Spritz-alike speedreader.",
+    "homepage": "https://github.com/sunsations/speed_read",
+    "source": "awesome-cli-apps",
+    "install": {
+      "brew": "brew install speedread"
+    }
+  },
+  {
+    "name": "medium-cli",
+    "description": "Read [medium.com](https://medium.com/) stories.",
+    "homepage": "https://github.com/djadmin/medium-cli",
+    "source": "awesome-cli-apps",
+    "install": {}
+  },
+  {
+    "name": "WeeChat",
+    "description": "Fast, light and extensible chat client.",
+    "homepage": "https://weechat.org/",
+    "source": "awesome-cli-apps",
+    "install": {
+      "brew": "brew install weechat",
+      "apt": "sudo apt install weechat"
+    }
+  },
+  {
+    "name": "irssi",
+    "description": "IRC chat client.",
+    "homepage": "https://github.com/irssi/irssi",
+    "source": "awesome-cli-apps",
+    "install": {
+      "brew": "brew install irssi",
+      "apt": "sudo apt install irssi",
+      "snap": "sudo snap install irssi"
+    }
+  },
+  {
+    "name": "kirc",
+    "description": "Tiny IRC client.",
+    "homepage": "https://github.com/mcpcpc/kirc",
+    "source": "awesome-cli-apps",
+    "install": {}
+  },
+  {
+    "name": "legit",
+    "description": "Generate Open Source licences as files or file headers.",
+    "homepage": "https://github.com/captainsafia/legit",
+    "source": "awesome-cli-apps",
+    "install": {
+      "brew": "brew install legit",
+      "apt": "sudo apt install legit"
+    }
+  },
+  {
+    "name": "mklicense",
+    "description": "Create a custom LICENSE file painlessly with customized info.",
+    "homepage": "https://github.com/cezaraugusto/mklicense",
+    "source": "awesome-cli-apps",
+    "install": {}
+  },
+  {
+    "name": "rebound",
+    "description": "Fetch Stack Overflow results on compiler error.",
+    "homepage": "https://github.com/shobrook/rebound",
+    "source": "awesome-cli-apps",
+    "install": {
+      "apt": "sudo apt install rebound"
+    }
+  },
+  {
+    "name": "foy",
+    "description": "Lightweight general purpose task runner/build tool.",
+    "homepage": "https://github.com/zaaack/foy",
+    "source": "awesome-cli-apps",
+    "install": {}
+  },
+  {
+    "name": "just",
+    "description": "Modern `make`-like command runner.",
+    "homepage": "https://github.com/casey/just",
+    "source": "awesome-cli-apps",
+    "install": {
+      "brew": "brew install just",
+      "apt": "sudo apt install just",
+      "snap": "sudo snap install just"
+    }
+  },
+  {
+    "name": "bcal",
+    "description": "Byte CALculator for storage conversions and calculations.",
+    "homepage": "https://github.com/jarun/bcal",
+    "source": "awesome-cli-apps",
+    "install": {
+      "brew": "brew install bcal",
+      "apt": "sudo apt install bcal"
+    }
+  },
+  {
+    "name": "bitwise",
+    "description": "Base conversion and bit manipulation.",
+    "homepage": "https://github.com/mellowcandle/bitwise",
+    "source": "awesome-cli-apps",
+    "install": {
+      "brew": "brew install bitwise",
+      "apt": "sudo apt install bitwise",
+      "snap": "sudo snap install bitwise"
+    }
+  },
+  {
+    "name": "cgasm",
+    "description": "x86 assembly documentation.",
+    "homepage": "https://github.com/bnagy/cgasm",
+    "source": "awesome-cli-apps",
+    "install": {}
+  },
+  {
+    "name": "grex",
+    "description": "Generate regular expressions from user-provided test cases.",
+    "homepage": "https://github.com/pemistahl/grex",
+    "source": "awesome-cli-apps",
+    "install": {
+      "brew": "brew install grex",
+      "snap": "sudo snap install grex"
+    }
+  },
+  {
+    "name": "gdb-dashboard",
+    "description": "Modular visual interface for GDB.",
+    "homepage": "https://github.com/cyrus-and/gdb-dashboard",
+    "source": "awesome-cli-apps",
+    "install": {}
+  },
+  {
+    "name": "iola",
+    "description": "Socket client with REST API.",
+    "homepage": "https://github.com/pvarentsov/iola",
+    "source": "awesome-cli-apps",
+    "install": {}
+  },
+  {
+    "name": "add-gitignore",
+    "description": "Interactively generate a .gitignore for your project based on your needs.",
+    "homepage": "https://github.com/TejasQ/add-gitignore",
+    "source": "awesome-cli-apps",
+    "install": {}
+  },
+  {
+    "name": "is-up-cli",
+    "description": "Check if a domain is up.",
+    "homepage": "https://github.com/sindresorhus/is-up-cli",
+    "source": "awesome-cli-apps",
+    "install": {}
+  },
+  {
+    "name": "reachable",
+    "description": "Check if a domain is up.",
+    "homepage": "https://github.com/italolelis/reachable",
+    "source": "awesome-cli-apps",
+    "install": {}
+  },
+  {
+    "name": "loadtest",
+    "description": "Run load tests.",
+    "homepage": "https://github.com/alexfernandez/loadtest",
+    "source": "awesome-cli-apps",
+    "install": {}
+  },
+  {
+    "name": "diff2html-cli",
+    "description": "Create pretty HTML from diffs.",
+    "homepage": "https://github.com/rtfpessoa/diff2html-cli",
+    "source": "awesome-cli-apps",
+    "install": {}
+  },
+  {
+    "name": "emacs",
+    "description": "An extensible, customizable, free/libre text editor \u2014 and more.",
+    "homepage": "https://github.com/emacs-mirror/emacs",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "vim",
+    "description": "Vim - the ubiquitous text editor.",
+    "homepage": "https://github.com/vim/vim",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "neovim",
+    "description": "Modern vim.",
+    "homepage": "https://github.com/neovim/neovim",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "kakoune",
+    "description": "Modal editor inspired by vim.",
+    "homepage": "https://github.com/mawww/kakoune",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "micro",
+    "description": "A simple and intuitive editor.",
+    "homepage": "https://github.com/zyedidia/micro",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "o",
+    "description": "Configuration-free text editor and IDE.",
+    "homepage": "https://github.com/xyproto/o",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "helix",
+    "description": "Modal editor inspired by kakoune.",
+    "homepage": "https://github.com/helix-editor/helix",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "caniuse-cmd",
+    "description": "Search [caniuse.com](https://caniuse.com) about browser support of features.",
+    "homepage": "https://github.com/sgentle/caniuse-cmd",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "strip-css-comments-cli",
+    "description": "Strip comments from CSS.",
+    "homepage": "https://github.com/sindresorhus/strip-css-comments-cli",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "viewport-list-cli",
+    "description": "Return a list of devices and their viewports.",
+    "homepage": "https://github.com/kevva/viewport-list-cli",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "surge",
+    "description": "Publish static websites for free.",
+    "homepage": "https://surge.sh",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "mobicon-cli",
+    "description": "Mobile app icon generator.",
+    "homepage": "https://github.com/SamVerschueren/mobicon-cli",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "mobisplash-cli",
+    "description": "Mobile app splash screen generator.",
+    "homepage": "https://github.com/SamVerschueren/mobisplash-cli",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "deviceframe",
+    "description": "Put device frames around your mobile/web/progressive app screenshots.",
+    "homepage": "https://github.com/c0bra/deviceframe",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "mycli",
+    "description": "MySQL client with autocompletion and syntax highlighting.",
+    "homepage": "https://github.com/dbcli/mycli",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "pgcli",
+    "description": "Postgres client with autocompletion and syntax highlighting.",
+    "homepage": "https://github.com/dbcli/pgcli",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "sqlline",
+    "description": "Shell for issuing SQL via JDBC.",
+    "homepage": "https://github.com/julianhyde/sqlline",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "iredis",
+    "description": "Redis client with autocompletion and syntax highlighting.",
+    "homepage": "https://github.com/laixintao/iredis",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "usql",
+    "description": "Universal SQL client with autocompletion and syntax highlighting.",
+    "homepage": "https://github.com/xo/usql",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "htconvert",
+    "description": "Convert .htaccess redirects to nginx.conf redirects.",
+    "homepage": "https://github.com/lukechilds/htconvert",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "SAWS",
+    "description": "Supercharged AWS CLI.",
+    "homepage": "https://github.com/donnemartin/saws",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "s3cmd",
+    "description": "Fully-Featured S3 client.",
+    "homepage": "https://github.com/s3tools/s3cmd",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "pm2",
+    "description": "Production Process Manager for Node.js.",
+    "homepage": "https://github.com/Unitech/pm2",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "ops",
+    "description": "Unikernel compilation and orchestration tool.",
+    "homepage": "https://github.com/nanovms/ops",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "flog",
+    "description": "A fake log generator for log formats such as apache-common, apache error and RFC3164 syslog.",
+    "homepage": "https://github.com/mingrammer/flog",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "k9s",
+    "description": "Manage Kubernetes Clusters.",
+    "homepage": "https://github.com/derailed/k9s",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "PingMe",
+    "description": "Send messages/alerts to multiple messaging platforms & email.",
+    "homepage": "https://github.com/kha7iq/pingme",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "ipfs-deploy",
+    "description": "Deploy static websites to [IPFS](https://github.com/ipfs/ipfs#overviewhttps://github.com/ipfs/ipfs#overview).",
+    "homepage": "https://github.com/agentofuser/ipfs-deploy",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "Discharge",
+    "description": "Deploy static websites to Amazon S3.",
+    "homepage": "https://github.com/brandonweiss/discharge",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "updatecli",
+    "description": "A declarative dependency management tool.",
+    "homepage": "https://github.com/updatecli/updatecli",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "logdy",
+    "description": "Supercharge terminal logs with web UI.",
+    "homepage": "https://github.com/logdyhq/logdy-core",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "s5cmd",
+    "description": "Blazing fast S3 and local filesystem execution tool.",
+    "homepage": "https://github.com/peak/s5cmd",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "lstags",
+    "description": "Synchronize images across registries.",
+    "homepage": "https://github.com/ivanilves/lstags",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "dockly",
+    "description": "Interactively manage containers.",
+    "homepage": "https://github.com/lirantal/dockly",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "lazydocker",
+    "description": "Simple docker/docker-compose interface.",
+    "homepage": "https://github.com/jesseduffield/lazydocker",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "docker-pushrm",
+    "description": "Push a readme to container registries.",
+    "homepage": "https://github.com/christian-korneck/docker-pushrm",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "ctop",
+    "description": "Top like interface for container metrics.",
+    "homepage": "https://github.com/bcicen/ctop",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "release-it",
+    "description": "Automate releases for Git repositories and/or npm packages. Changelog generation, GitHub/GitLab releases, etc.",
+    "homepage": "https://github.com/webpro/release-it",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "clog",
+    "description": "A conventional changelog for the rest of us.",
+    "homepage": "https://github.com/clog-tool/clog-cli",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "np",
+    "description": "A better `npm publish`.",
+    "homepage": "https://github.com/sindresorhus/np",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "release",
+    "description": "Generate changelogs with a single command.",
+    "homepage": "https://github.com/vercel/release",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "semantic-release",
+    "description": "Fully automated version management and package publishing.",
+    "homepage": "https://github.com/semantic-release/semantic-release",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "npm-name-cli",
+    "description": "Check whether a package name is available on npm.",
+    "homepage": "https://github.com/sindresorhus/npm-name-cli",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "npm-user-cli",
+    "description": "Get user info of a npm user.",
+    "homepage": "https://github.com/sindresorhus/npm-user-cli",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "npm-home",
+    "description": "Open the npm page of the package in the current directory.",
+    "homepage": "https://github.com/sindresorhus/npm-home",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "pkg-dir-cli",
+    "description": "Find the root directory of a npm package.",
+    "homepage": "https://github.com/sindresorhus/pkg-dir-cli",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "npm-check-updates",
+    "description": "Find newer versions of package dependencies than what your package.json allows.",
+    "homepage": "https://github.com/tjunnone/npm-check-updates",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "updates",
+    "description": "Flexible npm dependency update tool.",
+    "homepage": "https://github.com/silverwind/updates",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "wipe-modules",
+    "description": "Remove `node_modules` of inactive projects.",
+    "homepage": "https://github.com/bntzio/wipe-modules",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "yo",
+    "description": "Scaffolding tool for running Yeoman generators.",
+    "homepage": "https://github.com/yeoman/yo",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "boilr",
+    "description": "Create projects from boilerplate templates.",
+    "homepage": "https://github.com/tmrts/boilr",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "cookiecutter",
+    "description": "Create projects from templates.",
+    "homepage": "https://github.com/audreyr/cookiecutter",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "mevn-cli",
+    "description": "Light speed setup for MEVN (Mongo Express Vue Node) Apps.",
+    "homepage": "https://github.com/madlabsinc/mevn-cli",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "scaffold-static",
+    "description": "Scaffolding utility for vanilla JS.",
+    "homepage": "https://github.com/jamesgeorge007/scaffold-static",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "serve",
+    "description": "Serve static files (https, CORS, GZIP compression, etc).",
+    "homepage": "https://github.com/vercel/serve",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "simplehttp",
+    "description": "Easily serve a local directory over HTTP.",
+    "homepage": "https://github.com/snwfdhmp/simplehttp",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "shell2http",
+    "description": "Shell script based HTTP server.",
+    "homepage": "https://github.com/msoap/shell2http",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "HTTPie",
+    "description": "A user-friendly HTTP client.",
+    "homepage": "https://github.com/httpie/httpie",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "HTTP Prompt",
+    "description": "Interactive HTTP client featuring autocomplete and syntax highlighting.",
+    "homepage": "https://github.com/eliangcs/http-prompt",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "ain",
+    "description": "HTTP client with a simple format to organize API endpoints.",
+    "homepage": "https://github.com/jonaslu/ain",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "curlie",
+    "description": "A curl frontend with the ease of use of HTTPie.",
+    "homepage": "https://github.com/rs/curlie",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "ATAC",
+    "description": "A feature-full TUI API client made in Rust.",
+    "homepage": "https://github.com/Julien-cpsn/ATAC",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "doing",
+    "description": "Keep track of what you\u2019re doing and track what you\u2019ve done.",
+    "homepage": "https://github.com/ttscoff/doing/",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "ffscreencast",
+    "description": "A ffmpeg screencast with video overlay and multi monitor support.",
+    "homepage": "https://github.com/cytopia/ffscreencast",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "meetup-cli",
+    "description": "Meetup.com client.",
+    "homepage": "https://github.com/specious/meetup-cli",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "NeoMutt",
+    "description": "Email client.",
+    "homepage": "https://neomutt.org",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "terjira",
+    "description": "Jira client.",
+    "homepage": "https://github.com/keepcosmos/terjira",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "ipt",
+    "description": "Pivotal Tracker client.",
+    "homepage": "https://github.com/drselump14/ipt",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "uber-cli",
+    "description": "Uber client.",
+    "homepage": "https://github.com/jaebradley/uber-cli",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "Buku",
+    "description": "Browser-independent bookmark manager.",
+    "homepage": "https://github.com/jarun/Buku",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "papis",
+    "description": "Extensible document and bibliography manager.",
+    "homepage": "https://github.com/papis/papis",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "pubs",
+    "description": "Scientific bibliography manager.",
+    "homepage": "https://github.com/pubs/pubs",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "fjira",
+    "description": "Fuzzy finder and TUI application for Jira.",
+    "homepage": "https://github.com/mk-5/fjira",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "Timetrap",
+    "description": "Simple timetracker.",
+    "homepage": "https://github.com/samg/timetrap",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "moro",
+    "description": "Simple tool for tracking work hours.",
+    "homepage": "https://github.com/omidfi/moro",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "Timewarrior",
+    "description": "Utility with simple stopwatch, calendar-based backfill and flexible reporting.",
+    "homepage": "https://github.com/GothenburgBitFactory/timewarrior",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "Watson",
+    "description": "Generate reports for clients and manage your time.",
+    "homepage": "https://github.com/TailorDev/Watson",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "utt",
+    "description": "Simple time tracking tool.",
+    "homepage": "https://github.com/larose/utt",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "Bartib",
+    "description": "Easy to use time tracking tool.",
+    "homepage": "https://github.com/nikolassv/bartib",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "arttime",
+    "description": "Featureful timer with native desktop notifications and curated ASCII art.",
+    "homepage": "https://github.com/reportaman/arttime",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "idea",
+    "description": "A lightweight tool for keeping ideas in a safe place quick and easy.",
+    "homepage": "https://github.com/IonicaBizau/idea",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "geeknote",
+    "description": "Evernote client.",
+    "homepage": "https://github.com/vitaly-zdanevich/geeknote",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "Taskwarrior",
+    "description": "Manage your TODO list.",
+    "homepage": "https://taskwarrior.org/",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "Terminal velocity",
+    "description": "A fast note-taking app.",
+    "homepage": "https://vhp.github.io/terminal_velocity/",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "eureka",
+    "description": "Input and store your ideas.",
+    "homepage": "https://github.com/simeg/eureka",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "sncli",
+    "description": "Simplenote client.",
+    "homepage": "https://github.com/insanum/sncli",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "td-cli",
+    "description": "A TODO manager to organize and manage your TODO's across multiple projects.",
+    "homepage": "https://github.com/darrikonn/td-cli",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "taskbook",
+    "description": "Tasks, boards & notes for the command-line habitat.",
+    "homepage": "https://github.com/klaussinani/taskbook",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "dnote",
+    "description": "A interactive, multi-device notebook.",
+    "homepage": "https://github.com/dnote/dnote",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "nb",
+    "description": "A note\u2011taking, bookmarking, archiving, and knowledge base application.",
+    "homepage": "https://github.com/xwmx/nb",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "obs",
+    "description": "Interact with your Obsidian vault.",
+    "homepage": "https://github.com/Yakitrak/obsidian-cli",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "ledger",
+    "description": "Powerful, double-entry accounting system.",
+    "homepage": "https://ledger-cli.org/",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "hledger",
+    "description": "Robust, fast, intuitive plain text accounting tool with CLI, TUI and web interfaces.",
+    "homepage": "https://hledger.org/",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "moeda",
+    "description": "Foreign exchange rates and currency conversion.",
+    "homepage": "https://github.com/thompsonemerson/moeda",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "cash-cli",
+    "description": "Convert Currency Rates.",
+    "homepage": "https://github.com/xxczaki/cash-cli",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "cointop",
+    "description": "Track cryptocurrencies.",
+    "homepage": "https://github.com/miguelmota/cointop",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "ticker",
+    "description": "Stock ticker.",
+    "homepage": "https://github.com/achannarasappa/ticker",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "WOPR",
+    "description": "A simple markup language for creating rich terminal reports, presentations and infographics.",
+    "homepage": "https://github.com/yaronn/wopr",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "decktape",
+    "description": "PDF exporter for HTML presentations.",
+    "homepage": "https://github.com/astefanutti/decktape",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "mdp",
+    "description": "A markdown presentation tool.",
+    "homepage": "https://github.com/visit1985/mdp",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "sent",
+    "description": "Simple plaintext presentation tool.",
+    "homepage": "https://tools.suckless.org/sent/",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "slides",
+    "description": "A markdown presentation tool.",
+    "homepage": "https://github.com/maaslalani/slides",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "calcurse",
+    "description": "Calendar and scheduling.",
+    "homepage": "https://calcurse.org/",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "gcalcli",
+    "description": "Google calendar client.",
+    "homepage": "https://github.com/insanum/gcalcli",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "khal",
+    "description": "CalDAV ready CLI and TUI calendar.",
+    "homepage": "https://github.com/pimutils/khal",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "vdirsyncer",
+    "description": "CalDAV sync.",
+    "homepage": "https://github.com/pimutils/vdirsyncer",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "remind",
+    "description": "A sophisticated calendar and alarm program.",
+    "homepage": "https://dianne.skoll.ca/projects/remind/",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "birthday",
+    "description": "Know when a friend's birthday is coming.",
+    "homepage": "https://github.com/IonicaBizau/birthday",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "aria2",
+    "description": "HTTP, FTP, SFTP, BitTorrent and Metalink download utility.",
+    "homepage": "https://github.com/tatsuhiro-t/aria2",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "bitly-client",
+    "description": "Bitly client.",
+    "homepage": "https://github.com/specious/bitly-client",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "deadlink",
+    "description": "Find dead links in files.",
+    "homepage": "https://github.com/nschloe/deadlink",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "crawley",
+    "description": "Unix-way web crawler.",
+    "homepage": "https://github.com/s0rg/crawley",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "kill-tabs",
+    "description": "Kill all Chrome tabs.",
+    "homepage": "https://github.com/sindresorhus/kill-tabs",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "alex",
+    "description": "Catch insensitive, inconsiderate writing.",
+    "homepage": "https://github.com/get-alex/alex",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "clevercli",
+    "description": "Collection of ChatGPT powered utilities.",
+    "homepage": "https://github.com/clevercli/clevercli",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "open-pip-cli",
+    "description": "Watch videos in picture-in-picture player.",
+    "homepage": "https://github.com/albinekb/open-pip-cli",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "osx-wifi-cli",
+    "description": "Manage wifi connections.",
+    "homepage": "https://github.com/danyshaanan/osx-wifi-cli",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "active-win-cli",
+    "description": "Get the title/id/etc of the active window.",
+    "homepage": "https://github.com/sindresorhus/active-win-cli",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "stronghold",
+    "description": "Configure security settings from the terminal.",
+    "homepage": "https://github.com/alichtman/stronghold",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "dark-mode",
+    "description": "Toggle dark mode.",
+    "homepage": "https://github.com/sindresorhus/dark-mode",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "gotty",
+    "description": "Share your terminal as a web application.",
+    "homepage": "https://github.com/yudai/gotty",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "localtunnel",
+    "description": "Expose your localhost to the world for easy testing and sharing.",
+    "homepage": "https://github.com/localtunnel/localtunnel",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "mosh",
+    "description": "Remote SSH client that allows roaming with intermittent connectivity.",
+    "homepage": "https://mosh.org/",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "ngrok",
+    "description": "Secure introspectable tunnels to localhost.",
+    "homepage": "https://ngrok.com/",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "tmate",
+    "description": "Instant terminal (tmux) sharing.",
+    "homepage": "https://tmate.io/",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "warp",
+    "description": "Secure and simple terminal sharing.",
+    "homepage": "https://github.com/spolu/warp",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "OverTime",
+    "description": "Time-overlap tables for remote teams.",
+    "homepage": "https://github.com/diit/overtime-cli",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "xxh",
+    "description": "Bring your favorite shell wherever you go through the SSH.",
+    "homepage": "https://github.com/xxh/xxh",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "get-port-cli",
+    "description": "Get an available port.",
+    "homepage": "https://github.com/sindresorhus/get-port-cli",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "is-reachable-cli",
+    "description": "Check if hostnames are reachable or not.",
+    "homepage": "https://github.com/beatfreaker/is-reachable-cli",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "acmetool",
+    "description": "Automatic certificate acquisition for ACME (Let's Encrypt).",
+    "homepage": "https://github.com/hlandau/acmetool",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "certificate-ripper",
+    "description": "Extract server certificates.",
+    "homepage": "https://github.com/Hakky54/certificate-ripper",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "neoss",
+    "description": "User-friendly and detailed socket statistics.",
+    "homepage": "https://github.com/PabloLec/neoss",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "gg",
+    "description": "One-click proxy without installing v2ray or anything else.",
+    "homepage": "https://github.com/mzz2017/gg",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "sshuttle",
+    "description": "Transparent proxy server that works as a poor man's VPN.",
+    "homepage": "https://github.com/sshuttle/sshuttle",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "splash-cli",
+    "description": "Beautiful wallpapers from Unsplash.",
+    "homepage": "https://github.com/splash-cli/splash-cli",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "wallpaper-cli",
+    "description": "Get or set the desktop wallpaper.",
+    "homepage": "https://github.com/sindresorhus/wallpaper-cli",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "themer",
+    "description": "Generate personalized themes for your editor, terminal, wallpaper, Slack, and more.",
+    "homepage": "https://github.com/mjswensen/themer",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "JackPaper",
+    "description": "Set images from Unsplash as wallpaper.",
+    "homepage": "https://github.com/jackel27/jackpaper",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "QuickWall",
+    "description": "Directly set wallpapers from Unsplash.",
+    "homepage": "https://github.com/deepjyoti30/QuickWall",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "oh-my-posh",
+    "description": "Prompt theme engine.",
+    "homepage": "https://ohmyposh.dev",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "starship",
+    "description": "Minimal, blazing-fast, and infinitely customizable prompt for any shell.",
+    "homepage": "https://github.com/starship/starship",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "has",
+    "description": "Checks for the presence of various commands and their versions on the path.",
+    "homepage": "https://github.com/kdabir/has",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "Ultimate Plumber",
+    "description": "Write Linux pipes with live previews.",
+    "homepage": "https://github.com/akavel/up",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "fkill-cli",
+    "description": "Simple cross-platform process killer.",
+    "homepage": "https://github.com/sindresorhus/fkill-cli",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "task-spooler",
+    "description": "Queue jobs for linear execution.",
+    "homepage": "https://tracker.debian.org/pkg/task-spooler",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "undollar",
+    "description": "Strip the '$' preceding copy-pasted terminal commands.",
+    "homepage": "https://github.com/ImFeelingDucky/undollar",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "pipe_exec",
+    "description": "Run executables from stdin, pipes and ttys without creating a temporary file.",
+    "homepage": "https://github.com/koraa/pipe_exec",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "fastfetch",
+    "description": "System information tool.",
+    "homepage": "https://github.com/fastfetch-cli/fastfetch",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "battery-level-cli",
+    "description": "Get current battery level.",
+    "homepage": "https://github.com/gillstrom/battery-level-cli",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "brightness-cli",
+    "description": "Change screen brightness ([windows](https://github.com/sondreb/win-brightness)).",
+    "homepage": "https://github.com/kevva/brightness-cli",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "Clipboard",
+    "description": "Cut, copy, and paste anything, anywhere.",
+    "homepage": "https://github.com/Slackadays/Clipboard",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "yank",
+    "description": "Yank terminal output to clipboard.",
+    "homepage": "https://github.com/mptre/yank",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "screensaver",
+    "description": "Start the screensaver.",
+    "homepage": "https://github.com/gillstrom/screensaver",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "google-font-installer",
+    "description": "Download and install Google Web Fonts on your local machine.",
+    "homepage": "https://github.com/lordgiotto/google-font-installer",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "glances",
+    "description": "System monitoring tool.",
+    "homepage": "https://nicolargo.github.io/glances/",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "tiptop",
+    "description": "System monitor.",
+    "homepage": "https://github.com/nschloe/tiptop",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "gzip-size-cli",
+    "description": "Get the gzipped size of a file.",
+    "homepage": "https://github.com/sindresorhus/gzip-size-cli",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "DocToc",
+    "description": "Generates table of contents for markdown files.",
+    "homepage": "https://github.com/thlorenz/doctoc",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "grip",
+    "description": "Preview markdown files as GitHub would render them.",
+    "homepage": "https://github.com/joeyespo/grip",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "mdv",
+    "description": "Styled terminal markdown viewer.",
+    "homepage": "https://github.com/axiros/terminal_markdown_viewer",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "glow",
+    "description": "Styled markdown rendering.",
+    "homepage": "https://github.com/charmbracelet/glow",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "gtree",
+    "description": "Use markdown to generate directory trees and the directories itself.",
+    "homepage": "https://github.com/ddddddO/gtree",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "pass",
+    "description": "Password manager.",
+    "homepage": "https://www.passwordstore.org",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "gopass",
+    "description": "Fully-featured password manager.",
+    "homepage": "https://github.com/gopasspw/gopass",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "xiringuito",
+    "description": "SSH-based VPN.",
+    "homepage": "https://github.com/ivanilves/xiringuito",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "hasha-cli",
+    "description": "Get the hash of text or stdin.",
+    "homepage": "https://github.com/sindresorhus/hasha-cli",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "ots",
+    "description": "Share secrets with others via a one-time URL.",
+    "homepage": "https://github.com/sniptt-official/ots",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "mdlt",
+    "description": "Do quick math right from the command line.",
+    "homepage": "https://github.com/metadelta/mdlt",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "Qalculate",
+    "description": "Calculate non-trivial math expressions. Unit conversions, symbolic calculations and more.",
+    "homepage": "https://github.com/Qalculate/libqalculate",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "s",
+    "description": "Open a web search in your terminal.",
+    "homepage": "https://github.com/zquestz/s",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "hget",
+    "description": "Render websites in plain text from your terminal.",
+    "homepage": "https://github.com/bevacqua/hget",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "mapscii",
+    "description": "Terminal Map Viewer.",
+    "homepage": "https://github.com/rastapasta/mapscii",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "nasa-cli",
+    "description": "Download NASA Picture of the Day.",
+    "homepage": "https://github.com/xxczaki/nasa-cli",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "getnews.tech",
+    "description": "Fetch news headlines from various news outlets.",
+    "homepage": "https://github.com/omgimanerd/getnews.tech",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "trino",
+    "description": "Translation of words and phrases.",
+    "homepage": "https://github.com/eneserdogan/trino",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "translate-shell",
+    "description": "Google Translate interface.",
+    "homepage": "https://github.com/soimort/translate-shell",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "speedtest-net",
+    "description": "Test internet connection speed and ping using speedtest.net.",
+    "homepage": "https://github.com/ddsol/speedtest.net",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "speed-test",
+    "description": "`speedtest-net` wrapper with different UI.",
+    "homepage": "https://github.com/sindresorhus/speed-test",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "speedtest-cli",
+    "description": "Test internet bandwidth using speedtest.net.",
+    "homepage": "https://github.com/sivel/speedtest-cli",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "bandwhich",
+    "description": "Track bandwidth utilization by process.",
+    "homepage": "https://github.com/imsnif/bandwhich",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "cmdchallenge",
+    "description": "Presents small shell challenge with user submitted solutions.",
+    "homepage": "https://cmdchallenge.com",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "explainshell",
+    "description": "Type a snippet to see the help text for each argument.",
+    "homepage": "https://www.explainshell.com/",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "howdoi",
+    "description": "Instant coding answers.",
+    "homepage": "https://github.com/gleitz/howdoi",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "how2",
+    "description": "Node.js implementation of howdoi.",
+    "homepage": "https://github.com/santinic/how2",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "The Fuck",
+    "description": "Magnificent app which corrects your previous console command.",
+    "homepage": "https://github.com/nvbn/thefuck",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "tldr",
+    "description": "Simplified and community-driven man pages.",
+    "homepage": "https://github.com/tldr-pages/tldr",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "Wat",
+    "description": "Instant, central, community-built docs.",
+    "homepage": "https://github.com/dthree/wat",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "teachcode",
+    "description": "Guide for the earliest lessons of coding.",
+    "homepage": "https://github.com/madlabsinc/teachcode",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "navi",
+    "description": "Interactive cheatsheet tool.",
+    "homepage": "https://github.com/denisidoro/navi",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "yai",
+    "description": "AI powered terminal assistant.",
+    "homepage": "https://github.com/ekkinox/yai",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "visidata",
+    "description": "Spreadsheet multitool for data discovery and arrangement.",
+    "homepage": "https://github.com/saulpw/visidata",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "jq",
+    "description": "JSON processor.",
+    "homepage": "https://github.com/stedolan/jq",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "yq",
+    "description": "YAML processor.",
+    "homepage": "https://github.com/kislyuk/yq",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "dasel",
+    "description": "JSON/YAML/TOML/XML processor (like jq/yq).",
+    "homepage": "https://github.com/tomwright/dasel",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "yaml-cli",
+    "description": "Query/update YAML.",
+    "homepage": "https://github.com/pandastrike/yaml-cli",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "ramda-cli",
+    "description": "Process data with functional pipelines.",
+    "homepage": "https://github.com/raine/ramda-cli",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "xq",
+    "description": "XML and HTML beautifier and content extractor.",
+    "homepage": "https://github.com/sibprogrammer/xq",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "jp",
+    "description": "JSON parser.",
+    "homepage": "https://github.com/therealklanni/jp",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "fx",
+    "description": "Command-line JSON viewer.",
+    "homepage": "https://github.com/antonmedv/fx",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "vj",
+    "description": "Makes JSON human readable.",
+    "homepage": "https://github.com/busyloop/vj",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "underscore-cli",
+    "description": "Utility-belt for hacking JSON and Javascript.",
+    "homepage": "https://github.com/ddopson/underscore-cli",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "strip-json-comments-cli",
+    "description": "Strip comments from JSON.",
+    "homepage": "https://github.com/sindresorhus/strip-json-comments-cli",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "gron",
+    "description": "Make JSON greppable.",
+    "homepage": "https://github.com/tomnomnom/gron",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "dyff",
+    "description": "YAML diff tool.",
+    "homepage": "https://github.com/homeport/dyff",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "parse-columns-cli",
+    "description": "Parse text columns to JSON.",
+    "homepage": "https://github.com/sindresorhus/parse-columns-cli",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "q",
+    "description": "Execution of SQL-like queries on CSV/TSV/tabular text file.",
+    "homepage": "http://harelba.github.io/q/",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "figlet",
+    "description": "Creates large text out of ASCII characters.",
+    "homepage": "http://www.figlet.org/",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "stegcloak",
+    "description": "Hide secrets with invisible characters in plain text securely.",
+    "homepage": "https://github.com/kurolabs/stegcloak",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "ranger",
+    "description": "A console file manager with VI key bindings.",
+    "homepage": "https://github.com/ranger/ranger",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "midnight-commander",
+    "description": "A feature rich visual file manager.",
+    "homepage": "https://github.com/MidnightCommander/mc",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "Vifm",
+    "description": "VI influenced file manager.",
+    "homepage": "https://vifm.info/",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "nnn",
+    "description": "File browser and disk usage analyzer with excellent desktop integration.",
+    "homepage": "https://github.com/jarun/nnn",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "lf",
+    "description": "Fast, extensively customizable file manager.",
+    "homepage": "https://github.com/gokcehan/lf",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "clifm",
+    "description": "The command line file manager.",
+    "homepage": "https://github.com/leo-arch/clifm",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "far2l",
+    "description": "Orthodox file manager.",
+    "homepage": "https://github.com/elfmz/far2l",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "yazi",
+    "description": "Blazing fast file manager.",
+    "homepage": "https://github.com/sxyazi/yazi",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "xplr",
+    "description": "A hackable, minimal, fast TUI file explorer.",
+    "homepage": "https://github.com/sayanarijit/xplr",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "trash-cli",
+    "description": "Move files and directories to the trash.",
+    "homepage": "https://github.com/sindresorhus/trash-cli",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "empty-trash-cli",
+    "description": "Empty the trash.",
+    "homepage": "https://github.com/sindresorhus/empty-trash-cli",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "del-cli",
+    "description": "Delete files and folders.",
+    "homepage": "https://github.com/sindresorhus/del-cli",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "cpy-cli",
+    "description": "Copies files.",
+    "homepage": "https://github.com/sindresorhus/cpy-cli",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "rename-cli",
+    "description": "Rename files quickly.",
+    "homepage": "https://github.com/jhotmann/node-rename-cli",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "renameutils",
+    "description": "Mass renaming in your editor.",
+    "homepage": "https://www.nongnu.org/renameutils/",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "diskonaut",
+    "description": "Disk space navigator.",
+    "homepage": "https://github.com/imsnif/diskonaut",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "dua-cli",
+    "description": "Disk usage analyzer.",
+    "homepage": "https://github.com/Byron/dua-cli",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "duf",
+    "description": "A better `df` alternative.",
+    "homepage": "https://github.com/muesli/duf",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "dust",
+    "description": "A more intuitive version of `du` in Rust.",
+    "homepage": "https://github.com/bootandy/dust",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "dutree",
+    "description": "A tool to analyze file system usage written in Rust.",
+    "homepage": "https://github.com/nachoparker/dutree",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "NCDu",
+    "description": "A disk usage analyzer with an ncurses interface.",
+    "homepage": "https://dev.yorhel.nl/ncdu",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "chokidar-cli",
+    "description": "CLI to watch file system changes.",
+    "homepage": "https://github.com/open-cli-tools/chokidar-cli",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "file-type-cli",
+    "description": "Detect the file type of a file or stdin.",
+    "homepage": "https://github.com/sindresorhus/file-type-cli",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "bat",
+    "description": "A cat clone with syntax highlighting.",
+    "homepage": "https://github.com/sharkdp/bat",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "unix-permissions",
+    "description": "Swiss Army knife for Unix permissions.",
+    "homepage": "https://github.com/ehmicky/unix-permissions",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "transmission-cli",
+    "description": "Torrent client for your command line.",
+    "homepage": "https://transmissionbt.com",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "entr",
+    "description": "Run an arbitrary command when files change.",
+    "homepage": "https://github.com/eradman/entr",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "organize-cli",
+    "description": "Organize your files automatically.",
+    "homepage": "https://github.com/ManrajGrover/organize-cli",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "organize-rt",
+    "description": "organize-cli in Rust with more customization.",
+    "homepage": "https://gitlab.com/foxido/organize-rt",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "RecoverPy",
+    "description": "Recover overwritten or deleted files.",
+    "homepage": "https://github.com/PabloLec/RecoverPy",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "f2",
+    "description": "A cross-platform tool for fast, safe, and flexible batch renaming.",
+    "homepage": "https://github.com/ayoisaiah/f2",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "rclone",
+    "description": "Sync files with various cloud providers.",
+    "homepage": "https://github.com/ncw/rclone",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "ffsend",
+    "description": "Quick file share.",
+    "homepage": "https://github.com/timvisee/ffsend",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "share-cli",
+    "description": "Share files with your local network.",
+    "homepage": "https://github.com/marionebl/share-cli",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "google-drive-upload",
+    "description": "Upload/sync with Google Drive.",
+    "homepage": "https://github.com/labbots/google-drive-upload",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "gdrive-downloader",
+    "description": "Download files/folders from Google Drive.",
+    "homepage": "https://github.com/Akianonymus/gdrive-downloader",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "portal",
+    "description": "Send files between computers.",
+    "homepage": "https://github.com/ZinoKader/portal",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "shbin",
+    "description": "Turn a Github repo into a pastebin.",
+    "homepage": "https://github.com/Shiphero/shbin/",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "sharing",
+    "description": "Send and receive files on your mobile device.",
+    "homepage": "https://github.com/parvardegr/sharing",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "ncp",
+    "description": "Transfer files and folders, to and from NFS servers.",
+    "homepage": "https://github.com/kha7iq/ncp",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "alder",
+    "description": "Minimal `tree` with colors.",
+    "homepage": "https://github.com/aweary/alder",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "eza",
+    "description": "Improved version of `ls`.",
+    "homepage": "https://github.com/eza-community/eza",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "tre",
+    "description": "`tree` with git awareness, editor aliasing, and more.",
+    "homepage": "https://github.com/dduan/tre",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "ll",
+    "description": "`ls` with git status.",
+    "homepage": "https://github.com/antonmedv/ll",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "lsd",
+    "description": "`ls` with many extra features.",
+    "homepage": "https://github.com/Peltoche/lsd",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "autojump",
+    "description": "A cd command that learns - easily navigate directories from the command line.",
+    "homepage": "https://github.com/wting/autojump",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "pm",
+    "description": "The easy way to switch to your projects on the shell.",
+    "homepage": "https://github.com/Angelmmiguel/pm",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "z",
+    "description": "z is the new j, yo.",
+    "homepage": "https://github.com/rupa/z",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "PathPicker",
+    "description": "After parsing the output from a command, PathPicker presents you with a nice UI to select which files you're interested in.",
+    "homepage": "https://github.com/facebook/pathpicker/",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "fz",
+    "description": "Seamless fuzzy tab completion for z.",
+    "homepage": "https://github.com/changyuheng/fz.sh",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "goto",
+    "description": "Directory aliases for the shell with autocomplete.",
+    "homepage": "https://github.com/iridakos/goto",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "z.lua",
+    "description": "`cd` command that learns your habits.",
+    "homepage": "https://github.com/skywind3000/z.lua",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "zoxide",
+    "description": "Fast directory jumper in Rust.",
+    "homepage": "https://github.com/ajeetdsouza/zoxide",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "tere",
+    "description": "A faster alternative to using cd and ls.",
+    "homepage": "https://github.com/mgunyho/tere",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "happyfinder",
+    "description": "(another) Fuzzy file finder for the command line.",
+    "homepage": "https://github.com/hugows/hf",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "find-up-cli",
+    "description": "Find a file by walking up parent directories.",
+    "homepage": "https://github.com/sindresorhus/find-up-cli",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "ripgrep",
+    "description": "A line-oriented search tool that recursively searches your current directory for a regex pattern.",
+    "homepage": "https://github.com/BurntSushi/ripgrep",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "fzf",
+    "description": "A general purpose command-line fuzzy finder, can be used with any list: files/directories, command history, processes, hostnames, bookmarks, git commits, etc.",
+    "homepage": "https://github.com/junegunn/fzf",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "fselect",
+    "description": "Find files with SQL-like queries.",
+    "homepage": "https://github.com/jhspetersson/fselect",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "fd",
+    "description": "A simple, fast and user-friendly alternative to `find`.",
+    "homepage": "https://github.com/sharkdp/fd",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "broot",
+    "description": "Fuzzy finder similar to fzf, but with space usage visualization.",
+    "homepage": "https://github.com/Canop/broot",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "rare",
+    "description": "Real-time regex aggregation and analysis.",
+    "homepage": "https://github.com/zix99/rare",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "skim",
+    "description": "A general fuzzy finder written in Rust, similar to fzf.",
+    "homepage": "https://github.com/lotabout/skim",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "ast-grep",
+    "description": "A tool for code structural search, linting and rewriting.",
+    "homepage": "https://github.com/ast-grep/ast-grep",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "television",
+    "description": "A very fast general purpose fuzzy finder.",
+    "homepage": "https://github.com/alexpasmantier/television",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "SnowFS",
+    "description": "A fast, scalable version control system for binaries.",
+    "homepage": "https://github.com/snowtrack/snowfs",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "git commander",
+    "description": "Interactive git tool.",
+    "homepage": "https://github.com/golbin/git-commander",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "git-stats",
+    "description": "A local GitHub-like contributions calendar.",
+    "homepage": "https://github.com/IonicaBizau/git-stats",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "dev-time",
+    "description": "Get the current local time of a GitHub user.",
+    "homepage": "https://github.com/samverschueren/dev-time-cli",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "tig",
+    "description": "Text-mode interface for git.",
+    "homepage": "https://github.com/jonas/tig",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "grv",
+    "description": "Text-mode interface for git with customisable vi bindings.",
+    "homepage": "https://github.com/rgburke/grv",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "git-standup",
+    "description": "Recall what you did on the last working day.",
+    "homepage": "https://github.com/kamranahmedse/git-standup",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "git-secret",
+    "description": "Store your private data inside a git repository.",
+    "homepage": "https://github.com/sobolevn/git-secret",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "gitlab-cli",
+    "description": "Create GitLab merge requests.",
+    "homepage": "https://github.com/vishwanatharondekar/gitlab-cli",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "git-extras",
+    "description": "Git utilities.",
+    "homepage": "https://github.com/tj/git-extras",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "gita",
+    "description": "Manage multiple git repos side by side.",
+    "homepage": "https://github.com/nosarthur/gita",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "readme-md-generator",
+    "description": "Interactively generate README.md files.",
+    "homepage": "https://github.com/kefranabg/readme-md-generator",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "semantic-git-commit-cli",
+    "description": "Ensure semantic commits messages.",
+    "homepage": "https://github.com/JPeer264/node-semantic-git-commit-cli",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "import-github-labels-cli",
+    "description": "Sync labels between Github repos.",
+    "homepage": "https://github.com/abhijithvijayan/import-github-labels-cli",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "git-all-branches",
+    "description": "Improved `git branch -a`.",
+    "homepage": "https://github.com/zacanger/git-all-branches",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "czg",
+    "description": "Interactively generate standardized commit messages.",
+    "homepage": "https://github.com/Zhengqbbb/cz-git/tree/main/packages/cli",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "shallow-backup",
+    "description": "Git integrated backup tool.",
+    "homepage": "https://github.com/alichtman/shallow-backup",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "Lazygit",
+    "description": "Simple TUI for git commands.",
+    "homepage": "https://github.com/jesseduffield/lazygit",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "bash-git-prompt",
+    "description": "Informative and fancy bash prompt for Git users.",
+    "homepage": "https://github.com/magicmonty/bash-git-prompt",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "gitui",
+    "description": "Blazing fast terminal-ui for git written in Rust.",
+    "homepage": "https://github.com/extrawurst/gitui",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "CLI GitHub",
+    "description": "Fancy GitHub client.",
+    "homepage": "https://github.com/IonicaBizau/cli-github",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "hub",
+    "description": "Make git easier to use with GitHub.",
+    "homepage": "https://github.com/github/hub",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "git-labelmaker",
+    "description": "Edit GitHub labels.",
+    "homepage": "https://github.com/himynameisdave/git-labelmaker",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "gitmoji-cli",
+    "description": "Use emoji in commit messages.",
+    "homepage": "https://github.com/carloscuesta/gitmoji-cli",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "gitmoji-changelog",
+    "description": "Generate gitmoji changelogs.",
+    "homepage": "https://github.com/frinyvonnick/gitmoji-changelog",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "SVGO",
+    "description": "Optimize SVG files.",
+    "homepage": "https://github.com/svg/svgo",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "carbon-now-cli",
+    "description": "Generate beautiful images of your code.",
+    "homepage": "https://github.com/mixn/carbon-now-cli",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "imgur-uploader-cli",
+    "description": "Upload images to imgur.",
+    "homepage": "https://github.com/kevva/imgur-uploader-cli",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "pageres-cli",
+    "description": "Capture website screenshots.",
+    "homepage": "https://github.com/sindresorhus/pageres-cli",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "gifgen",
+    "description": "Simple high quality GIF encoding.",
+    "homepage": "https://github.com/lukechilds/gifgen",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "gifsicle",
+    "description": "Create, manipulate, and optimize GIF images and animations.",
+    "homepage": "https://github.com/kohler/gifsicle",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "ttygif",
+    "description": "Convert terminal recordings to animated gifs.",
+    "homepage": "https://github.com/icholy/ttygif",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "ttystudio",
+    "description": "A terminal-to-gif recorder minus the headaches.",
+    "homepage": "https://github.com/chjj/ttystudio",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "asciinema",
+    "description": "Terminal session recorder and companion app for asciinema.org.",
+    "homepage": "https://github.com/asciinema/asciinema",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "givegif",
+    "description": "GIFs on the command line.",
+    "homepage": "https://github.com/passy/givegif",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "imagemagick",
+    "description": "Gold standard for anything images.",
+    "homepage": "https://imagemagick.org",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "imgp",
+    "description": "Blazing fast batch image resizer and rotator.",
+    "homepage": "https://github.com/jarun/imgp",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "korkut",
+    "description": "Quick and simple image processing.",
+    "homepage": "https://github.com/oguzhaninan/korkut",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "cmatrix",
+    "description": "Scrolling 'Matrix'-like screen.",
+    "homepage": "https://github.com/Treri/cmatrix",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "pipes.sh",
+    "description": "Random pipes that grow across the screen.",
+    "homepage": "https://github.com/pipeseroni/pipes.sh",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "YuleLog",
+    "description": "Christmas Yule Log fireplace.",
+    "homepage": "https://github.com/Duroktar/YuleLog",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "cli-fireplace",
+    "description": "Digital fireplace.",
+    "homepage": "https://github.com/dolsup/cli-fireplace",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "cli-mandelbrot",
+    "description": "Traverse the Mandelbrot fractal.",
+    "homepage": "https://github.com/danyshaanan/cli-mandelbrot",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "sparkly-cli",
+    "description": "Generate sparklines \u2581\u2582\u2583\u2585\u2582\u2587..",
+    "homepage": "https://github.com/sindresorhus/sparkly-cli",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "pastel",
+    "description": "Generate, analyze, convert and manipulate colors.",
+    "homepage": "https://github.com/sharkdp/pastel",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "lowcharts",
+    "description": "Draw low-resolution graphs.",
+    "homepage": "https://github.com/juan-leon/lowcharts",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "quote-cli",
+    "description": "Get a random quote or the quote of the day in your CLI.",
+    "homepage": "https://github.com/riyadhalnur/quote-cli",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "fortune",
+    "description": "Shows a random fortune.",
+    "homepage": "https://github.com/shlomif/fortune-mod",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "ponysay",
+    "description": "Pony rewrite of cowsay.",
+    "homepage": "https://github.com/erkin/ponysay",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "yosay",
+    "description": "Like cowsay, but for yeoman.",
+    "homepage": "https://github.com/yeoman/yosay",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "lolcat",
+    "description": "Outputs text in rainbow colors.",
+    "homepage": "https://github.com/busyloop/lolcat",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "terminaltexteffects",
+    "description": "Plays elaborate animations of text input.",
+    "homepage": "https://github.com/ChrisBuilds/terminaltexteffects",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "text-meme",
+    "description": "Generate text memes.",
+    "homepage": "https://github.com/beatfreaker/text-meme-cli",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "dankcli",
+    "description": "Add text to meme image templates.",
+    "homepage": "https://github.com/sggts04/dankcli",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "ricksay",
+    "description": "Quotes from Rick and Morty.",
+    "homepage": "https://github.com/roma-guru/ricksay",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "emoj",
+    "description": "Find relevant emoji from text on the command-line.",
+    "homepage": "https://github.com/sindresorhus/emoj",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "emoji-finder",
+    "description": "Quickly find and copy emoji to the clipboard via the command-line.",
+    "homepage": "https://github.com/dematerializer/emoji-finder",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "oji",
+    "description": "Interactive text emoji maker.",
+    "homepage": "https://github.com/xxczaki/oji",
+    "source": "awesome-cli-apps"
+  },
+  {
+    "name": "awesome-git-addons",
+    "description": "Addons that extend git cli.",
+    "homepage": "https://github.com/stevemao/awesome-git-addons#readme",
+    "source": "awesome-cli-apps"
+  }
+]

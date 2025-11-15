@@ -1,0 +1,42 @@
+brew =
+  emoji = 🍺
+  install = brew install {package}
+  check = brew leaves --installed-on-request
+
+pacman =
+  emoji = 👾
+  install = sudo pacman -Syyu {package}
+  check = pacman -Qe | cut -f 1 -d " "
+
+npm =
+  emoji = 📦
+  install = npm install -g {package}
+  check = ls -1 `npm root -g`
+  _overrides =
+    windows =
+      check = npm root -g | gci -Name
+
+cargo =
+  emoji = 📦
+  install = cargo install {package}
+  check = cargo install --list | grep ':' | cut -d' ' -f1
+  _overrides =
+    windows =
+      check = cargo install --list | Where-Object { $_.endsWith(':')[0] } |% { $_.split(' ')[0] }
+
+nix =
+  emoji = 📈
+  install = nix-env -iA {package}
+  check = nix-env -q | rev | cut -d'-' -f2- | rev
+  prefix = nixpkgs.
+
+flathub =
+  emoji = 📦
+  install = flatpak install {package}
+  check = flatpak list --columns=application | cut -d'-' -f2-
+  prefix = flathub
+
+scoop =
+  emoji = 🍨
+  install = scoop install {package}
+  check = scoop export |% { $_.split(' ')[0] } |% { echo $_ }

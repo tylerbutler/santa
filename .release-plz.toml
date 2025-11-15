@@ -1,0 +1,26 @@
+[workspace]
+# Only release when merging release PR (manual control)
+release_always = false
+
+# Generate and update CHANGELOG.md
+changelog_update = true
+
+# Create GitHub releases
+git_release_enable = true
+
+# Publish to crates.io when release PR is merged
+publish = true
+
+# Check for API breaking changes with cargo-semver-checks
+semver_check = true
+
+# Changelog customization
+[changelog]
+header = """# Changelog
+
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+"""

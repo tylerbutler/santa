@@ -1,0 +1,68 @@
+// Santa Package Manager - Source Configurations
+// This file defines package manager sources with their commands and platform overrides
+
+// Homebrew - macOS package manager
+brew {
+    emoji "🍺"
+    install "brew install {package}"
+    check "brew leaves --installed-on-request"
+}
+
+// Pacman - Arch Linux package manager
+pacman {
+    emoji "👾"
+    install "sudo pacman -Syyu {package}"
+    check "pacman -Qe | cut -f 1 -d \" \""
+}
+
+// NPM - Node.js package manager
+npm {
+    emoji "📦"
+    install "npm install -g {package}"
+    check "ls -1 `npm root -g`"
+    
+    // Platform-specific overrides
+    _overrides {
+        windows {
+            check "npm root -g | gci -Name"
+        }
+    }
+}
+
+// Cargo - Rust package manager
+cargo {
+    emoji "📦"
+    install "cargo install {package}"
+    check "cargo install --list | grep ':' | cut -d' ' -f1"
+    
+    // Platform-specific overrides
+    _overrides {
+        windows {
+            check """cargo install --list | Where-Object { $_.endsWith(':')[0] } |% { $_.split('
+        ')[0] }"""
+        }
+    }
+}
+
+// Nix - Functional package manager
+nix {
+    emoji "📈"
+    install "nix-env -iA {package}"
+    check "nix-env -q | rev | cut -d'-' -f2- | rev"
+    prefix "nixpkgs."
+}
+
+// Flathub - Universal Linux packages
+flathub {
+    emoji "📦"
+    install "flatpak install {package}"
+    check "flatpak list --columns=application | cut -d'-' -f2-"
+    prefix "flathub "
+}
+
+// Scoop - Windows package manager
+scoop {
+    emoji "🍨"
+    install "scoop install {package}"
+    check "scoop export |% { $_.split(' ')[0] } |% { echo $_ }"
+}

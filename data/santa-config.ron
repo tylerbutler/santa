@@ -1,0 +1,10 @@
+// RON (Rust Object Notation) version of santa-config.yaml
+// User configuration file for Santa package manager
+// 
+// sources: List of preferred package managers in order of preference
+// packages: List of packages to manage with Santa
+
+{
+  "sources": ["npm", "cargo"],
+  "packages": ["rg", "zoxide", "yarn", "cargo-update"],
+}

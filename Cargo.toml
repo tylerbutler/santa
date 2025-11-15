@@ -5,46 +5,134 @@ edition = "2021"
 authors = ["Tyler Butler <tyler@tylerbutler.com>"]
 license = "MIT"
 description = "a tool that manages packages across different platforms"
+homepage = "https://github.com/tylerbutler/santa"
 repository = "https://github.com/tylerbutler/santa"
 readme = "README.md"
-rust-version = "1.56.0"
+rust-version = "1.80.0"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[features]
+default = []
+bench = []
 
 [dependencies]
-# anstream = "0.6.12"
-anyhow = "1.0.51"
-# cached = "0.34.0"
-# chrono = { version = "0.4", features = ["serde"] }
-clap = { version = "4", features = ["color", "derive", "cargo", "wrap_help"] }
-# clap-verbosity-flag = "1.0.0"
-# color-print = "0.3.5"
+# Error handling with context and chaining
+anyhow = "1.0.99"
+
+# Command-line argument parsing with derive macros and colors
+clap = { version = "4.5", features = ["color", "derive", "cargo", "wrap_help"] }
+
+# Shell completion generation for CLI commands
+clap_complete = "4.5"
+
+# Terminal color output for user-friendly messages
 colored = "2"
-config = "0.12"
-# console = "0.15.0"
+
+# Configuration file loading and management
+config = "0.14"
+
+# Interactive CLI prompts and user input
 dialoguer = "0.11.0"
+
+# Cross-platform directory path resolution
 directories = "4.0"
-# env_logger = "0.9.0"
-# if_chain = "1.0.0" # Used only in doc-tests, which `cargo-udeps` cannot check.
-# lazy_static = "1.4.0"
-log = "0.4.14"
-# memoize = "0.2.1"
-# owo-colors = { version = "3", features = ["supports-colors"] }
-# pest = "2.1.3"
-# pest_derive = "2.1.0"
-# phf = { version = "0.10", features = ["macros"] }
-serde = { version = "1.0.130", features = ["derive"] }
-serde-enum-str = "0.2.4"
-# serde_json = "1.0.72"
-serde_yaml = "0.8.23"
-simplelog = { version = "^0.12.1", features = ["paris"] }
+
+# Serialization framework with derive macros
+serde = { version = "1.0.219", features = ["derive"] }
+
+# String-based enum serialization for configuration
+serde-enum-str = "0.2.5"
+
+# JSON serialization for data exchange
+serde_json = "1.0"
+
+# CCL configuration parser with serde support
+serde_ccl = "0.1.1"
+
+# YAML parser for migration from legacy configs
+serde_yaml = "0.9"
+
+# Structured logging and tracing
+tracing = "0.1"
+
+# Tracing subscriber with environment-based filtering
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+# ASCII table formatting for command output
 tabular = "0.2.0"
-# term-table = "1.3.2"
-# structopt = "0.3.13"
-subprocess = "0.2.8"
-termcolor = "1.1.*"
-# yaml-rust = "0.4"
+
+# Async runtime with process execution and synchronization primitives
+tokio = { version = "1.47", features = ["process", "rt-multi-thread", "macros", "time", "sync"] }
+
+# Async utilities and combinators
+futures = "0.3"
+
+# High-performance caching with TTL and LRU eviction
+moka = { version = "0.12", features = ["sync", "logging"] }
+
+# Builder pattern code generation
+derive_builder = "0.12"
+
+# Cross-platform executable discovery
+which = "4.4"
+
+# Additional derive macros for common traits
+derive_more = "0.99"
+
+# Data validation with derive macros
+validator = { version = "0.20", features = ["derive"] }
+
+# File system change notifications for hot-reloading
+notify = "6.1"
+
+# Shell command escaping to prevent injection attacks
+shell-escape = "0.1"
+
+# Shell word splitting and quoting for command parsing
+shlex = "1.3"
+
+# Template engine for script generation (Jinja2/Django-style)
+tera = "1.19"
+
+# PowerShell script execution and management (Windows support)
+powershell_script = "1.1"
+
+# Date/time handling for script metadata
+chrono = { version = "0.4", features = ["serde"] }
+
+# Structured error types with derive macros
+thiserror = "1.0"
+
+[dev-dependencies]
+# Parameterized testing framework with fixtures
+rstest = "0.18"
+
+# Temporary file and directory creation for tests
+tempfile = "3.21"
+
+# Property-based testing with random input generation
+proptest = "1.7"
+
+# Mock generation for testing subprocess calls
+mockall = "0.12"
+
+# Integration testing for CLI applications
+assert_cmd = "2.0"
+
+# Predicate functions for test assertions
+predicates = "3.1"
+
+# Benchmarking framework with HTML reports
+criterion = { version = "0.5", features = ["html_reports", "async_tokio"] }
 
 [[bin]]
 name = "santa"
 path = "src/main.rs"
+
+[[bench]]
+name = "subprocess_performance"
+harness = false
+
+# The profile that 'dist' will build with
+[profile.dist]
+inherits = "release"
+lto = "thin"

@@ -1,74 +1,88 @@
 name: Test
 on:
   workflow_dispatch:
-  # push:
-  #   branches:
-  #     - main
-  #     - dev
+    inputs:
+      extended_platforms:
+        description: 'Run extended platform testing'
+        type: boolean
+        required: false
+        default: false
+  push:
+    branches:
+      - main
+      - dev
 jobs:
-  test-mac-win:
+  test-platforms:
     name: Test Rust ${{ matrix.rust }} on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         include:
-          - { rust: stable, os: macos-latest }
-          - { rust: stable, os: windows-latest }
-          # Note: If you don't know if you want to be
-          # testing on these configurations, you probably
-          # don't need to include these lines.
-          - { rust: stable-x86_64-gnu, os: windows-latest }
-          - { rust: stable-i686-msvc, os: windows-latest }
-          - { rust: stable-i686-gnu, os: windows-latest }
+          # Core platforms - always tested
+          - {rust: stable, os: ubuntu-latest}
+          - {rust: stable, os: macos-latest}
+          - {rust: stable, os: windows-latest}
     steps:
-      - uses: actions/checkout@v4
-      - uses: hecrj/setup-rust-action@v1
+      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # ratchet:actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@6d9817901c499d6b02debbb57edb38d33daa680b # ratchet:dtolnay/rust-toolchain@stable
         with:
-          rust-version: ${{ matrix.rust }}
+          toolchain: ${{ matrix.rust }}
+      - uses: Swatinem/rust-cache@98c8021b550208e191a6a3145459bfc9fb29c4c0 # ratchet:Swatinem/rust-cache@v2
+      - run: cargo test --verbose --workspace --all-features
+      - run: cargo test --verbose --workspace --no-default-features
+
+  test-extended-platforms:
+    name: Extended Test - ${{ matrix.rust }} on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    if: github.event.inputs.extended_platforms == 'true' || github.event_name == 'push'
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - {rust: stable-x86_64-gnu, os: windows-latest}
+          - {rust: stable-i686-msvc, os: windows-latest}
+          - {rust: stable-i686-gnu, os: windows-latest}
+    steps:
+      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # ratchet:actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@6d9817901c499d6b02debbb57edb38d33daa680b # ratchet:dtolnay/rust-toolchain@stable
+        with:
+          toolchain: ${{ matrix.rust }}
+      - uses: Swatinem/rust-cache@98c8021b550208e191a6a3145459bfc9fb29c4c0 # ratchet:Swatinem/rust-cache@v2
       - run: cargo test --verbose --workspace --all-features
       - run: cargo test --verbose --workspace --no-default-features
 
   cross-test:
-    name: Test on ${{ matrix.target }} (using cross)
+    name: Cross Test - ${{ matrix.target }}
     runs-on: ubuntu-latest
+    if: github.event.inputs.extended_platforms == 'true'
     strategy:
       fail-fast: false
       matrix:
         target:
+          # ARM targets - most relevant for CLI tools
+          - aarch64-unknown-linux-gnu
+          - armv7-unknown-linux-gnueabihf
           # 32-bit x86
           - i686-unknown-linux-gnu
-          # 32-bit ARM (on Android)
-          - armv7-linux-androideabi
-          # 64-bit ARM (on Android)
-          - aarch64-linux-android
-          # 32-bit MIPS(-BE) (that is: big endian)
-          - mips-unknown-linux-gnu
-          # 64-bit MIPS(-BE) (that is: big endian)
-          - mips64-unknown-linux-gnuabi64
-          # Tons of others...
     steps:
-      - uses: actions/checkout@v4
-      - uses: hecrj/setup-rust-action@v1.3.4
-      - run: cargo install cross
-      # Note: just use `cross` as you would `cargo`, but always
-      # pass the `--target=${{ matrix.target }}` arg. (Yes, really).
+      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # ratchet:actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@6d9817901c499d6b02debbb57edb38d33daa680b # ratchet:dtolnay/rust-toolchain@stable
+      - uses: taiki-e/install-action@0be4756f42223b67aa4b7df5effad59010cbf4b9 # ratchet:taiki-e/install-action@v2
+        with:
+          tool: cross
       - run: cross test --verbose --target=${{ matrix.target }} --no-default-features
       - run: cross test --verbose --target=${{ matrix.target }} --all-features
-      # ...
 
   checks:
     name: Checks
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # ratchet:actions/checkout@v4
       - name: Install Rust
-        uses: actions-rs/toolchain@v1
+        uses: dtolnay/rust-toolchain@6d9817901c499d6b02debbb57edb38d33daa680b # ratchet:dtolnay/rust-toolchain@stable
         with:
-          toolchain: stable
-          override: true
-          profile: minimal
           components: rustfmt
       - name: Check formatting
         run: |
