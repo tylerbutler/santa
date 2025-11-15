@@ -200,6 +200,7 @@ pre-release:
     just test
     just audit
     just build-release
+    just dist-plan
     @echo "✅ Pre-release checks complete!"
 
 # Build release binaries for all platforms
@@ -219,6 +220,24 @@ package:
     cp target/release/santa dist/santa-linux-arm64 2>/dev/null || echo "Linux ARM64 binary not found"
     [ -f dist/santa-linux-x64 ] && tar -czf dist/santa-linux-x64.tar.gz -C dist santa-linux-x64
     [ -f dist/santa-linux-arm64 ] && tar -czf dist/santa-linux-arm64.tar.gz -C dist santa-linux-arm64
+
+# cargo-dist Commands
+# ===================
+
+# Test local cargo-dist build
+dist-build:
+    @echo "🚀 Building with cargo-dist..."
+    ~/.cargo/bin/dist build
+
+# Preview what cargo-dist will release
+dist-plan:
+    @echo "📋 Planning release with cargo-dist..."
+    ~/.cargo/bin/dist plan
+
+# Re-run cargo-dist initialization
+dist-init:
+    @echo "🔧 Running cargo-dist init..."
+    ~/.cargo/bin/dist init
 
 # Development Workflow Commands
 # ============================

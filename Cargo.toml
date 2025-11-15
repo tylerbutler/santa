@@ -5,6 +5,7 @@ edition = "2021"
 authors = ["Tyler Butler <tyler@tylerbutler.com>"]
 license = "MIT"
 description = "a tool that manages packages across different platforms"
+homepage = "https://github.com/tylerbutler/santa"
 repository = "https://github.com/tylerbutler/santa"
 readme = "README.md"
 rust-version = "1.80.0"
@@ -130,3 +131,8 @@ path = "src/main.rs"
 [[bench]]
 name = "subprocess_performance"
 harness = false
+
+# The profile that 'dist' will build with
+[profile.dist]
+inherits = "release"
+lto = "thin"
