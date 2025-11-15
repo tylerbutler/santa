@@ -116,3 +116,4 @@ When working on this project:
 
 ---
 *This configuration reflects the current state as of September 2024. Update as new architectural patterns emerge.*
+- The CCL format is documented at ccl.tylerbutler.com.

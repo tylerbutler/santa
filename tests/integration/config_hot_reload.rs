@@ -7,7 +7,7 @@ use santa::configuration::SantaConfig;
 use santa::data::KnownSources;
 use santa::traits::Configurable;
 use std::fs;
-use tempfile::{NamedTempFile, TempDir};
+use tempfile::TempDir;
 
 #[tokio::test]
 async fn test_config_load_and_validation() {
