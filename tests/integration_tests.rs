@@ -1,6 +1,7 @@
-use assert_cmd::Command;
+use assert_cmd::prelude::*;
 use predicates::prelude::*;
 use std::io::Write;
+use std::process::Command;
 use tempfile::NamedTempFile;
 
 // Include the new integration test modules
@@ -8,7 +9,7 @@ mod integration;
 
 #[test]
 fn test_cli_help() {
-    let mut cmd = Command::cargo_bin("santa").unwrap();
+    let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("santa"));
     cmd.arg("--help");
     cmd.assert().success().stdout(predicate::str::contains(
         "a tool that manages packages across different platforms",
@@ -17,7 +18,7 @@ fn test_cli_help() {
 
 #[test]
 fn test_cli_version() {
-    let mut cmd = Command::cargo_bin("santa").unwrap();
+    let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("santa"));
     cmd.arg("--version");
     cmd.assert()
         .success()
@@ -26,7 +27,7 @@ fn test_cli_version() {
 
 #[test]
 fn test_config_builtin_only() {
-    let mut cmd = Command::cargo_bin("santa").unwrap();
+    let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("santa"));
     cmd.args(["config", "--builtin-only"]);
     cmd.assert()
         .success()
@@ -36,7 +37,7 @@ fn test_config_builtin_only() {
 
 #[test]
 fn test_completions_bash() {
-    let mut cmd = Command::cargo_bin("santa").unwrap();
+    let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("santa"));
     cmd.args(["completions", "bash"]);
     cmd.assert()
         .success()
@@ -46,7 +47,7 @@ fn test_completions_bash() {
 
 #[test]
 fn test_completions_zsh() {
-    let mut cmd = Command::cargo_bin("santa").unwrap();
+    let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("santa"));
     cmd.args(["completions", "zsh"]);
     cmd.assert()
         .success()
@@ -55,7 +56,7 @@ fn test_completions_zsh() {
 
 #[test]
 fn test_completions_fish() {
-    let mut cmd = Command::cargo_bin("santa").unwrap();
+    let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("santa"));
     cmd.args(["completions", "fish"]);
     cmd.assert()
         .success()
@@ -64,7 +65,7 @@ fn test_completions_fish() {
 
 #[test]
 fn test_status_with_builtin() {
-    let mut cmd = Command::cargo_bin("santa").unwrap();
+    let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("santa"));
     cmd.args(["status", "--builtin-only"]);
 
     // This test documents current behavior - may show missing packages
@@ -74,7 +75,7 @@ fn test_status_with_builtin() {
 
 #[test]
 fn test_status_all_with_builtin() {
-    let mut cmd = Command::cargo_bin("santa").unwrap();
+    let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("santa"));
     cmd.args(["status", "--all", "--builtin-only"]);
 
     cmd.assert().success();
@@ -82,7 +83,7 @@ fn test_status_all_with_builtin() {
 
 #[test]
 fn test_add_command_not_implemented() {
-    let mut cmd = Command::cargo_bin("santa").unwrap();
+    let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("santa"));
     cmd.args(["add", "git", "brew"]);
     cmd.assert()
         .failure()
@@ -91,7 +92,7 @@ fn test_add_command_not_implemented() {
 
 #[test]
 fn test_verbose_logging() {
-    let mut cmd = Command::cargo_bin("santa").unwrap();
+    let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("santa"));
     cmd.args(["config", "--builtin-only", "-v"]);
     cmd.assert()
         .success()
@@ -100,7 +101,7 @@ fn test_verbose_logging() {
 
 #[test]
 fn test_very_verbose_logging() {
-    let mut cmd = Command::cargo_bin("santa").unwrap();
+    let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("santa"));
     cmd.args(["config", "--builtin-only", "-vv"]);
     cmd.assert()
         .success()
@@ -109,7 +110,7 @@ fn test_very_verbose_logging() {
 
 #[test]
 fn test_invalid_subcommand() {
-    let mut cmd = Command::cargo_bin("santa").unwrap();
+    let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("santa"));
     cmd.arg("invalid_command");
     cmd.assert()
         .failure()
@@ -129,7 +130,7 @@ packages: ["git", "rust"]
 
     // Test that we can load custom config (this will fail since the file path is different)
     // This test documents the current behavior and the need for better config file handling
-    let mut cmd = Command::cargo_bin("santa").unwrap();
+    let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("santa"));
     cmd.args(["config"]);
 
     // This will use default config since our temp file isn't in the expected location
@@ -149,7 +150,7 @@ fn test_security_command_injection_protection() {
 
     for dangerous_arg in dangerous_args {
         // Test with add command (which should fail safely)
-        let mut cmd = Command::cargo_bin("santa").unwrap();
+        let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("santa"));
         cmd.args(["add", dangerous_arg]);
         cmd.assert()
             .failure()
@@ -162,7 +163,7 @@ fn test_security_command_injection_protection() {
 
 #[test]
 fn test_config_output_format() {
-    let mut cmd = Command::cargo_bin("santa").unwrap();
+    let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("santa"));
     cmd.args(["config", "--builtin-only"]);
     cmd.assert()
         .success()
@@ -173,7 +174,7 @@ fn test_config_output_format() {
 
 #[test]
 fn test_no_arguments_shows_help() {
-    let mut cmd = Command::cargo_bin("santa").unwrap();
+    let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("santa"));
     cmd.assert()
         .failure()
         .stderr(predicate::str::contains("Usage:"));
@@ -181,7 +182,7 @@ fn test_no_arguments_shows_help() {
 
 #[test]
 fn test_config_packages_flag() {
-    let mut cmd = Command::cargo_bin("santa").unwrap();
+    let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("santa"));
     cmd.args(["config", "--packages", "--builtin-only"]);
     cmd.assert()
         .success()
@@ -195,22 +196,22 @@ fn test_full_workflow_simulation() {
     // This test simulates a complete user workflow
 
     // 1. Check help
-    let mut cmd = Command::cargo_bin("santa").unwrap();
+    let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("santa"));
     cmd.arg("--help");
     cmd.assert().success();
 
     // 2. Check current status
-    let mut cmd = Command::cargo_bin("santa").unwrap();
+    let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("santa"));
     cmd.args(["status", "--builtin-only"]);
     cmd.assert().success();
 
     // 3. View configuration
-    let mut cmd = Command::cargo_bin("santa").unwrap();
+    let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("santa"));
     cmd.args(["config", "--builtin-only"]);
     cmd.assert().success();
 
     // 4. Generate shell completions
-    let mut cmd = Command::cargo_bin("santa").unwrap();
+    let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("santa"));
     cmd.args(["completions", "bash"]);
     cmd.assert().success();
 

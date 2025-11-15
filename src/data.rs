@@ -1156,9 +1156,9 @@ git =
     fn test_source_list_load_from_str_errors() {
         // Test various invalid CCL structures for SourceList
         let invalid_ccl = [
-            "invalid: ccl: [structure",  // Invalid CCL syntax
-            "name = valid\nemoji = 🍺\ninvalid_structure",  // Invalid structure
-            "= null",  // Invalid CCL
+            "invalid: ccl: [structure",                    // Invalid CCL syntax
+            "name = valid\nemoji = 🍺\ninvalid_structure", // Invalid structure
+            "= null",                                      // Invalid CCL
         ];
 
         for ccl in invalid_ccl.iter() {
