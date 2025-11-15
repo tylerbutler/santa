@@ -1,20 +1,28 @@
-name: Lint Commits
+name: Lint PR Title
 
 on:
   pull_request:
-    types: [opened, synchronize, reopened]
+    types: [opened, synchronize, reopened, edited]
 
 jobs:
-  commitlint:
-    name: Validate commit messages
+  pr-title-lint:
+    name: Validate PR title (for squash merge)
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
-        with:
-          fetch-depth: 0
 
-      - name: Check commit messages
-        uses: wagoid/commitlint-github-action@v6
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          configFile: .commitlintrc.json
+          node-version: '20'
+
+      - name: Install commitlint
+        run: |
+          npm install --save-dev @commitlint/config-conventional @commitlint/cli
+
+      - name: Validate PR title
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          echo "$PR_TITLE" | npx commitlint --config .commitlintrc.json
