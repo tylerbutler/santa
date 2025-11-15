@@ -1,0 +1,14 @@
+/= Santa Package Manager - User Configuration
+/= CCL format for Santa configuration
+/= Defines preferred sources and default packages
+
+/= Preferred package manager sources in order of preference
+sources =
+  = brew
+  = cargo
+
+/= Default packages to install
+packages =
+  = cargo-update
+  = bat
+  = zoxide

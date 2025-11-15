@@ -37,21 +37,21 @@ jobs:
             target: x86_64-unknown-linux-gnu
             asset_name: santa
             command: cargo
-          # - name: linux-arm64
-          #   runner: ubuntu-latest
-          #   target: aarch64-unknown-linux-gnu
-          #   asset_name: santa
-          #   command: cross
+          - name: linux-arm64
+            runner: ubuntu-latest
+            target: aarch64-unknown-linux-gnu
+            asset_name: santa
+            command: cross
           - name: win-amd64
             runner: windows-latest
             target: x86_64-pc-windows-msvc
             asset_name: santa.exe
             command: cargo
-          # - name: macos-amd64
-          #   runner: macos-latest
-          #   target: x86_64-apple-darwin
-          #   asset_name: santa
-          #   command: cross
+          - name: macos-amd64
+            runner: macos-latest
+            target: x86_64-apple-darwin
+            asset_name: santa
+            command: cargo
           - name: macos-arm64
             runner: macos-latest
             target: aarch64-apple-darwin
@@ -60,17 +60,17 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # ratchet:actions/checkout@v4
 
       - name: Install Rust
-        uses: dtolnay/rust-toolchain@stable
+        uses: dtolnay/rust-toolchain@6d9817901c499d6b02debbb57edb38d33daa680b # ratchet:dtolnay/rust-toolchain@stable
         with:
           targets: "${{ matrix.target }}"
 
       - name: Setup Cache
-        uses: Swatinem/rust-cache@v2
+        uses: Swatinem/rust-cache@98c8021b550208e191a6a3145459bfc9fb29c4c0 # ratchet:Swatinem/rust-cache@v2
 
-      - uses: taiki-e/install-action@v2
+      - uses: taiki-e/install-action@0be4756f42223b67aa4b7df5effad59010cbf4b9 # ratchet:taiki-e/install-action@v2
         with:
           tool: "just,cargo-binstall,cargo-udeps"
 
@@ -78,14 +78,24 @@ jobs:
       # Install via cargo-binstall which is typically faster
       - name: Install Cross
         if: matrix.command == 'cross'
-        uses: taiki-e/install-action@v2
+        uses: taiki-e/install-action@0be4756f42223b67aa4b7df5effad59010cbf4b9 # ratchet:taiki-e/install-action@v2
         with:
           tool: "cross"
 
       - name: Build Binary
         run: ${{ matrix.command }} build --locked --release --target ${{ matrix.target }}
 
-      - uses: actions/upload-artifact@v3
+      - name: Prepare artifact path
+        id: artifact
+        shell: bash
+        run: |
+          if [[ "${{ matrix.command }}" == "cross" ]]; then
+            echo "path=target/${{ matrix.target }}/release/${{ matrix.asset_name }}" >> $GITHUB_OUTPUT
+          else
+            echo "path=target/release/${{ matrix.asset_name }}" >> $GITHUB_OUTPUT
+          fi
+
+      - uses: actions/upload-artifact@ff15f0306b3f739f7b6fd43fb5d26cd321bd4de5 # ratchet:actions/upload-artifact@v3
         with:
           name: ${{ matrix.target }}
-          path: target/release/${{ matrix.asset_name }}
+          path: ${{ steps.artifact.outputs.path }}

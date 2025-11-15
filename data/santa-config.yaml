@@ -1,12 +1,2 @@
-sources:
-  - npm
-  - cargo
-packages:
-  - rg
-  - zoxide
-
-  # npm-only packages
-  - yarn
-
-  # cargo packages
-  - cargo-update
+sources: [npm, cargo]
+packages: [rg, zoxide, yarn, cargo-update]

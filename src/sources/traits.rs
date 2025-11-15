@@ -1,9 +1,6 @@
 // use console::style;
-use log::warn;
 
 use crate::data::PackageData;
-
-use super::PackageSource;
 
 // pub trait Package {
 //     fn name(&self) -> String;
@@ -17,7 +14,7 @@ use super::PackageSource;
 // }
 
 pub trait InstallCapable {
-    fn install_packages(&self, pkg: &PackageData) {
+    fn install_packages(&self, _pkg: &PackageData) {
         unimplemented!();
     }
 }

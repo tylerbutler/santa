@@ -1,0 +1,138 @@
+# Santa Package Manager Installation Script
+# Generated: {{ timestamp }}
+# Version: {{ version }}
+# Source: {{ source_name }}
+# Packages: {{ package_count }}
+
+$ErrorActionPreference = "Stop"
+
+Write-Host "🎅 Santa Package Installation - {{ source_name }}" -ForegroundColor Green
+Write-Host "Generated: {{ timestamp }}" -ForegroundColor Gray
+Write-Host "Packages to install: {{ package_count }}" -ForegroundColor Gray
+Write-Host ""
+
+{% if manager == "scoop" %}
+# Scoop package installation
+if (Get-Command scoop -ErrorAction SilentlyContinue) {
+    Write-Host "📦 Installing Scoop packages..." -ForegroundColor Yellow
+    {% for package in packages %}
+    Write-Host "Installing {{ package }}..." -ForegroundColor Cyan
+    scoop install {{ package | powershell_escape }}
+    {% endfor %}
+    Write-Host "✅ Scoop installation completed" -ForegroundColor Green
+} else {
+    Write-Host "⚠️  Scoop not found. Please install Scoop first:" -ForegroundColor Red
+    Write-Host "   Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser" -ForegroundColor Yellow
+    Write-Host "   Invoke-RestMethod -Uri https://get.scoop.sh | Invoke-Expression" -ForegroundColor Yellow
+    Write-Host "   Then run this script again." -ForegroundColor Yellow
+    exit 1
+}
+
+{% elif manager == "choco" or manager == "chocolatey" %}
+# Chocolatey package installation
+if (Get-Command choco -ErrorAction SilentlyContinue) {
+    Write-Host "📦 Installing Chocolatey packages..." -ForegroundColor Yellow
+    {% for package in packages %}
+    Write-Host "Installing {{ package }}..." -ForegroundColor Cyan
+    choco install {{ package | powershell_escape }} -y
+    {% endfor %}
+    Write-Host "✅ Chocolatey installation completed" -ForegroundColor Green
+} else {
+    Write-Host "⚠️  Chocolatey not found. Please install Chocolatey first:" -ForegroundColor Red
+    Write-Host "   Set-ExecutionPolicy Bypass -Scope Process -Force" -ForegroundColor Yellow
+    Write-Host "   [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072" -ForegroundColor Yellow
+    Write-Host "   iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))" -ForegroundColor Yellow
+    Write-Host "   Then run this script again." -ForegroundColor Yellow
+    exit 1
+}
+
+{% elif manager == "winget" %}
+# Windows Package Manager (winget)
+if (Get-Command winget -ErrorAction SilentlyContinue) {
+    Write-Host "📦 Installing packages with Windows Package Manager..." -ForegroundColor Yellow
+    {% for package in packages %}
+    Write-Host "Installing {{ package }}..." -ForegroundColor Cyan
+    winget install {{ package | powershell_escape }} --accept-package-agreements --accept-source-agreements
+    {% endfor %}
+    Write-Host "✅ Winget installation completed" -ForegroundColor Green
+} else {
+    Write-Host "⚠️  Windows Package Manager (winget) not found." -ForegroundColor Red
+    Write-Host "   Please install it from the Microsoft Store or GitHub." -ForegroundColor Yellow
+    exit 1
+}
+
+{% elif manager == "npm" %}
+# NPM package installation
+if (Get-Command npm -ErrorAction SilentlyContinue) {
+    Write-Host "📦 Installing NPM packages globally..." -ForegroundColor Yellow
+    {% for package in packages %}
+    Write-Host "Installing {{ package }}..." -ForegroundColor Cyan
+    npm install -g {{ package | powershell_escape }}
+    {% endfor %}
+    Write-Host "✅ NPM installation completed" -ForegroundColor Green
+} else {
+    Write-Host "⚠️  NPM not found. Please install Node.js first." -ForegroundColor Red
+    exit 1
+}
+
+{% elif manager == "pip" or manager == "pip3" %}
+# Python pip package installation
+if (Get-Command {{ manager }} -ErrorAction SilentlyContinue) {
+    Write-Host "📦 Installing Python packages with {{ manager }}..." -ForegroundColor Yellow
+    {% for package in packages %}
+    Write-Host "Installing {{ package }}..." -ForegroundColor Cyan
+    {{ manager }} install {{ package | powershell_escape }}
+    {% endfor %}
+    Write-Host "✅ Python package installation completed" -ForegroundColor Green
+} else {
+    Write-Host "⚠️  {{ manager }} not found. Please install Python first." -ForegroundColor Red
+    exit 1
+}
+
+{% elif manager == "cargo" %}
+# Rust cargo package installation
+if (Get-Command cargo -ErrorAction SilentlyContinue) {
+    Write-Host "📦 Installing Rust packages with cargo..." -ForegroundColor Yellow
+    {% for package in packages %}
+    Write-Host "Installing {{ package }}..." -ForegroundColor Cyan
+    cargo install {{ package | powershell_escape }}
+    {% endfor %}
+    Write-Host "✅ Cargo installation completed" -ForegroundColor Green
+} else {
+    Write-Host "⚠️  Cargo not found. Please install Rust toolchain first." -ForegroundColor Red
+    Write-Host "   Visit https://rustup.rs/ for installation instructions." -ForegroundColor Yellow
+    exit 1
+}
+
+{% elif manager == "go" %}
+# Go package installation
+if (Get-Command go -ErrorAction SilentlyContinue) {
+    Write-Host "📦 Installing Go packages..." -ForegroundColor Yellow
+    {% for package in packages %}
+    Write-Host "Installing {{ package }}..." -ForegroundColor Cyan
+    go install {{ package | powershell_escape }}
+    {% endfor %}
+    Write-Host "✅ Go installation completed" -ForegroundColor Green
+} else {
+    Write-Host "⚠️  Go not found. Please install Go first." -ForegroundColor Red
+    exit 1
+}
+
+{% else %}
+# Generic package manager
+if (Get-Command {{ manager }} -ErrorAction SilentlyContinue) {
+    Write-Host "📦 Installing packages with {{ manager }}..." -ForegroundColor Yellow
+    {% for package in packages %}
+    Write-Host "Installing {{ package }}..." -ForegroundColor Cyan
+    & {{ manager }} install {{ package | powershell_escape }}
+    {% endfor %}
+    Write-Host "✅ Installation completed" -ForegroundColor Green
+} else {
+    Write-Host "⚠️  {{ manager }} not found. Please install {{ manager }} first." -ForegroundColor Red
+    exit 1
+}
+{% endif %}
+
+Write-Host ""
+Write-Host "🎉 All {{ package_count }} packages have been processed!" -ForegroundColor Green
+Write-Host "Generated by Santa v{{ version }} - https://github.com/tylerbutler/santa" -ForegroundColor Gray

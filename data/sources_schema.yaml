@@ -1,0 +1,90 @@
+# Sources Configuration Schema for Santa Package Manager
+# This schema defines the simplified format for package manager source definitions
+
+SourcesDefinition:
+  type: object
+  description: "Map of package source names to their configurations"
+  patternProperties:
+    "^[a-z-]+$":  # source names like brew, pacman, npm
+      type: object
+      description: "Configuration for a package manager source"
+      properties:
+        emoji:
+          type: string
+          description: "Emoji icon to represent this source"
+          example: "🍺"
+        
+        install:
+          type: string
+          description: "Command template to install packages. Use {package} placeholder"
+          example: "brew install {package}"
+        
+        check:
+          type: string
+          description: "Command to list installed packages from this source"
+          example: "brew list --formula"
+        
+        prefix:
+          type: string
+          description: "String to prepend to package names (optional)"
+          example: "nixpkgs."
+          
+        _overrides:
+          type: object
+          description: "Platform-specific command overrides"
+          properties:
+            windows:
+              type: object
+              properties:
+                install: { type: string }
+                check: { type: string }
+            linux:
+              type: object  
+              properties:
+                install: { type: string }
+                check: { type: string }
+            macos:
+              type: object
+              properties:
+                install: { type: string }
+                check: { type: string }
+      
+      required: [emoji, install, check]
+
+# Default Behavior:
+# - shell_command defaults to source name (brew source uses "brew" command)
+# - {package} placeholder gets replaced with actual package name
+# - prefix gets prepended to package name if specified
+# - _overrides apply platform-specific modifications
+
+examples:
+  # Simple source
+  brew:
+    emoji: "🍺"
+    install: "brew install {package}"
+    check: "brew list --formula"
+  
+  # Source with prefix
+  nix:
+    emoji: "📈"  
+    install: "nix-env -iA {package}"
+    check: "nix-env -q | rev | cut -d'-' -f2- | rev"
+    prefix: "nixpkgs."
+    # Results in: nix-env -iA nixpkgs.{package}
+  
+  # Source with platform overrides
+  npm:
+    emoji: "📦"
+    install: "npm install -g {package}"
+    check: "ls -1 `npm root -g`"
+    _overrides:
+      windows:
+        check: "npm root -g | gci -Name"
+
+# Migration Notes:
+# This format simplifies the current array-based format by:
+# 1. Using object keys instead of name fields
+# 2. Removing redundant shell_command (defaults to source name)
+# 3. Shortening field names (install_command → install)
+# 4. Simplifying platform overrides with _overrides object
+# 5. Using {package} placeholder consistently
