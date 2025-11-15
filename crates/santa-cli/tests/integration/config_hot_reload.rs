@@ -172,7 +172,7 @@ custom_sources =
     let initial_config = initial_result.unwrap();
     assert!(
         initial_config.custom_sources.is_none()
-            || initial_config.custom_sources.unwrap().len() == 0
+            || initial_config.custom_sources.unwrap().is_empty()
     );
 
     // Update config

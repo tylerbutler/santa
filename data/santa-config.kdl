@@ -1,8 +1,0 @@
-// Santa Package Manager - User Configuration
-// This file defines the default sources and packages for Santa
-
-// Default package manager sources to use
-sources "npm" "cargo"
-
-// Default packages to manage
-packages "rg" "zoxide" "yarn" "cargo-update"
