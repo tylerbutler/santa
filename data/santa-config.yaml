@@ -1,2 +1,0 @@
-sources: [npm, cargo]
-packages: [rg, zoxide, yarn, cargo-update]
