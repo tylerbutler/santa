@@ -53,8 +53,7 @@ use tera::{Context, Tera, Value};
 /// The default mode is [`ExecutionMode::Safe`], which generates scripts that can be
 /// reviewed before execution. [`ExecutionMode::Execute`] directly runs commands and
 /// requires explicit opt-in
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[derive(Default)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
 pub enum ExecutionMode {
     /// Generate scripts only (safe default mode)
     #[default]
@@ -62,7 +61,6 @@ pub enum ExecutionMode {
     /// Execute commands directly (dangerous mode, requires opt-in)
     Execute,
 }
-
 
 /// Script formats for different platforms and shells.
 ///
