@@ -54,7 +54,7 @@ impl ConfigMigrator {
         // First, check if CCL version already exists
         if let Some(ccl_path) = variants
             .iter()
-            .find(|p| p.extension().map_or(false, |ext| ext == "ccl"))
+            .find(|p| p.extension().is_some_and(|ext| ext == "ccl"))
         {
             if ccl_path.exists() {
                 debug!("Found existing CCL config: {}", ccl_path.display());
@@ -65,7 +65,7 @@ impl ConfigMigrator {
         // Next, look for YAML versions to migrate
         for yaml_path in variants.iter().filter(|p| {
             p.extension()
-                .map_or(false, |ext| ext == "yaml" || ext == "yml")
+                .is_some_and(|ext| ext == "yaml" || ext == "yml")
         }) {
             if yaml_path.exists() {
                 info!("Found YAML config file: {}", yaml_path.display());

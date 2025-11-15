@@ -55,7 +55,7 @@ impl Configurable for SantaConfig {
         let migrator = ConfigMigrator::new();
         let actual_path = migrator
             .resolve_config_path(path)
-            .map_err(|e| SantaError::Config(e))?;
+            .map_err(SantaError::Config)?;
 
         let contents = std::fs::read_to_string(&actual_path).map_err(SantaError::Io)?;
 

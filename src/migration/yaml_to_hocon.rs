@@ -138,12 +138,9 @@ fn needs_quoting(s: &str) -> bool {
     }
 
     // Check for special characters that require quoting
-    s.chars().any(|c| match c {
-        ' ' | '\t' | '\n' | '\r' | '"' | '\'' | '\\' | '{' | '}' | '[' | ']' | '=' | ':' | ','
+    s.chars().any(|c| matches!(c, ' ' | '\t' | '\n' | '\r' | '"' | '\'' | '\\' | '{' | '}' | '[' | ']' | '=' | ':' | ','
         | '#' | '!' | '@' | '$' | '%' | '^' | '&' | '*' | '(' | ')' | '+' | '|' | '?' | '<'
-        | '>' => true,
-        _ => false,
-    }) || s.starts_with('-')
+        | '>')) || s.starts_with('-')
         || s.chars().all(|c| c.is_ascii_digit() || c == '.')
 }
 
