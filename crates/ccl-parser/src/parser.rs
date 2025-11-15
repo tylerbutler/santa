@@ -17,9 +17,7 @@ impl From<CclValue> for Value {
     fn from(ccl: CclValue) -> Self {
         match ccl {
             CclValue::String(s) => Value::String(s),
-            CclValue::Array(arr) => {
-                Value::Array(arr.into_iter().map(Value::String).collect())
-            }
+            CclValue::Array(arr) => Value::Array(arr.into_iter().map(Value::String).collect()),
             CclValue::Object(pairs) => {
                 let mut map = serde_json::Map::new();
                 for (k, v) in pairs {
