@@ -33,6 +33,8 @@ setup:
     cargo install cargo-audit --locked || echo "cargo-audit already installed"
     cargo install cargo-deny --locked || echo "cargo-deny already installed"
     cargo install cargo-watch --locked || echo "cargo-watch already installed"
+    cargo install cargo-outdated --locked || echo "cargo-outdated already installed"
+    cargo install cargo-dist --locked || echo "cargo-dist already installed"
     @echo "✅ Development setup complete!"
 
 # Build the project in debug mode
