@@ -45,19 +45,22 @@ santa --version
 ### CCL Configuration
 
 ```ccl
-sources = [brew, cargo, apt]
+/= Preferred package manager sources in order of preference
+sources =
+  = brew
+  = cargo
+  = apt
 
-packages = {
-  bat: "Better cat"
-  ripgrep: "Fast grep"
-  git: "Version control"
-}
+/= Default packages to install
+packages =
+  = bat
+  = ripgrep
+  = git
 
-package_names = {
-  brew: {
-    rust: "rustup"
-  }
-}
+/= Package name overrides per source
+package_names =
+  brew =
+    rust = rustup
 ```
 
 ### Environment Variables
