@@ -1,0 +1,27 @@
+// Example of simple package format
+// Packages that have the same name across all sources
+
+bat =
+  = brew
+  = scoop
+  = pacman
+  = nix
+
+fd =
+  = brew
+  = scoop
+  = pacman
+  = nix
+
+git =
+  = brew
+  = scoop
+  = apt
+  = pacman
+
+jq =
+  = brew
+  = scoop
+  = pacman
+  = nix
+  = apt

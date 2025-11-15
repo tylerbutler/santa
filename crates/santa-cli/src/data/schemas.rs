@@ -6,10 +6,41 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
 /// Package definition matching package_schema.yaml
-/// All packages use the complex format with _sources field in CCL
-pub type PackageDefinition = ComplexPackageDefinition;
-
+/// Supports both simple array format and complex object format
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum PackageDefinition {
+    /// Simple array format: just a list of source names
+    Simple(Vec<String>),
+    /// Complex object format: with metadata and source-specific configs
+    Complex(ComplexPackageDefinition),
+}
+
+impl PackageDefinition {
+    /// Get all sources where this package is available
+    pub fn get_sources(&self) -> Vec<&str> {
+        match self {
+            PackageDefinition::Simple(sources) => sources.iter().map(|s| s.as_str()).collect(),
+            PackageDefinition::Complex(complex) => complex.get_sources(),
+        }
+    }
+
+    /// Get source-specific configuration for a source
+    pub fn get_source_config(&self, source: &str) -> Option<&SourceSpecificConfig> {
+        match self {
+            PackageDefinition::Simple(_) => None,
+            PackageDefinition::Complex(complex) => complex.get_source_config(source),
+        }
+    }
+
+    /// Check if package is available in a specific source
+    pub fn is_available_in(&self, source: &str) -> bool {
+        self.get_sources().contains(&source)
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[serde(default)]
 pub struct ComplexPackageDefinition {
     /// List of sources where package is available with same name as key
     #[serde(rename = "_sources", skip_serializing_if = "Option::is_none")]
@@ -178,16 +209,48 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_package_definition_ccl() {
+    fn test_package_definition_simple_format() {
+        // Test simple array format using our custom ccl-parser
         let ccl = r#"
-brew = gh
-_sources =
+bat =
+  = brew
   = scoop
-  = apt
   = pacman
   = nix
 "#;
-        let def: PackageDefinition = serde_ccl::from_str(ccl).unwrap();
+        let packages: HashMap<String, PackageDefinition> = ccl_parser::parse_ccl_to(ccl).unwrap();
+        let def = packages.get("bat").unwrap();
+
+        assert!(def.is_available_in("brew"));
+        assert!(def.is_available_in("scoop"));
+        assert!(def.is_available_in("pacman"));
+        assert!(def.is_available_in("nix"));
+
+        // Simple format should not have source configs
+        assert!(def.get_source_config("brew").is_none());
+
+        // Check that all sources are present
+        let sources = def.get_sources();
+        assert_eq!(sources.len(), 4);
+        assert!(sources.contains(&"brew"));
+        assert!(sources.contains(&"scoop"));
+        assert!(sources.contains(&"pacman"));
+        assert!(sources.contains(&"nix"));
+    }
+
+    #[test]
+    fn test_package_definition_complex_format() {
+        let ccl = r#"
+ripgrep =
+  brew = gh
+  _sources =
+    = scoop
+    = apt
+    = pacman
+    = nix
+"#;
+        let packages: HashMap<String, PackageDefinition> = ccl_parser::parse_ccl_to(ccl).unwrap();
+        let def = packages.get("ripgrep").unwrap();
 
         assert!(def.is_available_in("brew"));
         assert!(def.is_available_in("scoop"));
@@ -199,6 +262,7 @@ _sources =
         assert!(sources.contains(&"apt"));
         assert!(sources.contains(&"pacman"));
         assert!(sources.contains(&"nix"));
+        assert!(sources.contains(&"brew"));
     }
 
     #[test]

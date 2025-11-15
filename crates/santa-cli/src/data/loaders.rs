@@ -13,11 +13,13 @@ use crate::data::{KnownSources, PackageData, PackageDataList, SourceList};
 use crate::sources::PackageSource;
 
 /// Load packages from the new schema format
+/// Supports both simple array format and complex object format
 pub fn load_packages_from_schema(path: &Path) -> Result<HashMap<String, PackageDefinition>> {
     let content = fs::read_to_string(path)
         .with_context(|| format!("Failed to read packages file: {:?}", path))?;
 
-    let packages: HashMap<String, PackageDefinition> = serde_ccl::from_str(&content)
+    // Use our custom CCL parser that handles both simple and complex formats
+    let packages: HashMap<String, PackageDefinition> = ccl_parser::parse_ccl_to(&content)
         .with_context(|| format!("Failed to parse CCL packages: {:?}", path))?;
 
     info!("Loaded {} packages from schema format", packages.len());
@@ -163,7 +165,128 @@ mod tests {
     use tempfile::NamedTempFile;
 
     #[test]
-    fn test_load_simple_packages() {
+    fn test_debug_ccl_parsing() {
+        println!("\n=== DEBUGGING SERDE_CCL PARSING ===\n");
+
+        // Test 1: What does serde_ccl return for a raw array?
+        let array_ccl = r#"
+  = brew
+  = scoop
+"#;
+        println!("--- Test 1: Raw array ---");
+        println!("Input CCL:\n{}", array_ccl);
+
+        let vec_result: Result<Vec<String>, _> = serde_ccl::from_str(array_ccl);
+        println!("Vec<String> result: {:?}\n", vec_result);
+
+        let json_value: Result<serde_json::Value, _> = serde_ccl::from_str(array_ccl);
+        println!("serde_json::Value result: {:?}\n", json_value);
+
+        // Test 2: What about in a HashMap context?
+        let full_simple = r#"
+test_pkg =
+  = brew
+  = scoop
+"#;
+        println!("--- Test 2: HashMap with simple array ---");
+        println!("Input CCL:\n{}", full_simple);
+
+        // Parse as generic Value to see structure
+        let json_result: Result<serde_json::Value, _> = serde_ccl::from_str(full_simple);
+        println!("As serde_json::Value: {:#?}\n", json_result);
+
+        // Parse as HashMap<String, Value>
+        let hash_value: Result<HashMap<String, serde_json::Value>, _> =
+            serde_ccl::from_str(full_simple);
+        println!("As HashMap<String, Value>: {:#?}\n", hash_value);
+
+        // What type does the value have?
+        if let Ok(ref map) = hash_value {
+            if let Some(value) = map.get("test_pkg") {
+                println!("Value type for 'test_pkg': ");
+                println!("  is_string: {}", value.is_string());
+                println!("  is_array: {}", value.is_array());
+                println!("  is_object: {}", value.is_object());
+                println!("  is_null: {}", value.is_null());
+                println!("  is_boolean: {}", value.is_boolean());
+                println!("  is_number: {}", value.is_number());
+                println!("  actual value: {:#?}\n", value);
+            }
+        }
+
+        // Test 3: Compare with complex format
+        let full_complex = r#"
+test_pkg =
+  _sources =
+    = brew
+    = scoop
+"#;
+        println!("--- Test 3: HashMap with complex format ---");
+        println!("Input CCL:\n{}", full_complex);
+
+        let complex_json: Result<serde_json::Value, _> = serde_ccl::from_str(full_complex);
+        println!("As serde_json::Value: {:#?}\n", complex_json);
+
+        let complex_hash: Result<HashMap<String, serde_json::Value>, _> =
+            serde_ccl::from_str(full_complex);
+        println!("As HashMap<String, Value>: {:#?}\n", complex_hash);
+
+        if let Ok(ref map) = complex_hash {
+            if let Some(value) = map.get("test_pkg") {
+                println!("Value type for 'test_pkg': ");
+                println!("  is_string: {}", value.is_string());
+                println!("  is_array: {}", value.is_array());
+                println!("  is_object: {}", value.is_object());
+                println!("  actual value: {:#?}\n", value);
+            }
+        }
+
+        println!("=== END DEBUGGING ===\n");
+    }
+
+    #[test]
+    fn test_load_simple_array_format() {
+        // Test loading packages in simple array format using our custom ccl-parser
+        // that works around serde_ccl limitations
+
+        let ccl_content = r#"
+bat =
+  = brew
+  = scoop
+  = pacman
+  = nix
+
+fd =
+  = brew
+  = scoop
+"#;
+
+        let mut temp_file = NamedTempFile::new().unwrap();
+        temp_file.write_all(ccl_content.as_bytes()).unwrap();
+        temp_file.flush().unwrap();
+
+        let packages = load_packages_from_schema(temp_file.path()).unwrap();
+
+        assert_eq!(packages.len(), 2);
+        assert!(packages.contains_key("bat"));
+        assert!(packages.contains_key("fd"));
+
+        // Test simple array format
+        let bat = &packages["bat"];
+        assert!(bat.is_available_in("brew"));
+        assert!(bat.is_available_in("scoop"));
+        assert!(bat.is_available_in("pacman"));
+        assert!(bat.is_available_in("nix"));
+        assert_eq!(bat.get_sources().len(), 4);
+
+        let fd = &packages["fd"];
+        assert!(fd.is_available_in("brew"));
+        assert!(fd.is_available_in("scoop"));
+        assert_eq!(fd.get_sources().len(), 2);
+    }
+
+    #[test]
+    fn test_load_complex_packages() {
         let ccl_content = r#"
 bat =
   _sources =
@@ -190,12 +313,12 @@ ripgrep =
         assert!(packages.contains_key("bat"));
         assert!(packages.contains_key("ripgrep"));
 
-        // Test simple format
+        // Test complex format with _sources
         let bat = &packages["bat"];
         assert!(bat.is_available_in("brew"));
         assert!(bat.is_available_in("nix"));
 
-        // Test complex format
+        // Test complex format with source override
         let ripgrep = &packages["ripgrep"];
         assert!(ripgrep.is_available_in("brew"));
         assert!(ripgrep.is_available_in("scoop"));
@@ -238,16 +361,37 @@ npm =
     }
 
     #[test]
-    fn test_convert_to_legacy() {
+    fn test_convert_simple_format_to_legacy() {
+        let mut schema_packages = HashMap::new();
+        // Simple format: just an array of sources
+        schema_packages.insert(
+            "bat".to_string(),
+            PackageDefinition::Simple(vec!["brew".to_string(), "scoop".to_string()]),
+        );
+
+        let legacy = convert_to_legacy_packages(schema_packages);
+
+        assert!(legacy.contains_key("bat"));
+        let bat_sources = &legacy["bat"];
+        assert!(bat_sources.contains_key(&KnownSources::Brew));
+        assert!(bat_sources.contains_key(&KnownSources::Scoop));
+
+        // Simple format should have None for package data (same name)
+        assert_eq!(bat_sources.get(&KnownSources::Brew), Some(&None));
+        assert_eq!(bat_sources.get(&KnownSources::Scoop), Some(&None));
+    }
+
+    #[test]
+    fn test_convert_complex_format_to_legacy() {
         let mut schema_packages = HashMap::new();
         schema_packages.insert(
             "bat".to_string(),
-            ComplexPackageDefinition {
+            PackageDefinition::Complex(ComplexPackageDefinition {
                 sources: Some(vec!["brew".to_string(), "scoop".to_string()]),
                 platforms: None,
                 aliases: None,
                 source_configs: HashMap::new(),
-            },
+            }),
         );
 
         let legacy = convert_to_legacy_packages(schema_packages);
