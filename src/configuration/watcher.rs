@@ -302,8 +302,15 @@ mod tests {
     #[tokio::test]
     async fn test_config_reload_validation() {
         let valid_config = r#"
-sources: ["brew", "cargo"]
-packages: ["git", "rust"]
+sources =
+  = brew
+  = npm
+  = cargo
+packages =
+  = cargo-update
+  = yarn
+  = zoxide
+  = rg
         "#;
 
         let mut temp_file = NamedTempFile::new().unwrap();
@@ -313,15 +320,15 @@ packages: ["git", "rust"]
         let data = SantaData::default();
         let result = ConfigWatcher::reload_config(temp_file.path(), &data).await;
 
-        assert!(result.is_ok());
+        assert!(result.is_ok(), "Config reload failed: {:?}", result.err());
         let config = result.unwrap();
-        assert_eq!(config.sources.len(), 2);
-        assert_eq!(config.packages.len(), 2);
+        assert_eq!(config.sources.len(), 3);
+        assert_eq!(config.packages.len(), 4);
     }
 
     #[tokio::test]
     async fn test_config_reload_invalid_yaml() {
-        let invalid_config = "invalid: yaml: content: [";
+        let invalid_config = "invalid: ccl: content: [";
 
         let mut temp_file = NamedTempFile::new().unwrap();
         writeln!(temp_file, "{invalid_config}").unwrap();
@@ -331,17 +338,23 @@ packages: ["git", "rust"]
         let result = ConfigWatcher::reload_config(temp_file.path(), &data).await;
 
         assert!(result.is_err());
-        assert!(result
-            .unwrap_err()
-            .to_string()
-            .contains("Failed to load config"));
+        let err_msg = result.unwrap_err().to_string();
+        // CCL parse errors contain different text than YAML errors
+        assert!(
+            err_msg.contains("Failed to load config")
+                || err_msg.contains("expected")
+                || err_msg.contains("parse")
+        );
     }
 
     #[tokio::test]
     async fn test_config_reload_validation_failure() {
+        // Config with invalid package (not available in any source)
         let invalid_config = r#"
-sources: []
-packages: ["git"]
+sources =
+  = brew
+packages =
+  = nonexistent-package-12345
         "#;
 
         let mut temp_file = NamedTempFile::new().unwrap();
@@ -353,11 +366,11 @@ packages: ["git"]
 
         assert!(result.is_err());
         let error_msg = result.unwrap_err().to_string();
-        // The error should contain information about failure to load the config
-        // (which includes validation failure in the chain)
+        // The error should contain information about validation failure
         assert!(
-            error_msg.contains("Failed to load config from")
-                || error_msg.contains("At least one source must be configured")
+            error_msg.contains("not available")
+                || error_msg.contains("validation failed")
+                || error_msg.contains("compatibility")
         );
     }
 }

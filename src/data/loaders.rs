@@ -6,7 +6,7 @@ use std::fs;
 use std::path::Path;
 use tracing::{info, warn};
 
-use super::schemas::{ConfigDefinition, PackageDefinition, SourcesDefinition};
+use super::schemas::{ComplexPackageDefinition, ConfigDefinition, PackageDefinition, SourcesDefinition};
 use crate::data::{KnownSources, PackageData, PackageDataList, SourceList};
 use crate::sources::PackageSource;
 
@@ -162,15 +162,24 @@ mod tests {
 
     #[test]
     fn test_load_simple_packages() {
-        let yaml_content = r#"
-bat: [brew, scoop, pacman, nix]
-ripgrep:
-  brew: rg
-  _sources: [scoop, pacman, nix]
+        let ccl_content = r#"
+bat =
+  _sources =
+    = brew
+    = scoop
+    = pacman
+    = nix
+
+ripgrep =
+  brew = rg
+  _sources =
+    = scoop
+    = pacman
+    = nix
 "#;
 
         let mut temp_file = NamedTempFile::new().unwrap();
-        temp_file.write_all(yaml_content.as_bytes()).unwrap();
+        temp_file.write_all(ccl_content.as_bytes()).unwrap();
         temp_file.flush().unwrap();
 
         let packages = load_packages_from_schema(temp_file.path()).unwrap();
@@ -193,23 +202,23 @@ ripgrep:
 
     #[test]
     fn test_load_sources() {
-        let yaml_content = r#"
-brew:
-  emoji: 🍺
-  install: brew install {package}
-  check: brew leaves --installed-on-request
-  
-npm:
-  emoji: 📦
-  install: npm install -g {package}
-  check: ls -1 `npm root -g`
-  _overrides:
-    windows:
-      check: npm root -g | gci -Name
+        let ccl_content = r#"
+brew =
+  emoji = 🍺
+  install = brew install {package}
+  check = brew leaves --installed-on-request
+
+npm =
+  emoji = 📦
+  install = npm install -g {package}
+  check = ls -1 `npm root -g`
+  _overrides =
+    windows =
+      check = npm root -g | gci -Name
 "#;
 
         let mut temp_file = NamedTempFile::new().unwrap();
-        temp_file.write_all(yaml_content.as_bytes()).unwrap();
+        temp_file.write_all(ccl_content.as_bytes()).unwrap();
         temp_file.flush().unwrap();
 
         let sources = load_sources_from_schema(temp_file.path()).unwrap();
@@ -231,7 +240,12 @@ npm:
         let mut schema_packages = HashMap::new();
         schema_packages.insert(
             "bat".to_string(),
-            PackageDefinition::Simple(vec!["brew".to_string(), "scoop".to_string()]),
+            ComplexPackageDefinition {
+                sources: Some(vec!["brew".to_string(), "scoop".to_string()]),
+                platforms: None,
+                aliases: None,
+                source_configs: HashMap::new(),
+            },
         );
 
         let legacy = convert_to_legacy_packages(schema_packages);

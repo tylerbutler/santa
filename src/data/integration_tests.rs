@@ -7,7 +7,7 @@ mod tests {
 
     #[test]
     fn test_load_real_packages_file() {
-        let packages_path = Path::new("data/known_packages.yaml");
+        let packages_path = Path::new("data/known_packages.ccl");
 
         if packages_path.exists() {
             let result = load_packages_from_schema(packages_path);
@@ -41,7 +41,7 @@ mod tests {
 
     #[test]
     fn test_load_real_sources_file() {
-        let sources_path = Path::new("data/sources.yaml");
+        let sources_path = Path::new("data/sources.ccl");
 
         if sources_path.exists() {
             let result = load_sources_from_schema(sources_path);
@@ -73,7 +73,7 @@ mod tests {
 
     #[test]
     fn test_load_real_config_file() {
-        let config_path = Path::new("data/santa-config.yaml");
+        let config_path = Path::new("data/santa-config.ccl");
 
         if config_path.exists() {
             let result = load_config_from_schema(config_path);
@@ -102,8 +102,8 @@ mod tests {
 
     #[test]
     fn test_schema_conversion_round_trip() {
-        let packages_path = Path::new("data/known_packages.yaml");
-        let sources_path = Path::new("data/sources.yaml");
+        let packages_path = Path::new("data/known_packages.ccl");
+        let sources_path = Path::new("data/sources.ccl");
 
         if packages_path.exists() && sources_path.exists() {
             // Load using new schema

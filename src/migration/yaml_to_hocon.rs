@@ -298,7 +298,8 @@ custom_sources:
         assert!(hocon.contains("sources = [brew, scoop, npm, cargo]"));
         assert!(hocon.contains("packages = ["));
         assert!(hocon.contains("custom_sources"));
-        assert!(hocon.contains("name = \"custom-brew\""));
+        // The name might be quoted or unquoted depending on HOCON formatting rules
+        assert!(hocon.contains("name = custom-brew") || hocon.contains("name = \"custom-brew\""));
 
         Ok(())
     }

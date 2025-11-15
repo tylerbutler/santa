@@ -6,14 +6,8 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
 /// Package definition matching package_schema.yaml
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(untagged)]
-pub enum PackageDefinition {
-    /// Simple format: just an array of sources where package has same name
-    Simple(Vec<String>),
-    /// Complex format: when source-specific config or metadata is needed
-    Complex(ComplexPackageDefinition),
-}
+/// All packages use the complex format with _sources field in CCL
+pub type PackageDefinition = ComplexPackageDefinition;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ComplexPackageDefinition {
@@ -114,33 +108,25 @@ fn default_true() -> bool {
     true
 }
 
-impl PackageDefinition {
+impl ComplexPackageDefinition {
     /// Get all sources where this package is available
     pub fn get_sources(&self) -> Vec<&str> {
-        match self {
-            PackageDefinition::Simple(sources) => sources.iter().map(|s| s.as_str()).collect(),
-            PackageDefinition::Complex(complex) => {
-                let mut all_sources = Vec::new();
+        let mut all_sources = Vec::new();
 
-                // Add sources from _sources array
-                if let Some(sources) = &complex.sources {
-                    all_sources.extend(sources.iter().map(|s| s.as_str()));
-                }
-
-                // Add sources from explicit configurations
-                all_sources.extend(complex.source_configs.keys().map(|s| s.as_str()));
-
-                all_sources
-            }
+        // Add sources from _sources array
+        if let Some(sources) = &self.sources {
+            all_sources.extend(sources.iter().map(|s| s.as_str()));
         }
+
+        // Add sources from explicit configurations
+        all_sources.extend(self.source_configs.keys().map(|s| s.as_str()));
+
+        all_sources
     }
 
     /// Get source-specific configuration for a source
     pub fn get_source_config(&self, source: &str) -> Option<&SourceSpecificConfig> {
-        match self {
-            PackageDefinition::Simple(_) => None,
-            PackageDefinition::Complex(complex) => complex.source_configs.get(source),
-        }
+        self.source_configs.get(source)
     }
 
     /// Check if package is available in a specific source
@@ -192,30 +178,27 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_simple_package_definition() {
-        let yaml = r#"[brew, scoop, pacman, nix]"#;
-        let def: PackageDefinition = serde_yaml::from_str(yaml).unwrap();
-
-        match def {
-            PackageDefinition::Simple(sources) => {
-                assert_eq!(sources.len(), 4);
-                assert!(sources.contains(&"brew".to_string()));
-            }
-            _ => panic!("Expected simple package definition"),
-        }
-    }
-
-    #[test]
-    fn test_complex_package_definition() {
-        let yaml = r#"
-brew: gh
-_sources: [scoop, apt, pacman, nix]
+    fn test_package_definition_ccl() {
+        let ccl = r#"
+brew = gh
+_sources =
+  = scoop
+  = apt
+  = pacman
+  = nix
 "#;
-        let def: PackageDefinition = serde_yaml::from_str(yaml).unwrap();
+        let def: PackageDefinition = serde_ccl::from_str(ccl).unwrap();
 
         assert!(def.is_available_in("brew"));
         assert!(def.is_available_in("scoop"));
         assert!(def.get_source_config("brew").is_some());
+
+        // Check that sources list includes all sources
+        let sources = def.get_sources();
+        assert!(sources.contains(&"scoop"));
+        assert!(sources.contains(&"apt"));
+        assert!(sources.contains(&"pacman"));
+        assert!(sources.contains(&"nix"));
     }
 
     #[test]
