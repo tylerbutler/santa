@@ -199,7 +199,16 @@ mod install_command_tests {
         // This avoids the terminal interaction by using empty cache (so all packages are "missing")
         // but with empty package list in config
         basic_config.packages = vec![]; // No packages to install
-        let result = install_command(&mut basic_config, &test_data, empty_cache).await;
+        let temp_dir = std::env::temp_dir();
+        let result = install_command(
+            &mut basic_config,
+            &test_data,
+            empty_cache,
+            crate::script_generator::ExecutionMode::Safe,
+            crate::script_generator::ScriptFormat::Shell,
+            &temp_dir,
+        )
+        .await;
         assert!(
             result.is_ok(),
             "install_command should execute successfully"
@@ -218,7 +227,16 @@ mod install_command_tests {
             ..Default::default()
         };
 
-        let result = install_command(&mut config, &test_data, empty_cache).await;
+        let temp_dir = std::env::temp_dir();
+        let result = install_command(
+            &mut config,
+            &test_data,
+            empty_cache,
+            crate::script_generator::ExecutionMode::Safe,
+            crate::script_generator::ScriptFormat::Shell,
+            &temp_dir,
+        )
+        .await;
         assert!(
             result.is_ok(),
             "install_command should handle no enabled sources gracefully"
@@ -239,7 +257,16 @@ mod install_command_tests {
             ..Default::default()
         };
 
-        let result = install_command(&mut config, &test_data, empty_cache).await;
+        let temp_dir = std::env::temp_dir();
+        let result = install_command(
+            &mut config,
+            &test_data,
+            empty_cache,
+            crate::script_generator::ExecutionMode::Safe,
+            crate::script_generator::ScriptFormat::Shell,
+            &temp_dir,
+        )
+        .await;
         assert!(
             result.is_ok(),
             "install_command should filter to enabled sources only"
@@ -299,7 +326,16 @@ mod install_command_tests {
             ..Default::default()
         };
 
-        let result = install_command(&mut config, &test_data, empty_cache).await;
+        let temp_dir = std::env::temp_dir();
+        let result = install_command(
+            &mut config,
+            &test_data,
+            empty_cache,
+            crate::script_generator::ExecutionMode::Safe,
+            crate::script_generator::ScriptFormat::Shell,
+            &temp_dir,
+        )
+        .await;
         assert!(
             result.is_ok(),
             "install_command should handle empty package list gracefully"
@@ -358,10 +394,16 @@ mod integration_tests {
 
         // For install command, ensure no packages to avoid terminal interaction
         config_clone.packages = vec![];
-        assert!(
-            install_command(&mut config_clone, &minimal_data, cache_clone2)
-                .await
-                .is_ok()
-        );
+        let temp_dir = std::env::temp_dir();
+        assert!(install_command(
+            &mut config_clone,
+            &minimal_data,
+            cache_clone2,
+            crate::script_generator::ExecutionMode::Safe,
+            crate::script_generator::ScriptFormat::Shell,
+            &temp_dir,
+        )
+        .await
+        .is_ok());
     }
 }
