@@ -94,9 +94,36 @@ pub struct SantaConfig {
 }
 
 impl Default for SantaConfig {
+    /// Creates a default configuration with platform-specific source filtering.
+    ///
+    /// This implementation loads the default config from `santa-config.ccl` and then
+    /// filters the sources to only include those available on the current platform.
+    /// This ensures that platform-specific package managers (e.g., brew on macOS,
+    /// scoop on Windows) don't cause validation failures when the default config
+    /// is used on different platforms.
+    ///
+    /// # Platform Behavior
+    /// - **macOS**: Filters to brew and cargo
+    /// - **Linux**: Detects available package managers (apt, pacman, etc.) plus cargo
+    /// - **Windows**: Filters to scoop and cargo
+    /// - **Fallback**: If no sources remain after filtering, defaults to cargo
     fn default() -> Self {
-        SantaConfig::load_from_str(constants::DEFAULT_CONFIG)
-            .expect("Failed to load default config - this should never fail")
+        let mut config = SantaConfig::load_from_str(constants::DEFAULT_CONFIG)
+            .expect("Failed to load default config - this should never fail");
+
+        // Filter sources to only those available on current platform
+        let available_sources = crate::data::Platform::get_default_sources();
+        config
+            .sources
+            .retain(|source| available_sources.contains(source));
+
+        // Ensure at least one source remains (fallback to cargo which is universal)
+        if config.sources.is_empty() {
+            warn!("No configured sources available on this platform, falling back to cargo");
+            config.sources.push(KnownSources::Cargo);
+        }
+
+        config
     }
 }
 
@@ -521,5 +548,40 @@ packages =
             has_unknown,
             "Unknown source should be preserved as Unknown variant"
         );
+    }
+
+    #[test]
+    fn test_default_config_filters_platform_specific_sources() {
+        // Test that the default config only includes sources available on current platform
+        let config = SantaConfig::default();
+
+        // Should have at least one source (cargo is universal)
+        assert!(
+            !config.sources.is_empty(),
+            "Default config should have at least one source"
+        );
+
+        // All sources should be in the platform's available sources
+        let available_sources = crate::data::Platform::get_default_sources();
+        for source in &config.sources {
+            assert!(
+                available_sources.contains(source),
+                "Source {:?} should be available on this platform",
+                source
+            );
+        }
+
+        // Cargo should always be present as it's universal
+        assert!(
+            config.sources.contains(&KnownSources::Cargo),
+            "Cargo should always be available in default config"
+        );
+    }
+
+    #[test]
+    fn test_default_config_does_not_panic() {
+        // Ensure default config creation never panics
+        let _config = SantaConfig::default();
+        // If we get here, the test passed
     }
 }
