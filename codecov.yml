@@ -1,0 +1,52 @@
+codecov:
+  require_ci_to_pass: yes
+  notify:
+    wait_for_ci: yes
+
+coverage:
+  precision: 2
+  round: down
+  range: "70...100"
+
+  status:
+    project:
+      default:
+        target: auto
+        threshold: 1%
+        informational: false
+    patch:
+      default:
+        target: auto
+        threshold: 1%
+        informational: false
+
+component_management:
+  individual_components:
+    - component_id: santa-cli
+      name: Santa CLI
+      paths:
+        - crates/santa-cli/**
+
+    - component_id: santa-data
+      name: Santa Data
+      paths:
+        - crates/santa-data/**
+
+flags:
+  unittests:
+    paths:
+      - crates/
+    carryforward: true
+
+comment:
+  layout: "reach,diff,flags,tree,components"
+  behavior: default
+  require_changes: false
+  require_base: false
+  require_head: true
+
+ignore:
+  - "tests/"
+  - "benches/"
+  - "**/tests.rs"
+  - "**/test_*.rs"
