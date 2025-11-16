@@ -223,6 +223,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "ccl-parser"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "rstest",
+ "serde",
+ "serde_ccl",
+ "serde_json",
+ "thiserror",
+]
+
+[[package]]
 name = "cfg-if"
 version = "1.0.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2128,6 +2140,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "assert_cmd",
+ "ccl-parser",
  "chrono",
  "clap",
  "clap_complete",
