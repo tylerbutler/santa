@@ -44,7 +44,7 @@ use tokio::process::Command;
 use tokio::time::timeout;
 use tracing::{debug, error, info, trace, warn};
 
-use crate::data::{KnownSources, Platform, SantaData};
+use crate::data::{KnownSources, Platform, PlatformExt, SantaData};
 
 pub mod traits;
 

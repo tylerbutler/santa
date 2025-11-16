@@ -2170,8 +2170,10 @@ name = "santa-data"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "derive_more",
  "rstest",
  "serde",
+ "serde-enum-str",
  "serde_ccl",
  "serde_json",
  "thiserror",

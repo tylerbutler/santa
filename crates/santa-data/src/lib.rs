@@ -1,7 +1,11 @@
-//! CCL Parser - A simple parser for Categorical Configuration Language
+//! Santa Data - Data models and CCL parser for Santa Package Manager
 //!
-//! This parser handles both simple array format and complex object format,
-//! working around limitations in serde_ccl 0.1.1.
+//! This crate provides:
+//! - Core data models (Platform, KnownSources, PackageData, etc.)
+//! - CCL schema definitions (PackageDefinition, SourceDefinition, etc.)
+//! - CCL parser that handles both simple and complex formats
+//!
+//! The parser works around limitations in serde_ccl 0.1.1.
 
 use anyhow::{Context, Result};
 use serde::de::DeserializeOwned;
@@ -9,8 +13,12 @@ use serde_json::Value;
 use std::collections::HashMap;
 
 mod parser;
+pub mod models;
+pub mod schemas;
 
 pub use parser::{parse_ccl, CclValue};
+pub use models::*;
+pub use schemas::*;
 
 /// Parse CCL string into a HashMap where values can be either arrays or objects
 ///
