@@ -20,7 +20,7 @@ pub use parser::{parse_ccl, CclValue};
 /// # Examples
 ///
 /// ```
-/// use ccl_parser::parse_to_hashmap;
+/// use santa_data::parse_to_hashmap;
 /// use serde_json::Value;
 ///
 /// let ccl = r#"
@@ -173,7 +173,7 @@ fn parse_complex_object(s: &str) -> Result<Value> {
 /// # Examples
 ///
 /// ```
-/// use ccl_parser::parse_ccl_to;
+/// use santa_data::parse_ccl_to;
 /// use serde::Deserialize;
 /// use std::collections::HashMap;
 ///

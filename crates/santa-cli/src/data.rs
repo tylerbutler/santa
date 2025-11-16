@@ -324,9 +324,9 @@ impl SantaData {
         // Use the new schema loaders and convert to legacy format
         use crate::data::loaders::{convert_to_legacy_packages, convert_to_legacy_sources};
 
-        // Parse using our custom ccl-parser that handles both simple and complex formats
+        // Parse using our custom santa-data parser that handles both simple and complex formats
         let schema_packages =
-            ccl_parser::parse_ccl_to(packages_str).expect("Failed to load packages CCL");
+            santa_data::parse_ccl_to(packages_str).expect("Failed to load packages CCL");
 
         let schema_sources = serde_ccl::from_str(sources_str).expect("Failed to load sources CCL");
 

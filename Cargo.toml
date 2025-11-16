@@ -2,7 +2,7 @@
 resolver = "2"
 members = [
     "crates/santa-cli",
-    "crates/ccl-parser",
+    "crates/santa-data",
 ]
 
 [workspace.package]

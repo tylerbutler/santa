@@ -218,7 +218,7 @@ bat =
   = pacman
   = nix
 "#;
-        let packages: HashMap<String, PackageDefinition> = ccl_parser::parse_ccl_to(ccl).unwrap();
+        let packages: HashMap<String, PackageDefinition> = santa_data::parse_ccl_to(ccl).unwrap();
         let def = packages.get("bat").unwrap();
 
         assert!(def.is_available_in("brew"));
@@ -249,7 +249,7 @@ ripgrep =
     = pacman
     = nix
 "#;
-        let packages: HashMap<String, PackageDefinition> = ccl_parser::parse_ccl_to(ccl).unwrap();
+        let packages: HashMap<String, PackageDefinition> = santa_data::parse_ccl_to(ccl).unwrap();
         let def = packages.get("ripgrep").unwrap();
 
         assert!(def.is_available_in("brew"));

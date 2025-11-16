@@ -47,7 +47,7 @@ serde_json = "1.0"
 
 # CCL configuration parser with serde support
 serde_ccl = "0.1.1"
-ccl-parser = { path = "../ccl-parser" }
+santa-data = { path = "../santa-data" }
 
 # YAML parser for migration from legacy configs
 serde_yaml = "0.9"
