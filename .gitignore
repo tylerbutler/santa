@@ -1,5 +1,6 @@
 /target
 .claude
+.serena
 
 # Coverage outputs
 coverage/
