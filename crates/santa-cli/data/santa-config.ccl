@@ -6,6 +6,7 @@
 /= Note: These will be filtered to platform-available sources automatically
 sources =
   = brew
+  = scoop
   = cargo
 
 /= Default packages to install
