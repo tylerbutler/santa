@@ -19,7 +19,7 @@ pub fn load_packages_from_schema(path: &Path) -> Result<HashMap<String, PackageD
         .with_context(|| format!("Failed to read packages file: {:?}", path))?;
 
     // Use our custom CCL parser that handles both simple and complex formats
-    let packages: HashMap<String, PackageDefinition> = ccl_parser::parse_ccl_to(&content)
+    let packages: HashMap<String, PackageDefinition> = santa_data::parse_ccl_to(&content)
         .with_context(|| format!("Failed to parse CCL packages: {:?}", path))?;
 
     info!("Loaded {} packages from schema format", packages.len());

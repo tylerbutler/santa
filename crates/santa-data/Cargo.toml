@@ -1,0 +1,21 @@
+[package]
+name = "santa-data"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+description = "Data models and CCL parser for Santa package manager"
+
+[dependencies]
+serde = { workspace = true }
+serde_json = { workspace = true }
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+serde_ccl = "0.1.1"
+serde-enum-str = { workspace = true }
+derive_more = { workspace = true }
+
+[dev-dependencies]
+rstest = { workspace = true }

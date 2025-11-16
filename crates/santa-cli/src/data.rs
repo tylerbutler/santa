@@ -2,9 +2,7 @@ use crate::SantaConfig;
 use std::{collections::HashMap, fs, path::Path};
 
 use anyhow::Context;
-use derive_more::{Display, From, Into};
 use serde::{Deserialize, Serialize};
-use serde_enum_str::{Deserialize_enum_str, Serialize_enum_str};
 use tracing::{error, info};
 
 use crate::{sources::PackageSource, traits::Exportable};
@@ -17,93 +15,23 @@ mod integration_tests;
 
 pub mod constants;
 
-/// Strong type for package names to prevent mixing up with other strings
-#[derive(Debug, Clone, PartialEq, Eq, Hash, Display, From, Into, Serialize, Deserialize)]
-pub struct PackageName(pub String);
+// Re-export core data models from santa-data
+pub use santa_data::{
+    Arch, CommandName, Distro, KnownSources, PackageData, PackageDataList, PackageName, Platform,
+    SourceName, OS,
+};
 
-/// Strong type for source names to prevent mixing up with other strings  
-#[derive(Debug, Clone, PartialEq, Eq, Hash, Display, From, Into, Serialize, Deserialize)]
-pub struct SourceName(pub String);
-
-/// Strong type for command names to prevent command/package name confusion
-#[derive(Debug, Clone, PartialEq, Eq, Hash, Display, From, Into, Serialize, Deserialize)]
-pub struct CommandName(pub String);
-
-#[derive(Serialize_enum_str, Deserialize_enum_str, Debug, Clone, Eq, PartialEq, Hash)]
-#[serde(rename_all = "camelCase")]
-#[non_exhaustive]
-pub enum KnownSources {
-    Apt,
-    Aur,
-    Brew,
-    Cargo,
-    Pacman,
-    Scoop,
-    Nix,
-    #[serde(other)]
-    Unknown(String),
+/// Extension trait for Platform with santa-cli specific functionality
+pub trait PlatformExt {
+    fn current() -> Platform;
+    fn detect_available_package_managers() -> Vec<KnownSources>;
+    fn get_default_sources() -> Vec<KnownSources>;
+    fn detect_linux_package_managers() -> Vec<KnownSources>;
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, Eq, PartialEq, Hash)]
-#[serde(rename_all = "camelCase")]
-#[non_exhaustive]
-pub enum OS {
-    Macos,
-    Linux,
-    Windows,
-}
-
-#[derive(Serialize, Deserialize, Debug, Clone, Eq, PartialEq, Hash)]
-#[serde(rename_all = "camelCase")]
-#[non_exhaustive]
-pub enum Arch {
-    X64,
-    Aarch64,
-}
-
-#[derive(Serialize, Deserialize, Debug, Clone, Eq, PartialEq, Hash)]
-#[serde(rename_all = "camelCase")]
-#[non_exhaustive]
-pub enum Distro {
-    None,
-    ArchLinux,
-    Ubuntu,
-}
-
-#[derive(Serialize, Deserialize, Debug, Clone, Eq, PartialEq, Hash)]
-#[serde(rename_all = "camelCase")]
-pub struct Platform {
-    pub os: OS,
-    pub arch: Arch,
-    pub distro: Option<Distro>,
-}
-
-impl Default for Platform {
-    fn default() -> Self {
-        Platform {
-            os: OS::Linux,
-            arch: Arch::X64,
-            distro: None,
-        }
-    }
-}
-
-impl std::fmt::Display for Platform {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match &self.distro {
-            Some(distro) => {
-                write!(f, "{:?} {:?} ({:?})", self.os, self.arch, distro)
-            }
-            None => {
-                write!(f, "{:?} {:?}", self.os, self.arch)
-            }
-        }
-    }
-}
-
-impl Platform {
+impl PlatformExt for Platform {
     /// Get current platform using compile-time detection where possible
-    pub fn current() -> Self {
+    fn current() -> Self {
         let mut platform = Platform::default();
 
         // Compile-time OS detection
@@ -140,7 +68,7 @@ impl Platform {
     }
 
     /// Detect available package managers on the current system
-    pub fn detect_available_package_managers() -> Vec<KnownSources> {
+    fn detect_available_package_managers() -> Vec<KnownSources> {
         let mut sources = Vec::new();
 
         if cfg!(target_os = "macos") {
@@ -174,8 +102,7 @@ impl Platform {
     }
 
     /// Get default package sources for the current platform
-    #[must_use]
-    pub fn get_default_sources() -> Vec<KnownSources> {
+    fn get_default_sources() -> Vec<KnownSources> {
         if cfg!(target_os = "macos") {
             vec![KnownSources::Brew, KnownSources::Cargo]
         } else if cfg!(target_os = "linux") {
@@ -235,38 +162,6 @@ pub trait LoadFromFile {
         Self: Sized;
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
-pub struct PackageData {
-    /// Name of the package
-    name: Option<String>,
-    /// A command to run BEFORE installing the package
-    pub before: Option<String>,
-    /// A command to run AFTER installing the package
-    pub after: Option<String>,
-    /// A string to prepend to the install string
-    pub pre: Option<String>,
-    /// A string to postpend to the install string
-    pub post: Option<String>,
-    // Sources that can install this package
-    // pub sources: Option<Vec<String>>,
-}
-
-impl PackageData {
-    pub fn new(name: &str) -> Self {
-        PackageData {
-            name: Some(name.to_string()),
-            before: None,
-            after: None,
-            pre: None,
-            post: None,
-            // sources: None,
-        }
-    }
-}
-
-/// A map of package names (strings)
-pub type PackageDataList = HashMap<String, HashMap<KnownSources, Option<PackageData>>>;
-
 /// Type alias for mapping source names to package sources
 pub type SourceMap = HashMap<SourceName, PackageSource>;
 
@@ -324,9 +219,9 @@ impl SantaData {
         // Use the new schema loaders and convert to legacy format
         use crate::data::loaders::{convert_to_legacy_packages, convert_to_legacy_sources};
 
-        // Parse using our custom ccl-parser that handles both simple and complex formats
+        // Parse using our custom santa-data parser that handles both simple and complex formats
         let schema_packages =
-            ccl_parser::parse_ccl_to(packages_str).expect("Failed to load packages CCL");
+            santa_data::parse_ccl_to(packages_str).expect("Failed to load packages CCL");
 
         let schema_sources = serde_ccl::from_str(sources_str).expect("Failed to load sources CCL");
 

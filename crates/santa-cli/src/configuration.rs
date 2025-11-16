@@ -2,7 +2,7 @@ pub mod watcher;
 
 pub mod env;
 
-use crate::data::SourceList;
+use crate::data::{PlatformExt, SourceList};
 use crate::errors::{Result, SantaError};
 use crate::sources::PackageSource;
 use crate::traits::{Configurable, Exportable};

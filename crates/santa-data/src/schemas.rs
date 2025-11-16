@@ -1,7 +1,7 @@
 // Schema-based data structures for Santa Package Manager
 // These structs match the YAML schemas defined in /data/*.yaml files
 
-use crate::data::{Platform, OS};
+use crate::models::{Platform, OS};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
@@ -218,7 +218,7 @@ bat =
   = pacman
   = nix
 "#;
-        let packages: HashMap<String, PackageDefinition> = santa_data::parse_ccl_to(ccl).unwrap();
+        let packages: HashMap<String, PackageDefinition> = crate::parse_ccl_to(ccl).unwrap();
         let def = packages.get("bat").unwrap();
 
         assert!(def.is_available_in("brew"));
@@ -249,7 +249,7 @@ ripgrep =
     = pacman
     = nix
 "#;
-        let packages: HashMap<String, PackageDefinition> = santa_data::parse_ccl_to(ccl).unwrap();
+        let packages: HashMap<String, PackageDefinition> = crate::parse_ccl_to(ccl).unwrap();
         let def = packages.get("ripgrep").unwrap();
 
         assert!(def.is_available_in("brew"));
@@ -267,12 +267,12 @@ ripgrep =
 
     #[test]
     fn test_source_definition() {
-        let yaml = r#"
-emoji: 🍺
-install: brew install {package}
-check: brew leaves --installed-on-request
+        let ccl = r#"
+emoji = 🍺
+install = brew install {package}
+check = brew leaves --installed-on-request
 "#;
-        let def: SourceDefinition = serde_yaml::from_str(yaml).unwrap();
+        let def: SourceDefinition = serde_ccl::from_str(ccl).unwrap();
 
         assert_eq!(def.emoji, "🍺");
         assert!(def.install.contains("{package}"));
