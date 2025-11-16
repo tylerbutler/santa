@@ -12,12 +12,12 @@ use serde::de::DeserializeOwned;
 use serde_json::Value;
 use std::collections::HashMap;
 
-mod parser;
 pub mod models;
+mod parser;
 pub mod schemas;
 
-pub use parser::{parse_ccl, CclValue};
 pub use models::*;
+pub use parser::{parse_ccl, CclValue};
 pub use schemas::*;
 
 /// Parse CCL string into a HashMap where values can be either arrays or objects

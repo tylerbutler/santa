@@ -17,8 +17,8 @@ pub mod constants;
 
 // Re-export core data models from santa-data
 pub use santa_data::{
-    Arch, CommandName, Distro, KnownSources, OS, PackageData, PackageDataList, PackageName,
-    Platform, SourceName,
+    Arch, CommandName, Distro, KnownSources, PackageData, PackageDataList, PackageName, Platform,
+    SourceName, OS,
 };
 
 /// Extension trait for Platform with santa-cli specific functionality

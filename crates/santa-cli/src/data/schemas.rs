@@ -1,7 +1,7 @@
 // Schema-based data structures for Santa Package Manager
 // These structs match the YAML schemas defined in /data/*.yaml files
 
-use crate::data::{OS, Platform};
+use crate::data::{Platform, OS};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
