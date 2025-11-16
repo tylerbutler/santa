@@ -88,9 +88,6 @@ notify = "6.1"
 # Shell command escaping to prevent injection attacks
 shell-escape = "0.1"
 
-# Shell word splitting and quoting for command parsing
-shlex = "1.3"
-
 # Template engine for script generation (Jinja2/Django-style)
 tera = "1.19"
 
@@ -112,9 +109,6 @@ tempfile = "3.21"
 
 # Property-based testing with random input generation
 proptest = "1.7"
-
-# Mock generation for testing subprocess calls
-mockall = "0.12"
 
 # Integration testing for CLI applications
 assert_cmd = "2.0"
