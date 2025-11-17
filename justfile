@@ -105,19 +105,16 @@ test-watch:
 
 # Download CCL test data from ccl-test-data repository
 download-ccl-tests:
-    @echo "📥 Downloading CCL test data..."
-    mkdir -p crates/sickle/tests/test_data
-    curl -sL -o crates/sickle/tests/test_data/api_core_ccl_parsing.json \
-        https://raw.githubusercontent.com/tylerbutler/ccl-test-data/main/generated_tests/api_core_ccl_parsing.json
-    curl -sL -o crates/sickle/tests/test_data/api_comments.json \
-        https://raw.githubusercontent.com/tylerbutler/ccl-test-data/main/generated_tests/api_comments.json
-    curl -sL -o crates/sickle/tests/test_data/api_typed_access.json \
-        https://raw.githubusercontent.com/tylerbutler/ccl-test-data/main/generated_tests/api_typed_access.json
-    curl -sL -o crates/sickle/tests/test_data/api_core_ccl_hierarchy.json \
-        https://raw.githubusercontent.com/tylerbutler/ccl-test-data/main/generated_tests/api_core_ccl_hierarchy.json
-    curl -sL -o crates/sickle/tests/test_data/api_core_ccl_integration.json \
-        https://raw.githubusercontent.com/tylerbutler/ccl-test-data/main/generated_tests/api_core_ccl_integration.json
-    @echo "✅ CCL test data downloaded to crates/sickle/tests/test_data/"
+    @echo "📥 Downloading CCL test data from ccl-test-data repository..."
+    @echo "Cloning repository to temporary location..."
+    @rm -rf /tmp/ccl-test-data
+    @git clone --depth 1 --quiet https://github.com/tylerbutler/ccl-test-data.git /tmp/ccl-test-data
+    @mkdir -p crates/sickle/tests/test_data
+    @echo "Copying test files..."
+    @cp /tmp/ccl-test-data/generated_tests/*.json crates/sickle/tests/test_data/
+    @rm -rf /tmp/ccl-test-data
+    @echo "✅ Downloaded all test files to crates/sickle/tests/test_data/"
+    @echo "   Files: $$(ls crates/sickle/tests/test_data/*.json | wc -l) JSON test suites"
 
 # Run CCL test suites with detailed individual test results
 test-ccl:
