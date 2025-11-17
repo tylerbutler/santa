@@ -13,6 +13,10 @@ documentation = "https://docs.rs/santa-data"
 readme.workspace = true
 publish = true
 
+# cargo-dist: This package is a library only, no binaries to distribute
+[package.metadata.dist]
+dist = false
+
 [dependencies]
 serde = { workspace = true }
 serde_json = { workspace = true }
