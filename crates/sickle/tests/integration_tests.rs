@@ -3,8 +3,8 @@
 mod test_helpers;
 
 use sickle::parse;
-use test_helpers::{load_all_test_suites, TestSuite};
 use std::path::Path;
+use test_helpers::{load_all_test_suites, TestSuite};
 
 #[test]
 fn test_complete_config_file() {
@@ -248,8 +248,8 @@ fn test_json_suites_load() {
 
 #[test]
 fn test_parsing_suite_basic_tests() {
-    let path = Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/test_data/api_core_ccl_parsing.json");
+    let path =
+        Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/test_data/api_core_ccl_parsing.json");
 
     if !path.exists() {
         panic!("Test data file not found: {:?}", path);
@@ -300,17 +300,11 @@ fn test_parsing_suite_basic_tests() {
                         let value = model
                             .get(&entry.key)
                             .unwrap_or_else(|_| {
-                                panic!(
-                                    "Test '{}': missing expected key '{}'",
-                                    test.name, entry.key
-                                )
+                                panic!("Test '{}': missing expected key '{}'", test.name, entry.key)
                             })
                             .as_str()
                             .unwrap_or_else(|_| {
-                                panic!(
-                                    "Test '{}': key '{}' is not a string",
-                                    test.name, entry.key
-                                )
+                                panic!("Test '{}': key '{}' is not a string", test.name, entry.key)
                             });
 
                         assert_eq!(
@@ -341,8 +335,7 @@ fn test_parsing_suite_basic_tests() {
 
 #[test]
 fn test_comments_suite() {
-    let path =
-        Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/test_data/api_comments.json");
+    let path = Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/test_data/api_comments.json");
 
     if !path.exists() {
         println!("Skipping comments test - file not found: {:?}", path);
@@ -405,8 +398,7 @@ fn test_comments_suite() {
 
 #[test]
 fn test_typed_access_suite_strings() {
-    let path =
-        Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/test_data/api_typed_access.json");
+    let path = Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/test_data/api_typed_access.json");
 
     if !path.exists() {
         println!("Skipping typed access test - file not found: {:?}", path);
@@ -448,10 +440,7 @@ fn test_typed_access_suite_strings() {
                         });
 
                     let expected_str = expected_value.as_str().unwrap_or_else(|| {
-                        panic!(
-                            "Test '{}': expected value is not a string",
-                            test.name
-                        )
+                        panic!("Test '{}': expected value is not a string", test.name)
                     });
 
                     assert_eq!(
@@ -475,6 +464,9 @@ fn test_typed_access_suite_strings() {
         }
     }
 
-    println!("\nString access tests: {} passed, {} failed", passed, failed);
+    println!(
+        "\nString access tests: {} passed, {} failed",
+        passed, failed
+    );
     assert!(passed > 0, "At least some string access tests should pass");
 }

@@ -128,8 +128,8 @@ mod tests {
 
     #[test]
     fn test_load_parsing_suite() {
-        let path = Path::new(env!("CARGO_MANIFEST_DIR"))
-            .join("tests/test_data/api_core_ccl_parsing.json");
+        let path =
+            Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/test_data/api_core_ccl_parsing.json");
 
         if path.exists() {
             let suite = TestSuite::from_file(&path).expect("should load test suite");
