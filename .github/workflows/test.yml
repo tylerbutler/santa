@@ -25,10 +25,11 @@ jobs:
           - {rust: stable, os: windows-latest}
     steps:
       - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # ratchet:actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@6d9817901c499d6b02debbb57edb38d33daa680b # ratchet:dtolnay/rust-toolchain@stable
+
+      - uses: ./.github/actions/setup-rust
         with:
           toolchain: ${{ matrix.rust }}
-      - uses: Swatinem/rust-cache@98c8021b550208e191a6a3145459bfc9fb29c4c0 # ratchet:Swatinem/rust-cache@v2
+
       - run: cargo test --verbose --workspace --all-features
       - run: cargo test --verbose --workspace --no-default-features
 
@@ -45,10 +46,11 @@ jobs:
           - {rust: stable-i686-gnu, os: windows-latest}
     steps:
       - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # ratchet:actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@6d9817901c499d6b02debbb57edb38d33daa680b # ratchet:dtolnay/rust-toolchain@stable
+
+      - uses: ./.github/actions/setup-rust
         with:
           toolchain: ${{ matrix.rust }}
-      - uses: Swatinem/rust-cache@98c8021b550208e191a6a3145459bfc9fb29c4c0 # ratchet:Swatinem/rust-cache@v2
+
       - run: cargo test --verbose --workspace --all-features
       - run: cargo test --verbose --workspace --no-default-features
 
@@ -67,10 +69,13 @@ jobs:
           - i686-unknown-linux-gnu
     steps:
       - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # ratchet:actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@6d9817901c499d6b02debbb57edb38d33daa680b # ratchet:dtolnay/rust-toolchain@stable
-      - uses: taiki-e/install-action@0be4756f42223b67aa4b7df5effad59010cbf4b9 # ratchet:taiki-e/install-action@v2
+
+      - uses: ./.github/actions/setup-rust
+
+      - uses: ./.github/actions/install-tools
         with:
           tool: cross
+
       - run: cross test --verbose --target=${{ matrix.target }} --no-default-features
       - run: cross test --verbose --target=${{ matrix.target }} --all-features
 
@@ -80,13 +85,14 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # ratchet:actions/checkout@v4
-      - name: Install Rust
-        uses: dtolnay/rust-toolchain@6d9817901c499d6b02debbb57edb38d33daa680b # ratchet:dtolnay/rust-toolchain@stable
+
+      - uses: ./.github/actions/setup-rust
         with:
           components: rustfmt
+
       - name: Check formatting
-        run: |
-          cargo fmt --all -- --check
+        run: cargo fmt --all -- --check
+
       - name: Check documentation
         env:
           RUSTDOCFLAGS: -D warnings
