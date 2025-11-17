@@ -1,12 +1,12 @@
-pub mod watcher;
 pub mod env;
+pub mod watcher;
 
 use crate::data::PlatformExt;
 use crate::errors::{Result, SantaError};
 use crate::sources::PackageSource;
 // use crate::traits::Configurable; // Not needed - can't implement for foreign type
-use std::path::Path;
 use std::collections::HashMap;
+use std::path::Path;
 
 use crate::migration::ConfigMigrator;
 
@@ -15,7 +15,9 @@ use tracing::{trace, warn};
 use crate::data::{constants, KnownSources, SantaData};
 
 // Re-export SantaConfig and related types from santa-data
-pub use santa_data::config::{SantaConfig, SantaConfigBuilder, ConfigPackageSource, PackageNameOverride};
+pub use santa_data::config::{
+    ConfigPackageSource, PackageNameOverride, SantaConfig, SantaConfigBuilder,
+};
 
 /// Extension trait for SantaConfig with CLI-specific functionality
 pub trait SantaConfigExt {
@@ -32,16 +34,23 @@ pub trait SantaConfigExt {
     fn validate_with_data(&self, data: &SantaData) -> anyhow::Result<()>;
 
     /// Create a configuration watcher for hot-reloading
-    fn create_watcher(&self, config_path: std::path::PathBuf) -> anyhow::Result<crate::configuration::watcher::ConfigWatcher>;
+    fn create_watcher(
+        &self,
+        config_path: std::path::PathBuf,
+    ) -> anyhow::Result<crate::configuration::watcher::ConfigWatcher>;
 
     /// Load configuration with environment variable support
-    fn load_with_env_support(config_path: Option<&str>, builtin_only: bool) -> anyhow::Result<Self> where Self: Sized;
+    fn load_with_env_support(config_path: Option<&str>, builtin_only: bool) -> anyhow::Result<Self>
+    where
+        Self: Sized;
 
     /// Print environment variable help
     fn print_env_help_info();
 
     /// Get default configuration for the current platform
-    fn default_for_platform() -> Self where Self: Sized;
+    fn default_for_platform() -> Self
+    where
+        Self: Sized;
 
     /// Export configuration to YAML format
     fn export(&self) -> String;
@@ -144,11 +153,17 @@ impl SantaConfigExt for SantaConfig {
         Ok(())
     }
 
-    fn create_watcher(&self, config_path: std::path::PathBuf) -> anyhow::Result<crate::configuration::watcher::ConfigWatcher> {
+    fn create_watcher(
+        &self,
+        config_path: std::path::PathBuf,
+    ) -> anyhow::Result<crate::configuration::watcher::ConfigWatcher> {
         crate::configuration::watcher::ConfigWatcher::new(config_path, self.clone())
     }
 
-    fn load_with_env_support(config_path: Option<&str>, builtin_only: bool) -> anyhow::Result<Self> {
+    fn load_with_env_support(
+        config_path: Option<&str>,
+        builtin_only: bool,
+    ) -> anyhow::Result<Self> {
         crate::configuration::env::load_config_with_env(config_path, builtin_only)
     }
 
@@ -199,8 +214,8 @@ impl SantaConfigLoader {
 
         let contents = std::fs::read_to_string(&actual_path).map_err(SantaError::Io)?;
 
-        let config: SantaConfig = sickle::from_str(&contents)
-            .map_err(|e| SantaError::Config(anyhow::Error::from(e)))?;
+        let config: SantaConfig =
+            sickle::from_str(&contents).map_err(|e| SantaError::Config(anyhow::Error::from(e)))?;
 
         config.validate_basic().map_err(SantaError::Config)?;
         Ok(config)

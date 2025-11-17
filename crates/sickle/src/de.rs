@@ -78,9 +78,9 @@ impl<'de> de::Deserializer<'de> for &mut Deserializer {
         V: Visitor<'de>,
     {
         let s = self.model.as_str().map_err(DeError::from_error)?;
-        let b = s.parse::<bool>().map_err(|_| {
-            DeError::custom(format!("failed to parse '{}' as bool", s))
-        })?;
+        let b = s
+            .parse::<bool>()
+            .map_err(|_| DeError::custom(format!("failed to parse '{}' as bool", s)))?;
         visitor.visit_bool(b)
     }
 
@@ -89,9 +89,9 @@ impl<'de> de::Deserializer<'de> for &mut Deserializer {
         V: Visitor<'de>,
     {
         let s = self.model.as_str().map_err(DeError::from_error)?;
-        let n = s.parse::<i8>().map_err(|_| {
-            DeError::custom(format!("failed to parse '{}' as i8", s))
-        })?;
+        let n = s
+            .parse::<i8>()
+            .map_err(|_| DeError::custom(format!("failed to parse '{}' as i8", s)))?;
         visitor.visit_i8(n)
     }
 
@@ -100,9 +100,9 @@ impl<'de> de::Deserializer<'de> for &mut Deserializer {
         V: Visitor<'de>,
     {
         let s = self.model.as_str().map_err(DeError::from_error)?;
-        let n = s.parse::<i16>().map_err(|_| {
-            DeError::custom(format!("failed to parse '{}' as i16", s))
-        })?;
+        let n = s
+            .parse::<i16>()
+            .map_err(|_| DeError::custom(format!("failed to parse '{}' as i16", s)))?;
         visitor.visit_i16(n)
     }
 
@@ -111,9 +111,9 @@ impl<'de> de::Deserializer<'de> for &mut Deserializer {
         V: Visitor<'de>,
     {
         let s = self.model.as_str().map_err(DeError::from_error)?;
-        let n = s.parse::<i32>().map_err(|_| {
-            DeError::custom(format!("failed to parse '{}' as i32", s))
-        })?;
+        let n = s
+            .parse::<i32>()
+            .map_err(|_| DeError::custom(format!("failed to parse '{}' as i32", s)))?;
         visitor.visit_i32(n)
     }
 
@@ -122,9 +122,9 @@ impl<'de> de::Deserializer<'de> for &mut Deserializer {
         V: Visitor<'de>,
     {
         let s = self.model.as_str().map_err(DeError::from_error)?;
-        let n = s.parse::<i64>().map_err(|_| {
-            DeError::custom(format!("failed to parse '{}' as i64", s))
-        })?;
+        let n = s
+            .parse::<i64>()
+            .map_err(|_| DeError::custom(format!("failed to parse '{}' as i64", s)))?;
         visitor.visit_i64(n)
     }
 
@@ -133,9 +133,9 @@ impl<'de> de::Deserializer<'de> for &mut Deserializer {
         V: Visitor<'de>,
     {
         let s = self.model.as_str().map_err(DeError::from_error)?;
-        let n = s.parse::<u8>().map_err(|_| {
-            DeError::custom(format!("failed to parse '{}' as u8", s))
-        })?;
+        let n = s
+            .parse::<u8>()
+            .map_err(|_| DeError::custom(format!("failed to parse '{}' as u8", s)))?;
         visitor.visit_u8(n)
     }
 
@@ -144,9 +144,9 @@ impl<'de> de::Deserializer<'de> for &mut Deserializer {
         V: Visitor<'de>,
     {
         let s = self.model.as_str().map_err(DeError::from_error)?;
-        let n = s.parse::<u16>().map_err(|_| {
-            DeError::custom(format!("failed to parse '{}' as u16", s))
-        })?;
+        let n = s
+            .parse::<u16>()
+            .map_err(|_| DeError::custom(format!("failed to parse '{}' as u16", s)))?;
         visitor.visit_u16(n)
     }
 
@@ -155,9 +155,9 @@ impl<'de> de::Deserializer<'de> for &mut Deserializer {
         V: Visitor<'de>,
     {
         let s = self.model.as_str().map_err(DeError::from_error)?;
-        let n = s.parse::<u32>().map_err(|_| {
-            DeError::custom(format!("failed to parse '{}' as u32", s))
-        })?;
+        let n = s
+            .parse::<u32>()
+            .map_err(|_| DeError::custom(format!("failed to parse '{}' as u32", s)))?;
         visitor.visit_u32(n)
     }
 
@@ -166,9 +166,9 @@ impl<'de> de::Deserializer<'de> for &mut Deserializer {
         V: Visitor<'de>,
     {
         let s = self.model.as_str().map_err(DeError::from_error)?;
-        let n = s.parse::<u64>().map_err(|_| {
-            DeError::custom(format!("failed to parse '{}' as u64", s))
-        })?;
+        let n = s
+            .parse::<u64>()
+            .map_err(|_| DeError::custom(format!("failed to parse '{}' as u64", s)))?;
         visitor.visit_u64(n)
     }
 
@@ -177,9 +177,9 @@ impl<'de> de::Deserializer<'de> for &mut Deserializer {
         V: Visitor<'de>,
     {
         let s = self.model.as_str().map_err(DeError::from_error)?;
-        let n = s.parse::<f32>().map_err(|_| {
-            DeError::custom(format!("failed to parse '{}' as f32", s))
-        })?;
+        let n = s
+            .parse::<f32>()
+            .map_err(|_| DeError::custom(format!("failed to parse '{}' as f32", s)))?;
         visitor.visit_f32(n)
     }
 
@@ -188,9 +188,9 @@ impl<'de> de::Deserializer<'de> for &mut Deserializer {
         V: Visitor<'de>,
     {
         let s = self.model.as_str().map_err(DeError::from_error)?;
-        let n = s.parse::<f64>().map_err(|_| {
-            DeError::custom(format!("failed to parse '{}' as f64", s))
-        })?;
+        let n = s
+            .parse::<f64>()
+            .map_err(|_| DeError::custom(format!("failed to parse '{}' as f64", s)))?;
         visitor.visit_f64(n)
     }
 
@@ -200,7 +200,9 @@ impl<'de> de::Deserializer<'de> for &mut Deserializer {
     {
         let s = self.model.as_str().map_err(DeError::from_error)?;
         let mut chars = s.chars();
-        let c = chars.next().ok_or_else(|| DeError::custom("empty string"))?;
+        let c = chars
+            .next()
+            .ok_or_else(|| DeError::custom("empty string"))?;
         if chars.next().is_some() {
             return Err(DeError::custom("string too long for char"));
         }
@@ -279,9 +281,7 @@ impl<'de> de::Deserializer<'de> for &mut Deserializer {
     {
         // Check if it's a list
         if let Ok(list) = self.model.as_list() {
-            let seq = SeqDeserializer {
-                iter: list.iter(),
-            };
+            let seq = SeqDeserializer { iter: list.iter() };
             return visitor.visit_seq(seq);
         }
 
@@ -425,7 +425,10 @@ struct ModelSeqDeserializer {
 impl<'de, 'a> SeqAccess<'de> for SeqDeserializer<'a> {
     type Error = DeError;
 
-    fn next_element_seed<T>(&mut self, seed: T) -> std::result::Result<Option<T::Value>, Self::Error>
+    fn next_element_seed<T>(
+        &mut self,
+        seed: T,
+    ) -> std::result::Result<Option<T::Value>, Self::Error>
     where
         T: DeserializeSeed<'de>,
     {
@@ -444,7 +447,10 @@ impl<'de, 'a> SeqAccess<'de> for SeqDeserializer<'a> {
 impl<'de> SeqAccess<'de> for StringSeqDeserializer {
     type Error = DeError;
 
-    fn next_element_seed<T>(&mut self, seed: T) -> std::result::Result<Option<T::Value>, Self::Error>
+    fn next_element_seed<T>(
+        &mut self,
+        seed: T,
+    ) -> std::result::Result<Option<T::Value>, Self::Error>
     where
         T: DeserializeSeed<'de>,
     {
@@ -462,7 +468,10 @@ impl<'de> SeqAccess<'de> for StringSeqDeserializer {
 impl<'de> SeqAccess<'de> for ModelSeqDeserializer {
     type Error = DeError;
 
-    fn next_element_seed<T>(&mut self, seed: T) -> std::result::Result<Option<T::Value>, Self::Error>
+    fn next_element_seed<T>(
+        &mut self,
+        seed: T,
+    ) -> std::result::Result<Option<T::Value>, Self::Error>
     where
         T: DeserializeSeed<'de>,
     {

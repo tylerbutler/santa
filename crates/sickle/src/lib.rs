@@ -124,7 +124,9 @@ fn build_model(map: std::collections::BTreeMap<String, Vec<String>>) -> Result<M
                     if v.contains('=') {
                         // Try to parse as nested CCL
                         match parse(v) {
-                            Ok(parsed) if !matches!(parsed, Model::Map(ref m) if m.is_empty()) => Ok(parsed),
+                            Ok(parsed) if !matches!(parsed, Model::Map(ref m) if m.is_empty()) => {
+                                Ok(parsed)
+                            }
                             _ => Ok(Model::singleton(v.clone())),
                         }
                     } else {
@@ -231,5 +233,4 @@ enabled = true
         let enabled: bool = model.get("enabled").unwrap().parse_value().unwrap();
         assert_eq!(enabled, true);
     }
-
 }

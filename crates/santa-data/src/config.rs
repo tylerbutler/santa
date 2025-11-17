@@ -148,13 +148,11 @@ impl SantaConfig {
         debug!("Loading config from: {}", file.display());
 
         if file.exists() {
-            let config_str = std::fs::read_to_string(file).with_context(|| {
-                format!("Failed to read config file: {}", file.display())
-            })?;
+            let config_str = std::fs::read_to_string(file)
+                .with_context(|| format!("Failed to read config file: {}", file.display()))?;
 
-            let config: SantaConfig = sickle::from_str(&config_str).with_context(|| {
-                format!("Failed to parse CCL config file: {}", file.display())
-            })?;
+            let config: SantaConfig = sickle::from_str(&config_str)
+                .with_context(|| format!("Failed to parse CCL config file: {}", file.display()))?;
 
             config
                 .validate_basic()
@@ -164,10 +162,7 @@ impl SantaConfig {
         } else {
             warn!("Can't find config file: {}", file.display());
             warn!("Returning error - no default config in santa-data");
-            Err(anyhow::anyhow!(
-                "Config file not found: {}",
-                file.display()
-            ))
+            Err(anyhow::anyhow!("Config file not found: {}", file.display()))
         }
     }
 

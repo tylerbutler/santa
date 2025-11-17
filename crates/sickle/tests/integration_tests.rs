@@ -36,7 +36,10 @@ package_managers =
     let model = parse(ccl).expect("should parse successfully");
 
     // Test simple values
-    assert_eq!(model.get("name").unwrap().as_str().unwrap(), "Santa Package Manager");
+    assert_eq!(
+        model.get("name").unwrap().as_str().unwrap(),
+        "Santa Package Manager"
+    );
     assert_eq!(model.get("version").unwrap().as_str().unwrap(), "0.1.0");
 
     // Test nested map navigation - database should be parsed as a map
@@ -94,7 +97,10 @@ non_empty = value
 
     let model = parse(ccl).expect("should parse");
 
-    assert_eq!(model.get("key_with_empty_value").unwrap().as_str().unwrap(), "");
+    assert_eq!(
+        model.get("key_with_empty_value").unwrap().as_str().unwrap(),
+        ""
+    );
     assert_eq!(model.get("another").unwrap().as_str().unwrap(), "");
     assert_eq!(model.get("non_empty").unwrap().as_str().unwrap(), "value");
 }
@@ -110,23 +116,41 @@ command = echo "Hello World"
 
     let model = parse(ccl).expect("should parse");
 
-    assert_eq!(model.get("url").unwrap().as_str().unwrap(), "https://github.com/user/repo");
-    assert_eq!(model.get("email").unwrap().as_str().unwrap(), "user@example.com");
-    assert_eq!(model.get("path").unwrap().as_str().unwrap(), "/usr/local/bin");
-    assert_eq!(model.get("command").unwrap().as_str().unwrap(), "echo \"Hello World\"");
+    assert_eq!(
+        model.get("url").unwrap().as_str().unwrap(),
+        "https://github.com/user/repo"
+    );
+    assert_eq!(
+        model.get("email").unwrap().as_str().unwrap(),
+        "user@example.com"
+    );
+    assert_eq!(
+        model.get("path").unwrap().as_str().unwrap(),
+        "/usr/local/bin"
+    );
+    assert_eq!(
+        model.get("command").unwrap().as_str().unwrap(),
+        "echo \"Hello World\""
+    );
 }
 
 #[test]
 fn test_model_merging() {
-    let config1 = parse(r#"
+    let config1 = parse(
+        r#"
 name = App1
 version = 1.0.0
-"#).unwrap();
+"#,
+    )
+    .unwrap();
 
-    let config2 = parse(r#"
+    let config2 = parse(
+        r#"
 author = Tyler
 license = MIT
-"#).unwrap();
+"#,
+    )
+    .unwrap();
 
     let merged = config1.merge(config2);
     let map = merged.as_map().unwrap();

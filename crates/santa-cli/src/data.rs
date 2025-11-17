@@ -237,10 +237,7 @@ impl SantaData {
     /// Returns an iterator over sources (both built-in and custom) for memory efficiency.
     /// Note: This now returns owned sources to avoid lifetime issues with conversion.
     /// For truly zero-copy iteration, use sources_builtin_iter() + convert custom_sources separately.
-    pub fn sources_iter(
-        &self,
-        config: &SantaConfig,
-    ) -> impl Iterator<Item = PackageSource> + '_ {
+    pub fn sources_iter(&self, config: &SantaConfig) -> impl Iterator<Item = PackageSource> + '_ {
         let builtin = self.sources.iter().cloned();
         let custom = config
             .custom_sources

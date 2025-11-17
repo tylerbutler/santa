@@ -34,7 +34,7 @@
 //! # }
 //! ```
 
-use crate::configuration::SantaConfigExt;  // Import extension trait for method access
+use crate::configuration::SantaConfigExt; // Import extension trait for method access
 use crate::data::SantaData;
 use crate::data::SourceList;
 use crate::errors::{Result, SantaError};

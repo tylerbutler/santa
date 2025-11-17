@@ -164,10 +164,7 @@ mod tests {
 
     #[test]
     fn test_list_creation() {
-        let model = Model::list(vec![
-            Model::singleton("item1"),
-            Model::singleton("item2"),
-        ]);
+        let model = Model::list(vec![Model::singleton("item1"), Model::singleton("item2")]);
         assert!(model.is_list());
         assert_eq!(model.as_list().unwrap().len(), 2);
     }
@@ -192,7 +189,10 @@ mod tests {
         outer.insert("database".to_string(), Model::Map(inner));
 
         let model = Model::Map(outer);
-        assert_eq!(model.at("database.host").unwrap().as_str().unwrap(), "localhost");
+        assert_eq!(
+            model.at("database.host").unwrap().as_str().unwrap(),
+            "localhost"
+        );
     }
 
     #[test]
