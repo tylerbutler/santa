@@ -47,9 +47,17 @@ Not all tests are expected to pass, as sickle is under active development. The t
 
 ## Updating Test Data
 
-To add more test files:
+To download/update test files from the ccl-test-data repository:
 
-1. Download JSON files from [ccl-test-data/generated_tests](https://github.com/tylerbutler/ccl-test-data/tree/main/generated_tests)
+```bash
+just download-ccl-tests
+```
+
+This will download the latest test cases from [ccl-test-data/generated_tests](https://github.com/tylerbutler/ccl-test-data/tree/main/generated_tests).
+
+To add additional test files manually:
+
+1. Download JSON files from the repository
 2. Place them in this directory
 3. Add corresponding test functions in `integration_tests.rs` using `TestSuite::from_file()`
 

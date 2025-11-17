@@ -103,6 +103,22 @@ test-watch:
     @echo "🧪 Running tests in watch mode..."
     cargo watch -x test
 
+# Download CCL test data from ccl-test-data repository
+download-ccl-tests:
+    @echo "📥 Downloading CCL test data..."
+    mkdir -p crates/sickle/tests/test_data
+    curl -sL -o crates/sickle/tests/test_data/api_core_ccl_parsing.json \
+        https://raw.githubusercontent.com/tylerbutler/ccl-test-data/main/generated_tests/api_core_ccl_parsing.json
+    curl -sL -o crates/sickle/tests/test_data/api_comments.json \
+        https://raw.githubusercontent.com/tylerbutler/ccl-test-data/main/generated_tests/api_comments.json
+    curl -sL -o crates/sickle/tests/test_data/api_typed_access.json \
+        https://raw.githubusercontent.com/tylerbutler/ccl-test-data/main/generated_tests/api_typed_access.json
+    curl -sL -o crates/sickle/tests/test_data/api_core_ccl_hierarchy.json \
+        https://raw.githubusercontent.com/tylerbutler/ccl-test-data/main/generated_tests/api_core_ccl_hierarchy.json
+    curl -sL -o crates/sickle/tests/test_data/api_core_ccl_integration.json \
+        https://raw.githubusercontent.com/tylerbutler/ccl-test-data/main/generated_tests/api_core_ccl_integration.json
+    @echo "✅ CCL test data downloaded to crates/sickle/tests/test_data/"
+
 # Benchmarking Commands
 # ====================
 
