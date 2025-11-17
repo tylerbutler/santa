@@ -12,42 +12,25 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # ratchet:actions/checkout@v4
 
-      - name: Install Rust
-        uses: dtolnay/rust-toolchain@6d9817901c499d6b02debbb57edb38d33daa680b # ratchet:dtolnay/rust-toolchain@stable
+      - uses: ./.github/actions/setup-rust
         with:
           components: "clippy,rustfmt"
 
-      - name: Setup Cache
-        uses: Swatinem/rust-cache@98c8021b550208e191a6a3145459bfc9fb29c4c0 # ratchet:Swatinem/rust-cache@v2
+      - uses: ./.github/actions/install-tools
         with:
-          # Determines whether workspace `target` directories are cached.
-          # If `false`, only the cargo registry will be cached.
-          # default: "true"
-          cache-targets: true
-
-          # Determines if the cache should be saved even when the workflow has failed.
-          # default: "false"
-          cache-on-failure: true
-
-      - uses: taiki-e/install-action@0be4756f42223b67aa4b7df5effad59010cbf4b9 # ratchet:taiki-e/install-action@v2
-        with:
-          tool: "just,cargo-udeps,cargo-audit,cargo-deny"
+          tools: "just,cargo-udeps,cargo-audit,cargo-deny"
 
       - name: Check formatting
-        run: |
-          just format --check
+        run: just format --check
 
       - name: Clippy check (lint)
         run: just lint
 
       - name: Debug build
-        run: |
-          just build
+        run: just build
 
       - name: Verify package
-        run: |
-          just verify-package
+        run: just verify-package
 
       - name: Security audit
-        run: |
-          just audit
+        run: just audit
