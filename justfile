@@ -119,6 +119,21 @@ download-ccl-tests:
         https://raw.githubusercontent.com/tylerbutler/ccl-test-data/main/generated_tests/api_core_ccl_integration.json
     @echo "✅ CCL test data downloaded to crates/sickle/tests/test_data/"
 
+# Run CCL test suites with detailed individual test results
+test-ccl:
+    @echo "🧪 Running CCL test suites for sickle..."
+    @echo ""
+    @echo "📋 Core Parsing Tests:"
+    @cargo test -p sickle test_parsing_suite_basic_tests -- --nocapture 2>&1 | grep -E "  ✓|  ✗|^Results:" || true
+    @echo ""
+    @echo "📋 Typed Access Tests (Strings):"
+    @cargo test -p sickle test_typed_access_suite_strings -- --nocapture 2>&1 | grep -E "  ✓|  ✗|^String access tests:" || true
+    @echo ""
+    @echo "📋 Comments Tests:"
+    @cargo test -p sickle test_comments_suite -- --nocapture 2>&1 | grep -E "  ✓|  ✗|^Comments tests:|^Note:" || true
+    @echo ""
+    @echo "✅ CCL test suites complete!"
+
 # Benchmarking Commands
 # ====================
 
