@@ -138,9 +138,8 @@ fn build_model(map: std::collections::BTreeMap<String, Vec<String>>) -> Result<M
                             Ok(parsed) if !matches!(parsed, Model::Map(ref m) if m.is_empty()) => {
                                 // Check if keys look valid
                                 if let Ok(map) = parsed.as_map() {
-                                    let has_valid_keys = map.keys().all(|k| {
-                                        !k.starts_with('-') && !k.contains(' ')
-                                    });
+                                    let has_valid_keys =
+                                        map.keys().all(|k| !k.starts_with('-') && !k.contains(' '));
                                     if has_valid_keys {
                                         Ok(parsed)
                                     } else {
