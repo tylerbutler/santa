@@ -41,6 +41,18 @@ The test infrastructure in `test_helpers.rs` loads these JSON files and runs the
 - `get_string`, `get_int`, etc. - Tests typed access methods
 - `build_hierarchy`, `filter`, `combine` - Tests advanced operations
 
+### Running Tests
+
+```bash
+# Run all CCL tests with detailed individual results
+just test-ccl
+
+# Run specific test suite with details
+cargo test -p sickle test_parsing_suite_basic_tests -- --nocapture
+cargo test -p sickle test_typed_access_suite_strings -- --nocapture
+cargo test -p sickle test_comments_suite -- --nocapture
+```
+
 ## Current Status
 
 Not all tests are expected to pass, as sickle is under active development. The test infrastructure allows individual test cases to fail while still reporting which tests pass, making it easy to track implementation progress.
