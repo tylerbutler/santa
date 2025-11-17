@@ -325,7 +325,7 @@ packages =
     #[test]
     fn test_default_config_filters_platform_specific_sources() {
         // Test that the default config only includes sources available on current platform
-        let config = SantaConfig::default();
+        let config = SantaConfig::default_for_platform();
 
         // Should have at least one source (cargo is universal)
         assert!(
@@ -353,7 +353,7 @@ packages =
     #[test]
     fn test_default_config_does_not_panic() {
         // Ensure default config creation never panics
-        let _config = SantaConfig::default();
+        let _config = SantaConfig::default_for_platform();
         // If we get here, the test passed
     }
 }

@@ -620,7 +620,10 @@ mod tests {
         // Test with empty config (should return all sources)
         let empty_config = SantaConfig {
             sources: vec![],
-            ..Default::default()
+            packages: vec![],
+            custom_sources: None,
+            _groups: None,
+            log_level: 0,
         };
 
         let filtered_empty = data.sources(&empty_config);
@@ -628,16 +631,19 @@ mod tests {
 
         // Test with config containing custom sources (should extend with custom sources)
         let config_with_custom_sources = SantaConfig {
-            custom_sources: Some(vec![crate::sources::PackageSource::new_for_test(
-                KnownSources::Cargo,
-                "📦",
-                "cargo",
-                "cargo install",
-                "cargo search",
-                None,
-                None,
-            )]),
-            ..Default::default()
+            sources: vec![KnownSources::Cargo],
+            packages: vec!["test-package".to_string()],
+            custom_sources: Some(vec![crate::configuration::ConfigPackageSource {
+                name: KnownSources::Cargo,
+                emoji: "📦".to_string(),
+                shell_command: "cargo".to_string(),
+                install_command: "cargo install".to_string(),
+                check_command: "cargo search".to_string(),
+                prepend_to_package_name: None,
+                overrides: None,
+            }]),
+            _groups: None,
+            log_level: 0,
         };
 
         let filtered_with_custom = data.sources(&config_with_custom_sources);
@@ -646,8 +652,11 @@ mod tests {
 
         // Test with no custom sources (should return original sources only)
         let config_no_custom = SantaConfig {
+            sources: vec![],
+            packages: vec![],
             custom_sources: None,
-            ..Default::default()
+            _groups: None,
+            log_level: 0,
         };
 
         let filtered_no_custom = data.sources(&config_no_custom);
@@ -916,8 +925,11 @@ git =
 
         // Test with empty custom_sources vector (not None)
         let mut config = SantaConfig {
+            sources: vec![],
+            packages: vec![],
             custom_sources: Some(vec![]),
-            ..Default::default()
+            _groups: None,
+            log_level: 0,
         };
 
         let filtered = data.sources(&config);
