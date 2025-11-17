@@ -32,10 +32,30 @@ component_management:
       paths:
         - crates/santa-data/**
 
+    - component_id: sickle
+      name: Sickle CCL Parser
+      paths:
+        - crates/sickle/**
+
 flags:
   unittests:
     paths:
       - crates/
+    carryforward: true
+
+  santa-cli:
+    paths:
+      - crates/santa-cli/
+    carryforward: true
+
+  santa-data:
+    paths:
+      - crates/santa-data/
+    carryforward: true
+
+  sickle:
+    paths:
+      - crates/sickle/
     carryforward: true
 
 comment:

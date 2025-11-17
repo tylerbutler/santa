@@ -21,10 +21,11 @@
 //!
 //! ```rust,no_run
 //! use santa::{SantaConfig, SantaData, sources::PackageCache};
+//! use santa::configuration::SantaConfigExt;
 //! use santa::commands::status_command;
 //!
 //! # async fn example() -> Result<(), Box<dyn std::error::Error>> {
-//! let mut config = SantaConfig::default();
+//! let mut config = SantaConfig::default_for_platform();
 //! let data = SantaData::default();
 //! let cache = PackageCache::new();
 //!
@@ -34,6 +35,7 @@
 //! # }
 //! ```
 
+use crate::configuration::SantaConfigExt; // Import extension trait for method access
 use crate::data::SantaData;
 use crate::data::SourceList;
 use crate::errors::{Result, SantaError};
@@ -71,10 +73,11 @@ mod tests;
 ///
 /// ```rust,no_run
 /// use santa::{SantaConfig, SantaData, sources::PackageCache};
+/// use santa::configuration::SantaConfigExt;
 /// use santa::commands::status_command;
 ///
 /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
-/// let mut config = SantaConfig::default();
+/// let mut config = SantaConfig::default_for_platform();
 /// let data = SantaData::default();
 /// let cache = PackageCache::new();
 ///
@@ -158,10 +161,11 @@ pub async fn status_command(
 ///
 /// ```rust,no_run
 /// use santa::{SantaConfig, SantaData};
+/// use santa::configuration::SantaConfigExt;
 /// use santa::commands::config_command;
 ///
 /// # fn example() -> Result<(), Box<dyn std::error::Error>> {
-/// let config = SantaConfig::default();
+/// let config = SantaConfig::default_for_platform();
 /// let data = SantaData::default();
 ///
 /// // Show current configuration
@@ -212,12 +216,13 @@ pub fn config_command(
 ///
 /// ```rust,no_run
 /// use santa::{SantaConfig, SantaData, sources::PackageCache};
+/// use santa::configuration::SantaConfigExt;
 /// use santa::script_generator::{ExecutionMode, ScriptFormat};
 /// use santa::commands::install_command;
 /// use std::path::Path;
 ///
 /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
-/// let mut config = SantaConfig::default();
+/// let mut config = SantaConfig::default_for_platform();
 /// let data = SantaData::default();
 /// let cache = PackageCache::new();
 ///

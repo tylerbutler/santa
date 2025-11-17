@@ -167,7 +167,7 @@ pub type SourceMap = HashMap<SourceName, PackageSource>;
 
 impl LoadFromFile for PackageDataList {
     fn load_from_str(config_str: &str) -> Self {
-        match serde_ccl::from_str(config_str) {
+        match sickle::from_str(config_str) {
             Ok(data) => data,
             Err(e) => {
                 error!("Error parsing CCL data: {}", e);
@@ -193,7 +193,7 @@ pub type SourceList = Vec<PackageSource>;
 
 impl LoadFromFile for SourceList {
     fn load_from_str(config_str: &str) -> Self {
-        serde_ccl::from_str(config_str).expect("Failed to load CCL source list")
+        sickle::from_str(config_str).expect("Failed to load CCL source list")
     }
 }
 
@@ -223,7 +223,7 @@ impl SantaData {
         let schema_packages =
             santa_data::parse_ccl_to(packages_str).expect("Failed to load packages CCL");
 
-        let schema_sources = serde_ccl::from_str(sources_str).expect("Failed to load sources CCL");
+        let schema_sources = sickle::from_str(sources_str).expect("Failed to load sources CCL");
 
         // Convert to legacy format
         let packages = convert_to_legacy_packages(schema_packages);
@@ -235,18 +235,22 @@ impl SantaData {
     // pub fn update_from_config(&mut self, config: &SantaConfig) {
 
     /// Returns an iterator over sources (both built-in and custom) for memory efficiency.
-    /// Use this when you only need to iterate over sources without owning them.
-    pub fn sources_iter<'a>(
-        &'a self,
-        config: &'a SantaConfig,
-    ) -> impl Iterator<Item = &'a PackageSource> + 'a {
-        self.sources.iter().chain(
-            config
-                .custom_sources
-                .as_ref()
-                .map(|sources| sources.iter())
-                .unwrap_or([].iter()),
-        )
+    /// Note: This now returns owned sources to avoid lifetime issues with conversion.
+    /// For truly zero-copy iteration, use sources_builtin_iter() + convert custom_sources separately.
+    pub fn sources_iter(&self, config: &SantaConfig) -> impl Iterator<Item = PackageSource> + '_ {
+        let builtin = self.sources.iter().cloned();
+        let custom = config
+            .custom_sources
+            .as_ref()
+            .map(|sources| {
+                sources
+                    .iter()
+                    .cloned()
+                    .map(PackageSource::from)
+                    .collect::<Vec<_>>()
+            })
+            .unwrap_or_default();
+        builtin.chain(custom)
     }
 
     /// Returns owned sources list. Use only when you need to own/modify the collection.
@@ -257,7 +261,7 @@ impl SantaData {
         let mut ret = SourceList::with_capacity(capacity);
         ret.extend(self.sources.iter().cloned());
         if let Some(ref custom_sources) = config.custom_sources {
-            ret.extend(custom_sources.iter().cloned());
+            ret.extend(custom_sources.iter().cloned().map(PackageSource::from));
         }
         ret
     }
@@ -616,7 +620,10 @@ mod tests {
         // Test with empty config (should return all sources)
         let empty_config = SantaConfig {
             sources: vec![],
-            ..Default::default()
+            packages: vec![],
+            custom_sources: None,
+            _groups: None,
+            log_level: 0,
         };
 
         let filtered_empty = data.sources(&empty_config);
@@ -624,16 +631,19 @@ mod tests {
 
         // Test with config containing custom sources (should extend with custom sources)
         let config_with_custom_sources = SantaConfig {
-            custom_sources: Some(vec![crate::sources::PackageSource::new_for_test(
-                KnownSources::Cargo,
-                "📦",
-                "cargo",
-                "cargo install",
-                "cargo search",
-                None,
-                None,
-            )]),
-            ..Default::default()
+            sources: vec![KnownSources::Cargo],
+            packages: vec!["test-package".to_string()],
+            custom_sources: Some(vec![crate::configuration::ConfigPackageSource {
+                name: KnownSources::Cargo,
+                emoji: "📦".to_string(),
+                shell_command: "cargo".to_string(),
+                install_command: "cargo install".to_string(),
+                check_command: "cargo search".to_string(),
+                prepend_to_package_name: None,
+                overrides: None,
+            }]),
+            _groups: None,
+            log_level: 0,
         };
 
         let filtered_with_custom = data.sources(&config_with_custom_sources);
@@ -642,8 +652,11 @@ mod tests {
 
         // Test with no custom sources (should return original sources only)
         let config_no_custom = SantaConfig {
+            sources: vec![],
+            packages: vec![],
             custom_sources: None,
-            ..Default::default()
+            _groups: None,
+            log_level: 0,
         };
 
         let filtered_no_custom = data.sources(&config_no_custom);
@@ -912,8 +925,11 @@ git =
 
         // Test with empty custom_sources vector (not None)
         let mut config = SantaConfig {
+            sources: vec![],
+            packages: vec![],
             custom_sources: Some(vec![]),
-            ..Default::default()
+            _groups: None,
+            log_level: 0,
         };
 
         let filtered = data.sources(&config);

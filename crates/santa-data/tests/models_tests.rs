@@ -218,7 +218,7 @@ fn test_known_sources_unknown_variant_equality() {
 // OS tests
 #[test]
 fn test_os_variants() {
-    let oses = vec![OS::Macos, OS::Linux, OS::Windows];
+    let oses = [OS::Macos, OS::Linux, OS::Windows];
     assert_eq!(oses.len(), 3);
 }
 
@@ -242,7 +242,7 @@ fn test_os_deserialization() {
 // Arch tests
 #[test]
 fn test_arch_variants() {
-    let arches = vec![Arch::X64, Arch::Aarch64];
+    let arches = [Arch::X64, Arch::Aarch64];
     assert_eq!(arches.len(), 2);
 }
 
@@ -258,7 +258,7 @@ fn test_arch_serialization() {
 // Distro tests
 #[test]
 fn test_distro_variants() {
-    let distros = vec![Distro::None, Distro::ArchLinux, Distro::Ubuntu];
+    let distros = [Distro::None, Distro::ArchLinux, Distro::Ubuntu];
     assert_eq!(distros.len(), 3);
 }
 

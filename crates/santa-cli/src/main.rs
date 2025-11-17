@@ -2,7 +2,7 @@ use anyhow::{bail, Context};
 use clap::{ArgAction, Command, Parser, Subcommand, ValueEnum};
 use clap_complete::{generate, Shell};
 use santa::completions::EnhancedCompletions;
-use santa::configuration::SantaConfig;
+use santa::configuration::{SantaConfig, SantaConfigExt};
 use santa::data::SantaData;
 use tracing::{debug, info, trace, Level};
 use tracing_subscriber::{EnvFilter, FmtSubscriber};
@@ -18,7 +18,7 @@ use santa::sources::PackageCache;
 #[cfg(test)]
 mod tests;
 
-static DEFAULT_CONFIG_FILE_PATH: &str = ".config/santa/config.yaml";
+static DEFAULT_CONFIG_FILE_PATH: &str = ".config/santa/config.ccl";
 
 /// Manage default sets of packages for a variety of package managers.
 #[derive(Parser)]
@@ -170,7 +170,7 @@ pub async fn run() -> Result<(), anyhow::Error> {
 
         // Try to load config and data for enhanced completions
         let config_result = if cli.builtin_only {
-            Ok(SantaConfig::default())
+            Ok(SantaConfig::default_for_platform())
         } else {
             load_config(Path::new(DEFAULT_CONFIG_FILE_PATH))
         };
@@ -231,7 +231,7 @@ pub async fn run() -> Result<(), anyhow::Error> {
 
     let mut config = if cli.builtin_only {
         info!("loading built-in config because of CLI flag.");
-        SantaConfig::default()
+        SantaConfig::default_for_platform()
     } else {
         load_config(Path::new(DEFAULT_CONFIG_FILE_PATH))?
     };

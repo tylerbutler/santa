@@ -31,7 +31,7 @@ pub fn load_sources_from_schema(path: &Path) -> Result<SourcesDefinition> {
     let content = fs::read_to_string(path)
         .with_context(|| format!("Failed to read sources file: {:?}", path))?;
 
-    let sources: SourcesDefinition = serde_ccl::from_str(&content)
+    let sources: SourcesDefinition = sickle::from_str(&content)
         .with_context(|| format!("Failed to parse CCL sources: {:?}", path))?;
 
     info!("Loaded {} sources from schema format", sources.len());
@@ -43,7 +43,7 @@ pub fn load_config_from_schema(path: &Path) -> Result<ConfigDefinition> {
     let content = fs::read_to_string(path)
         .with_context(|| format!("Failed to read config file: {:?}", path))?;
 
-    let config: ConfigDefinition = serde_ccl::from_str(&content)
+    let config: ConfigDefinition = sickle::from_str(&content)
         .with_context(|| format!("Failed to parse CCL config: {:?}", path))?;
 
     info!(
@@ -168,10 +168,10 @@ mod tests {
         println!("--- Test 1: Raw array ---");
         println!("Input CCL:\n{}", array_ccl);
 
-        let vec_result: Result<Vec<String>, _> = serde_ccl::from_str(array_ccl);
+        let vec_result: Result<Vec<String>, _> = sickle::from_str(array_ccl);
         println!("Vec<String> result: {:?}\n", vec_result);
 
-        let json_value: Result<serde_json::Value, _> = serde_ccl::from_str(array_ccl);
+        let json_value: Result<serde_json::Value, _> = sickle::from_str(array_ccl);
         println!("serde_json::Value result: {:?}\n", json_value);
 
         // Test 2: What about in a HashMap context?
@@ -184,12 +184,12 @@ test_pkg =
         println!("Input CCL:\n{}", full_simple);
 
         // Parse as generic Value to see structure
-        let json_result: Result<serde_json::Value, _> = serde_ccl::from_str(full_simple);
+        let json_result: Result<serde_json::Value, _> = sickle::from_str(full_simple);
         println!("As serde_json::Value: {:#?}\n", json_result);
 
         // Parse as HashMap<String, Value>
         let hash_value: Result<HashMap<String, serde_json::Value>, _> =
-            serde_ccl::from_str(full_simple);
+            sickle::from_str(full_simple);
         println!("As HashMap<String, Value>: {:#?}\n", hash_value);
 
         // What type does the value have?
@@ -216,11 +216,11 @@ test_pkg =
         println!("--- Test 3: HashMap with complex format ---");
         println!("Input CCL:\n{}", full_complex);
 
-        let complex_json: Result<serde_json::Value, _> = serde_ccl::from_str(full_complex);
+        let complex_json: Result<serde_json::Value, _> = sickle::from_str(full_complex);
         println!("As serde_json::Value: {:#?}\n", complex_json);
 
         let complex_hash: Result<HashMap<String, serde_json::Value>, _> =
-            serde_ccl::from_str(full_complex);
+            sickle::from_str(full_complex);
         println!("As HashMap<String, Value>: {:#?}\n", complex_hash);
 
         if let Ok(ref map) = complex_hash {

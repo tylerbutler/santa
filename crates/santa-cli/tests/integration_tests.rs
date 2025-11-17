@@ -84,7 +84,7 @@ fn test_status_all_with_builtin() {
 #[test]
 fn test_add_command_not_implemented() {
     let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("santa"));
-    cmd.args(["add", "git", "brew"]);
+    cmd.args(["add", "git", "brew", "--builtin-only"]);
     cmd.assert()
         .failure()
         .stderr(predicate::str::contains("Add command not yet implemented"));
@@ -119,10 +119,14 @@ fn test_invalid_subcommand() {
 
 #[test]
 fn test_config_with_custom_file() {
-    // Create a temporary config file
+    // Create a temporary config file in CCL format
     let config_content = r#"
-sources: ["brew", "cargo"]
-packages: ["git", "rust"]
+sources =
+  = brew
+  = cargo
+packages =
+  = git
+  = rust
 "#;
 
     let mut temp_file = NamedTempFile::new().unwrap();
@@ -131,9 +135,9 @@ packages: ["git", "rust"]
     // Test that we can load custom config (this will fail since the file path is different)
     // This test documents the current behavior and the need for better config file handling
     let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("santa"));
-    cmd.args(["config"]);
+    cmd.args(["config", "--builtin-only"]);
 
-    // This will use default config since our temp file isn't in the expected location
+    // This will use builtin config since we can't point to our temp file location
     cmd.assert().success();
 }
 
@@ -151,7 +155,7 @@ fn test_security_command_injection_protection() {
     for dangerous_arg in dangerous_args {
         // Test with add command (which should fail safely)
         let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("santa"));
-        cmd.args(["add", dangerous_arg]);
+        cmd.args(["add", dangerous_arg, "--builtin-only"]);
         cmd.assert()
             .failure()
             .stderr(predicate::str::contains("Add command not yet implemented"));

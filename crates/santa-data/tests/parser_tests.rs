@@ -280,8 +280,7 @@ pkg =
   name = café
 "#;
     let result = parse_to_hashmap(ccl);
-    if result.is_ok() {
-        let obj = result.unwrap();
+    if let Ok(obj) = result {
         assert!(obj.contains_key("pkg"));
     }
 }
