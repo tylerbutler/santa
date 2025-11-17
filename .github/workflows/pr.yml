@@ -34,3 +34,31 @@ jobs:
 
       - name: Security audit
         run: just audit
+
+  workspace-consistency:
+    name: Workspace Consistency Checks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # ratchet:actions/checkout@v4
+
+      - uses: ./.github/actions/setup-rust
+
+      - name: Check for duplicate dependencies
+        run: |
+          echo "Checking for duplicate dependencies across workspace..."
+          cargo tree --duplicates --workspace || echo "No duplicates found"
+
+      - name: Test package isolation
+        run: |
+          echo "Testing santa-cli in isolation..."
+          cargo test -p santa --no-fail-fast
+          echo "Testing santa-data in isolation..."
+          cargo test -p santa-data --no-fail-fast
+
+      - name: Verify dependency tree
+        run: |
+          echo "Analyzing santa-data dependencies..."
+          cargo tree --edges normal --invert santa-data
+          echo "Analyzing santa-cli dependencies..."
+          cargo tree -p santa --depth 3

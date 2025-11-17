@@ -7,6 +7,11 @@ license.workspace = true
 repository.workspace = true
 rust-version.workspace = true
 description = "Data models and CCL parser for Santa package manager"
+categories = ["data-structures", "parser-implementations", "development-tools"]
+keywords = ["ccl", "package-data", "santa", "configuration"]
+documentation = "https://docs.rs/santa-data"
+readme.workspace = true
+publish = true
 
 [dependencies]
 serde = { workspace = true }
