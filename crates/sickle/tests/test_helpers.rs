@@ -84,11 +84,19 @@ impl TestSuite {
             .collect()
     }
 
-    /// Filter tests by feature
-    pub fn filter_by_feature(&self, feature: &str) -> Vec<&TestCase> {
+    /// Filter tests by behavior
+    pub fn filter_by_behavior(&self, behavior: &str) -> Vec<&TestCase> {
         self.tests
             .iter()
-            .filter(|t| t.features.contains(&feature.to_string()))
+            .filter(|t| t.behaviors.contains(&behavior.to_string()))
+            .collect()
+    }
+
+    /// Filter tests by function
+    pub fn filter_by_function(&self, function: &str) -> Vec<&TestCase> {
+        self.tests
+            .iter()
+            .filter(|t| t.functions.contains(&function.to_string()))
             .collect()
     }
 

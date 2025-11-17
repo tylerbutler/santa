@@ -1,8 +1,10 @@
-# Sickle Capabilities and Feature Guide
+# Sickle Capabilities Guide
 
-This document provides a comprehensive overview of all features, functions, and behaviors supported by sickle, the CCL parser for Rust.
+This document provides a comprehensive overview of all CCL functions and parser behaviors supported by sickle.
 
-> **Quick Reference**: See [../../data/ccl-features.toml](../../data/ccl-features.toml) for the machine-readable feature registry.
+> **Quick Reference**: See [../../data/ccl-registry.toml](../../data/ccl-registry.toml) for the machine-readable registry.
+>
+> **Note**: "Features" in test data are grouping labels only. Filter on **functions** and **behaviors**.
 
 ## Table of Contents
 

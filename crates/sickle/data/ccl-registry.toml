@@ -1,5 +1,7 @@
-# CCL Feature Registry
-# This file documents all supported features, functions, and behaviors in sickle
+# CCL Functions and Behaviors Registry
+# This file documents all supported CCL functions and parser behaviors in sickle
+#
+# Note: "features" in test data are grouping labels only - filter on functions and behaviors
 
 [metadata]
 version = "0.1.0"
@@ -7,127 +9,175 @@ ccl_spec_version = "1.0"
 last_updated = "2025-01-17"
 
 # ============================================================================
-# Core Model API - Navigation and Access
+# CCL Functions - API methods for navigating and accessing CCL data
 # ============================================================================
 
-[[model.methods]]
+[[functions]]
 name = "get"
+type = "navigation"
 signature = "get(&self, key: &str) -> Result<&Model>"
 description = "Get a value by key from a map"
+status = "implemented"
 since = "0.1.0"
-enabled = true
 example = '''
 let model = parse("name = Santa")?;
 let name = model.get("name")?;
 '''
 
-[[model.methods]]
+[[functions]]
 name = "at"
+type = "navigation"
 signature = "at(&self, path: &str) -> Result<&Model>"
 description = "Get nested value using dot-separated path (e.g., 'database.host')"
+status = "implemented"
 since = "0.1.0"
-enabled = true
 example = '''
 let model = parse("database = host = localhost")?;
 let host = model.at("database.host")?;
 '''
 
-[[model.methods]]
+[[functions]]
 name = "as_str"
+type = "conversion"
 signature = "as_str(&self) -> Result<&str>"
 description = "Convert singleton to string reference"
+status = "implemented"
 since = "0.1.0"
-enabled = true
 example = '''
 let model = parse("name = Santa")?;
 let name = model.get("name")?.as_str()?;
 assert_eq!(name, "Santa");
 '''
 
-[[model.methods]]
+[[functions]]
 name = "as_list"
+type = "conversion"
 signature = "as_list(&self) -> Result<&[Model]>"
 description = "Convert to list slice"
+status = "implemented"
 since = "0.1.0"
-enabled = true
 example = '''
 let ccl = "items =\n  = one\n  = two";
 let model = parse(ccl)?;
 let items = model.get("items")?.as_list()?;
 '''
 
-[[model.methods]]
+[[functions]]
 name = "as_map"
+type = "conversion"
 signature = "as_map(&self) -> Result<&BTreeMap<String, Model>>"
 description = "Convert to map reference"
+status = "implemented"
 since = "0.1.0"
-enabled = true
 example = '''
 let model = parse("name = Santa\nversion = 1.0")?;
 let map = model.as_map()?;
 assert_eq!(map.len(), 2);
 '''
 
-[[model.methods]]
+[[functions]]
 name = "parse_value"
+type = "conversion"
 signature = "parse_value<T: FromStr>(&self) -> Result<T>"
 description = "Parse singleton value to any type implementing FromStr"
+status = "implemented"
 since = "0.1.0"
-enabled = true
 example = '''
 let model = parse("port = 5432")?;
 let port: u16 = model.get("port")?.parse_value()?;
 assert_eq!(port, 5432);
 '''
 
-[[model.methods]]
+[[functions]]
 name = "is_singleton"
+type = "type_check"
 signature = "is_singleton(&self) -> bool"
 description = "Check if value is a singleton"
+status = "implemented"
 since = "0.1.0"
-enabled = true
 
-[[model.methods]]
+[[functions]]
 name = "is_list"
+type = "type_check"
 signature = "is_list(&self) -> bool"
 description = "Check if value is a list"
+status = "implemented"
 since = "0.1.0"
-enabled = true
 
-[[model.methods]]
+[[functions]]
 name = "is_map"
+type = "type_check"
 signature = "is_map(&self) -> bool"
 description = "Check if value is a map"
+status = "implemented"
 since = "0.1.0"
-enabled = true
 
-[[model.methods]]
+[[functions]]
 name = "merge"
+type = "composition"
 signature = "merge(self, other: Model) -> Model"
 description = "Merge two models with composability rules"
+status = "implemented"
 since = "0.1.0"
-enabled = true
 example = '''
 let m1 = Model::singleton("value1");
 let m2 = Model::singleton("value2");
 let merged = m1.merge(m2); // Creates list of both
 '''
 
+# Planned/Not Implemented Functions
+
+[[functions]]
+name = "get_string"
+type = "typed_access"
+signature = "get_string(&self, key: &str) -> Result<String>"
+description = "Convenience method: get key and convert to string"
+status = "not_implemented"
+affected_tests = 49
+priority = "low"
+
+[[functions]]
+name = "get_int"
+type = "typed_access"
+signature = "get_int(&self, key: &str) -> Result<i64>"
+description = "Convenience method: get key and parse as integer"
+status = "not_implemented"
+affected_tests = 49
+priority = "low"
+
+[[functions]]
+name = "get_bool"
+type = "typed_access"
+signature = "get_bool(&self, key: &str) -> Result<bool>"
+description = "Convenience method: get key and parse as boolean"
+status = "not_implemented"
+affected_tests = 49
+priority = "low"
+
+[[functions]]
+name = "get_float"
+type = "typed_access"
+signature = "get_float(&self, key: &str) -> Result<f64>"
+description = "Convenience method: get key and parse as float"
+status = "not_implemented"
+affected_tests = 49
+priority = "low"
+
 # ============================================================================
-# Parser Features - Syntax Support
+# Parser Behaviors - How sickle interprets CCL syntax
 # ============================================================================
 
-[[parser.features]]
+[[behaviors]]
 name = "basic_key_value"
-description = "Basic key=value pair parsing"
-enabled = true
+description = "Parse basic key=value pair syntax"
+status = "implemented"
 since = "0.1.0"
 example = "name = Santa"
 
-[[parser.features]]
+[[behaviors]]
 name = "multiline_values"
-description = "Values spanning multiple indented lines"
-enabled = true
+description = "Values spanning multiple indented lines are concatenated"
+status = "implemented"
 since = "0.1.0"
 example = '''
 description = This is a long
@@ -135,20 +185,20 @@ description = This is a long
   multiple lines
 '''
 
-[[parser.features]]
-name = "comments"
-description = "Comment lines starting with /= or / (filtered from output)"
-enabled = true
+[[behaviors]]
+name = "comment_filtering"
+description = "Lines starting with /= or / are treated as comments and filtered from output"
+status = "implemented"
 since = "0.1.0"
 example = '''
 /= This is a comment
 name = Santa
 '''
 
-[[parser.features]]
+[[behaviors]]
 name = "empty_key_lists"
-description = "Lists defined with empty keys (= value)"
-enabled = true
+description = "Empty keys (= value) create list items"
+status = "implemented"
 since = "0.1.0"
 example = '''
 items =
@@ -157,10 +207,10 @@ items =
   = three
 '''
 
-[[parser.features]]
+[[behaviors]]
 name = "nested_parsing"
-description = "Automatic recursive parsing of values containing '='"
-enabled = true
+description = "Values containing '=' are recursively parsed if keys look valid (no leading '-', no spaces)"
+status = "implemented"
 since = "0.1.0"
 validation = "Validates keys don't start with '-' or contain spaces"
 example = '''
@@ -169,77 +219,72 @@ database =
   port = 5432
 '''
 
-[[parser.features]]
-name = "section_headers"
-description = "Section-style headers (== Section ==)"
-enabled = false
-since = "future"
-status = "not_implemented"
-note = "Many tests expect this but it's not implemented"
-
-[[parser.features]]
-name = "duplicate_key_handling"
-description = "Multiple values for same key create a list"
-enabled = false
-since = "future"
-status = "partially_implemented"
-note = "Current behavior: last value wins, tests expect list creation"
-
-# ============================================================================
-# Value Interpretation Rules
-# ============================================================================
-
-[[interpretation.rules]]
-name = "empty_value"
-description = "Empty values become empty string singletons"
-enabled = true
-example = "key = "
-
-[[interpretation.rules]]
-name = "single_value"
-description = "Single value without '=' becomes singleton string"
-enabled = true
-example = "name = Santa"
-
-[[interpretation.rules]]
-name = "nested_ccl_detection"
-description = "Values with '=' parsed recursively if keys look valid"
-enabled = true
-validation = "Keys must not start with '-' or contain spaces"
-
-[[interpretation.rules]]
+[[behaviors]]
 name = "command_line_string_detection"
-description = "Values with '=' treated as strings if keys look like flags"
-enabled = true
+description = "Values with '=' treated as plain strings if keys look like command-line flags"
+status = "implemented"
+since = "0.1.0"
 example = "args = --flag=value --another"
 
-[[interpretation.rules]]
-name = "multiple_values_to_list"
-description = "Multiple values for same key become list"
-enabled = false
+[[behaviors]]
+name = "empty_value_handling"
+description = "Empty values (key =) become empty string singletons"
+status = "implemented"
+since = "0.1.0"
+example = "key = "
+
+[[behaviors]]
+name = "last_value_wins"
+description = "When duplicate keys exist, last value overwrites previous"
+status = "implemented"
+note = "This is current behavior but should be changed to duplicate_key_lists"
+since = "0.1.0"
+
+# Not Implemented Behaviors
+
+[[behaviors]]
+name = "section_headers"
+description = "Support == Section == style headers for grouping"
 status = "not_implemented"
-note = "Currently last value wins, should create list"
+affected_tests = 14
+priority = "high"
+example = '''
+== Section 1 ==
+key1 = value1
+
+== Section 2 ==
+key2 = value2
+'''
+
+[[behaviors]]
+name = "duplicate_key_lists"
+description = "Multiple values for same key auto-create lists instead of overwriting"
+status = "not_implemented"
+affected_tests = 6
+priority = "high"
+replaces = "last_value_wins"
+example = '''
+item = first
+item = second
+item = third
+# Should create: List([first, second, third])
+# Currently: Singleton(third)
+'''
+
+[[behaviors]]
+name = "crlf_normalize_to_lf"
+description = "Normalize CRLF line endings to LF"
+status = "unknown"
+note = "May already be handled by Rust string processing"
+
+[[behaviors]]
+name = "boolean_strict"
+description = "Strict boolean parsing (true/false only, case-sensitive)"
+status = "unknown"
+note = "Depends on FromStr implementation for bool"
 
 # ============================================================================
-# Optional Features (Cargo Features)
-# ============================================================================
-
-[[cargo.features]]
-name = "serde"
-description = "Serde serialization/deserialization support"
-enabled = true
-default = false
-dependencies = ["serde"]
-
-[[cargo.features]]
-name = "string-interning"
-description = "String interning for memory efficiency"
-enabled = false
-status = "planned"
-default = false
-
-# ============================================================================
-# Error Handling
+# Error Types
 # ============================================================================
 
 [[errors]]
@@ -273,7 +318,7 @@ description = "Failed to parse value to requested type"
 since = "0.1.0"
 
 # ============================================================================
-# Test Coverage
+# Test Coverage Summary
 # ============================================================================
 
 [test_coverage]
@@ -281,7 +326,7 @@ total_test_suites = 13
 total_tests = 327
 passing_tests = 110
 failing_tests = 217
-skip_reason = "Features not yet implemented (section headers, duplicate key lists)"
+pass_rate = "33.6%"
 
 [[test_coverage.suites]]
 name = "api_core_ccl_parsing"
@@ -303,7 +348,14 @@ tests = 35
 passing = 21
 failing = 14
 status = "partially_implemented"
-notes = "Failures mostly related to section headers and duplicate key handling"
+
+[[test_coverage.suites]]
+name = "api_typed_access"
+tests = 74
+passing = 25
+failing = 49
+status = "partially_implemented"
+notes = "Missing typed accessor functions (get_string, get_int, etc.)"
 
 [[test_coverage.suites]]
 name = "api_proposed_behavior"
@@ -311,43 +363,40 @@ tests = 60
 passing = 14
 failing = 46
 status = "partially_implemented"
-notes = "Many proposed features not yet implemented"
+notes = "Many proposed behaviors not yet implemented"
 
 # ============================================================================
-# Roadmap - Planned Features
+# Implementation Roadmap
 # ============================================================================
 
 [[roadmap]]
-feature = "section_headers"
+item = "section_headers behavior"
 priority = "high"
 description = "Support == Section == style headers"
+type = "behavior"
 affected_tests = 14
 estimated_effort = "medium"
 
 [[roadmap]]
-feature = "duplicate_key_lists"
+item = "duplicate_key_lists behavior"
 priority = "high"
 description = "Multiple values for same key auto-create lists"
+type = "behavior"
 affected_tests = 6
 estimated_effort = "medium"
 
 [[roadmap]]
-feature = "string_interning"
-priority = "medium"
-description = "Optional string interning for memory efficiency"
-affected_tests = 0
-estimated_effort = "low"
-
-[[roadmap]]
-feature = "typed_access_helpers"
+item = "typed_access functions"
 priority = "low"
-description = "Convenience methods for get_string, get_int, get_bool"
+description = "Convenience methods: get_string, get_int, get_bool, get_float"
+type = "function"
 affected_tests = 49
 estimated_effort = "low"
 
 [[roadmap]]
-feature = "advanced_list_operations"
+item = "advanced_list_operations functions"
 priority = "low"
-description = "List indexing, iteration, and manipulation"
+description = "List indexing, iteration, and manipulation functions"
+type = "function"
 affected_tests = 17
 estimated_effort = "medium"
