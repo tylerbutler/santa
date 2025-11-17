@@ -84,9 +84,11 @@ fn test_known_sources_variants() {
         KnownSources::Aur,
         KnownSources::Brew,
         KnownSources::Cargo,
+        KnownSources::Flathub,
+        KnownSources::Nix,
+        KnownSources::Npm,
         KnownSources::Pacman,
         KnownSources::Scoop,
-        KnownSources::Nix,
     ];
 
     for source in sources {
@@ -132,6 +134,85 @@ fn test_known_sources_unknown_deserialization() {
         KnownSources::Unknown(s) => assert_eq!(s, "custom-source"),
         _ => panic!("Expected Unknown variant"),
     }
+}
+
+#[test]
+fn test_known_sources_npm_variant() {
+    let source = KnownSources::Npm;
+    assert_eq!(source, KnownSources::Npm);
+    assert_ne!(source, KnownSources::Brew);
+}
+
+#[test]
+fn test_known_sources_npm_serialization() {
+    let source = KnownSources::Npm;
+    let json = serde_json::to_string(&source).unwrap();
+    assert_eq!(json, "\"npm\"");
+}
+
+#[test]
+fn test_known_sources_npm_deserialization() {
+    let json = "\"npm\"";
+    let source: KnownSources = serde_json::from_str(json).unwrap();
+    assert_eq!(source, KnownSources::Npm);
+}
+
+#[test]
+fn test_known_sources_flathub_variant() {
+    let source = KnownSources::Flathub;
+    assert_eq!(source, KnownSources::Flathub);
+    assert_ne!(source, KnownSources::Brew);
+}
+
+#[test]
+fn test_known_sources_flathub_serialization() {
+    let source = KnownSources::Flathub;
+    let json = serde_json::to_string(&source).unwrap();
+    assert_eq!(json, "\"flathub\"");
+}
+
+#[test]
+fn test_known_sources_flathub_deserialization() {
+    let json = "\"flathub\"";
+    let source: KnownSources = serde_json::from_str(json).unwrap();
+    assert_eq!(source, KnownSources::Flathub);
+}
+
+#[test]
+fn test_known_sources_hash_map_with_custom() {
+    // Test that Unknown variants can be used as HashMap keys
+    let mut sources_map: HashMap<KnownSources, String> = HashMap::new();
+
+    sources_map.insert(KnownSources::Brew, "brew package".to_string());
+    sources_map.insert(KnownSources::Npm, "npm package".to_string());
+    sources_map.insert(
+        KnownSources::Unknown("customPM".to_string()),
+        "custom package".to_string(),
+    );
+
+    assert_eq!(
+        sources_map.get(&KnownSources::Brew),
+        Some(&"brew package".to_string())
+    );
+    assert_eq!(
+        sources_map.get(&KnownSources::Npm),
+        Some(&"npm package".to_string())
+    );
+    assert_eq!(
+        sources_map.get(&KnownSources::Unknown("customPM".to_string())),
+        Some(&"custom package".to_string())
+    );
+}
+
+#[test]
+fn test_known_sources_unknown_variant_equality() {
+    let custom1 = KnownSources::Unknown("myPM".to_string());
+    let custom2 = KnownSources::Unknown("myPM".to_string());
+    let custom3 = KnownSources::Unknown("otherPM".to_string());
+
+    assert_eq!(custom1, custom2);
+    assert_ne!(custom1, custom3);
+    assert_ne!(custom1, KnownSources::Brew);
 }
 
 // OS tests
