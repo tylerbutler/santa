@@ -39,6 +39,25 @@
 //!
 //! let config: Config = from_str(ccl).unwrap();
 //! ```
+//!
+//! ## Feature Registry
+//!
+//! For a comprehensive list of all supported features, functions, and behaviors:
+//!
+//! - **Machine-readable registry**: See [data/ccl-features.toml](https://github.com/tylerbutler/santa/blob/main/crates/sickle/data/ccl-features.toml)
+//! - **Human-readable guide**: See [tests/test_data/capabilities.md](https://github.com/tylerbutler/santa/blob/main/crates/sickle/tests/test_data/capabilities.md)
+//!
+//! ## Cargo Features
+//!
+//! - `serde` (default): Serde serialization/deserialization support
+//! - `intern`: String interning for memory efficiency with large configs
+//!
+//! ### Future Features (Planned)
+//!
+//! - `section-headers`: Support `== Section ==` style headers
+//! - `duplicate-key-lists`: Auto-create lists from duplicate keys
+//! - `typed-access`: Convenience methods like `get_string()`, `get_int()`
+//! - `list-indexing`: Advanced list operations and indexing
 
 pub mod error;
 pub mod model;

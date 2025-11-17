@@ -486,6 +486,12 @@ fn test_all_ccl_suites_comprehensive() {
     let mut suite_names: Vec<_> = suites.keys().collect();
     suite_names.sort();
 
+    // Set up a custom panic hook to suppress panic output during test execution
+    let default_hook = std::panic::take_hook();
+    std::panic::set_hook(Box::new(|_| {
+        // Silently ignore panics - we're catching them for test reporting
+    }));
+
     for suite_name in suite_names {
         let suite = &suites[suite_name];
         println!("📋 {}", suite_name);
@@ -593,6 +599,9 @@ fn test_all_ccl_suites_comprehensive() {
             suite.tests.len()
         );
     }
+
+    // Restore the default panic hook
+    std::panic::set_hook(default_hook);
 
     println!("════════════════════════════════════════");
     println!("📊 Overall Results:");
