@@ -677,8 +677,42 @@ fn test_all_ccl_suites_comprehensive() {
     // Show behavior coverage
     if !behavior_coverage.is_empty() {
         println!("\n🔄 Behavior Coverage:");
-        let mut behaviors: Vec<_> = behavior_coverage.iter().collect();
+        println!("   Note: Some behaviors are mutually exclusive configuration options");
+
+        // Group mutually exclusive behaviors
+        let mutually_exclusive_pairs = [
+            ("boolean_strict", "boolean_lenient"),
+            ("crlf_normalize_to_lf", "crlf_preserve_literal"),
+            ("list_coercion_enabled", "list_coercion_disabled"),
+        ];
+
+        let mut shown = std::collections::HashSet::new();
+
+        // Show mutually exclusive pairs together
+        for (opt1, opt2) in &mutually_exclusive_pairs {
+            if let (Some((p1, t1)), Some((p2, t2))) = (
+                behavior_coverage.get(*opt1),
+                behavior_coverage.get(*opt2)
+            ) {
+                let pct1 = if *t1 > 0 { (*p1 * 100) / *t1 } else { 0 };
+                let pct2 = if *t2 > 0 { (*p2 * 100) / *t2 } else { 0 };
+                println!("  ⚙️  {} vs {}", opt1, opt2);
+                println!("      {}: {}/{} ({}%)", opt1, p1, t1, pct1);
+                println!("      {}: {}/{} ({}%)", opt2, p2, t2, pct2);
+                shown.insert(opt1.to_string());
+                shown.insert(opt2.to_string());
+            }
+        }
+
+        // Show remaining behaviors
+        let mut behaviors: Vec<_> = behavior_coverage.iter()
+            .filter(|(name, _)| !shown.contains(*name))
+            .collect();
         behaviors.sort_by_key(|(name, _)| *name);
+
+        if !behaviors.is_empty() {
+            println!("\n  Other behaviors:");
+        }
         for (behavior, (passed, total)) in behaviors {
             let percent = if *total > 0 { (*passed * 100) / *total } else { 0 };
             let status = if *passed == *total { "✅" } else if *passed > 0 { "⚠️" } else { "❌" };

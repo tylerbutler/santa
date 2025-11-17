@@ -271,17 +271,63 @@ item = third
 # Currently: Singleton(third)
 '''
 
-[[behaviors]]
-name = "crlf_normalize_to_lf"
-description = "Normalize CRLF line endings to LF"
-status = "unknown"
-note = "May already be handled by Rust string processing"
+# Configuration Behaviors (mutually exclusive pairs)
 
 [[behaviors]]
 name = "boolean_strict"
 description = "Strict boolean parsing (true/false only, case-sensitive)"
 status = "unknown"
 note = "Depends on FromStr implementation for bool"
+mutually_exclusive_with = "boolean_lenient"
+configuration = true
+
+[[behaviors]]
+name = "boolean_lenient"
+description = "Lenient boolean parsing (yes/no, 1/0, case-insensitive)"
+status = "not_implemented"
+mutually_exclusive_with = "boolean_strict"
+configuration = true
+
+[[behaviors]]
+name = "crlf_normalize_to_lf"
+description = "Normalize CRLF line endings to LF"
+status = "unknown"
+note = "May already be handled by Rust string processing"
+mutually_exclusive_with = "crlf_preserve_literal"
+configuration = true
+
+[[behaviors]]
+name = "crlf_preserve_literal"
+description = "Preserve CRLF line endings literally in values"
+status = "not_implemented"
+mutually_exclusive_with = "crlf_normalize_to_lf"
+configuration = true
+
+[[behaviors]]
+name = "list_coercion_enabled"
+description = "Automatically coerce single values to single-element lists when needed"
+status = "not_implemented"
+mutually_exclusive_with = "list_coercion_disabled"
+configuration = true
+
+[[behaviors]]
+name = "list_coercion_disabled"
+description = "Strict list handling - no automatic coercion of singletons to lists"
+status = "unknown"
+mutually_exclusive_with = "list_coercion_enabled"
+configuration = true
+
+[[behaviors]]
+name = "strict_spacing"
+description = "Strict whitespace handling around delimiters"
+status = "unknown"
+configuration = true
+
+[[behaviors]]
+name = "tabs_preserve"
+description = "Preserve tab characters in values"
+status = "unknown"
+configuration = true
 
 # ============================================================================
 # Error Types
