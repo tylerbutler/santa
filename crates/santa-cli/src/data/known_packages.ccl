@@ -267,13 +267,12 @@ fnm =
     = scoop
     = nix
 
-github-cli =
-  brew = gh
-  _sources =
-    = scoop
-    = apt
-    = pacman
-    = nix
+gh =
+  = apt
+  = brew
+  = scoop
+  = pacman
+  = nix
 
 git-delta =
   scoop = delta

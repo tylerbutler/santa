@@ -1,5 +1,5 @@
-// Example of simple package format
-// Packages that have the same name across all sources
+/= Example of simple package format
+/= Packages that have the same name across all sources
 
 bat =
   = brew
