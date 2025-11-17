@@ -55,10 +55,14 @@ jobs:
           cargo test -p santa --no-fail-fast
           echo "Testing santa-data in isolation..."
           cargo test -p santa-data --no-fail-fast
+          echo "Testing sickle in isolation..."
+          cargo test -p sickle --no-fail-fast
 
       - name: Verify dependency tree
         run: |
           echo "Analyzing santa-data dependencies..."
           cargo tree --edges normal --invert santa-data
+          echo "Analyzing sickle dependencies..."
+          cargo tree --edges normal --invert sickle
           echo "Analyzing santa-cli dependencies..."
           cargo tree -p santa --depth 3
