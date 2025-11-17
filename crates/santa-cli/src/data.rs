@@ -167,7 +167,7 @@ pub type SourceMap = HashMap<SourceName, PackageSource>;
 
 impl LoadFromFile for PackageDataList {
     fn load_from_str(config_str: &str) -> Self {
-        match serde_ccl::from_str(config_str) {
+        match sickle::from_str(config_str) {
             Ok(data) => data,
             Err(e) => {
                 error!("Error parsing CCL data: {}", e);
@@ -193,7 +193,7 @@ pub type SourceList = Vec<PackageSource>;
 
 impl LoadFromFile for SourceList {
     fn load_from_str(config_str: &str) -> Self {
-        serde_ccl::from_str(config_str).expect("Failed to load CCL source list")
+        sickle::from_str(config_str).expect("Failed to load CCL source list")
     }
 }
 
@@ -223,7 +223,7 @@ impl SantaData {
         let schema_packages =
             santa_data::parse_ccl_to(packages_str).expect("Failed to load packages CCL");
 
-        let schema_sources = serde_ccl::from_str(sources_str).expect("Failed to load sources CCL");
+        let schema_sources = sickle::from_str(sources_str).expect("Failed to load sources CCL");
 
         // Convert to legacy format
         let packages = convert_to_legacy_packages(schema_packages);

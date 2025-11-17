@@ -22,8 +22,7 @@ pub use schemas::*;
 
 /// Parse CCL string into a HashMap where values can be either arrays or objects
 ///
-/// This function works around serde_ccl's limitation where it returns strings
-/// for nested structures instead of properly parsed values.
+/// With sickle, this function directly deserializes CCL into proper Value types.
 ///
 /// # Examples
 ///
@@ -47,21 +46,41 @@ pub use schemas::*;
 /// assert!(result.contains_key("complex_pkg"));
 /// ```
 pub fn parse_to_hashmap(ccl_content: &str) -> Result<HashMap<String, Value>> {
-    // First try serde_ccl for the outer structure
-    // serde_ccl returns HashMap<String, String> where the values are
-    // the raw CCL content as strings
-    let raw: HashMap<String, String> =
-        serde_ccl::from_str(ccl_content).context("Failed to parse CCL with serde_ccl")?;
+    // Parse using sickle and convert Model to JSON Value
+    let model = sickle::parse(ccl_content).context("Failed to parse CCL with sickle")?;
 
+    // Convert the model to a HashMap<String, Value>
+    model_to_hashmap(&model)
+}
+
+/// Convert a sickle Model to a HashMap<String, Value>
+fn model_to_hashmap(model: &sickle::Model) -> Result<HashMap<String, Value>> {
+    let map = model.as_map().context("Expected root to be a map")?;
     let mut result = HashMap::new();
 
-    for (key, value_str) in raw.into_iter() {
-        // Parse the string value as CCL
-        let parsed_value = parse_value_string(&value_str)?;
-        result.insert(key, parsed_value);
+    for (key, value) in map {
+        result.insert(key.clone(), model_to_value(value)?);
     }
 
     Ok(result)
+}
+
+/// Convert a sickle Model to a serde_json Value
+fn model_to_value(model: &sickle::Model) -> Result<Value> {
+    match model {
+        sickle::Model::Singleton(s) => Ok(Value::String(s.clone())),
+        sickle::Model::List(items) => {
+            let values: Result<Vec<_>> = items.iter().map(model_to_value).collect();
+            Ok(Value::Array(values?))
+        }
+        sickle::Model::Map(map) => {
+            let mut obj = serde_json::Map::new();
+            for (k, v) in map {
+                obj.insert(k.clone(), model_to_value(v)?);
+            }
+            Ok(Value::Object(obj))
+        }
+    }
 }
 
 /// Parse a CCL value string (from serde_ccl's string output) into a proper JSON Value
@@ -223,6 +242,7 @@ test_pkg =
 
         assert!(result.contains_key("test_pkg"));
         let value = &result["test_pkg"];
+        println!("DEBUG test_pkg value: {:#?}", value);
         assert!(value.is_array());
 
         let arr = value.as_array().unwrap();

@@ -141,7 +141,7 @@ impl Configurable for SantaConfig {
 
         let contents = std::fs::read_to_string(&actual_path).map_err(SantaError::Io)?;
 
-        let config: SantaConfig = serde_ccl::from_str(&contents)
+        let config: SantaConfig = sickle::from_str(&contents)
             .map_err(|e| SantaError::Config(anyhow::Error::from(e)))?;
 
         Self::validate_config(&config)?;
@@ -225,7 +225,7 @@ impl SantaConfig {
     }
 
     pub fn load_from_str(config_str: &str) -> std::result::Result<Self, anyhow::Error> {
-        let data: SantaConfig = serde_ccl::from_str(config_str)
+        let data: SantaConfig = sickle::from_str(config_str)
             .with_context(|| format!("Failed to parse CCL config: {config_str}"))?;
 
         // Validate the configuration
@@ -262,7 +262,7 @@ impl SantaConfig {
                 format!("Failed to read config file: {}", actual_path.display())
             })?;
 
-            let config: SantaConfig = serde_ccl::from_str(&config_str).with_context(|| {
+            let config: SantaConfig = sickle::from_str(&config_str).with_context(|| {
                 format!("Failed to parse CCL config file: {}", actual_path.display())
             })?;
 
