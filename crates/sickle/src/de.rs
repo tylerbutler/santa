@@ -277,11 +277,57 @@ impl<'de> de::Deserializer<'de> for &mut Deserializer {
     where
         V: Visitor<'de>,
     {
-        let list = self.model.as_list().map_err(DeError::from_error)?;
-        let seq = SeqDeserializer {
-            iter: list.iter(),
-        };
-        visitor.visit_seq(seq)
+        // Check if it's a list
+        if let Ok(list) = self.model.as_list() {
+            let seq = SeqDeserializer {
+                iter: list.iter(),
+            };
+            return visitor.visit_seq(seq);
+        }
+
+        // Check if it's a singleton containing list syntax
+        if let Ok(s) = self.model.as_str() {
+            if is_list_syntax(s) {
+                // Parse as a simple list of strings
+                let items: Vec<String> = s
+                    .lines()
+                    .filter_map(|line| {
+                        let trimmed = line.trim();
+                        if trimmed.starts_with('=') {
+                            let value = trimmed[1..].trim();
+                            if !value.is_empty() {
+                                Some(value.to_string())
+                            } else {
+                                None
+                            }
+                        } else {
+                            None
+                        }
+                    })
+                    .collect();
+                let seq = StringSeqDeserializer {
+                    iter: items.into_iter(),
+                };
+                return visitor.visit_seq(seq);
+            }
+        }
+
+        // Check if it's a map with empty keys (list representation)
+        if let Ok(map) = self.model.as_map() {
+            if map.keys().any(|k| k.is_empty()) {
+                // Extract values with empty keys as a list
+                let list: Vec<crate::Model> = map
+                    .iter()
+                    .filter_map(|(k, v)| if k.is_empty() { Some(v.clone()) } else { None })
+                    .collect();
+                let seq = ModelSeqDeserializer {
+                    iter: list.into_iter(),
+                };
+                return visitor.visit_seq(seq);
+            }
+        }
+
+        Err(DeError::custom("expected a list"))
     }
 
     fn deserialize_tuple<V>(
@@ -359,8 +405,21 @@ impl<'de> de::Deserializer<'de> for &mut Deserializer {
     }
 }
 
+/// Check if a string contains CCL list syntax (lines starting with '=')
+fn is_list_syntax(s: &str) -> bool {
+    s.lines().any(|line| line.trim().starts_with('='))
+}
+
 struct SeqDeserializer<'a> {
     iter: std::slice::Iter<'a, Model>,
+}
+
+struct StringSeqDeserializer {
+    iter: std::vec::IntoIter<String>,
+}
+
+struct ModelSeqDeserializer {
+    iter: std::vec::IntoIter<Model>,
 }
 
 impl<'de, 'a> SeqAccess<'de> for SeqDeserializer<'a> {
@@ -375,6 +434,41 @@ impl<'de, 'a> SeqAccess<'de> for SeqDeserializer<'a> {
                 let mut de = Deserializer {
                     model: model.clone(),
                 };
+                seed.deserialize(&mut de).map(Some)
+            }
+            None => Ok(None),
+        }
+    }
+}
+
+impl<'de> SeqAccess<'de> for StringSeqDeserializer {
+    type Error = DeError;
+
+    fn next_element_seed<T>(&mut self, seed: T) -> std::result::Result<Option<T::Value>, Self::Error>
+    where
+        T: DeserializeSeed<'de>,
+    {
+        match self.iter.next() {
+            Some(s) => {
+                let model = crate::Model::singleton(s);
+                let mut de = Deserializer { model };
+                seed.deserialize(&mut de).map(Some)
+            }
+            None => Ok(None),
+        }
+    }
+}
+
+impl<'de> SeqAccess<'de> for ModelSeqDeserializer {
+    type Error = DeError;
+
+    fn next_element_seed<T>(&mut self, seed: T) -> std::result::Result<Option<T::Value>, Self::Error>
+    where
+        T: DeserializeSeed<'de>,
+    {
+        match self.iter.next() {
+            Some(model) => {
+                let mut de = Deserializer { model };
                 seed.deserialize(&mut de).map(Some)
             }
             None => Ok(None),

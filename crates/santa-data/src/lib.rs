@@ -68,19 +68,67 @@ fn model_to_hashmap(model: &sickle::Model) -> Result<HashMap<String, Value>> {
 /// Convert a sickle Model to a serde_json Value
 fn model_to_value(model: &sickle::Model) -> Result<Value> {
     match model {
-        sickle::Model::Singleton(s) => Ok(Value::String(s.clone())),
+        sickle::Model::Singleton(s) => {
+            // Check if this string contains list syntax (lines starting with '=')
+            if is_list_syntax(s) {
+                // Parse it as a list
+                parse_list_string(s)
+            } else {
+                Ok(Value::String(s.clone()))
+            }
+        }
         sickle::Model::List(items) => {
             let values: Result<Vec<_>> = items.iter().map(model_to_value).collect();
             Ok(Value::Array(values?))
         }
         sickle::Model::Map(map) => {
-            let mut obj = serde_json::Map::new();
-            for (k, v) in map {
-                obj.insert(k.clone(), model_to_value(v)?);
+            // Check if this is actually a list (empty key entries)
+            if map.keys().any(|k| k.is_empty()) {
+                // This is a list with empty keys - extract the values
+                let mut values = Vec::new();
+                for (k, v) in map {
+                    if k.is_empty() {
+                        values.push(model_to_value(v)?);
+                    }
+                }
+                Ok(Value::Array(values))
+            } else {
+                let mut obj = serde_json::Map::new();
+                for (k, v) in map {
+                    obj.insert(k.clone(), model_to_value(v)?);
+                }
+                Ok(Value::Object(obj))
             }
-            Ok(Value::Object(obj))
         }
     }
+}
+
+/// Check if a string contains CCL list syntax (lines starting with '=')
+fn is_list_syntax(s: &str) -> bool {
+    s.lines().any(|line| line.trim().starts_with('='))
+}
+
+/// Parse a string containing list syntax into a JSON array
+fn parse_list_string(s: &str) -> Result<Value> {
+    let items: Vec<Value> = s
+        .lines()
+        .filter_map(|line| {
+            let trimmed = line.trim();
+            if trimmed.starts_with('=') {
+                // Extract the value after '='
+                let value = trimmed[1..].trim();
+                if value.is_empty() {
+                    None
+                } else {
+                    Some(Value::String(value.to_string()))
+                }
+            } else {
+                None
+            }
+        })
+        .collect();
+
+    Ok(Value::Array(items))
 }
 
 /// Parse a CCL value string (from serde_ccl's string output) into a proper JSON Value
