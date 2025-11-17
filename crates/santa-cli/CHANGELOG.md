@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [0.1.3](https://github.com/tylerbutler/santa/compare/santa-v0.1.2...santa-v0.1.3) - 2025-11-17
+
+### Added
+
+- enhance workspace configuration and CI for multi-package best practices ([#23](https://github.com/tylerbutler/santa/pull/23))
+
 ## [0.1.2](https://github.com/tylerbutler/santa/compare/santa-v0.1.1...santa-v0.1.2) - 2025-11-17
 
 ### Fixed
