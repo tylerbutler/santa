@@ -1,9 +1,9 @@
 # release-plz configuration for Santa workspace
-# https://release-plz.ieni.dev/docs/config
+# https://release-plz.dev/docs/config
 
 [workspace]
-# Allow packages to be released independently
-allow_dirty = []
+# Require clean working directory (no uncommitted changes) for releases
+allow_dirty = false
 
 # Santa Data Library - Core data models and CCL parser
 [[package]]
@@ -16,6 +16,3 @@ publish = true
 name = "santa"
 # Published to crates.io
 publish = true
-# Wait for santa-data to be available on crates.io before publishing
-# This ensures the CLI can depend on the published library version
-publish_wait_seconds = 300
