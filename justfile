@@ -103,6 +103,23 @@ test-watch:
     @echo "🧪 Running tests in watch mode..."
     cargo watch -x test
 
+# Download CCL test data from ccl-test-data repository
+download-ccl-tests:
+    @echo "📥 Downloading CCL test data from ccl-test-data repository..."
+    @echo "Cloning repository to temporary location..."
+    @rm -rf /tmp/ccl-test-data
+    @git clone --depth 1 --quiet https://github.com/tylerbutler/ccl-test-data.git /tmp/ccl-test-data
+    @mkdir -p crates/sickle/tests/test_data
+    @echo "Copying test files..."
+    @cp /tmp/ccl-test-data/generated_tests/*.json crates/sickle/tests/test_data/
+    @rm -rf /tmp/ccl-test-data
+    @echo "✅ Downloaded all test files to crates/sickle/tests/test_data/"
+    @echo "   Files: $$(ls crates/sickle/tests/test_data/*.json | wc -l) JSON test suites"
+
+# Run CCL test suites with detailed results from all JSON test files
+test-ccl:
+    @cargo test -p sickle test_all_ccl_suites_comprehensive -- --nocapture
+
 # Benchmarking Commands
 # ====================
 
