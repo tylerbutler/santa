@@ -180,26 +180,17 @@ impl ScriptGenerator {
         let mut tera = Tera::default();
 
         // Add built-in templates for different script formats
-        tera.add_raw_template(
-            "install.sh",
-            include_str!("../templates/install.sh.tera"),
-        )
-        .map_err(|e| SantaError::Template(e.to_string()))?;
+        tera.add_raw_template("install.sh", include_str!("../templates/install.sh.tera"))
+            .map_err(|e| SantaError::Template(e.to_string()))?;
 
-        tera.add_raw_template(
-            "install.ps1",
-            include_str!("../templates/install.ps1.tera"),
-        )
-        .map_err(|e| SantaError::Template(e.to_string()))?;
+        tera.add_raw_template("install.ps1", include_str!("../templates/install.ps1.tera"))
+            .map_err(|e| SantaError::Template(e.to_string()))?;
 
         tera.add_raw_template("check.sh", include_str!("../templates/check.sh.tera"))
             .map_err(|e| SantaError::Template(e.to_string()))?;
 
-        tera.add_raw_template(
-            "check.ps1",
-            include_str!("../templates/check.ps1.tera"),
-        )
-        .map_err(|e| SantaError::Template(e.to_string()))?;
+        tera.add_raw_template("check.ps1", include_str!("../templates/check.ps1.tera"))
+            .map_err(|e| SantaError::Template(e.to_string()))?;
 
         // Register custom filters for safe escaping
         tera.register_filter("shell_escape", shell_escape_filter);
