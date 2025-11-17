@@ -4,7 +4,7 @@ pub mod env;
 use crate::data::PlatformExt;
 use crate::errors::{Result, SantaError};
 use crate::sources::PackageSource;
-use crate::traits::{Configurable, Exportable};
+// use crate::traits::Configurable; // Not needed - can't implement for foreign type
 use std::path::Path;
 use std::collections::HashMap;
 
@@ -15,7 +15,7 @@ use tracing::{trace, warn};
 use crate::data::{constants, KnownSources, SantaData};
 
 // Re-export SantaConfig and related types from santa-data
-pub use santa_data::config::{SantaConfig, SantaConfigBuilder, PackageSource as SantaDataPackageSource, SourceOverride};
+pub use santa_data::config::{SantaConfig, SantaConfigBuilder, ConfigPackageSource, PackageNameOverride};
 
 /// Extension trait for SantaConfig with CLI-specific functionality
 pub trait SantaConfigExt {
@@ -42,6 +42,9 @@ pub trait SantaConfigExt {
 
     /// Get default configuration for the current platform
     fn default_for_platform() -> Self where Self: Sized;
+
+    /// Export configuration to YAML format
+    fn export(&self) -> String;
 }
 
 impl SantaConfigExt for SantaConfig {
@@ -171,6 +174,10 @@ impl SantaConfigExt for SantaConfig {
         }
 
         config
+    }
+
+    fn export(&self) -> String {
+        serde_yaml::to_string(self).unwrap_or_else(|e| format!("# Export failed: {}", e))
     }
 }
 

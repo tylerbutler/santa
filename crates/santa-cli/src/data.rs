@@ -235,18 +235,25 @@ impl SantaData {
     // pub fn update_from_config(&mut self, config: &SantaConfig) {
 
     /// Returns an iterator over sources (both built-in and custom) for memory efficiency.
-    /// Use this when you only need to iterate over sources without owning them.
-    pub fn sources_iter<'a>(
-        &'a self,
-        config: &'a SantaConfig,
-    ) -> impl Iterator<Item = &'a PackageSource> + 'a {
-        self.sources.iter().chain(
-            config
-                .custom_sources
-                .as_ref()
-                .map(|sources| sources.iter())
-                .unwrap_or([].iter()),
-        )
+    /// Note: This now returns owned sources to avoid lifetime issues with conversion.
+    /// For truly zero-copy iteration, use sources_builtin_iter() + convert custom_sources separately.
+    pub fn sources_iter(
+        &self,
+        config: &SantaConfig,
+    ) -> impl Iterator<Item = PackageSource> + '_ {
+        let builtin = self.sources.iter().cloned();
+        let custom = config
+            .custom_sources
+            .as_ref()
+            .map(|sources| {
+                sources
+                    .iter()
+                    .cloned()
+                    .map(PackageSource::from)
+                    .collect::<Vec<_>>()
+            })
+            .unwrap_or_default();
+        builtin.chain(custom.into_iter())
     }
 
     /// Returns owned sources list. Use only when you need to own/modify the collection.
@@ -257,7 +264,7 @@ impl SantaData {
         let mut ret = SourceList::with_capacity(capacity);
         ret.extend(self.sources.iter().cloned());
         if let Some(ref custom_sources) = config.custom_sources {
-            ret.extend(custom_sources.iter().cloned());
+            ret.extend(custom_sources.iter().cloned().map(PackageSource::from));
         }
         ret
     }

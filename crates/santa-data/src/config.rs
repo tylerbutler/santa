@@ -14,7 +14,7 @@ use tracing::{debug, warn};
 use validator::Validate;
 
 /// Type alias for lists of package sources
-pub type SourceList = Vec<PackageSource>;
+pub type SourceList = Vec<ConfigPackageSource>;
 
 /// Helper struct to deserialize custom source with name from HashMap key
 #[derive(Deserialize)]
@@ -28,7 +28,7 @@ struct CustomSourceWithoutName {
     #[serde(default)]
     prepend_to_package_name: Option<String>,
     #[serde(default)]
-    overrides: Option<Vec<SourceOverride>>,
+    overrides: Option<Vec<PackageNameOverride>>,
 }
 
 /// Custom deserializer for custom_sources that converts HashMap to Vec and sets names
@@ -47,8 +47,8 @@ where
         Some(map) => {
             let mut sources = Vec::new();
             for (name, source_data) in map {
-                // Create PackageSource with name from HashMap key
-                let source = PackageSource {
+                // Create ConfigPackageSource with name from HashMap key
+                let source = ConfigPackageSource {
                     name: KnownSources::Unknown(name),
                     emoji: source_data.emoji,
                     shell_command: source_data.shell_command,
@@ -64,16 +64,16 @@ where
     }
 }
 
-/// Represents a package source override
+/// Represents a package name override (renaming packages for specific sources)
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
-pub struct SourceOverride {
+pub struct PackageNameOverride {
     pub package: String,
     pub replacement: String,
 }
 
 /// Represents a custom package source configuration
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
-pub struct PackageSource {
+pub struct ConfigPackageSource {
     pub name: KnownSources,
     pub emoji: String,
     pub shell_command: String,
@@ -82,7 +82,7 @@ pub struct PackageSource {
     #[serde(default)]
     pub prepend_to_package_name: Option<String>,
     #[serde(default)]
-    pub overrides: Option<Vec<SourceOverride>>,
+    pub overrides: Option<Vec<PackageNameOverride>>,
 }
 
 /// Main configuration structure for Santa
