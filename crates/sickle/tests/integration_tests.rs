@@ -482,14 +482,30 @@ fn test_all_ccl_suites_comprehensive() {
     let mut total_failed = 0;
     let mut total_skipped = 0;
 
+    // Track failure details
+    let mut failure_details: Vec<(String, String, String)> = Vec::new(); // (suite, test, reason)
+    let mut skipped_validations: std::collections::HashMap<String, usize> = std::collections::HashMap::new();
+    let mut behavior_coverage: std::collections::HashMap<String, (usize, usize)> = std::collections::HashMap::new(); // (passed, total)
+    let mut function_coverage: std::collections::HashMap<String, (usize, usize)> = std::collections::HashMap::new(); // (passed, total)
+
     // Sort suite names for consistent output
     let mut suite_names: Vec<_> = suites.keys().collect();
     suite_names.sort();
 
-    // Set up a custom panic hook to suppress panic output during test execution
+    // Set up a custom panic hook to capture panic messages
     let default_hook = std::panic::take_hook();
-    std::panic::set_hook(Box::new(|_| {
-        // Silently ignore panics - we're catching them for test reporting
+    let panic_messages = std::sync::Arc::new(std::sync::Mutex::new(Vec::<String>::new()));
+    let panic_messages_clone = panic_messages.clone();
+
+    std::panic::set_hook(Box::new(move |info| {
+        let msg = if let Some(s) = info.payload().downcast_ref::<&str>() {
+            s.to_string()
+        } else if let Some(s) = info.payload().downcast_ref::<String>() {
+            s.clone()
+        } else {
+            format!("{:?}", info)
+        };
+        panic_messages_clone.lock().unwrap().push(msg);
     }));
 
     for suite_name in suite_names {
@@ -501,6 +517,9 @@ fn test_all_ccl_suites_comprehensive() {
         let mut suite_skipped = 0;
 
         for test in &suite.tests {
+            // Clear previous panic messages
+            panic_messages.lock().unwrap().clear();
+
             let test_result = std::panic::catch_unwind(|| {
                 // Parse the input
                 let result = parse(&test.input);
@@ -572,16 +591,47 @@ fn test_all_ccl_suites_comprehensive() {
                 }
             });
 
+            // Track behaviors and functions
+            for behavior in &test.behaviors {
+                let entry = behavior_coverage.entry(behavior.clone()).or_insert((0, 0));
+                entry.1 += 1; // total
+            }
+            for function in &test.functions {
+                let entry = function_coverage.entry(function.clone()).or_insert((0, 0));
+                entry.1 += 1; // total
+            }
+
             match test_result {
                 Ok(_) => {
                     suite_passed += 1;
+
+                    // Track successful behaviors and functions
+                    for behavior in &test.behaviors {
+                        behavior_coverage.get_mut(behavior).unwrap().0 += 1;
+                    }
+                    for function in &test.functions {
+                        function_coverage.get_mut(function).unwrap().0 += 1;
+                    }
                 }
-                Err(e) => {
-                    let err_msg = format!("{:?}", e);
+                Err(_) => {
+                    // Get the panic message we captured
+                    let panic_msgs = panic_messages.lock().unwrap();
+                    let err_msg = panic_msgs.last().map(|s| s.as_str()).unwrap_or("Unknown error");
+
                     if err_msg.contains("Unsupported validation type") {
                         suite_skipped += 1;
+                        // Extract validation type
+                        if let Some(val_type) = err_msg.split("Unsupported validation type: ").nth(1) {
+                            *skipped_validations.entry(val_type.trim().to_string()).or_insert(0) += 1;
+                        }
                     } else {
                         suite_failed += 1;
+                        // Store failure details
+                        failure_details.push((
+                            suite_name.to_string(),
+                            test.name.clone(),
+                            err_msg.to_string(),
+                        ));
                     }
                 }
             }
@@ -613,6 +663,66 @@ fn test_all_ccl_suites_comprehensive() {
     );
     println!("  Total: {}", total_passed + total_failed + total_skipped);
     println!("════════════════════════════════════════");
+
+    // Show skipped validation types
+    if !skipped_validations.is_empty() {
+        println!("\n⊘ Skipped Validation Types:");
+        let mut skip_types: Vec<_> = skipped_validations.iter().collect();
+        skip_types.sort_by_key(|(_, count)| std::cmp::Reverse(**count));
+        for (val_type, count) in skip_types {
+            println!("  - {}: {} tests", val_type, count);
+        }
+    }
+
+    // Show behavior coverage
+    if !behavior_coverage.is_empty() {
+        println!("\n🔄 Behavior Coverage:");
+        let mut behaviors: Vec<_> = behavior_coverage.iter().collect();
+        behaviors.sort_by_key(|(name, _)| *name);
+        for (behavior, (passed, total)) in behaviors {
+            let percent = if *total > 0 { (*passed * 100) / *total } else { 0 };
+            let status = if *passed == *total { "✅" } else if *passed > 0 { "⚠️" } else { "❌" };
+            println!("  {} {}: {}/{} ({}%)", status, behavior, passed, total, percent);
+        }
+    }
+
+    // Show function coverage
+    if !function_coverage.is_empty() {
+        println!("\n🎯 Function Coverage:");
+        let mut functions: Vec<_> = function_coverage.iter().collect();
+        functions.sort_by_key(|(name, _)| *name);
+        for (function, (passed, total)) in functions {
+            let percent = if *total > 0 { (*passed * 100) / *total } else { 0 };
+            let status = if *passed == *total { "✅" } else if *passed > 0 { "⚠️" } else { "❌" };
+            println!("  {} {}: {}/{} ({}%)", status, function, passed, total, percent);
+        }
+    }
+
+    // Show failure details (limit to first 20 for readability)
+    if !failure_details.is_empty() {
+        println!("\n✗ Failure Details (showing first 20):");
+        for (suite, test, reason) in failure_details.iter().take(20) {
+            println!("  [{suite}] {test}");
+            // Extract the key part of the error message
+            let clean_reason = if let Some(msg) = reason.split("assertion").nth(1) {
+                format!("    Assertion{}", msg.trim())
+            } else if reason.contains("expected") {
+                // Extract assertion message
+                if let Some(msg) = reason.split(':').last() {
+                    format!("    {}", msg.trim())
+                } else {
+                    format!("    {}", reason.lines().next().unwrap_or(reason).trim())
+                }
+            } else {
+                format!("    {}", reason.lines().next().unwrap_or(reason).trim())
+            };
+            println!("{}", clean_reason);
+        }
+
+        if failure_details.len() > 20 {
+            println!("  ... and {} more failures", failure_details.len() - 20);
+        }
+    }
 
     // Assert that we have some passing tests
     assert!(total_passed > 0, "At least some tests should pass");
