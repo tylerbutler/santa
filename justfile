@@ -195,6 +195,12 @@ release:
     @echo "🚀 Building release..."
     cargo build --release
 
+# Verify that packages can be built for crates.io publishing
+verify-package:
+    @echo "📦 Verifying crate packaging..."
+    cargo package --workspace --no-verify --quiet
+    @echo "✅ Package verification complete!"
+
 # Perform pre-release checks
 pre-release:
     @echo "🚀 Running pre-release checks..."
@@ -202,6 +208,7 @@ pre-release:
     just test
     just audit
     just build-release
+    just verify-package
     just dist-plan
     @echo "✅ Pre-release checks complete!"
 

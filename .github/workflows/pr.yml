@@ -41,12 +41,16 @@ jobs:
 
       - name: Clippy check (lint)
         run: just lint
+
       - name: Debug build
         run: |
           just build
 
-      - name: Security audit
+      - name: Verify package
+        run: |
+          just verify-package
 
+      - name: Security audit
         run: |
           just audit
 
