@@ -24,9 +24,11 @@ pub enum KnownSources {
     Aur,
     Brew,
     Cargo,
+    Flathub,
+    Nix,
+    Npm,
     Pacman,
     Scoop,
-    Nix,
     #[serde(other)]
     Unknown(String),
 }

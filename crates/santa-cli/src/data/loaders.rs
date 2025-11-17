@@ -68,23 +68,18 @@ pub fn convert_to_legacy_packages(
         let sources = package_def.get_sources();
 
         for source_name in sources {
-            // Try to parse as KnownSources
-            let known_source = match source_name {
-                "brew" => KnownSources::Brew,
-                "scoop" => KnownSources::Scoop,
-                "pacman" => KnownSources::Pacman,
-                "nix" => KnownSources::Nix,
-                "cargo" => KnownSources::Cargo,
-                "apt" => KnownSources::Apt,
-                "aur" => KnownSources::Aur,
-                other => {
-                    warn!(
-                        "Unknown source '{}' for package '{}', skipping",
-                        other, package_name
-                    );
-                    continue;
-                }
-            };
+            // Parse source name to KnownSources enum
+            // This uses serde's parsing which will map known sources to their variants
+            // and unknown sources to KnownSources::Unknown(String)
+            let known_source: KnownSources =
+                match serde_json::from_value(serde_json::Value::String(source_name.to_string())) {
+                    Ok(ks) => ks,
+                    Err(_) => {
+                        // If parsing fails, it's likely not a source but a config field
+                        // (like 'pre', 'post', 'install_suffix', etc.)
+                        continue;
+                    }
+                };
 
             // Create PackageData based on source configuration
             let package_data = if let Some(source_config) =
@@ -127,19 +122,16 @@ pub fn convert_to_legacy_sources(schema_sources: SourcesDefinition) -> SourceLis
     let mut legacy_sources = SourceList::new();
 
     for (source_name, source_def) in schema_sources {
-        let known_source = match source_name.as_str() {
-            "brew" => KnownSources::Brew,
-            "scoop" => KnownSources::Scoop,
-            "pacman" => KnownSources::Pacman,
-            "nix" => KnownSources::Nix,
-            "cargo" => KnownSources::Cargo,
-            "apt" => KnownSources::Apt,
-            "aur" => KnownSources::Aur,
-            other => {
-                warn!("Unknown source '{}', skipping", other);
-                continue;
-            }
-        };
+        // Parse source name to KnownSources enum using serde
+        // This automatically handles both known and unknown sources
+        let known_source: KnownSources =
+            match serde_json::from_value(serde_json::Value::String(source_name.clone())) {
+                Ok(ks) => ks,
+                Err(_) => {
+                    warn!("Failed to parse source '{}', skipping", source_name);
+                    continue;
+                }
+            };
 
         // Create PackageSource from schema using new_for_test (TODO: create proper constructor)
         let package_source = PackageSource::new_for_test(

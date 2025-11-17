@@ -508,7 +508,9 @@ mod tests {
                 | KnownSources::Pacman
                 | KnownSources::Aur
                 | KnownSources::Scoop
-                | KnownSources::Nix => {
+                | KnownSources::Nix
+                | KnownSources::Npm
+                | KnownSources::Flathub => {
                     // Valid known sources
                 }
                 KnownSources::Unknown(_) => {
@@ -849,8 +851,11 @@ git =
                 KnownSources::Scoop => {
                     // Windows package manager - could be available on other systems via WSL
                 }
-                KnownSources::Cargo | KnownSources::Nix => {
+                KnownSources::Cargo | KnownSources::Nix | KnownSources::Npm => {
                     // Universal package managers - valid on all platforms
+                }
+                KnownSources::Flathub => {
+                    // Flatpak - could be available on Linux and other systems
                 }
                 KnownSources::Unknown(_) => {
                     panic!("detect_available_package_managers returned Unknown variant");
