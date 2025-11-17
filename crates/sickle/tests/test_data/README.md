@@ -8,9 +8,26 @@ The test files provide comprehensive test cases for CCL (Categorical Configurati
 
 ## Test Files
 
-- **api_core_ccl_parsing.json** - Core parsing functionality tests (basic key-value pairs, multiline values, whitespace handling, etc.)
+This directory contains all 13 test suites from the ccl-test-data repository:
+
+### Core API Tests
+- **api_core_ccl_parsing.json** - Core parsing functionality tests
+- **api_core_ccl_hierarchy.json** - Hierarchy building tests
+- **api_core_ccl_integration.json** - Integration tests
 - **api_comments.json** - Comment handling tests
 - **api_typed_access.json** - Typed accessor tests (get_string, get_int, get_bool, get_float, etc.)
+- **api_advanced_processing.json** - Advanced processing operations
+- **api_list_access.json** - List access tests
+
+### Edge Cases & Compliance
+- **api_edge_cases.json** - Edge case handling
+- **api_errors.json** - Error handling tests
+- **api_proposed_behavior.json** - Proposed CCL behavior tests
+- **api_reference_compliant.json** - Reference implementation compliance tests
+
+### Property-Based Tests
+- **property_algebraic.json** - Algebraic property tests
+- **property_round_trip.json** - Round-trip property tests
 
 ## JSON Structure
 
@@ -59,18 +76,12 @@ Not all tests are expected to pass, as sickle is under active development. The t
 
 ## Updating Test Data
 
-To download/update test files from the ccl-test-data repository:
+To download/update all test files from the ccl-test-data repository:
 
 ```bash
 just download-ccl-tests
 ```
 
-This will download the latest test cases from [ccl-test-data/generated_tests](https://github.com/tylerbutler/ccl-test-data/tree/main/generated_tests).
+This task clones the [ccl-test-data repository](https://github.com/tylerbutler/ccl-test-data) to a temporary location and copies all JSON files from the `generated_tests/` directory. This ensures you always have the complete set of test files.
 
-To add additional test files manually:
-
-1. Download JSON files from the repository
-2. Place them in this directory
-3. Add corresponding test functions in `integration_tests.rs` using `TestSuite::from_file()`
-
-The test helpers will automatically discover and load all `.json` files in this directory.
+The test helpers automatically discover and load all `.json` files in this directory when running tests.
