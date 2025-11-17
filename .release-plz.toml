@@ -5,8 +5,8 @@ release_always = false
 # Generate and update CHANGELOG.md
 changelog_update = true
 
-# Create GitHub releases
-git_release_enable = true
+# Create GitHub releases - disabled to let cargo-dist handle release creation with binary assets
+git_release_enable = false
 
 # Publish to crates.io when release PR is merged
 publish = true
