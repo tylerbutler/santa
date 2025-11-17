@@ -23,11 +23,11 @@ fn temp_config() -> NamedTempFile {
     writeln!(
         file,
         r#"
-sources:
-  - brew
-packages:
-  - git
-  - curl
+sources =
+  = brew
+packages =
+  = git
+  = curl
 "#
     )
     .expect("Failed to write config");
@@ -200,7 +200,7 @@ mod config_loading_tests {
     #[test]
     fn test_builtin_config_loading() {
         // Test that default config loads without error
-        let config = SantaConfig::default();
+        let config = SantaConfig::default_for_platform();
         assert!(
             !config.sources.is_empty(),
             "Default config should have sources"

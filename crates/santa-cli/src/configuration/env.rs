@@ -1,4 +1,4 @@
-use crate::configuration::SantaConfig;
+use crate::configuration::{SantaConfig, SantaConfigExt};
 use crate::data::KnownSources;
 use anyhow::{Context, Result};
 use serde::{Deserialize, Serialize};
@@ -342,12 +342,12 @@ pub fn load_config_with_env(config_path: Option<&str>, builtin_only: bool) -> Re
     // Load base configuration
     let base_config = if actual_builtin_only {
         info!("Using builtin configuration (overridden by environment)");
-        SantaConfig::default()
+        SantaConfig::default_for_platform()
     } else {
         info!("Loading configuration from: {}", actual_config_path);
         SantaConfig::load_from(std::path::Path::new(actual_config_path)).unwrap_or_else(|e| {
             warn!("Failed to load config file: {}. Using defaults.", e);
-            SantaConfig::default()
+            SantaConfig::default_for_platform()
         })
     };
 

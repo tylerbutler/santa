@@ -1,29 +1,29 @@
-//! Santa Data - Data models and CCL parser for Santa Package Manager
+//! Santa Data - Data models, configuration, and CCL parser for Santa Package Manager
 //!
 //! This crate provides:
 //! - Core data models (Platform, KnownSources, PackageData, etc.)
+//! - Configuration loading and management (SantaConfig, ConfigLoader)
 //! - CCL schema definitions (PackageDefinition, SourceDefinition, etc.)
 //! - CCL parser that handles both simple and complex formats
-//!
-//! The parser works around limitations in serde_ccl 0.1.1.
 
 use anyhow::{Context, Result};
 use serde::de::DeserializeOwned;
 use serde_json::Value;
 use std::collections::HashMap;
 
+pub mod config;
 pub mod models;
 mod parser;
 pub mod schemas;
 
+pub use config::*;
 pub use models::*;
 pub use parser::{parse_ccl, CclValue};
 pub use schemas::*;
 
 /// Parse CCL string into a HashMap where values can be either arrays or objects
 ///
-/// This function works around serde_ccl's limitation where it returns strings
-/// for nested structures instead of properly parsed values.
+/// With sickle, this function directly deserializes CCL into proper Value types.
 ///
 /// # Examples
 ///
@@ -47,24 +47,94 @@ pub use schemas::*;
 /// assert!(result.contains_key("complex_pkg"));
 /// ```
 pub fn parse_to_hashmap(ccl_content: &str) -> Result<HashMap<String, Value>> {
-    // First try serde_ccl for the outer structure
-    // serde_ccl returns HashMap<String, String> where the values are
-    // the raw CCL content as strings
-    let raw: HashMap<String, String> =
-        serde_ccl::from_str(ccl_content).context("Failed to parse CCL with serde_ccl")?;
+    // Parse using sickle and convert Model to JSON Value
+    let model = sickle::parse(ccl_content).context("Failed to parse CCL with sickle")?;
 
+    // Convert the model to a HashMap<String, Value>
+    model_to_hashmap(&model)
+}
+
+/// Convert a sickle Model to a HashMap<String, Value>
+fn model_to_hashmap(model: &sickle::Model) -> Result<HashMap<String, Value>> {
+    let map = model.as_map().context("Expected root to be a map")?;
     let mut result = HashMap::new();
 
-    for (key, value_str) in raw.into_iter() {
-        // Parse the string value as CCL
-        let parsed_value = parse_value_string(&value_str)?;
-        result.insert(key, parsed_value);
+    for (key, value) in map {
+        result.insert(key.clone(), model_to_value(value)?);
     }
 
     Ok(result)
 }
 
-/// Parse a CCL value string (from serde_ccl's string output) into a proper JSON Value
+/// Convert a sickle Model to a serde_json Value
+fn model_to_value(model: &sickle::Model) -> Result<Value> {
+    match model {
+        sickle::Model::Singleton(s) => {
+            // Check if this string contains list syntax (lines starting with '=')
+            if is_list_syntax(s) {
+                // Parse it as a list
+                parse_list_string(s)
+            } else {
+                Ok(Value::String(s.clone()))
+            }
+        }
+        sickle::Model::List(items) => {
+            let values: Result<Vec<_>> = items.iter().map(model_to_value).collect();
+            Ok(Value::Array(values?))
+        }
+        sickle::Model::Map(map) => {
+            // Check if this is actually a list (empty key entries)
+            if map.keys().any(|k| k.is_empty()) {
+                // This is a list with empty keys - extract the values
+                let mut values = Vec::new();
+                for (k, v) in map {
+                    if k.is_empty() {
+                        values.push(model_to_value(v)?);
+                    }
+                }
+                Ok(Value::Array(values))
+            } else {
+                let mut obj = serde_json::Map::new();
+                for (k, v) in map {
+                    obj.insert(k.clone(), model_to_value(v)?);
+                }
+                Ok(Value::Object(obj))
+            }
+        }
+    }
+}
+
+/// Check if a string contains CCL list syntax (lines starting with '=')
+fn is_list_syntax(s: &str) -> bool {
+    s.lines().any(|line| line.trim().starts_with('='))
+}
+
+/// Parse a string containing list syntax into a JSON array
+fn parse_list_string(s: &str) -> Result<Value> {
+    let items: Vec<Value> = s
+        .lines()
+        .filter_map(|line| {
+            let trimmed = line.trim();
+            if let Some(stripped) = trimmed.strip_prefix('=') {
+                // Extract the value after '='
+                let value = stripped.trim();
+                if value.is_empty() {
+                    None
+                } else {
+                    Some(Value::String(value.to_string()))
+                }
+            } else {
+                None
+            }
+        })
+        .collect();
+
+    Ok(Value::Array(items))
+}
+
+// Experimental CCL parsing functions used only in tests
+#[cfg(test)]
+#[allow(dead_code)]
 fn parse_value_string(s: &str) -> Result<Value> {
     let trimmed = s.trim();
 
@@ -82,7 +152,8 @@ fn parse_value_string(s: &str) -> Result<Value> {
     Ok(Value::String(s.to_string()))
 }
 
-/// Parse simple array format: "= brew\n  = scoop"
+#[cfg(test)]
+#[allow(dead_code)]
 fn parse_simple_array(s: &str) -> Result<Value> {
     let items: Vec<String> = s
         .lines()
@@ -104,7 +175,8 @@ fn parse_simple_array(s: &str) -> Result<Value> {
     Ok(Value::Array(items.into_iter().map(Value::String).collect()))
 }
 
-/// Parse complex object format: "_sources =\n  = brew\nbrew = gh"
+#[cfg(test)]
+#[allow(dead_code)]
 fn parse_complex_object(s: &str) -> Result<Value> {
     let mut obj = serde_json::Map::new();
     let mut current_key: Option<String> = None;
@@ -223,6 +295,7 @@ test_pkg =
 
         assert!(result.contains_key("test_pkg"));
         let value = &result["test_pkg"];
+        println!("DEBUG test_pkg value: {:#?}", value);
         assert!(value.is_array());
 
         let arr = value.as_array().unwrap();

@@ -21,6 +21,11 @@ dist = false
 serde = { workspace = true }
 serde_json = { workspace = true }
 anyhow = { workspace = true }
-serde_ccl = "0.1.1"
+sickle = { version = "0.1.0", path = "../sickle", features = ["serde"] }
 serde-enum-str = { workspace = true }
 derive_more = { workspace = true }
+
+# Configuration loading dependencies
+derive_builder = "0.12"
+validator = { version = "0.20", features = ["derive"] }
+tracing = "0.1"

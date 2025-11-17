@@ -135,8 +135,8 @@ impl From<config::ConfigError> for SantaError {
     }
 }
 
-impl From<serde_ccl::Error> for SantaError {
-    fn from(err: serde_ccl::Error) -> Self {
+impl From<sickle::Error> for SantaError {
+    fn from(err: sickle::Error) -> Self {
         SantaError::Config(anyhow::Error::from(err))
     }
 }

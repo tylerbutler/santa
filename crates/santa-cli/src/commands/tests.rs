@@ -10,14 +10,24 @@ use crate::sources::{PackageCache, PackageSource};
 use rstest::*;
 use std::collections::HashMap;
 
+/// Helper function to create a minimal SantaConfig for tests
+fn minimal_config(sources: Vec<KnownSources>, packages: Vec<String>) -> SantaConfig {
+    SantaConfig {
+        sources,
+        packages,
+        custom_sources: None,
+        _groups: None,
+        log_level: 0,
+    }
+}
+
 /// Test fixture for creating a basic SantaConfig
 #[fixture]
 fn basic_config() -> SantaConfig {
-    SantaConfig {
-        sources: vec![KnownSources::Brew],
-        packages: vec!["git".to_string(), "curl".to_string(), "vim".to_string()],
-        ..Default::default()
-    }
+    minimal_config(
+        vec![KnownSources::Brew],
+        vec!["git".to_string(), "curl".to_string(), "vim".to_string()],
+    )
 }
 
 /// Test fixture for creating test SantaData
@@ -92,7 +102,10 @@ mod status_command_tests {
         // Test with no enabled sources
         let mut config = SantaConfig {
             sources: vec![], // No sources enabled
-            ..Default::default()
+            packages: vec![],
+            custom_sources: None,
+            _groups: None,
+            log_level: 0,
         };
 
         let result = status_command(&mut config, &test_data, empty_cache, &false).await;
@@ -127,7 +140,9 @@ mod status_command_tests {
         let mut config = SantaConfig {
             sources: vec![KnownSources::Brew],
             packages: vec!["git".to_string()],
-            ..Default::default()
+            custom_sources: None,
+            _groups: None,
+            log_level: 0,
         };
 
         let result = status_command(&mut config, &test_data, empty_cache, &false).await;
@@ -175,7 +190,7 @@ mod config_command_tests {
     #[rstest]
     fn test_config_command_with_empty_config(test_data: SantaData) {
         // Test with minimal/empty config
-        let empty_config = SantaConfig::default();
+        let empty_config = minimal_config(vec![], vec![]);
         let result = config_command(&empty_config, &test_data, false, false);
         assert!(
             result.is_ok(),
@@ -224,7 +239,10 @@ mod install_command_tests {
         // Test with no enabled sources
         let mut config = SantaConfig {
             sources: vec![], // No sources enabled
-            ..Default::default()
+            packages: vec![],
+            custom_sources: None,
+            _groups: None,
+            log_level: 0,
         };
 
         let temp_dir = std::env::temp_dir();
@@ -254,7 +272,9 @@ mod install_command_tests {
         let mut config = SantaConfig {
             sources: vec![KnownSources::Brew],
             packages: vec![], // Empty packages to avoid installation
-            ..Default::default()
+            custom_sources: None,
+            _groups: None,
+            log_level: 0,
         };
 
         let temp_dir = std::env::temp_dir();
@@ -323,7 +343,9 @@ mod install_command_tests {
         let mut config = SantaConfig {
             sources: vec![KnownSources::Brew],
             packages: vec![], // No packages
-            ..Default::default()
+            custom_sources: None,
+            _groups: None,
+            log_level: 0,
         };
 
         let temp_dir = std::env::temp_dir();
@@ -374,7 +396,7 @@ mod integration_tests {
     #[tokio::test]
     async fn test_all_commands_with_minimal_data(empty_cache: PackageCache) {
         // Test all commands with minimal data structures
-        let minimal_config = SantaConfig::default();
+        let minimal_config = minimal_config(vec![], vec![]);
         let minimal_data = SantaData {
             sources: vec![],
             packages: PackageDataList::new(),

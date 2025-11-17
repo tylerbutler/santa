@@ -146,7 +146,7 @@ _settings =
   confirm_before_install = true
 "#;
 
-    let config: ConfigDefinition = serde_ccl::from_str(ccl).unwrap();
+    let config: ConfigDefinition = sickle::from_str(ccl).unwrap();
 
     // Verify sources
     assert_eq!(config.sources.len(), 4);
@@ -316,7 +316,7 @@ _overrides =
 "#;
 
     // Use serde_ccl directly for deeply nested structures
-    let brew: SourceDefinition = serde_ccl::from_str(sources_ccl).unwrap();
+    let brew: SourceDefinition = sickle::from_str(sources_ccl).unwrap();
 
     // Test macOS platform
     let macos = Platform {

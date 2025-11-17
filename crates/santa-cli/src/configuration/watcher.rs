@@ -1,4 +1,4 @@
-use crate::configuration::SantaConfig;
+use crate::configuration::{SantaConfig, SantaConfigExt};
 use crate::data::SantaData;
 use anyhow::{Context, Result};
 use notify::{Event, RecommendedWatcher, RecursiveMode, Watcher};

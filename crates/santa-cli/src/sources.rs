@@ -274,6 +274,23 @@ pub struct PackageSource {
     overrides: Option<Vec<SourceOverride>>,
 }
 
+impl From<crate::configuration::ConfigPackageSource> for PackageSource {
+    fn from(config_source: crate::configuration::ConfigPackageSource) -> Self {
+        PackageSource {
+            name: config_source.name,
+            emoji: config_source.emoji,
+            shell_command: config_source.shell_command,
+            install_command: config_source.install_command,
+            check_command: config_source.check_command,
+            prepend_to_package_name: config_source.prepend_to_package_name,
+            // Note: config's PackageNameOverride is different from runtime's SourceOverride
+            // PackageNameOverride is for renaming packages, not platform command overrides
+            // Setting to None since we don't support platform overrides for custom sources yet
+            overrides: None,
+        }
+    }
+}
+
 impl PackageSource {
     /// Get the package source name
     #[must_use]
