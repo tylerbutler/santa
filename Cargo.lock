@@ -2129,11 +2129,14 @@ name = "santa-data"
 version = "0.1.4"
 dependencies = [
  "anyhow",
+ "derive_builder",
  "derive_more",
  "serde",
  "serde-enum-str",
  "serde_json",
  "sickle",
+ "tracing",
+ "validator",
 ]
 
 [[package]]

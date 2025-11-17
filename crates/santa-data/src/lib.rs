@@ -1,21 +1,22 @@
-//! Santa Data - Data models and CCL parser for Santa Package Manager
+//! Santa Data - Data models, configuration, and CCL parser for Santa Package Manager
 //!
 //! This crate provides:
 //! - Core data models (Platform, KnownSources, PackageData, etc.)
+//! - Configuration loading and management (SantaConfig, ConfigLoader)
 //! - CCL schema definitions (PackageDefinition, SourceDefinition, etc.)
 //! - CCL parser that handles both simple and complex formats
-//!
-//! The parser works around limitations in serde_ccl 0.1.1.
 
 use anyhow::{Context, Result};
 use serde::de::DeserializeOwned;
 use serde_json::Value;
 use std::collections::HashMap;
 
+pub mod config;
 pub mod models;
 mod parser;
 pub mod schemas;
 
+pub use config::*;
 pub use models::*;
 pub use parser::{parse_ccl, CclValue};
 pub use schemas::*;
