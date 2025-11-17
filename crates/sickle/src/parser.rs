@@ -190,6 +190,15 @@ description = This is a
     }
 
     #[test]
+    fn test_value_with_equals() {
+        let input = "command = npm list --depth=0";
+        let entries = parse_entries(input);
+        assert_eq!(entries.len(), 1);
+        assert_eq!(entries[0].key, "command");
+        assert_eq!(entries[0].value, "npm list --depth=0");
+    }
+
+    #[test]
     fn test_nested_structure() {
         let input = r#"
 database =

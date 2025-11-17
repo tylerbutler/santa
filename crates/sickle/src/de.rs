@@ -599,4 +599,172 @@ enabled = true
         assert_eq!(config.timeout, 3000);
         assert_eq!(config.enabled, true);
     }
+
+    #[test]
+    fn test_deserialize_hashmap() {
+        use std::collections::HashMap;
+
+        #[derive(Deserialize, Debug, PartialEq)]
+        struct SourceDef {
+            emoji: String,
+            install: String,
+            check: String,
+        }
+
+        let ccl = r#"
+brew =
+  emoji = 🍺
+  install = brew install {package}
+  check = brew leaves
+
+npm =
+  emoji = 📦
+  install = npm install -g {package}
+  check = npm list -g
+"#;
+
+        let sources: HashMap<String, SourceDef> = from_str(ccl).unwrap();
+        assert_eq!(sources.len(), 2);
+        assert!(sources.contains_key("brew"));
+        assert!(sources.contains_key("npm"));
+
+        let brew = &sources["brew"];
+        assert_eq!(brew.emoji, "🍺");
+        assert_eq!(brew.install, "brew install {package}");
+        assert_eq!(brew.check, "brew leaves");
+
+        let npm = &sources["npm"];
+        assert_eq!(npm.emoji, "📦");
+        assert_eq!(npm.install, "npm install -g {package}");
+        assert_eq!(npm.check, "npm list -g");
+    }
+
+    #[test]
+    fn test_deserialize_hashmap_with_optionals() {
+        use std::collections::HashMap;
+
+        #[derive(Deserialize, Debug)]
+        struct PlatformOverride {
+            install: Option<String>,
+            check: Option<String>,
+        }
+
+        #[derive(Deserialize, Debug)]
+        struct SourceDef {
+            emoji: String,
+            install: String,
+            check: String,
+            prefix: Option<String>,
+            #[serde(rename = "_overrides")]
+            overrides: Option<HashMap<String, PlatformOverride>>,
+        }
+
+        let ccl = r#"
+brew =
+  emoji = 🍺
+  install = brew install {package}
+  check = brew leaves
+
+npm =
+  emoji = 📦
+  install = npm install -g {package}
+  check = npm list -g
+  _overrides =
+    windows =
+      check = npm root -g | gci -Name
+
+nix =
+  emoji = 📈
+  install = nix-env -iA {package}
+  check = nix-env -q
+  prefix = nixpkgs.
+"#;
+
+        let sources: HashMap<String, SourceDef> = from_str(ccl).unwrap();
+        assert_eq!(sources.len(), 3);
+
+        // Test npm with overrides
+        let npm = &sources["npm"];
+        assert_eq!(npm.emoji, "📦");
+        assert!(npm.overrides.is_some());
+
+        // Test nix with prefix
+        let nix = &sources["nix"];
+        assert_eq!(nix.prefix, Some("nixpkgs.".to_string()));
+    }
+
+    #[test]
+    fn test_exact_santa_cli_case() {
+        use std::collections::HashMap;
+
+        #[derive(Deserialize, Debug)]
+        struct PlatformOverride {
+            install: Option<String>,
+            check: Option<String>,
+        }
+
+        #[derive(Deserialize, Debug)]
+        struct SourceDef {
+            emoji: String,
+            install: String,
+            check: String,
+            prefix: Option<String>,
+            #[serde(rename = "_overrides")]
+            overrides: Option<HashMap<String, PlatformOverride>>,
+        }
+
+        // Exact CCL from failing test
+        let ccl = r#"
+brew =
+  emoji = 🍺
+  install = brew install {package}
+  check = brew leaves --installed-on-request
+
+npm =
+  emoji = 📦
+  install = npm install -g {package}
+  check = npm list -g --depth=0
+
+flathub =
+  emoji = 📦
+  install = flatpak install flathub {package}
+  check = flatpak list --app
+"#;
+
+        let result: Result<HashMap<String, SourceDef>> = from_str(ccl);
+        match &result {
+            Ok(sources) => {
+                assert_eq!(sources.len(), 3);
+                assert!(sources.contains_key("brew"));
+                assert!(sources.contains_key("npm"));
+                assert!(sources.contains_key("flathub"));
+            }
+            Err(e) => {
+                panic!("Failed to deserialize: {:?}", e);
+            }
+        }
+    }
+
+    #[test]
+    fn test_value_with_equals_sign() {
+        #[derive(Deserialize, Debug)]
+        struct Config {
+            command: String,
+        }
+
+        // Test with = in the value
+        let ccl = r#"
+command = npm list --depth=0
+"#;
+
+        let result: Result<Config> = from_str(ccl);
+        match &result {
+            Ok(config) => {
+                assert_eq!(config.command, "npm list --depth=0");
+            }
+            Err(e) => {
+                panic!("Failed to deserialize value with =: {:?}", e);
+            }
+        }
+    }
 }

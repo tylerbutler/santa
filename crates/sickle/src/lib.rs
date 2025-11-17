@@ -95,14 +95,25 @@ fn build_model(map: std::collections::BTreeMap<String, Vec<String>>) -> Result<M
                 // Empty value
                 Model::singleton("")
             } else if value.contains('=') {
-                // Contains '=' - likely nested CCL
-                // Try to parse as CCL, fallback to singleton if it fails or has no new entries
+                // Contains '=' - might be nested CCL
+                // Try to parse and check if result looks like valid CCL structure
                 match parse(value) {
                     Ok(parsed) => {
-                        // Only use parsed result if it actually created something meaningful
+                        // Check if this looks like valid CCL structure vs command-line string
                         if let Ok(map) = parsed.as_map() {
                             if !map.is_empty() {
-                                parsed
+                                // Check if all keys look like valid CCL keys (not command-line flags)
+                                let has_valid_keys = map.keys().all(|k| {
+                                    // Valid CCL keys: alphanumeric, underscores, dots, no leading dash
+                                    !k.starts_with('-') && !k.contains(' ')
+                                });
+
+                                if has_valid_keys {
+                                    parsed
+                                } else {
+                                    // Keys look like command-line flags, treat as string
+                                    Model::singleton(value.clone())
+                                }
                             } else {
                                 Model::singleton(value.clone())
                             }
@@ -113,7 +124,7 @@ fn build_model(map: std::collections::BTreeMap<String, Vec<String>>) -> Result<M
                     Err(_) => Model::singleton(value.clone()),
                 }
             } else {
-                // Plain string value (including multiline without '=')
+                // Plain string value
                 Model::singleton(value.clone())
             }
         } else {
@@ -122,10 +133,22 @@ fn build_model(map: std::collections::BTreeMap<String, Vec<String>>) -> Result<M
                 .iter()
                 .map(|v| {
                     if v.contains('=') {
-                        // Try to parse as nested CCL
+                        // Try to parse as nested CCL, use same validation as singleton case
                         match parse(v) {
                             Ok(parsed) if !matches!(parsed, Model::Map(ref m) if m.is_empty()) => {
-                                Ok(parsed)
+                                // Check if keys look valid
+                                if let Ok(map) = parsed.as_map() {
+                                    let has_valid_keys = map.keys().all(|k| {
+                                        !k.starts_with('-') && !k.contains(' ')
+                                    });
+                                    if has_valid_keys {
+                                        Ok(parsed)
+                                    } else {
+                                        Ok(Model::singleton(v.clone()))
+                                    }
+                                } else {
+                                    Ok(parsed)
+                                }
                             }
                             _ => Ok(Model::singleton(v.clone())),
                         }
