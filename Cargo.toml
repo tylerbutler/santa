@@ -12,6 +12,9 @@ authors = ["Tyler Butler <tyler@tylerbutler.com>"]
 license = "MIT"
 repository = "https://github.com/tylerbutler/santa"
 rust-version = "1.80.0"
+categories = ["command-line-utilities", "development-tools"]
+keywords = ["package-manager", "cli", "cross-platform", "automation"]
+readme = "README.md"
 
 [workspace.dependencies]
 # Error handling
@@ -66,3 +69,16 @@ criterion = { version = "0.5", features = ["html_reports", "async_tokio"] }
 [profile.dist]
 inherits = "release"
 lto = "thin"
+
+# cargo-dist configuration
+[workspace.metadata.dist]
+ci = ["github"]
+installers = ["shell", "powershell"]
+targets = [
+    "x86_64-unknown-linux-gnu",
+    "aarch64-unknown-linux-gnu",
+    "x86_64-apple-darwin",
+    "aarch64-apple-darwin",
+    "x86_64-pc-windows-msvc",
+]
+precise-builds = true

@@ -1,13 +1,17 @@
 [package]
 name = "santa"
-version = "0.1.2"
-edition = "2021"
-authors = ["Tyler Butler <tyler@tylerbutler.com>"]
-license = "MIT"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
 description = "a tool that manages packages across different platforms"
 homepage = "https://github.com/tylerbutler/santa"
-repository = "https://github.com/tylerbutler/santa"
-rust-version = "1.80.0"
+repository.workspace = true
+rust-version.workspace = true
+categories.workspace = true
+keywords.workspace = true
+readme.workspace = true
+publish = true
 
 [features]
 default = []
@@ -125,3 +129,7 @@ path = "src/main.rs"
 [[bench]]
 name = "subprocess_performance"
 harness = false
+
+# cargo-dist: This package generates distributable binaries
+[package.metadata.dist]
+dist = true
