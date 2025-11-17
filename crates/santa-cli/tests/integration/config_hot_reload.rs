@@ -90,7 +90,7 @@ async fn test_config_validation() {
 
 #[tokio::test]
 async fn test_hot_reload_capability() {
-    let config = SantaConfig {
+    let _config = SantaConfig {
         sources: vec![KnownSources::Apt],
         packages: vec!["curl".to_string()],
         custom_sources: None,
@@ -157,8 +157,6 @@ sources =
 
 packages =
   = curl
-
-custom_sources =
 "#;
     fs::write(&config_path, initial_config).expect("Failed to write initial config");
 

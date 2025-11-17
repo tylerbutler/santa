@@ -18,7 +18,7 @@ use santa::sources::PackageCache;
 #[cfg(test)]
 mod tests;
 
-static DEFAULT_CONFIG_FILE_PATH: &str = ".config/santa/config.yaml";
+static DEFAULT_CONFIG_FILE_PATH: &str = ".config/santa/config.ccl";
 
 /// Manage default sets of packages for a variety of package managers.
 #[derive(Parser)]

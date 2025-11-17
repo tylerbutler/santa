@@ -643,12 +643,14 @@ npm =
     fn test_deserialize_hashmap_with_optionals() {
         use std::collections::HashMap;
 
+        #[allow(dead_code)]
         #[derive(Deserialize, Debug)]
         struct PlatformOverride {
             install: Option<String>,
             check: Option<String>,
         }
 
+        #[allow(dead_code)]
         #[derive(Deserialize, Debug)]
         struct SourceDef {
             emoji: String,
@@ -697,12 +699,14 @@ nix =
     fn test_exact_santa_cli_case() {
         use std::collections::HashMap;
 
+        #[allow(dead_code)]
         #[derive(Deserialize, Debug)]
         struct PlatformOverride {
             install: Option<String>,
             check: Option<String>,
         }
 
+        #[allow(dead_code)]
         #[derive(Deserialize, Debug)]
         struct SourceDef {
             emoji: String,

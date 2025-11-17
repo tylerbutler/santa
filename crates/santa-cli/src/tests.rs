@@ -23,11 +23,11 @@ fn temp_config() -> NamedTempFile {
     writeln!(
         file,
         r#"
-sources:
-  - brew
-packages:
-  - git
-  - curl
+sources =
+  = brew
+packages =
+  = git
+  = curl
 "#
     )
     .expect("Failed to write config");

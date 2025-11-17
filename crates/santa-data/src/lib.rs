@@ -132,7 +132,9 @@ fn parse_list_string(s: &str) -> Result<Value> {
     Ok(Value::Array(items))
 }
 
-/// Parse a CCL value string (from serde_ccl's string output) into a proper JSON Value
+// Experimental CCL parsing functions used only in tests
+#[cfg(test)]
+#[allow(dead_code)]
 fn parse_value_string(s: &str) -> Result<Value> {
     let trimmed = s.trim();
 
@@ -150,7 +152,8 @@ fn parse_value_string(s: &str) -> Result<Value> {
     Ok(Value::String(s.to_string()))
 }
 
-/// Parse simple array format: "= brew\n  = scoop"
+#[cfg(test)]
+#[allow(dead_code)]
 fn parse_simple_array(s: &str) -> Result<Value> {
     let items: Vec<String> = s
         .lines()
@@ -172,7 +175,8 @@ fn parse_simple_array(s: &str) -> Result<Value> {
     Ok(Value::Array(items.into_iter().map(Value::String).collect()))
 }
 
-/// Parse complex object format: "_sources =\n  = brew\nbrew = gh"
+#[cfg(test)]
+#[allow(dead_code)]
 fn parse_complex_object(s: &str) -> Result<Value> {
     let mut obj = serde_json::Map::new();
     let mut current_key: Option<String> = None;

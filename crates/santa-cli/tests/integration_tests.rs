@@ -119,10 +119,14 @@ fn test_invalid_subcommand() {
 
 #[test]
 fn test_config_with_custom_file() {
-    // Create a temporary config file
+    // Create a temporary config file in CCL format
     let config_content = r#"
-sources: ["brew", "cargo"]
-packages: ["git", "rust"]
+sources =
+  = brew
+  = cargo
+packages =
+  = git
+  = rust
 "#;
 
     let mut temp_file = NamedTempFile::new().unwrap();
