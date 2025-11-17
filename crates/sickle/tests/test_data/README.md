@@ -61,18 +61,27 @@ The test infrastructure in `test_helpers.rs` loads these JSON files and runs the
 ### Running Tests
 
 ```bash
-# Run all CCL tests with detailed individual results
+# Run comprehensive test covering all 327 test cases from all JSON files
 just test-ccl
 
-# Run specific test suite with details
-cargo test -p sickle test_parsing_suite_basic_tests -- --nocapture
-cargo test -p sickle test_typed_access_suite_strings -- --nocapture
-cargo test -p sickle test_comments_suite -- --nocapture
+# Or run directly with cargo
+cargo test -p sickle test_all_ccl_suites_comprehensive -- --nocapture
 ```
+
+This will run all test cases from all 13 JSON files and show per-suite results.
 
 ## Current Status
 
-Not all tests are expected to pass, as sickle is under active development. The test infrastructure allows individual test cases to fail while still reporting which tests pass, making it easy to track implementation progress.
+**110 out of 327 tests passing (33.6%)** as of the latest run:
+
+- ✅ **api_core_ccl_parsing**: 8/8 passing (100%)
+- ✅ **api_errors**: 6/6 passing (100%)
+- ✅ **api_edge_cases**: 21/35 passing (60%)
+- ⚠️ **api_typed_access**: 25/74 passing (34%)
+- ⚠️ **api_comments**: 0/6 passing (0%) - feature not implemented
+- And more...
+
+Not all tests are expected to pass as sickle is under active development. The test infrastructure gracefully handles failures and shows which specific features are implemented, making it easy to track implementation progress.
 
 ## Updating Test Data
 
