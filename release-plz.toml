@@ -10,6 +10,8 @@ allow_dirty = false
 name = "santa-data"
 # Published to crates.io as a standalone library
 publish = true
+# Don't create git tags - this is a library-only package, not distributed by cargo-dist
+git_tag_enable = false
 
 # Santa CLI - Main binary application
 [[package]]
