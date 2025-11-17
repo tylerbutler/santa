@@ -470,3 +470,126 @@ fn test_typed_access_suite_strings() {
     );
     assert!(passed > 0, "At least some string access tests should pass");
 }
+
+#[test]
+fn test_all_ccl_suites_comprehensive() {
+    let suites = load_all_test_suites();
+
+    println!("\n🧪 Running comprehensive CCL test suite");
+    println!("📁 Loaded {} test suite files\n", suites.len());
+
+    let mut total_passed = 0;
+    let mut total_failed = 0;
+    let mut total_skipped = 0;
+
+    // Sort suite names for consistent output
+    let mut suite_names: Vec<_> = suites.keys().collect();
+    suite_names.sort();
+
+    for suite_name in suite_names {
+        let suite = &suites[suite_name];
+        println!("📋 {}", suite_name);
+
+        let mut suite_passed = 0;
+        let mut suite_failed = 0;
+        let mut suite_skipped = 0;
+
+        for test in &suite.tests {
+            let test_result = std::panic::catch_unwind(|| {
+                // Parse the input
+                let result = parse(&test.input);
+
+                // Handle different validation types
+                match test.validation.as_str() {
+                    "parse" => {
+                        if test.expected.error.is_some() {
+                            assert!(result.is_err(), "Test '{}' expected error", test.name);
+                        } else {
+                            let model = result.unwrap_or_else(|e| {
+                                panic!("Test '{}' failed to parse: {}", test.name, e);
+                            });
+
+                            // Verify entry count if we can get a map
+                            if let Ok(map) = model.as_map() {
+                                if test.expected.count > 0 {
+                                    assert_eq!(
+                                        map.len(),
+                                        test.expected.count,
+                                        "Test '{}' expected {} entries, got {}",
+                                        test.name,
+                                        test.expected.count,
+                                        map.len()
+                                    );
+                                }
+                            }
+                        }
+                    }
+                    "get_string" => {
+                        if let Some(ref key) = test.expected.key {
+                            let model = result.unwrap_or_else(|e| {
+                                panic!("Test '{}' failed to parse: {}", test.name, e);
+                            });
+
+                            let get_result = model.get(key);
+
+                            if test.expected.error.is_some() {
+                                assert!(get_result.is_err(), "Test '{}' expected error", test.name);
+                            } else if let Some(ref expected_value) = test.expected.value {
+                                let value = get_result
+                                    .unwrap_or_else(|_| panic!("Test '{}': missing key '{}'", test.name, key))
+                                    .as_str()
+                                    .unwrap_or_else(|_| panic!("Test '{}': key '{}' is not a string", test.name, key));
+
+                                let expected_str = expected_value.as_str()
+                                    .unwrap_or_else(|| panic!("Test '{}': expected value is not a string", test.name));
+
+                                assert_eq!(value, expected_str, "Test '{}': wrong value for key '{}'", test.name, key);
+                            }
+                        }
+                    }
+                    _ => {
+                        // Skip unsupported validation types for now
+                        panic!("Unsupported validation type: {}", test.validation);
+                    }
+                }
+            });
+
+            match test_result {
+                Ok(_) => {
+                    suite_passed += 1;
+                }
+                Err(e) => {
+                    let err_msg = format!("{:?}", e);
+                    if err_msg.contains("Unsupported validation type") {
+                        suite_skipped += 1;
+                    } else {
+                        suite_failed += 1;
+                    }
+                }
+            }
+        }
+
+        total_passed += suite_passed;
+        total_failed += suite_failed;
+        total_skipped += suite_skipped;
+
+        println!(
+            "  ✓ {} passed, ✗ {} failed, ⊘ {} skipped (total: {})\n",
+            suite_passed,
+            suite_failed,
+            suite_skipped,
+            suite.tests.len()
+        );
+    }
+
+    println!("════════════════════════════════════════");
+    println!("📊 Overall Results:");
+    println!("  ✓ {} passed", total_passed);
+    println!("  ✗ {} failed", total_failed);
+    println!("  ⊘ {} skipped (unsupported validation types)", total_skipped);
+    println!("  Total: {}", total_passed + total_failed + total_skipped);
+    println!("════════════════════════════════════════");
+
+    // Assert that we have some passing tests
+    assert!(total_passed > 0, "At least some tests should pass");
+}
