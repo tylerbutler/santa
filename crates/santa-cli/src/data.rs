@@ -250,7 +250,7 @@ impl SantaData {
                     .collect::<Vec<_>>()
             })
             .unwrap_or_default();
-        builtin.chain(custom.into_iter())
+        builtin.chain(custom)
     }
 
     /// Returns owned sources list. Use only when you need to own/modify the collection.

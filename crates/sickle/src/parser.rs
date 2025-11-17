@@ -129,7 +129,7 @@ pub(crate) fn parse_to_map(input: &str) -> Result<BTreeMap<String, Vec<String>>>
     for entry in entries {
         // Dedent the value to preserve relative indentation
         let value = dedent(&entry.value);
-        result.entry(entry.key).or_insert_with(Vec::new).push(value);
+        result.entry(entry.key).or_default().push(value);
     }
 
     Ok(result)

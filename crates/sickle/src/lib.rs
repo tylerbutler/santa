@@ -253,6 +253,6 @@ enabled = true
         assert_eq!(port, 5432);
 
         let enabled: bool = model.get("enabled").unwrap().parse_value().unwrap();
-        assert_eq!(enabled, true);
+        assert!(enabled);
     }
 }

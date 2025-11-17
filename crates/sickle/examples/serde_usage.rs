@@ -24,6 +24,7 @@ struct Database {
 
 #[cfg(feature = "serde")]
 #[derive(Deserialize, Debug)]
+#[allow(dead_code)]
 struct Credentials {
     username: String,
     password: String,

@@ -115,9 +115,9 @@ fn parse_list_string(s: &str) -> Result<Value> {
         .lines()
         .filter_map(|line| {
             let trimmed = line.trim();
-            if trimmed.starts_with('=') {
+            if let Some(stripped) = trimmed.strip_prefix('=') {
                 // Extract the value after '='
-                let value = trimmed[1..].trim();
+                let value = stripped.trim();
                 if value.is_empty() {
                     None
                 } else {

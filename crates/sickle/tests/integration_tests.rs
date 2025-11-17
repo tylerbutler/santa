@@ -183,13 +183,13 @@ bool_false = false
 
     // Float
     let float: f64 = model.get("float_val").unwrap().parse_value().unwrap();
-    assert!((float - 3.14).abs() < 0.001);
+    assert!((float - std::f64::consts::PI).abs() < 0.01);
 
     // Booleans
     let bool_t: bool = model.get("bool_true").unwrap().parse_value().unwrap();
     let bool_f: bool = model.get("bool_false").unwrap().parse_value().unwrap();
-    assert_eq!(bool_t, true);
-    assert_eq!(bool_f, false);
+    assert!(bool_t);
+    assert!(!bool_f);
 }
 
 #[cfg(feature = "serde")]

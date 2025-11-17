@@ -293,8 +293,8 @@ impl<'de> de::Deserializer<'de> for &mut Deserializer {
                     .lines()
                     .filter_map(|line| {
                         let trimmed = line.trim();
-                        if trimmed.starts_with('=') {
-                            let value = trimmed[1..].trim();
+                        if let Some(stripped) = trimmed.strip_prefix('=') {
+                            let value = stripped.trim();
                             if !value.is_empty() {
                                 Some(value.to_string())
                             } else {
@@ -597,7 +597,7 @@ enabled = true
         let config: Config = from_str(ccl).unwrap();
         assert_eq!(config.port, 8080);
         assert_eq!(config.timeout, 3000);
-        assert_eq!(config.enabled, true);
+        assert!(config.enabled);
     }
 
     #[test]

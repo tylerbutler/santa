@@ -100,7 +100,7 @@ async fn test_hot_reload_capability() {
 
     // Santa config should support hot reload
     // Hot reload is always supported for Santa
-    assert!(true); // Santa supports hot-reloading of configuration
+    // (No assertion needed - test validates hot reload support through config creation)
 }
 
 #[tokio::test]

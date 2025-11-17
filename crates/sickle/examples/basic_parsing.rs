@@ -1,6 +1,6 @@
 //! Basic CCL parsing example using the Model API
 
-use sickle::{parse, Model};
+use sickle::parse;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let ccl = r#"
