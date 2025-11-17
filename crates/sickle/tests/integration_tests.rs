@@ -536,14 +536,26 @@ fn test_all_ccl_suites_comprehensive() {
                                 assert!(get_result.is_err(), "Test '{}' expected error", test.name);
                             } else if let Some(ref expected_value) = test.expected.value {
                                 let value = get_result
-                                    .unwrap_or_else(|_| panic!("Test '{}': missing key '{}'", test.name, key))
+                                    .unwrap_or_else(|_| {
+                                        panic!("Test '{}': missing key '{}'", test.name, key)
+                                    })
                                     .as_str()
-                                    .unwrap_or_else(|_| panic!("Test '{}': key '{}' is not a string", test.name, key));
+                                    .unwrap_or_else(|_| {
+                                        panic!(
+                                            "Test '{}': key '{}' is not a string",
+                                            test.name, key
+                                        )
+                                    });
 
-                                let expected_str = expected_value.as_str()
-                                    .unwrap_or_else(|| panic!("Test '{}': expected value is not a string", test.name));
+                                let expected_str = expected_value.as_str().unwrap_or_else(|| {
+                                    panic!("Test '{}': expected value is not a string", test.name)
+                                });
 
-                                assert_eq!(value, expected_str, "Test '{}': wrong value for key '{}'", test.name, key);
+                                assert_eq!(
+                                    value, expected_str,
+                                    "Test '{}': wrong value for key '{}'",
+                                    test.name, key
+                                );
                             }
                         }
                     }
@@ -586,7 +598,10 @@ fn test_all_ccl_suites_comprehensive() {
     println!("📊 Overall Results:");
     println!("  ✓ {} passed", total_passed);
     println!("  ✗ {} failed", total_failed);
-    println!("  ⊘ {} skipped (unsupported validation types)", total_skipped);
+    println!(
+        "  ⊘ {} skipped (unsupported validation types)",
+        total_skipped
+    );
     println!("  Total: {}", total_passed + total_failed + total_skipped);
     println!("════════════════════════════════════════");
 
