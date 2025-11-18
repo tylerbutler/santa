@@ -88,16 +88,17 @@ impl ImplementationConfig {
         Self {
             supported_functions: vec![
                 "parse".to_string(),
+                "parse_dedented".to_string(), // Dedenting parser for indented input
                 "get_string".to_string(),
                 "get_int".to_string(),
                 "get_float".to_string(),
                 "get_bool".to_string(),
                 "build_hierarchy".to_string(),
                 "parse_value".to_string(), // Model::parse_value<T>() method exists
-                "filter".to_string(), // Test filtering implemented in test infrastructure
-                // Not implemented:
-                // "get_list" - convenience method not yet implemented
-                // "canonical_format" - CCL serialization not yet implemented
+                "filter".to_string(),      // Test filtering implemented in test infrastructure
+                                           // Not implemented:
+                                           // "get_list" - convenience method not yet implemented
+                                           // "canonical_format" - CCL serialization not yet implemented
             ],
             supported_features: vec![
                 "comments".to_string(),
@@ -107,7 +108,7 @@ impl ImplementationConfig {
                 "special_characters".to_string(),
             ],
             chosen_behaviors: vec![
-                "boolean_lenient".to_string(),  // Currently using lenient boolean parsing
+                "boolean_lenient".to_string(), // Currently using lenient boolean parsing
                 "crlf_normalize_to_lf".to_string(), // Normalize CRLF to LF
                 "list_coercion_enabled".to_string(), // Allow list coercion
             ],
@@ -132,6 +133,7 @@ impl TestSuite {
     }
 
     /// Filter tests by behavior
+    #[allow(dead_code)]
     pub fn filter_by_behavior(&self, behavior: &str) -> Vec<&TestCase> {
         self.tests
             .iter()
@@ -159,14 +161,22 @@ impl TestSuite {
             .iter()
             .filter(|test| {
                 // Check if all required functions are implemented
-                if !test.functions.is_empty() &&
-                   !test.functions.iter().all(|f| config.supported_functions.contains(f)) {
+                if !test.functions.is_empty()
+                    && !test
+                        .functions
+                        .iter()
+                        .all(|f| config.supported_functions.contains(f))
+                {
                     return false;
                 }
 
                 // Check if all required features are supported
-                if !test.features.is_empty() &&
-                   !test.features.iter().all(|f| config.supported_features.contains(f)) {
+                if !test.features.is_empty()
+                    && !test
+                        .features
+                        .iter()
+                        .all(|f| config.supported_features.contains(f))
+                {
                     return false;
                 }
 
@@ -175,7 +185,9 @@ impl TestSuite {
                 // or the test should have no behaviors (meaning it's behavior-agnostic)
                 if !test.behaviors.is_empty() {
                     // Check if any of the test's behaviors are in our chosen behaviors
-                    let has_matching_behavior = test.behaviors.iter()
+                    let has_matching_behavior = test
+                        .behaviors
+                        .iter()
                         .any(|b| config.chosen_behaviors.contains(b));
 
                     // If no matching behavior, check if it conflicts with mutually exclusive behaviors
@@ -191,10 +203,11 @@ impl TestSuite {
 
                         // If the test requires a behavior that conflicts with our chosen behavior, skip it
                         for (opt1, opt2) in &mutually_exclusive {
-                            if (test.behaviors.contains(&opt1.to_string()) &&
-                                config.chosen_behaviors.contains(&opt2.to_string())) ||
-                               (test.behaviors.contains(&opt2.to_string()) &&
-                                config.chosen_behaviors.contains(&opt1.to_string())) {
+                            if (test.behaviors.contains(&opt1.to_string())
+                                && config.chosen_behaviors.contains(&opt2.to_string()))
+                                || (test.behaviors.contains(&opt2.to_string())
+                                    && config.chosen_behaviors.contains(&opt1.to_string()))
+                            {
                                 return false;
                             }
                         }
@@ -207,6 +220,7 @@ impl TestSuite {
     }
 
     /// Get all test names
+    #[allow(dead_code)]
     pub fn test_names(&self) -> Vec<&str> {
         self.tests.iter().map(|t| t.name.as_str()).collect()
     }
@@ -263,7 +277,7 @@ mod tests {
         let suites = load_all_test_suites();
         // Should load at least one suite if JSON files exist
         assert!(
-            suites.len() >= 1,
+            !suites.is_empty(),
             "Should load test suites from test_data directory"
         );
     }

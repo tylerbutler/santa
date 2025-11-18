@@ -38,6 +38,13 @@ The `Model` type provides the core API for navigating parsed CCL documents. All 
 | `as_map()` | Convert to map reference | `Result<&BTreeMap<String, Model>>` |
 | `parse_value<T>()` | Parse singleton to any `FromStr` type | `Result<T>` |
 
+### Parsing Functions
+
+| Function | Description | Use Case |
+|----------|-------------|----------|
+| `parse(input)` | Parse CCL string into entries | Standard parsing |
+| `parse_dedented(input)` | Parse with common prefix removal | Nested/indented CCL values |
+
 ### Type Checking Methods
 
 | Method | Description | Returns |
@@ -55,11 +62,15 @@ The `Model` type provides the core API for navigating parsed CCL documents. All 
 ### Usage Examples
 
 ```rust
-use sickle::parse;
+use sickle::{parse, parse_dedented};
 
-// Navigation
+// Standard parsing
 let model = parse("name = Santa\nversion = 1.0")?;
 let name = model.get("name")?.as_str()?;
+
+// Parsing indented CCL (removes common prefix)
+let nested = "  servers = web1\n  servers = web2";
+let entries = parse_dedented(nested)?;
 
 // Nested access
 let ccl = "database = host = localhost\nport = 5432";
@@ -126,9 +137,35 @@ database =
     password = secret
 ```
 
+### Duplicate Key Lists ✅
+
+Multiple entries with the same key automatically create a list:
+
+```ccl
+item = first
+item = second
+item = third
+# Result: List(["first", "second", "third"])
+```
+
+**Status**: Fully implemented
+**Test Coverage**: 100% for duplicate key scenarios
+
 ### Not Yet Implemented ⚠️
 
 These features appear in test suites but are not yet implemented:
+
+#### Indentation-Based Multiline Detection
+```ccl
+key = First line
+second line
+# Current: "second line" treated as continuation (multiline)
+# Expected: "second line" should be separate key (not indented)
+```
+
+**Status**: Partial implementation
+**Issue**: Parser doesn't check indentation for continuation detection
+**Impact**: Affects 1 test (list_multiline_values_build_hierarchy)
 
 #### Section Headers
 ```ccl

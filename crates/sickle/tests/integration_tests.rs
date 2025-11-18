@@ -2,7 +2,7 @@
 
 mod test_helpers;
 
-use sickle::parse;
+use sickle::{build_hierarchy, load, parse, parse_dedented};
 use std::path::Path;
 use test_helpers::{load_all_test_suites, ImplementationConfig, TestSuite};
 
@@ -130,7 +130,7 @@ package_managers =
   = cargo
 "#;
 
-    let model = parse(ccl).expect("should parse successfully");
+    let model = load(ccl).expect("should load successfully");
 
     // Test simple values
     assert_eq!(
@@ -158,7 +158,7 @@ description = This is a very long description
   about the configuration file
 "#;
 
-    let model = parse(ccl).expect("should parse");
+    let model = load(ccl).expect("should load");
     let desc = model.get("description").unwrap().as_str().unwrap();
 
     assert!(desc.contains("long description"));
@@ -167,19 +167,32 @@ description = This is a very long description
 }
 
 #[test]
-fn test_comments_are_ignored() {
+fn test_comments_are_preserved() {
     let ccl = r#"
 /= This is a comment
-/= Comments should be completely ignored
+/= Comments are valid entries in CCL
 name = value
 /= Another comment in the middle
 other = data
 "#;
 
-    let model = parse(ccl).expect("should parse");
+    let model = load(ccl).expect("should load");
 
-    // Comments should not appear as keys
-    assert!(model.get("/").is_err());
+    // Comments ARE valid entries with key "/" per CCL spec
+    assert!(model.get("/").is_ok());
+    let comments = model.get("/").unwrap().as_list().unwrap();
+    assert_eq!(comments.len(), 3);
+    assert_eq!(comments[0].as_str().unwrap(), "This is a comment");
+    assert_eq!(
+        comments[1].as_str().unwrap(),
+        "Comments are valid entries in CCL"
+    );
+    assert_eq!(
+        comments[2].as_str().unwrap(),
+        "Another comment in the middle"
+    );
+
+    // Other keys work as expected
     assert_eq!(model.get("name").unwrap().as_str().unwrap(), "value");
     assert_eq!(model.get("other").unwrap().as_str().unwrap(), "data");
 }
@@ -192,7 +205,7 @@ another =
 non_empty = value
 "#;
 
-    let model = parse(ccl).expect("should parse");
+    let model = load(ccl).expect("should load");
 
     assert_eq!(
         model.get("key_with_empty_value").unwrap().as_str().unwrap(),
@@ -211,7 +224,7 @@ path = /usr/local/bin
 command = echo "Hello World"
 "#;
 
-    let model = parse(ccl).expect("should parse");
+    let model = load(ccl).expect("should load");
 
     assert_eq!(
         model.get("url").unwrap().as_str().unwrap(),
@@ -233,7 +246,7 @@ command = echo "Hello World"
 
 #[test]
 fn test_model_merging() {
-    let config1 = parse(
+    let config1 = load(
         r#"
 name = App1
 version = 1.0.0
@@ -241,7 +254,7 @@ version = 1.0.0
     )
     .unwrap();
 
-    let config2 = parse(
+    let config2 = load(
         r#"
 author = Tyler
 license = MIT
@@ -269,7 +282,7 @@ bool_true = true
 bool_false = false
 "#;
 
-    let model = parse(ccl).expect("should parse");
+    let model = load(ccl).expect("should load");
 
     // String
     assert_eq!(model.get("string_val").unwrap().as_str().unwrap(), "hello");
@@ -362,8 +375,8 @@ fn test_parsing_suite_basic_tests() {
 
     for test in parse_tests {
         let test_result = std::panic::catch_unwind(|| {
-            // Parse the input
-            let result = parse(&test.input);
+            // Parse and build hierarchy
+            let result = load(&test.input);
 
             // Check that parse succeeds or fails appropriately
             if test.expected.error.is_some() {
@@ -374,7 +387,7 @@ fn test_parsing_suite_basic_tests() {
                 );
             } else {
                 let model = result.unwrap_or_else(|e| {
-                    panic!("Test '{}' failed to parse: {}", test.name, e);
+                    panic!("Test '{}' failed to load: {}", test.name, e);
                 });
 
                 // Verify we got the expected number of top-level entries
@@ -443,7 +456,7 @@ fn test_comments_suite() {
 
     for test in comment_tests {
         let test_result = std::panic::catch_unwind(|| {
-            let result = parse(&test.input);
+            let result = load(&test.input);
 
             if test.expected.error.is_some() {
                 assert!(
@@ -453,7 +466,7 @@ fn test_comments_suite() {
                 );
             } else {
                 let model = result.unwrap_or_else(|e| {
-                    panic!("Test '{}' failed to parse: {}", test.name, e);
+                    panic!("Test '{}' failed to load: {}", test.name, e);
                 });
 
                 // Verify entry count
@@ -509,7 +522,7 @@ fn test_typed_access_suite_strings() {
     for test in string_tests {
         let test_result = std::panic::catch_unwind(|| {
             // Parse the input
-            let model = parse(&test.input).unwrap_or_else(|e| {
+            let model = load(&test.input).unwrap_or_else(|e| {
                 panic!("Test '{}' failed to parse: {}", test.name, e);
             });
 
@@ -566,8 +579,7 @@ fn test_typed_access_suite_strings() {
 
 #[test]
 fn test_filter_function() {
-    let path = Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/test_data/api_comments.json");
+    let path = Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/test_data/api_comments.json");
 
     if !path.exists() {
         println!("⚠️  Skipping test - test data file not found");
@@ -585,15 +597,15 @@ fn test_filter_function() {
     for test in &filter_tests {
         let test_result = std::panic::catch_unwind(|| {
             // Parse the input
-            let model = parse(&test.input).unwrap_or_else(|e| {
+            let model = load(&test.input).unwrap_or_else(|e| {
                 panic!("Test '{}' failed to parse: {}", test.name, e);
             });
 
             // For filter tests, we expect the model to filter out comments
             // and only contain non-comment entries
-            let map = model.as_map().unwrap_or_else(|_| {
-                panic!("Test '{}': model is not a map", test.name)
-            });
+            let map = model
+                .as_map()
+                .unwrap_or_else(|_| panic!("Test '{}': model is not a map", test.name));
             let count = map.len();
             assert_eq!(
                 count, test.expected.count,
@@ -636,7 +648,10 @@ fn test_filter_function() {
         passed, failed
     );
     println!("Found {} tests using filter function", filter_tests.len());
-    assert!(!filter_tests.is_empty(), "Should find tests using filter function");
+    assert!(
+        !filter_tests.is_empty(),
+        "Should find tests using filter function"
+    );
 }
 
 #[test]
@@ -657,9 +672,12 @@ fn test_all_ccl_suites_comprehensive() {
 
     // Track failure details
     let mut failure_details: Vec<(String, String, String)> = Vec::new(); // (suite, test, reason)
-    let mut skipped_validations: std::collections::HashMap<String, usize> = std::collections::HashMap::new();
-    let mut behavior_coverage: std::collections::HashMap<String, (usize, usize)> = std::collections::HashMap::new(); // (passed, total)
-    let mut function_coverage: std::collections::HashMap<String, (usize, usize)> = std::collections::HashMap::new(); // (passed, total)
+    let mut skipped_validations: std::collections::HashMap<String, usize> =
+        std::collections::HashMap::new();
+    let mut behavior_coverage: std::collections::HashMap<String, (usize, usize)> =
+        std::collections::HashMap::new(); // (passed, total)
+    let mut function_coverage: std::collections::HashMap<String, (usize, usize)> =
+        std::collections::HashMap::new(); // (passed, total)
 
     // Sort suite names for consistent output
     let mut suite_names: Vec<_> = suites.keys().collect();
@@ -696,7 +714,10 @@ fn test_all_ccl_suites_comprehensive() {
         let skipped_by_filter = total_tests_in_suite - filtered_count;
 
         if skipped_by_filter > 0 {
-            println!("   ⚠️  Skipped {} tests due to unsupported capabilities", skipped_by_filter);
+            println!(
+                "   ⚠️  Skipped {} tests due to unsupported capabilities",
+                skipped_by_filter
+            );
             total_skipped += skipped_by_filter;
         }
 
@@ -705,43 +726,48 @@ fn test_all_ccl_suites_comprehensive() {
             panic_messages.lock().unwrap().clear();
 
             let test_result = std::panic::catch_unwind(|| {
-                // Parse the input
-                let result = parse(&test.input);
+                // Parse the input based on validation type
+                let (entries, model_result) = if test.validation == "parse_dedented" {
+                    let e = parse_dedented(&test.input);
+                    let m = e.as_ref().ok().map(|entries| build_hierarchy(entries));
+                    (e, m)
+                } else {
+                    let e = parse(&test.input);
+                    let m = e.as_ref().ok().map(|entries| build_hierarchy(entries));
+                    (e, m)
+                };
 
                 // Handle different validation types
                 match test.validation.as_str() {
                     "parse" => {
                         if test.expected.error.is_some() {
-                            assert!(result.is_err(), "Test '{}' expected error", test.name);
+                            assert!(entries.is_err(), "Test '{}' expected error", test.name);
                         } else {
-                            let model = result.unwrap_or_else(|e| {
+                            let entry_list = entries.unwrap_or_else(|e| {
                                 panic!("Test '{}' failed to parse: {}", test.name, e);
                             });
 
-                            // For "parse" validation with entries specified:
-                            // The count represents raw parsed entries (may include duplicates)
-                            // We validate that the entries are present but don't check count
-                            // against map.len() because duplicate keys get grouped
+                            // For "parse" validation: check entry count
+                            assert_eq!(
+                                entry_list.len(),
+                                test.expected.count,
+                                "Test '{}' expected {} entries, got {}",
+                                test.name,
+                                test.expected.count,
+                                entry_list.len()
+                            );
+
+                            // Verify specific entries if provided
                             if !test.expected.entries.is_empty() {
-                                // Verify entries are parseable
-                                assert_eq!(
-                                    test.expected.entries.len(),
-                                    test.expected.count,
-                                    "Test '{}': expected.count should match entries length",
-                                    test.name
-                                );
-                                // Just verify parse succeeded - don't validate map size
-                                // because parse groups duplicates
-                            } else if let Ok(map) = model.as_map() {
-                                // When no entries specified, validate map size
-                                if test.expected.count > 0 {
-                                    assert_eq!(
-                                        map.len(),
-                                        test.expected.count,
-                                        "Test '{}' expected {} map entries, got {}",
-                                        test.name,
-                                        test.expected.count,
-                                        map.len()
+                                for expected_entry in &test.expected.entries {
+                                    let found = entry_list.iter().any(|e| {
+                                        e.key == expected_entry.key
+                                            && e.value == expected_entry.value
+                                    });
+                                    assert!(
+                                        found,
+                                        "Test '{}': expected entry {}={} not found",
+                                        test.name, expected_entry.key, expected_entry.value
                                     );
                                 }
                             }
@@ -752,28 +778,36 @@ fn test_all_ccl_suites_comprehensive() {
                         // They're tagged with the "filter" function to indicate they test
                         // the capability filtering mechanism itself
                         if test.expected.error.is_some() {
-                            assert!(result.is_err(), "Test '{}' expected error", test.name);
+                            assert!(entries.is_err(), "Test '{}' expected error", test.name);
                         } else {
-                            let model = result.unwrap_or_else(|e| {
+                            let entry_list = entries.unwrap_or_else(|e| {
                                 panic!("Test '{}' failed to parse: {}", test.name, e);
                             });
 
                             // For filter tests with entries, just verify parsing succeeded
-                            // The actual validation depends on whether we support the required features
-                            if !test.expected.entries.is_empty() {
-                                // Just verify we got a model - specific validation may fail
-                                // if we don't support all required features (like empty_keys)
-                                assert!(model.is_map() || model.is_list() || model.is_singleton());
-                            }
+                            assert_eq!(
+                                entry_list.len(),
+                                test.expected.count,
+                                "Test '{}' expected {} entries, got {}",
+                                test.name,
+                                test.expected.count,
+                                entry_list.len()
+                            );
                         }
                     }
                     "build_hierarchy" => {
                         if test.expected.error.is_some() {
-                            assert!(result.is_err(), "Test '{}' expected error", test.name);
+                            assert!(
+                                model_result.is_none() || model_result.as_ref().unwrap().is_err(),
+                                "Test '{}' expected error",
+                                test.name
+                            );
                         } else {
-                            let model = result.unwrap_or_else(|e| {
-                                panic!("Test '{}' failed to parse: {}", test.name, e);
-                            });
+                            let model = model_result
+                                .expect("model_result should be Some")
+                                .unwrap_or_else(|e| {
+                                    panic!("Test '{}' failed to build hierarchy: {}", test.name, e);
+                                });
 
                             // For build_hierarchy, count=1 means "successfully built a hierarchy"
                             assert_eq!(
@@ -784,15 +818,22 @@ fn test_all_ccl_suites_comprehensive() {
 
                             // Validate the object structure if specified
                             if let Some(ref expected_obj) = test.expected.object {
-                                validate_model_against_json(&model, expected_obj, &test.name, "root");
+                                validate_model_against_json(
+                                    &model,
+                                    expected_obj,
+                                    &test.name,
+                                    "root",
+                                );
                             }
                         }
                     }
                     "get_string" => {
                         if let Some(ref key) = test.expected.key {
-                            let model = result.unwrap_or_else(|e| {
-                                panic!("Test '{}' failed to parse: {}", test.name, e);
-                            });
+                            let model = model_result
+                                .expect("model_result should be Some")
+                                .unwrap_or_else(|e| {
+                                    panic!("Test '{}' failed to build hierarchy: {}", test.name, e);
+                                });
 
                             let get_result = model.get(key);
 
@@ -823,26 +864,75 @@ fn test_all_ccl_suites_comprehensive() {
                             }
                         }
                     }
+                    "parse_dedented" => {
+                        // parse_dedented removes common indentation prefix before parsing
+                        if test.expected.error.is_some() {
+                            assert!(entries.is_err(), "Test '{}' expected error", test.name);
+                        } else {
+                            let entry_list = entries.unwrap_or_else(|e| {
+                                panic!("Test '{}' failed to parse: {}", test.name, e);
+                            });
+
+                            // Validate entry count
+                            assert_eq!(
+                                entry_list.len(),
+                                test.expected.count,
+                                "Test '{}' expected {} entries, got {}",
+                                test.name,
+                                test.expected.count,
+                                entry_list.len()
+                            );
+
+                            // Verify specific entries if provided
+                            if !test.expected.entries.is_empty() {
+                                for expected_entry in &test.expected.entries {
+                                    let found = entry_list.iter().any(|e| {
+                                        e.key == expected_entry.key
+                                            && e.value == expected_entry.value
+                                    });
+                                    assert!(
+                                        found,
+                                        "Test '{}': expected entry {}={} not found",
+                                        test.name, expected_entry.key, expected_entry.value
+                                    );
+                                }
+                            }
+                        }
+                    }
                     "parse_value" => {
                         // "parse_value" validation tests are actually testing parser edge cases
                         // (like indented keys, whitespace handling), not the parse_value<T>() method
-                        // Treat them like parse tests
+                        // Use hierarchy for these tests
                         if test.expected.error.is_some() {
-                            assert!(result.is_err(), "Test '{}' expected error", test.name);
+                            assert!(
+                                model_result.is_none() || model_result.as_ref().unwrap().is_err(),
+                                "Test '{}' expected error",
+                                test.name
+                            );
                         } else {
-                            let model = result.unwrap_or_else(|e| {
-                                panic!("Test '{}' failed to parse: {}", test.name, e);
-                            });
+                            let model = model_result
+                                .expect("model_result should be Some")
+                                .unwrap_or_else(|e| {
+                                    panic!("Test '{}' failed to build hierarchy: {}", test.name, e);
+                                });
 
                             // Verify the expected entries if specified
                             if !test.expected.entries.is_empty() {
                                 for entry in &test.expected.entries {
                                     let value = model
                                         .get(&entry.key)
-                                        .unwrap_or_else(|_| panic!("Test '{}': missing key '{}'", test.name, entry.key))
+                                        .unwrap_or_else(|_| {
+                                            panic!(
+                                                "Test '{}': missing key '{}'",
+                                                test.name, entry.key
+                                            )
+                                        })
                                         .as_str()
                                         .unwrap_or_else(|_| {
-                                            panic!("Test '{}': key '{}' is not a string", test.name, entry.key)
+                                            panic!(
+                                                "Test '{}': key '{}' is not a string",
+                                                test.name, entry.key
+                                            )
                                         });
 
                                     assert_eq!(
@@ -886,13 +976,20 @@ fn test_all_ccl_suites_comprehensive() {
                 Err(_) => {
                     // Get the panic message we captured
                     let panic_msgs = panic_messages.lock().unwrap();
-                    let err_msg = panic_msgs.last().map(|s| s.as_str()).unwrap_or("Unknown error");
+                    let err_msg = panic_msgs
+                        .last()
+                        .map(|s| s.as_str())
+                        .unwrap_or("Unknown error");
 
                     if err_msg.contains("Unsupported validation type") {
                         suite_skipped += 1;
                         // Extract validation type
-                        if let Some(val_type) = err_msg.split("Unsupported validation type: ").nth(1) {
-                            *skipped_validations.entry(val_type.trim().to_string()).or_insert(0) += 1;
+                        if let Some(val_type) =
+                            err_msg.split("Unsupported validation type: ").nth(1)
+                        {
+                            *skipped_validations
+                                .entry(val_type.trim().to_string())
+                                .or_insert(0) += 1;
                         }
                     } else {
                         suite_failed += 1;
@@ -960,10 +1057,9 @@ fn test_all_ccl_suites_comprehensive() {
 
         // Show mutually exclusive pairs together
         for (opt1, opt2) in &mutually_exclusive_pairs {
-            if let (Some((p1, t1)), Some((p2, t2))) = (
-                behavior_coverage.get(*opt1),
-                behavior_coverage.get(*opt2)
-            ) {
+            if let (Some((p1, t1)), Some((p2, t2))) =
+                (behavior_coverage.get(*opt1), behavior_coverage.get(*opt2))
+            {
                 let pct1 = if *t1 > 0 { (*p1 * 100) / *t1 } else { 0 };
                 let pct2 = if *t2 > 0 { (*p2 * 100) / *t2 } else { 0 };
                 println!("  ⚙️  {} vs {}", opt1, opt2);
@@ -975,7 +1071,8 @@ fn test_all_ccl_suites_comprehensive() {
         }
 
         // Show remaining behaviors
-        let mut behaviors: Vec<_> = behavior_coverage.iter()
+        let mut behaviors: Vec<_> = behavior_coverage
+            .iter()
             .filter(|(name, _)| !shown.contains(*name))
             .collect();
         behaviors.sort_by_key(|(name, _)| *name);
@@ -984,9 +1081,22 @@ fn test_all_ccl_suites_comprehensive() {
             println!("\n  Other behaviors:");
         }
         for (behavior, (passed, total)) in behaviors {
-            let percent = if *total > 0 { (*passed * 100) / *total } else { 0 };
-            let status = if *passed == *total { "✅" } else if *passed > 0 { "⚠️" } else { "❌" };
-            println!("  {} {}: {}/{} ({}%)", status, behavior, passed, total, percent);
+            let percent = if *total > 0 {
+                (*passed * 100) / *total
+            } else {
+                0
+            };
+            let status = if *passed == *total {
+                "✅"
+            } else if *passed > 0 {
+                "⚠️"
+            } else {
+                "❌"
+            };
+            println!(
+                "  {} {}: {}/{} ({}%)",
+                status, behavior, passed, total, percent
+            );
         }
     }
 
@@ -996,9 +1106,22 @@ fn test_all_ccl_suites_comprehensive() {
         let mut functions: Vec<_> = function_coverage.iter().collect();
         functions.sort_by_key(|(name, _)| *name);
         for (function, (passed, total)) in functions {
-            let percent = if *total > 0 { (*passed * 100) / *total } else { 0 };
-            let status = if *passed == *total { "✅" } else if *passed > 0 { "⚠️" } else { "❌" };
-            println!("  {} {}: {}/{} ({}%)", status, function, passed, total, percent);
+            let percent = if *total > 0 {
+                (*passed * 100) / *total
+            } else {
+                0
+            };
+            let status = if *passed == *total {
+                "✅"
+            } else if *passed > 0 {
+                "⚠️"
+            } else {
+                "❌"
+            };
+            println!(
+                "  {} {}: {}/{} ({}%)",
+                status, function, passed, total, percent
+            );
         }
     }
 
@@ -1012,7 +1135,7 @@ fn test_all_ccl_suites_comprehensive() {
                 format!("    Assertion{}", msg.trim())
             } else if reason.contains("expected") {
                 // Extract assertion message
-                if let Some(msg) = reason.split(':').last() {
+                if let Some(msg) = reason.split(':').next_back() {
                     format!("    {}", msg.trim())
                 } else {
                     format!("    {}", reason.lines().next().unwrap_or(reason).trim())

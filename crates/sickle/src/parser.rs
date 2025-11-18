@@ -68,10 +68,26 @@ fn parse_entries(input: &str) -> Vec<Entry> {
                     value_lines.push(value);
                 }
             }
-        } else if current_key.is_some() {
-            // This line is indented relative to base - it's part of the current value
-            // Preserve the full line for nested structures
-            value_lines.push(line.to_string());
+        } else if let Some((_, key_indent)) = current_key {
+            // Only treat as continuation if indented MORE than the key line
+            if indent > key_indent {
+                // This line is indented relative to the key - it's part of the current value
+                // Preserve the full line for nested structures
+                value_lines.push(line.to_string());
+            } else {
+                // Not indented more than key - save current entry and start new one
+                let (key, key_indent_final) = current_key.take().unwrap();
+                let value = value_lines.join("\n").trim_end().to_string();
+                entries.push(Entry {
+                    key,
+                    value,
+                    indent: key_indent_final,
+                });
+                value_lines.clear();
+
+                // This line becomes a new key with empty value (no '=' sign)
+                current_key = Some((trimmed.to_string(), indent));
+            }
         }
     }
 
@@ -207,5 +223,74 @@ database =
 "#;
         let map = parse_to_map(input).unwrap();
         assert!(map.contains_key("database"));
+    }
+
+    #[test]
+    fn test_unindented_line_not_continuation() {
+        // Per CCL spec: "Lines indented more than previous = part of that value"
+        // This means unindented lines should NOT be continuations
+        let input = r#"descriptions = First line
+second line
+descriptions = Another item"#;
+
+        let map = parse_to_map(input).unwrap();
+
+        // "second line" should be a separate key, not part of "First line"
+        assert!(map.contains_key("second line"));
+        assert_eq!(map.get("second line").unwrap()[0], "");
+
+        // "descriptions" should have exactly 2 items
+        let descriptions = map.get("descriptions").unwrap();
+        assert_eq!(descriptions.len(), 2);
+        assert_eq!(descriptions[0], "First line");
+        assert_eq!(descriptions[1], "Another item");
+    }
+
+    #[test]
+    fn test_indented_line_is_continuation() {
+        // Properly indented lines should be part of the value
+        let input = r#"descriptions = First line
+  second line
+descriptions = Another item"#;
+
+        let map = parse_to_map(input).unwrap();
+
+        // "second line" should NOT be a separate key
+        assert!(!map.contains_key("second line"));
+
+        // First description should contain both lines
+        let descriptions = map.get("descriptions").unwrap();
+        assert_eq!(descriptions.len(), 2);
+        assert_eq!(descriptions[0], "First line\n  second line");
+        assert_eq!(descriptions[1], "Another item");
+    }
+
+    #[test]
+    fn test_mixed_indentation_levels() {
+        let input = r#"key1 = value1
+  indented continuation
+key2 = value2
+not indented key
+  indented for not indented"#;
+
+        let map = parse_to_map(input).unwrap();
+
+        // key1 should have continuation
+        assert_eq!(
+            map.get("key1").unwrap()[0],
+            "value1\n  indented continuation"
+        );
+
+        // key2 should NOT have continuation
+        assert_eq!(map.get("key2").unwrap()[0], "value2");
+
+        // "not indented key" should be separate
+        assert!(map.contains_key("not indented key"));
+
+        // And it should have its own continuation (dedented)
+        assert_eq!(
+            map.get("not indented key").unwrap()[0],
+            "indented for not indented"
+        );
     }
 }

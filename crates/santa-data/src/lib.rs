@@ -47,8 +47,8 @@ pub use schemas::*;
 /// assert!(result.contains_key("complex_pkg"));
 /// ```
 pub fn parse_to_hashmap(ccl_content: &str) -> Result<HashMap<String, Value>> {
-    // Parse using sickle and convert Model to JSON Value
-    let model = sickle::parse(ccl_content).context("Failed to parse CCL with sickle")?;
+    // Parse using sickle's load function (parse + build_hierarchy)
+    let model = sickle::load(ccl_content).context("Failed to parse CCL with sickle")?;
 
     // Convert the model to a HashMap<String, Value>
     model_to_hashmap(&model)
@@ -113,7 +113,6 @@ fn model_to_value(model: &sickle::Model) -> Result<Value> {
         }
     }
 }
-
 
 // Experimental CCL parsing functions used only in tests
 #[cfg(test)]

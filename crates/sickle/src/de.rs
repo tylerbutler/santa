@@ -33,7 +33,7 @@ pub fn from_str<'a, T>(s: &'a str) -> Result<T>
 where
     T: Deserialize<'a>,
 {
-    let model = crate::parse(s)?;
+    let model = crate::load(s)?;
     let mut deserializer = Deserializer::from_model(model);
     T::deserialize(&mut deserializer).map_err(|e| Error::ValueError(e.to_string()))
 }

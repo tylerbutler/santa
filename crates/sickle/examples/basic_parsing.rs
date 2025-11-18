@@ -1,6 +1,6 @@
 //! Basic CCL parsing example using the Model API
 
-use sickle::parse;
+use sickle::load;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let ccl = r#"
@@ -25,7 +25,7 @@ features =
 "#;
 
     println!("Parsing CCL document...\n");
-    let model = parse(ccl)?;
+    let model = load(ccl)?;
 
     // Access simple values
     println!("Application Info:");
