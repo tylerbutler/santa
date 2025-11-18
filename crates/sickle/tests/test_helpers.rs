@@ -94,7 +94,7 @@ impl ImplementationConfig {
                 "get_float".to_string(),
                 "get_bool".to_string(),
                 "build_hierarchy".to_string(),
-                "parse_value".to_string(), // Model::parse_value<T>() method exists
+                "parse_value".to_string(), // OCaml parse_value → Rust parse_dedented
                 "filter".to_string(),      // Test filtering implemented in test infrastructure
                                            // Not implemented:
                                            // "get_list" - convenience method not yet implemented

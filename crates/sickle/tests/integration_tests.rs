@@ -900,8 +900,8 @@ fn test_all_ccl_suites_comprehensive() {
                         }
                     }
                     "parse_value" => {
-                        // "parse_value" validation tests are actually testing parser edge cases
-                        // (like indented keys, whitespace handling), not the parse_value<T>() method
+                        // OCaml's "parse_value" function corresponds to parse_dedented in Rust
+                        // These validation tests check parser edge cases (indented keys, whitespace)
                         // Use hierarchy for these tests
                         if test.expected.error.is_some() {
                             assert!(
