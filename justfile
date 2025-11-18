@@ -122,7 +122,7 @@ test-ccl:
 
 # Generate sickle capabilities documentation from test data
 sickle-capabilities:
-    @python3 crates/sickle/scripts/generate_registry.py
+    @python3 crates/sickle/scripts/generate_capabilities.py
 
 # Benchmarking Commands
 # ====================
