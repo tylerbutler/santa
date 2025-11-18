@@ -31,7 +31,7 @@ clap_complete = "4.5"
 colored = "2"
 
 # Configuration file loading and management
-config = "0.14"
+config = { version = "0.15", default-features = false, features = ["toml"] }
 
 # Interactive CLI prompts and user input
 dialoguer = "0.11.0"
