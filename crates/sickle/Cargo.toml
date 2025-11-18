@@ -13,9 +13,18 @@ categories = ["config", "parser-implementations"]
 readme = "README.md"
 
 [features]
+# Default features - recommended for most users
 default = ["serde"]
+
+# Core parsing features
 serde = ["dep:serde", "dep:serde_derive"]
 intern = ["dep:string-interner"]
+
+# Advanced parsing features (future)
+# section-headers = []      # Support == Section == style headers
+# duplicate-key-lists = []  # Multiple values for same key auto-create lists
+# typed-access = []         # Convenience methods: get_string, get_int, get_bool
+# list-indexing = []        # Advanced list operations and indexing
 
 [dependencies]
 # Error handling

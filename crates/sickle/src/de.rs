@@ -33,7 +33,7 @@ pub fn from_str<'a, T>(s: &'a str) -> Result<T>
 where
     T: Deserialize<'a>,
 {
-    let model = crate::parse(s)?;
+    let model = crate::load(s)?;
     let mut deserializer = Deserializer::from_model(model);
     T::deserialize(&mut deserializer).map_err(|e| Error::ValueError(e.to_string()))
 }
@@ -315,7 +315,18 @@ impl<'de> de::Deserializer<'de> for &mut Deserializer {
         // Check if it's a map with empty keys (list representation)
         if let Ok(map) = self.model.as_map() {
             if map.keys().any(|k| k.is_empty()) {
-                // Extract values with empty keys as a list
+                // Special case: if there's only one empty key and its value is already a List,
+                // use that list directly (don't wrap it)
+                if map.len() == 1 {
+                    if let Some(value) = map.get("") {
+                        if let Ok(list) = value.as_list() {
+                            let seq = SeqDeserializer { iter: list.iter() };
+                            return visitor.visit_seq(seq);
+                        }
+                    }
+                }
+
+                // Otherwise, extract values with empty keys as a list
                 let list: Vec<crate::Model> = map
                     .iter()
                     .filter_map(|(k, v)| if k.is_empty() { Some(v.clone()) } else { None })

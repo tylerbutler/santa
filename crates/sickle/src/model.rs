@@ -4,6 +4,28 @@ use crate::error::{Error, Result};
 use std::collections::BTreeMap;
 use std::str::FromStr;
 
+/// Represents a single parsed entry (key-value pair) from CCL
+///
+/// This is the output of the `parse()` function, representing a flat list
+/// of key-value pairs before hierarchy construction.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Entry {
+    /// The key (can be empty for list entries)
+    pub key: String,
+    /// The value (can be multiline or contain nested CCL)
+    pub value: String,
+}
+
+impl Entry {
+    /// Create a new entry
+    pub fn new(key: impl Into<String>, value: impl Into<String>) -> Self {
+        Self {
+            key: key.into(),
+            value: value.into(),
+        }
+    }
+}
+
 /// Represents a parsed CCL document as a hierarchical structure
 ///
 /// A CCL document is fundamentally a map from strings to other CCL documents.

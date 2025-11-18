@@ -40,6 +40,9 @@ pub struct ExpectedOutput {
     /// Expected key-value entries
     #[serde(default)]
     pub entries: Vec<Entry>,
+    /// For build_hierarchy tests - expected object structure
+    #[serde(default)]
+    pub object: Option<serde_json::Value>,
     /// For typed access tests - expected value
     #[serde(default)]
     pub value: Option<serde_json::Value>,
@@ -68,6 +71,51 @@ pub struct TestSuite {
     pub tests: Vec<TestCase>,
 }
 
+/// Configuration for implementation capabilities
+#[derive(Debug, Clone)]
+pub struct ImplementationConfig {
+    /// Supported functions (e.g., "parse", "build_hierarchy", "get_string")
+    pub supported_functions: Vec<String>,
+    /// Supported features (e.g., "comments", "multiline", "unicode")
+    pub supported_features: Vec<String>,
+    /// Chosen behaviors (e.g., "boolean_strict", "crlf_normalize_to_lf")
+    pub chosen_behaviors: Vec<String>,
+}
+
+impl ImplementationConfig {
+    /// Create a new configuration with the current Sickle implementation capabilities
+    pub fn sickle_current() -> Self {
+        Self {
+            supported_functions: vec![
+                "parse".to_string(),
+                "parse_dedented".to_string(), // Dedenting parser for indented input
+                "get_string".to_string(),
+                "get_int".to_string(),
+                "get_float".to_string(),
+                "get_bool".to_string(),
+                "build_hierarchy".to_string(),
+                "parse_value".to_string(), // OCaml parse_value → Rust parse_dedented
+                "filter".to_string(),      // Test filtering implemented in test infrastructure
+                                           // Not implemented:
+                                           // "get_list" - convenience method not yet implemented
+                                           // "canonical_format" - CCL serialization not yet implemented
+            ],
+            supported_features: vec![
+                "comments".to_string(),
+                "multiline".to_string(),
+                "unicode".to_string(),
+                "dotted_keys".to_string(),
+                "special_characters".to_string(),
+            ],
+            chosen_behaviors: vec![
+                "boolean_lenient".to_string(), // Currently using lenient boolean parsing
+                "crlf_normalize_to_lf".to_string(), // Normalize CRLF to LF
+                "list_coercion_enabled".to_string(), // Allow list coercion
+            ],
+        }
+    }
+}
+
 impl TestSuite {
     /// Load a test suite from a JSON file
     pub fn from_file(path: impl AsRef<Path>) -> Result<Self, Box<dyn std::error::Error>> {
@@ -84,15 +132,95 @@ impl TestSuite {
             .collect()
     }
 
-    /// Filter tests by feature
-    pub fn filter_by_feature(&self, feature: &str) -> Vec<&TestCase> {
+    /// Filter tests by behavior
+    #[allow(dead_code)]
+    pub fn filter_by_behavior(&self, behavior: &str) -> Vec<&TestCase> {
         self.tests
             .iter()
-            .filter(|t| t.features.contains(&feature.to_string()))
+            .filter(|t| t.behaviors.contains(&behavior.to_string()))
+            .collect()
+    }
+
+    /// Filter tests by function
+    pub fn filter_by_function(&self, function: &str) -> Vec<&TestCase> {
+        self.tests
+            .iter()
+            .filter(|t| t.functions.contains(&function.to_string()))
+            .collect()
+    }
+
+    /// Filter tests based on implementation capabilities
+    ///
+    /// This implements the test filtering strategy described in the CCL test suite guide.
+    /// Tests are filtered based on:
+    /// 1. Whether all required functions are implemented
+    /// 2. Whether all required features are supported
+    /// 3. Whether behaviors conflict with chosen behaviors
+    pub fn filter_by_capabilities(&self, config: &ImplementationConfig) -> Vec<&TestCase> {
+        self.tests
+            .iter()
+            .filter(|test| {
+                // Check if all required functions are implemented
+                if !test.functions.is_empty()
+                    && !test
+                        .functions
+                        .iter()
+                        .all(|f| config.supported_functions.contains(f))
+                {
+                    return false;
+                }
+
+                // Check if all required features are supported
+                if !test.features.is_empty()
+                    && !test
+                        .features
+                        .iter()
+                        .all(|f| config.supported_features.contains(f))
+                {
+                    return false;
+                }
+
+                // Check for behavior conflicts
+                // If the test specifies behaviors, at least one should match our chosen behaviors
+                // or the test should have no behaviors (meaning it's behavior-agnostic)
+                if !test.behaviors.is_empty() {
+                    // Check if any of the test's behaviors are in our chosen behaviors
+                    let has_matching_behavior = test
+                        .behaviors
+                        .iter()
+                        .any(|b| config.chosen_behaviors.contains(b));
+
+                    // If no matching behavior, check if it conflicts with mutually exclusive behaviors
+                    if !has_matching_behavior {
+                        // Check for mutually exclusive behavior pairs
+                        let mutually_exclusive = [
+                            ("boolean_strict", "boolean_lenient"),
+                            ("crlf_preserve_literal", "crlf_normalize_to_lf"),
+                            ("list_coercion_enabled", "list_coercion_disabled"),
+                            ("strict_spacing", "relaxed_spacing"),
+                            ("tabs_preserve", "tabs_normalize"),
+                        ];
+
+                        // If the test requires a behavior that conflicts with our chosen behavior, skip it
+                        for (opt1, opt2) in &mutually_exclusive {
+                            if (test.behaviors.contains(&opt1.to_string())
+                                && config.chosen_behaviors.contains(&opt2.to_string()))
+                                || (test.behaviors.contains(&opt2.to_string())
+                                    && config.chosen_behaviors.contains(&opt1.to_string()))
+                            {
+                                return false;
+                            }
+                        }
+                    }
+                }
+
+                true
+            })
             .collect()
     }
 
     /// Get all test names
+    #[allow(dead_code)]
     pub fn test_names(&self) -> Vec<&str> {
         self.tests.iter().map(|t| t.name.as_str()).collect()
     }
@@ -149,7 +277,7 @@ mod tests {
         let suites = load_all_test_suites();
         // Should load at least one suite if JSON files exist
         assert!(
-            suites.len() >= 1,
+            !suites.is_empty(),
             "Should load test suites from test_data directory"
         );
     }
