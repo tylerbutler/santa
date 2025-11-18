@@ -43,7 +43,7 @@ tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 
 # Utilities
-config = "0.14"
+config = { version = "0.15", default-features = false, features = ["toml"] }
 directories = "4.0"
 which = "4.4"
 derive_more = "0.99"
