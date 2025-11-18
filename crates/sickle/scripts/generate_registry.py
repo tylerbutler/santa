@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """
-Generate sickle CCL feature registry from test data.
+Generate sickle CCL capabilities documentation from test data.
 
 This script extracts functions, behaviors, and coverage statistics
-from test JSON files to create a dynamic, always-accurate registry.
+from test JSON files to create dynamic, always-accurate documentation.
 """
 
 import json
@@ -81,15 +81,15 @@ def extract_metadata(suites: List[Dict]) -> tuple[Dict[str, TestStats], Dict[str
 
 
 def generate_markdown(functions: Dict[str, TestStats], behaviors: Dict[str, TestStats]) -> str:
-    """Generate markdown registry documentation."""
+    """Generate markdown capabilities documentation."""
     lines = [
-        "# Sickle CCL Feature Registry",
+        "# Sickle CCL Capabilities",
         "",
         "> **Auto-generated** from test data - DO NOT EDIT",
         "> ",
-        "> Run `just sickle-registry` to regenerate",
+        "> Run `just sickle-capabilities` to regenerate",
         "",
-        "This registry is extracted from the comprehensive test suite in `tests/test_data/*.json`.",
+        "This documentation is extracted from the comprehensive test suite in `tests/test_data/*.json`.",
         "The test files are the source of truth for all supported features and behaviors.",
         "",
         "## Overview",
@@ -202,11 +202,11 @@ def generate_markdown(functions: Dict[str, TestStats], behaviors: Dict[str, Test
 
 
 def main():
-    """Generate registry from test data."""
+    """Generate capabilities documentation from test data."""
     # Determine paths
     script_dir = Path(__file__).parent
     test_data_dir = script_dir.parent / "tests" / "test_data"
-    output_file = script_dir.parent / "REGISTRY.md"
+    output_file = script_dir.parent / "docs" / "capabilities.md"
 
     if not test_data_dir.exists():
         print(f"Error: Test data directory not found: {test_data_dir}", file=sys.stderr)
@@ -222,12 +222,15 @@ def main():
     print(f"Found {len(functions)} functions, {len(behaviors)} behaviors", file=sys.stderr)
 
     # Generate output
-    print(f"Generating registry...", file=sys.stderr)
+    print(f"Generating capabilities documentation...", file=sys.stderr)
     markdown = generate_markdown(functions, behaviors)
+
+    # Ensure output directory exists
+    output_file.parent.mkdir(parents=True, exist_ok=True)
 
     # Write output
     output_file.write_text(markdown)
-    print(f"✓ Registry written to {output_file}", file=sys.stderr)
+    print(f"✓ Capabilities documentation written to {output_file}", file=sys.stderr)
 
 
 if __name__ == "__main__":

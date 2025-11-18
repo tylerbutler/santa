@@ -1,10 +1,10 @@
-# Sickle CCL Feature Registry
+# Sickle CCL Capabilities
 
 > **Auto-generated** from test data - DO NOT EDIT
 > 
-> Run `just sickle-registry` to regenerate
+> Run `just sickle-capabilities` to regenerate
 
-This registry is extracted from the comprehensive test suite in `tests/test_data/*.json`.
+This documentation is extracted from the comprehensive test suite in `tests/test_data/*.json`.
 The test files are the source of truth for all supported features and behaviors.
 
 ## Overview
