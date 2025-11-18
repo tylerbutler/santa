@@ -40,12 +40,13 @@
 //! let config: Config = from_str(ccl).unwrap();
 //! ```
 //!
-//! ## Functions and Behaviors Registry
+//! ## Feature Registry
 //!
 //! For a comprehensive list of all supported CCL functions and parser behaviors:
 //!
-//! - **Machine-readable registry**: See [data/ccl-registry.toml](https://github.com/tylerbutler/santa/blob/main/crates/sickle/data/ccl-registry.toml)
-//! - **Human-readable guide**: See [tests/test_data/capabilities.md](https://github.com/tylerbutler/santa/blob/main/crates/sickle/tests/test_data/capabilities.md)
+//! - **Auto-generated registry**: See [REGISTRY.md](https://github.com/tylerbutler/santa/blob/main/crates/sickle/REGISTRY.md)
+//! - Dynamically generated from test data with coverage statistics
+//! - Run `just sickle-registry` to regenerate
 //!
 //! ## Cargo Features
 //!

@@ -120,6 +120,12 @@ download-ccl-tests:
 test-ccl:
     @cargo test -p sickle test_all_ccl_suites_comprehensive -- --nocapture
 
+# Generate sickle feature registry from test data
+sickle-registry:
+    @echo "📊 Generating sickle feature registry from test data..."
+    @python3 crates/sickle/scripts/generate_registry.py
+    @echo "✅ Registry generated at crates/sickle/REGISTRY.md"
+
 # Benchmarking Commands
 # ====================
 
