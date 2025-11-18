@@ -70,13 +70,9 @@ fn model_to_hashmap(model: &sickle::Model) -> Result<HashMap<String, Value>> {
 fn model_to_value(model: &sickle::Model) -> Result<Value> {
     match model {
         sickle::Model::Singleton(s) => {
-            // Check if this string contains list syntax (lines starting with '=')
-            if is_list_syntax(s) {
-                // Parse it as a list
-                parse_list_string(s)
-            } else {
-                Ok(Value::String(s.clone()))
-            }
+            // Singletons should be plain strings - they shouldn't contain list syntax
+            // because sickle would have already parsed those as Lists or Maps
+            Ok(Value::String(s.clone()))
         }
         sickle::Model::List(items) => {
             let values: Result<Vec<_>> = items.iter().map(model_to_value).collect();
@@ -84,8 +80,22 @@ fn model_to_value(model: &sickle::Model) -> Result<Value> {
         }
         sickle::Model::Map(map) => {
             // Check if this is actually a list (empty key entries)
+            // In CCL, lists are represented as maps with empty string keys:
+            // bat =
+            //   = brew    <- empty key
+            //   = scoop   <- empty key
             if map.keys().any(|k| k.is_empty()) {
-                // This is a list with empty keys - extract the values
+                // Special case: if there's only one empty key and its value is already a List,
+                // just return that list directly (don't double-wrap)
+                if map.len() == 1 {
+                    if let Some(value) = map.get("") {
+                        if matches!(value, sickle::Model::List(_)) {
+                            return model_to_value(value);
+                        }
+                    }
+                }
+
+                // Otherwise, extract all values from empty keys
                 let mut values = Vec::new();
                 for (k, v) in map {
                     if k.is_empty() {
@@ -104,33 +114,6 @@ fn model_to_value(model: &sickle::Model) -> Result<Value> {
     }
 }
 
-/// Check if a string contains CCL list syntax (lines starting with '=')
-fn is_list_syntax(s: &str) -> bool {
-    s.lines().any(|line| line.trim().starts_with('='))
-}
-
-/// Parse a string containing list syntax into a JSON array
-fn parse_list_string(s: &str) -> Result<Value> {
-    let items: Vec<Value> = s
-        .lines()
-        .filter_map(|line| {
-            let trimmed = line.trim();
-            if let Some(stripped) = trimmed.strip_prefix('=') {
-                // Extract the value after '='
-                let value = stripped.trim();
-                if value.is_empty() {
-                    None
-                } else {
-                    Some(Value::String(value.to_string()))
-                }
-            } else {
-                None
-            }
-        })
-        .collect();
-
-    Ok(Value::Array(items))
-}
 
 // Experimental CCL parsing functions used only in tests
 #[cfg(test)]

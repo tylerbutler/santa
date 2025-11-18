@@ -97,16 +97,9 @@ fn build_model(map: std::collections::BTreeMap<String, Vec<String>>) -> Result<M
     let mut result = std::collections::BTreeMap::new();
 
     for (key, values) in map {
-        if key.is_empty() {
-            // Empty key means this should be a list at the root level
-            // This is a special case we'll handle differently
-            continue;
-        }
-
-        // Skip comment keys (starting with /)
-        if key.starts_with('/') {
-            continue;
-        }
+        // Note: We preserve ALL keys including empty keys and comment keys
+        // This is important for entry counting and for CCL spec compliance
+        // Empty keys and comment keys (starting with /) are valid CCL entries
 
         let model = if values.len() == 1 {
             let value = &values[0];
