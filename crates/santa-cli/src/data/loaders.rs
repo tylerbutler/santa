@@ -68,6 +68,36 @@ pub fn convert_to_legacy_packages(
         let sources = package_def.get_sources();
 
         for source_name in sources {
+            // WORKAROUND: sickle parser bug - single-element arrays like "= cargo" are parsed
+            // as source_configs with empty string key: {"": "cargo"} instead of Simple(["cargo"])
+            // Skip empty source names which are actually the keys, and get the value from source_config
+            if source_name.is_empty() {
+                // Get the actual source name from the source config value
+                if let Some(source_config) = package_def.get_source_config(source_name) {
+                    match source_config {
+                        super::schemas::SourceSpecificConfig::Name(actual_source_name) => {
+                            // Recursively process the actual source name
+                            let known_source: KnownSources = match serde_json::from_value(
+                                serde_json::Value::String(actual_source_name.to_string()),
+                            ) {
+                                Ok(ks) => ks,
+                                Err(_) => continue,
+                            };
+
+                            source_map.insert(known_source, None);
+                        }
+                        super::schemas::SourceSpecificConfig::Complex(_config) => {
+                            // Handle complex config with empty key
+                            warn!(
+                                "Package '{}' has complex config with empty source key - skipping",
+                                package_name
+                            );
+                        }
+                    }
+                }
+                continue;
+            }
+
             // Parse source name to KnownSources enum
             // This uses serde's parsing which will map known sources to their variants
             // and unknown sources to KnownSources::Unknown(String)
