@@ -3,11 +3,15 @@
 use crate::error::{Error, Result};
 use indexmap::IndexMap;
 
+#[cfg(feature = "serde")]
+use serde::{Deserialize, Serialize};
+
 /// Represents a single parsed entry (key-value pair) from CCL
 ///
 /// This is the output of the `parse()` function, representing a flat list
 /// of key-value pairs before hierarchy construction.
 #[derive(Debug, Clone, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Entry {
     /// The key (can be empty for list entries)
     pub key: String,
@@ -36,6 +40,7 @@ impl Entry {
 /// - Lists are represented as multiple entries with the same key
 /// - Uses IndexMap to preserve insertion order
 #[derive(Debug, Clone, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Model(pub IndexMap<String, Model>);
 
 impl Model {
@@ -114,6 +119,22 @@ impl Model {
     /// Get a float value by key
     pub fn get_float(&self, key: &str) -> Result<f64> {
         self.get(key)?.as_float()
+    }
+
+    /// Extract a list of string values from the model (no key lookup)
+    ///
+    /// In CCL, lists are represented as maps with multiple keys.
+    /// Each key in the map represents one list element.
+    /// Example: `{"item1": {}, "item2": {}, "item3": {}}` represents the list ["item1", "item2", "item3"]
+    pub(crate) fn as_list(&self) -> Vec<String> {
+        self.0.keys().cloned().collect()
+    }
+
+    /// Get a list of string values by key
+    ///
+    /// Looks up the key and extracts its list representation
+    pub fn get_list(&self, key: &str) -> Result<Vec<String>> {
+        Ok(self.get(key)?.as_list())
     }
 
     /// Create a Model from a string value

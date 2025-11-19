@@ -71,11 +71,21 @@ fn model_to_value(model: &sickle::Model) -> Result<Value> {
     // Access public IndexMap field
     let map = &model.0;
 
-    // Check if this is a singleton string: {"value": {}}
+    // Fast path for singleton maps
     if map.len() == 1 {
         let (key, value) = map.iter().next().unwrap();
+
+        // Check if this is a list represented with empty key
+        // CCL: bat = \n  = brew\n  = scoop
+        // Becomes: {"": {"brew": {}, "scoop": {}}}
+        if key.is_empty() && !value.0.is_empty() && value.0.values().all(|v| v.0.is_empty()) {
+            // The value is a list (keys with empty values)
+            let values: Vec<Value> = value.0.keys().map(|k| Value::String(k.clone())).collect();
+            return Ok(Value::Array(values));
+        }
+
+        // Check if this is a singleton string: {"value": {}}
         if value.0.is_empty() {
-            // This is a string value
             return Ok(Value::String(key.clone()));
         }
     }
@@ -87,12 +97,9 @@ fn model_to_value(model: &sickle::Model) -> Result<Value> {
         return Ok(Value::Array(values));
     }
 
-    // Check if this is a list represented with empty keys
-    // In CCL, lists are represented as maps with empty string keys:
-    // bat =
-    //   = brew    <- empty key
-    //   = scoop   <- empty key
-    if map.keys().any(|k| k.is_empty()) {
+    // Check if there are multiple empty keys (alternative list representation)
+    let empty_key_count = map.keys().filter(|k| k.is_empty()).count();
+    if empty_key_count > 1 {
         // Extract all values from empty keys
         let mut values = Vec::new();
         for (k, v) in map {
@@ -100,7 +107,7 @@ fn model_to_value(model: &sickle::Model) -> Result<Value> {
                 values.push(model_to_value(v)?);
             }
         }
-                return Ok(Value::Array(values));
+        return Ok(Value::Array(values));
     }
 
     // Otherwise, it's a map (object)
@@ -253,9 +260,9 @@ fn parse_complex_object(s: &str) -> Result<Value> {
 /// assert!(packages.contains_key("bat"));
 /// ```
 pub fn parse_ccl_to<T: DeserializeOwned>(ccl_content: &str) -> Result<T> {
-    let hashmap = parse_to_hashmap(ccl_content)?;
-    let value = serde_json::to_value(hashmap)?;
-    serde_json::from_value(value).context("Failed to deserialize parsed CCL")
+    // Use sickle's deserializer directly instead of going through JSON
+    sickle::from_str(ccl_content)
+        .context("Failed to deserialize parsed CCL")
 }
 
 #[cfg(test)]

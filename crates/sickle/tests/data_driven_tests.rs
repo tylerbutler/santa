@@ -1,5 +1,6 @@
 //! Data-driven CCL tests using JSON test suites
 
+mod capabilities;
 mod test_helpers;
 
 use sickle::{build_hierarchy, load, parse, parse_indented};
@@ -7,6 +8,11 @@ use std::path::Path;
 use test_helpers::{load_all_test_suites, ImplementationConfig, TestSuite};
 
 /// Test helper to extract string value from Model using public API
+///
+/// Accesses Model.0 (the public IndexMap field). While Model has an as_string() method,
+/// it's pub(crate) and not accessible from integration tests.
+///
+/// A string value in CCL is represented as: {"string_value": {}}
 fn model_as_str(model: &sickle::Model) -> Result<&str, String> {
     if model.0.len() == 1 {
         let (key, value) = model.0.iter().next().unwrap();
@@ -15,6 +21,31 @@ fn model_as_str(model: &sickle::Model) -> Result<&str, String> {
         }
     }
     Err("not a singleton string".to_string())
+}
+
+/// Helper to navigate nested paths in a Model (e.g., ["config", "database", "port"])
+fn navigate_path<'a>(
+    model: &'a sickle::Model,
+    path: &[String],
+    test_name: &str,
+) -> Result<&'a sickle::Model, String> {
+    let mut current = model;
+    for key in path {
+        current = current
+            .get(key)
+            .map_err(|_| format!("Test '{}': missing key '{}'", test_name, key))?;
+    }
+    Ok(current)
+}
+
+/// Helper to extract list from Model using public API
+///
+/// Accesses Model.0 (the public IndexMap field). While Model has an as_list() method,
+/// it's pub(crate) and not accessible from integration tests.
+///
+/// A list in CCL is represented as multiple keys in the map: {"item1": {}, "item2": {}, "item3": {}}
+fn model_as_list(model: &sickle::Model) -> Vec<String> {
+    model.0.keys().cloned().collect()
 }
 
 /// Helper function to recursively validate a Model against expected JSON structure
@@ -647,8 +678,8 @@ fn test_all_ccl_suites_comprehensive() {
                             }
                         }
                     }
-                    "parse_dedented" => {
-                        // parse_dedented removes common indentation prefix before parsing
+                    "parse_dedented" | "parse_indented" => {
+                        // parse_dedented/parse_indented removes common indentation prefix before parsing
                         if test.expected.error.is_some() {
                             assert!(entries.is_err(), "Test '{}' expected error", test.name);
                         } else {
@@ -680,6 +711,187 @@ fn test_all_ccl_suites_comprehensive() {
                                     );
                                 }
                             }
+                        }
+                    }
+                    "get_list" => {
+                        let model = model_result
+                            .expect("model_result should be Some")
+                            .unwrap_or_else(|e| {
+                                panic!("Test '{}' failed to build hierarchy: {}", test.name, e);
+                            });
+
+                        // Navigate to the target using args as path
+                        let target_result = navigate_path(&model, &test.args, &test.name);
+
+                        if test.expected.error.is_some() {
+                            assert!(
+                                target_result.is_err(),
+                                "Test '{}' expected error",
+                                test.name
+                            );
+                        } else if test.expected.count == 0 {
+                            // Empty list case - key doesn't exist or path is invalid
+                            assert!(
+                                target_result.is_err() || target_result.unwrap().0.is_empty(),
+                                "Test '{}' expected empty list",
+                                test.name
+                            );
+                        } else if let Some(ref expected_list) = test.expected.list {
+                            let target_model = target_result.unwrap_or_else(|e| {
+                                panic!("Test '{}': {}", test.name, e);
+                            });
+                            let actual_list = model_as_list(target_model);
+
+                            assert_eq!(
+                                actual_list.len(),
+                                expected_list.len(),
+                                "Test '{}' expected {} items, got {}",
+                                test.name,
+                                expected_list.len(),
+                                actual_list.len()
+                            );
+
+                            assert_eq!(
+                                &actual_list, expected_list,
+                                "Test '{}': list values don't match",
+                                test.name
+                            );
+                        }
+                    }
+                    "get_int" => {
+                        let model = model_result
+                            .expect("model_result should be Some")
+                            .unwrap_or_else(|e| {
+                                panic!("Test '{}' failed to build hierarchy: {}", test.name, e);
+                            });
+
+                        let target_result = navigate_path(&model, &test.args, &test.name);
+
+                        if test.expected.error.is_some() {
+                            assert!(
+                                target_result.is_err(),
+                                "Test '{}' expected error",
+                                test.name
+                            );
+                        } else if let Some(ref expected_value) = test.expected.value {
+                            let target_model = target_result.unwrap_or_else(|e| {
+                                panic!("Test '{}': {}", test.name, e);
+                            });
+                            let value_str = model_as_str(target_model).unwrap_or_else(|_| {
+                                panic!("Test '{}': value is not a string", test.name)
+                            });
+
+                            let actual_int: i64 = value_str.parse().unwrap_or_else(|_| {
+                                panic!("Test '{}': cannot parse '{}' as integer", test.name, value_str)
+                            });
+
+                            let expected_int = expected_value.as_i64().unwrap_or_else(|| {
+                                panic!("Test '{}': expected value is not an integer", test.name)
+                            });
+
+                            assert_eq!(
+                                actual_int, expected_int,
+                                "Test '{}': wrong integer value",
+                                test.name
+                            );
+                        }
+                    }
+                    "get_bool" => {
+                        let model = model_result
+                            .expect("model_result should be Some")
+                            .unwrap_or_else(|e| {
+                                panic!("Test '{}' failed to build hierarchy: {}", test.name, e);
+                            });
+
+                        let target_result = navigate_path(&model, &test.args, &test.name);
+
+                        if test.expected.error.is_some() {
+                            assert!(
+                                target_result.is_err(),
+                                "Test '{}' expected error",
+                                test.name
+                            );
+                        } else if let Some(ref expected_value) = test.expected.value {
+                            if expected_value.is_null() {
+                                // Test expects that the value cannot be parsed as bool
+                                // (e.g., "yes" with strict boolean parsing)
+                                let target_model = target_result.unwrap_or_else(|e| {
+                                    panic!("Test '{}': {}", test.name, e);
+                                });
+                                let value_str = model_as_str(target_model).unwrap_or_else(|_| {
+                                    panic!("Test '{}': value is not a string", test.name)
+                                });
+
+                                // In strict mode, only "true" and "false" are valid
+                                assert!(
+                                    value_str != "true" && value_str != "false",
+                                    "Test '{}': expected null (unparseable bool) but got valid bool value",
+                                    test.name
+                                );
+                            } else {
+                                let target_model = target_result.unwrap_or_else(|e| {
+                                    panic!("Test '{}': {}", test.name, e);
+                                });
+                                let value_str = model_as_str(target_model).unwrap_or_else(|_| {
+                                    panic!("Test '{}': value is not a string", test.name)
+                                });
+
+                                let actual_bool = match value_str {
+                                    "true" => true,
+                                    "false" => false,
+                                    "1" => true,
+                                    "0" => false,
+                                    _ => panic!("Test '{}': cannot parse '{}' as boolean", test.name, value_str),
+                                };
+
+                                let expected_bool = expected_value.as_bool().unwrap_or_else(|| {
+                                    panic!("Test '{}': expected value is not a boolean", test.name)
+                                });
+
+                                assert_eq!(
+                                    actual_bool, expected_bool,
+                                    "Test '{}': wrong boolean value",
+                                    test.name
+                                );
+                            }
+                        }
+                    }
+                    "get_float" => {
+                        let model = model_result
+                            .expect("model_result should be Some")
+                            .unwrap_or_else(|e| {
+                                panic!("Test '{}' failed to build hierarchy: {}", test.name, e);
+                            });
+
+                        let target_result = navigate_path(&model, &test.args, &test.name);
+
+                        if test.expected.error.is_some() {
+                            assert!(
+                                target_result.is_err(),
+                                "Test '{}' expected error",
+                                test.name
+                            );
+                        } else if let Some(ref expected_value) = test.expected.value {
+                            let target_model = target_result.unwrap_or_else(|e| {
+                                panic!("Test '{}': {}", test.name, e);
+                            });
+                            let value_str = model_as_str(target_model).unwrap_or_else(|_| {
+                                panic!("Test '{}': value is not a string", test.name)
+                            });
+
+                            let actual_float: f64 = value_str.parse().unwrap_or_else(|_| {
+                                panic!("Test '{}': cannot parse '{}' as float", test.name, value_str)
+                            });
+
+                            let expected_float = expected_value.as_f64().unwrap_or_else(|| {
+                                panic!("Test '{}': expected value is not a float", test.name)
+                            });
+
+                            assert!(
+                                (actual_float - expected_float).abs() < 0.0001,
+                                "Test '{}': wrong float value, expected {} got {}",
+                                test.name, expected_float, actual_float
+                            );
                         }
                     }
                     _ => {

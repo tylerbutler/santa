@@ -303,12 +303,10 @@ mod tests {
     async fn test_config_reload_validation() {
         // Use cargo (universal package manager) with cargo-update package
         // to ensure test works on all platforms
-        let valid_config = r#"
-sources =
+        let valid_config = r#"sources =
   = cargo
 packages =
-  = cargo-update
-        "#;
+  = cargo-update"#;
 
         let mut temp_file = NamedTempFile::new().unwrap();
         writeln!(temp_file, "{valid_config}").unwrap();
@@ -317,8 +315,17 @@ packages =
         let data = SantaData::default();
         let result = ConfigWatcher::reload_config(temp_file.path(), &data).await;
 
+        if let Err(e) = &result {
+            eprintln!("Config reload error: {:#?}", e);
+            // Read the file content to see what was actually written
+            let content = std::fs::read_to_string(temp_file.path()).unwrap();
+            eprintln!("File content:\n{}", content);
+        }
+
         assert!(result.is_ok(), "Config reload failed: {:?}", result.err());
         let config = result.unwrap();
+        eprintln!("Parsed config sources: {:?}", config.sources);
+        eprintln!("Parsed config packages: {:?}", config.packages);
         assert_eq!(config.sources.len(), 1);
         assert_eq!(config.packages.len(), 1);
         assert!(config.sources.contains(&crate::data::KnownSources::Cargo));

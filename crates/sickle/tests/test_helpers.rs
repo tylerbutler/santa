@@ -15,6 +15,9 @@ pub struct TestCase {
     pub validation: String,
     /// Expected output
     pub expected: ExpectedOutput,
+    /// Arguments for accessor functions (e.g., key path for get_list, get_int, etc.)
+    #[serde(default)]
+    pub args: Vec<String>,
     /// Features used in this test (e.g., "comments", "multiline", etc.)
     #[serde(default)]
     pub features: Vec<String>,
@@ -46,6 +49,9 @@ pub struct ExpectedOutput {
     /// For typed access tests - expected value
     #[serde(default)]
     pub value: Option<serde_json::Value>,
+    /// For get_list tests - expected list of values
+    #[serde(default)]
+    pub list: Option<Vec<String>>,
     /// For get operations - the key path
     #[serde(default)]
     pub key: Option<String>,
@@ -84,32 +90,36 @@ pub struct ImplementationConfig {
 
 impl ImplementationConfig {
     /// Create a new configuration with the current Sickle implementation capabilities
+    ///
+    /// This configuration defines a reference-compliant CCL parser that follows
+    /// the OCaml reference implementation's behavior.
     pub fn sickle_current() -> Self {
         Self {
             supported_functions: vec![
                 "parse".to_string(),
-                "parse_indented".to_string(), // Dedenting parser for indented input
+                "parse_indented".to_string(),
+                "build_hierarchy".to_string(),
+                "filter".to_string(),
                 "get_string".to_string(),
                 "get_int".to_string(),
                 "get_float".to_string(),
                 "get_bool".to_string(),
-                "build_hierarchy".to_string(),
-                "filter".to_string(), // Test filtering implemented in test infrastructure
-                                      // Not implemented:
-                                      // "get_list" - convenience method not yet implemented
-                                      // "canonical_format" - CCL serialization not yet implemented
+                "get_list".to_string(),
             ],
             supported_features: vec![
                 "comments".to_string(),
+                "empty_keys".to_string(),
                 "multiline".to_string(),
                 "unicode".to_string(),
-                "dotted_keys".to_string(),
-                "special_characters".to_string(),
+                "whitespace".to_string(),
+                "optional_typed_accessors".to_string(),
             ],
             chosen_behaviors: vec![
-                "boolean_lenient".to_string(), // Currently using lenient boolean parsing
-                "crlf_normalize_to_lf".to_string(), // Normalize CRLF to LF
-                "list_coercion_enabled".to_string(), // Allow list coercion
+                "list_coercion_disabled".to_string(),  // Reference: explicit lists only
+                "crlf_preserve_literal".to_string(),    // Reference: preserve CRLF
+                "boolean_strict".to_string(),           // Reference: strict boolean parsing
+                "strict_spacing".to_string(),           // Reference: strict spacing rules
+                "tabs_preserve".to_string(),            // Reference: preserve tabs
             ],
         }
     }
