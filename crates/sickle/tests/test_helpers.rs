@@ -1,7 +1,7 @@
 //! Test helpers for loading and executing CCL test cases from JSON files
 
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::path::Path;
 
 /// Represents a single test case from the CCL test-data repository
@@ -85,15 +85,18 @@ pub struct TestSuite {
 /// - Which behavior choices we've made
 /// - Which test variants to run (e.g., excluding proposed_behavior)
 ///
+/// Configuration defining which behaviors, functions, and variants are supported
+/// by the current implementation.
+///
 /// Update `sickle_current()` to add/remove capabilities as implementation evolves.
 #[derive(Debug, Clone)]
 pub struct ImplementationConfig {
     /// Supported functions (e.g., "parse", "build_hierarchy", "get_string")
-    pub supported_functions: Vec<String>,
+    pub supported_functions: HashSet<String>,
     /// Chosen behaviors (e.g., "boolean_strict", "crlf_normalize_to_lf")
-    pub chosen_behaviors: Vec<String>,
+    pub chosen_behaviors: HashSet<String>,
     /// Supported variants (e.g., "reference_compliant", excluding "proposed_behavior")
-    pub supported_variants: Vec<String>,
+    pub supported_variants: HashSet<String>,
 }
 
 impl ImplementationConfig {
@@ -103,29 +106,47 @@ impl ImplementationConfig {
     /// the OCaml reference implementation's behavior.
     pub fn sickle_current() -> Self {
         Self {
-            supported_functions: vec![
-                "parse".to_string(),
-                "parse_indented".to_string(),
-                "build_hierarchy".to_string(),
-                "filter".to_string(),
-                "get_string".to_string(),
-                "get_int".to_string(),
-                "get_float".to_string(),
-                "get_bool".to_string(),
-                "get_list".to_string(),
-            ],
-            chosen_behaviors: vec![
-                "list_coercion_disabled".to_string(), // Reference: explicit lists only
-                "crlf_preserve_literal".to_string(),  // Reference: preserve CRLF
-                "boolean_strict".to_string(),         // Reference: strict boolean parsing
-                "strict_spacing".to_string(),         // Reference: strict spacing rules
-                "tabs_preserve".to_string(),          // Reference: preserve tabs
-            ],
-            supported_variants: vec![
-                // Empty list means we accept tests with no variants OR reference_compliant
-                // We explicitly exclude "proposed_behavior" by not listing it here
-            ],
+            supported_functions: [
+                "parse",
+                "parse_indented",
+                "build_hierarchy",
+                "filter",
+                "get_string",
+                "get_int",
+                "get_float",
+                "get_bool",
+                "get_list",
+            ]
+            .iter()
+            .map(|s| s.to_string())
+            .collect(),
+            chosen_behaviors: [
+                "list_coercion_disabled", // Reference: explicit lists only
+                "crlf_preserve_literal",  // Reference: preserve CRLF
+                "boolean_strict",         // Reference: strict boolean parsing
+                "strict_spacing",         // Reference: strict spacing rules
+                "tabs_preserve",          // Reference: preserve tabs
+            ]
+            .iter()
+            .map(|s| s.to_string())
+            .collect(),
+            supported_variants: HashSet::new(), // Empty: accept tests with no variants only
         }
+    }
+
+    /// Check if a behavior is supported
+    pub fn supports_behavior(&self, behavior: &str) -> bool {
+        self.chosen_behaviors.contains(behavior)
+    }
+
+    /// Check if a function is supported
+    pub fn supports_function(&self, function: &str) -> bool {
+        self.supported_functions.contains(function)
+    }
+
+    /// Check if all functions in a list are supported
+    pub fn supports_all_functions(&self, functions: &[String]) -> bool {
+        functions.is_empty() || functions.iter().all(|f| self.supports_function(f))
     }
 }
 
@@ -188,12 +209,7 @@ impl TestSuite {
                 }
 
                 // Check if all required functions are implemented
-                if !test.functions.is_empty()
-                    && !test
-                        .functions
-                        .iter()
-                        .all(|f| config.supported_functions.contains(f))
-                {
+                if !config.supports_all_functions(&test.functions) {
                     return false;
                 }
 
@@ -205,7 +221,7 @@ impl TestSuite {
                     let has_matching_behavior = test
                         .behaviors
                         .iter()
-                        .any(|b| config.chosen_behaviors.contains(b));
+                        .any(|b| config.supports_behavior(b));
 
                     // If no matching behavior, check if it conflicts with mutually exclusive behaviors
                     if !has_matching_behavior {
@@ -221,9 +237,9 @@ impl TestSuite {
                         // If the test requires a behavior that conflicts with our chosen behavior, skip it
                         for (opt1, opt2) in &mutually_exclusive {
                             if (test.behaviors.contains(&opt1.to_string())
-                                && config.chosen_behaviors.contains(&opt2.to_string()))
+                                && config.supports_behavior(opt2))
                                 || (test.behaviors.contains(&opt2.to_string())
-                                    && config.chosen_behaviors.contains(&opt1.to_string()))
+                                    && config.supports_behavior(opt1))
                             {
                                 return false;
                             }

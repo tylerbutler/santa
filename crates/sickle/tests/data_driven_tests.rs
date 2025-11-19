@@ -1,6 +1,5 @@
 //! Data-driven CCL tests using JSON test suites
 
-mod capabilities;
 mod test_helpers;
 
 use sickle::{build_hierarchy, load, parse, parse_indented};
@@ -438,9 +437,14 @@ fn test_all_ccl_suites_comprehensive() {
     println!("\n🧪 Running comprehensive CCL test suite");
     println!("📁 Loaded {} test suite files", suites.len());
     println!("🔧 Implementation capabilities:");
-    println!("   Functions: {}", config.supported_functions.join(", "));
-    println!("   Features: {}", config.supported_features.join(", "));
-    println!("   Behaviors: {}\n", config.chosen_behaviors.join(", "));
+
+    let mut functions: Vec<_> = config.supported_functions.iter().collect();
+    functions.sort();
+    println!("   Functions: {}", functions.iter().map(|s| s.as_str()).collect::<Vec<_>>().join(", "));
+
+    let mut behaviors: Vec<_> = config.chosen_behaviors.iter().collect();
+    behaviors.sort();
+    println!("   Behaviors: {}\n", behaviors.iter().map(|s| s.as_str()).collect::<Vec<_>>().join(", "));
 
     let mut total_passed = 0;
     let mut total_failed = 0;
