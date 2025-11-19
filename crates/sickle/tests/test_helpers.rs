@@ -130,7 +130,10 @@ impl ImplementationConfig {
             .iter()
             .map(|s| s.to_string())
             .collect(),
-            supported_variants: HashSet::new(), // Empty: accept tests with no variants only
+            supported_variants: ["reference_compliant"]
+                .iter()
+                .map(|s| s.to_string())
+                .collect()
         }
     }
 
