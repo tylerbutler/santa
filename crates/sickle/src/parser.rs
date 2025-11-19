@@ -5,7 +5,7 @@
 //! 2. Build hierarchy through recursive processing
 
 use crate::error::Result;
-use std::collections::BTreeMap;
+use indexmap::IndexMap;
 
 /// A parsed CCL entry (key-value pair)
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -138,9 +138,9 @@ fn dedent(s: &str) -> String {
 }
 
 /// Build hierarchical structure from flat entries
-pub(crate) fn parse_to_map(input: &str) -> Result<BTreeMap<String, Vec<String>>> {
+pub(crate) fn parse_to_map(input: &str) -> Result<IndexMap<String, Vec<String>>> {
     let entries = parse_entries(input);
-    let mut result: BTreeMap<String, Vec<String>> = BTreeMap::new();
+    let mut result: IndexMap<String, Vec<String>> = IndexMap::new();
 
     for entry in entries {
         // Dedent the value to preserve relative indentation

@@ -2,7 +2,7 @@
 
 mod test_helpers;
 
-use sickle::{build_hierarchy, load, parse, parse_dedented};
+use sickle::{build_hierarchy, load, parse, parse_indented};
 use std::path::Path;
 use test_helpers::{load_all_test_suites, ImplementationConfig, TestSuite};
 
@@ -145,7 +145,8 @@ package_managers =
 
     // Verify nested values
     assert_eq!(db.get("host").unwrap().as_str().unwrap(), "localhost");
-    let port: u16 = db.get("port").unwrap().parse_value().unwrap();
+    let port_str = db.get("port").unwrap().as_str().unwrap();
+    let port: u16 = port_str.parse().unwrap();
     assert_eq!(port, 5432);
 }
 
@@ -288,16 +289,20 @@ bool_false = false
     assert_eq!(model.get("string_val").unwrap().as_str().unwrap(), "hello");
 
     // Integer
-    let int: i32 = model.get("int_val").unwrap().parse_value().unwrap();
+    let int_str = model.get("int_val").unwrap().as_str().unwrap();
+    let int: i32 = int_str.parse().unwrap();
     assert_eq!(int, 42);
 
     // Float
-    let float: f64 = model.get("float_val").unwrap().parse_value().unwrap();
+    let float_str = model.get("float_val").unwrap().as_str().unwrap();
+    let float: f64 = float_str.parse().unwrap();
     assert!((float - std::f64::consts::PI).abs() < 0.01);
 
     // Booleans
-    let bool_t: bool = model.get("bool_true").unwrap().parse_value().unwrap();
-    let bool_f: bool = model.get("bool_false").unwrap().parse_value().unwrap();
+    let bool_t_str = model.get("bool_true").unwrap().as_str().unwrap();
+    let bool_f_str = model.get("bool_false").unwrap().as_str().unwrap();
+    let bool_t: bool = bool_t_str.parse().unwrap();
+    let bool_f: bool = bool_f_str.parse().unwrap();
     assert!(bool_t);
     assert!(!bool_f);
 }
@@ -728,7 +733,7 @@ fn test_all_ccl_suites_comprehensive() {
             let test_result = std::panic::catch_unwind(|| {
                 // Parse the input based on validation type
                 let (entries, model_result) = if test.validation == "parse_dedented" {
-                    let e = parse_dedented(&test.input);
+                    let e = parse_indented(&test.input);
                     let m = e.as_ref().ok().map(|entries| build_hierarchy(entries));
                     (e, m)
                 } else {
@@ -894,51 +899,6 @@ fn test_all_ccl_suites_comprehensive() {
                                         found,
                                         "Test '{}': expected entry {}={} not found",
                                         test.name, expected_entry.key, expected_entry.value
-                                    );
-                                }
-                            }
-                        }
-                    }
-                    "parse_value" => {
-                        // OCaml's "parse_value" function corresponds to parse_dedented in Rust
-                        // These validation tests check parser edge cases (indented keys, whitespace)
-                        // Use hierarchy for these tests
-                        if test.expected.error.is_some() {
-                            assert!(
-                                model_result.is_none() || model_result.as_ref().unwrap().is_err(),
-                                "Test '{}' expected error",
-                                test.name
-                            );
-                        } else {
-                            let model = model_result
-                                .expect("model_result should be Some")
-                                .unwrap_or_else(|e| {
-                                    panic!("Test '{}' failed to build hierarchy: {}", test.name, e);
-                                });
-
-                            // Verify the expected entries if specified
-                            if !test.expected.entries.is_empty() {
-                                for entry in &test.expected.entries {
-                                    let value = model
-                                        .get(&entry.key)
-                                        .unwrap_or_else(|_| {
-                                            panic!(
-                                                "Test '{}': missing key '{}'",
-                                                test.name, entry.key
-                                            )
-                                        })
-                                        .as_str()
-                                        .unwrap_or_else(|_| {
-                                            panic!(
-                                                "Test '{}': key '{}' is not a string",
-                                                test.name, entry.key
-                                            )
-                                        });
-
-                                    assert_eq!(
-                                        value, entry.value,
-                                        "Test '{}': key '{}' has wrong value",
-                                        test.name, entry.key
                                     );
                                 }
                             }

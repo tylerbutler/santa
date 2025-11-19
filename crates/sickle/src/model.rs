@@ -1,8 +1,7 @@
 //! CCL Model - the core data structure for navigating parsed CCL documents
 
 use crate::error::{Error, Result};
-use std::collections::BTreeMap;
-use std::str::FromStr;
+use indexmap::IndexMap;
 
 /// Represents a single parsed entry (key-value pair) from CCL
 ///
@@ -26,143 +25,137 @@ impl Entry {
     }
 }
 
-/// Represents a parsed CCL document as a hierarchical structure
+/// Represents a parsed CCL document as a recursive map structure
 ///
-/// A CCL document is fundamentally a map from strings to other CCL documents.
-/// Values can be:
-/// - Singleton strings
-/// - Lists of values
-/// - Nested maps (objects)
+/// Following the OCaml implementation: `type t = Fix of t Map.Make(String).t`
+///
+/// A CCL document is a fixed-point recursive structure where:
+/// - Every Model is a map from String to Model
+/// - An empty map {} represents a leaf/terminal value
+/// - String values are encoded in the recursive structure
+/// - Lists are represented as multiple entries with the same key
+/// - Uses IndexMap to preserve insertion order
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub enum Model {
-    /// A single string value
-    Singleton(String),
-
-    /// A list of models (from empty keys or valueless keys)
-    List(Vec<Model>),
-
-    /// A map of keys to models
-    Map(BTreeMap<String, Model>),
-}
+pub struct Model(pub IndexMap<String, Model>);
 
 impl Model {
-    /// Create a new empty map model
+    /// Create a new empty model
     pub fn new() -> Self {
-        Model::Map(BTreeMap::new())
-    }
-
-    /// Create a singleton value
-    pub fn singleton(value: impl Into<String>) -> Self {
-        Model::Singleton(value.into())
-    }
-
-    /// Create a list
-    pub fn list(items: Vec<Model>) -> Self {
-        Model::List(items)
+        Model(IndexMap::new())
     }
 
     /// Get a value by key, returning an error if the key doesn't exist
     pub fn get(&self, key: &str) -> Result<&Model> {
-        match self {
-            Model::Map(map) => map
-                .get(key)
-                .ok_or_else(|| Error::MissingKey(key.to_string())),
-            _ => Err(Error::NotAMap),
+        self.0
+            .get(key)
+            .ok_or_else(|| Error::MissingKey(key.to_string()))
+    }
+
+    /// Extract a string value from the model (no key lookup)
+    ///
+    /// A string value is represented as a map with a single key (the string) and empty value
+    /// Example: `{"Alice": {}}` represents the string "Alice"
+    pub(crate) fn as_string(&self) -> Result<&str> {
+        if self.0.len() == 1 {
+            let (key, value) = self.0.iter().next().unwrap();
+            if value.0.is_empty() {
+                return Ok(key.as_str());
+            }
         }
+        Err(Error::ValueError(
+            "expected single string value (map with one key and empty value)".to_string(),
+        ))
     }
 
-    /// Get a nested value using a path like "database.host"
-    pub fn at(&self, path: &str) -> Result<&Model> {
-        let parts: Vec<&str> = path.split('.').collect();
-        let mut current = self;
-
-        for part in parts {
-            current = current.get(part)?;
-        }
-
-        Ok(current)
+    /// Get a string value by key
+    ///
+    /// Looks up the key and extracts its string representation
+    pub fn get_string(&self, key: &str) -> Result<&str> {
+        self.get(key)?.as_string()
     }
 
-    /// Get the value as a string if it's a singleton
-    pub fn as_str(&self) -> Result<&str> {
-        match self {
-            Model::Singleton(s) => Ok(s.as_str()),
-            _ => Err(Error::NotASingleton),
-        }
+    /// Extract a boolean value from the model (no key lookup)
+    ///
+    /// Parses the string representation as a boolean
+    pub(crate) fn as_bool(&self) -> Result<bool> {
+        let s = self.as_string()?;
+        s.parse::<bool>()
+            .map_err(|_| Error::ValueError(format!("failed to parse '{}' as bool", s)))
     }
 
-    /// Get the value as a list if it's a list
-    pub fn as_list(&self) -> Result<&[Model]> {
-        match self {
-            Model::List(list) => Ok(list.as_slice()),
-            _ => Err(Error::NotAList),
-        }
+    /// Get a boolean value by key
+    pub fn get_bool(&self, key: &str) -> Result<bool> {
+        self.get(key)?.as_bool()
     }
 
-    /// Get the value as a map if it's a map
-    pub fn as_map(&self) -> Result<&BTreeMap<String, Model>> {
-        match self {
-            Model::Map(map) => Ok(map),
-            _ => Err(Error::NotAMap),
-        }
+    /// Extract an integer value from the model (no key lookup)
+    ///
+    /// Parses the string representation as an i64
+    pub(crate) fn as_int(&self) -> Result<i64> {
+        let s = self.as_string()?;
+        s.parse::<i64>()
+            .map_err(|_| Error::ValueError(format!("failed to parse '{}' as integer", s)))
     }
 
-    /// Parse a singleton value as a specific type using FromStr
-    pub fn parse_value<T>(&self) -> Result<T>
-    where
-        T: FromStr,
-        T::Err: std::fmt::Display,
-    {
-        let s = self.as_str()?;
-        s.parse::<T>()
-            .map_err(|e| Error::ValueError(format!("failed to parse '{}': {}", s, e)))
+    /// Get an integer value by key
+    pub fn get_int(&self, key: &str) -> Result<i64> {
+        self.get(key)?.as_int()
     }
 
-    /// Check if this is a singleton value
+    /// Extract a float value from the model (no key lookup)
+    ///
+    /// Parses the string representation as an f64
+    pub(crate) fn as_float(&self) -> Result<f64> {
+        let s = self.as_string()?;
+        s.parse::<f64>()
+            .map_err(|_| Error::ValueError(format!("failed to parse '{}' as float", s)))
+    }
+
+    /// Get a float value by key
+    pub fn get_float(&self, key: &str) -> Result<f64> {
+        self.get(key)?.as_float()
+    }
+
+    /// Create a Model from a string value
+    ///
+    /// Creates the representation `{string: {}}`
+    pub fn from_string(s: impl Into<String>) -> Self {
+        let mut map = IndexMap::new();
+        map.insert(s.into(), Model::new());
+        Model(map)
+    }
+
+    /// Check if this is a string value (singleton)
+    ///
+    /// A string value has exactly one key with an empty value
     pub fn is_singleton(&self) -> bool {
-        matches!(self, Model::Singleton(_))
+        self.0.len() == 1 && self.0.values().next().map_or(false, |v| v.0.is_empty())
     }
 
     /// Check if this is a list
-    pub fn is_list(&self) -> bool {
-        matches!(self, Model::List(_))
-    }
-
-    /// Check if this is a map
-    pub fn is_map(&self) -> bool {
-        matches!(self, Model::Map(_))
-    }
-
-    /// Merge another model into this one
     ///
-    /// Merging rules:
-    /// - Map + Map = merged map (recursive)
-    /// - List + List = concatenated list
-    /// - Singleton + Singleton = List of both
-    /// - Map + other = Map wins
-    pub fn merge(self, other: Model) -> Model {
-        match (self, other) {
-            (Model::Map(mut left), Model::Map(right)) => {
-                for (key, value) in right {
-                    left.entry(key)
-                        .and_modify(|existing| {
-                            *existing = existing.clone().merge(value.clone());
-                        })
-                        .or_insert(value);
-                }
-                Model::Map(left)
-            }
-            (Model::List(mut left), Model::List(right)) => {
-                left.extend(right);
-                Model::List(left)
-            }
-            (Model::Singleton(left), Model::Singleton(right)) => {
-                Model::List(vec![Model::Singleton(left), Model::Singleton(right)])
-            }
-            (map @ Model::Map(_), _) => map,
-            (_, map @ Model::Map(_)) => map,
-            (list @ Model::List(_), _) => list,
-            (_, list @ Model::List(_)) => list,
+    /// A list has multiple keys all with empty values
+    pub fn is_list(&self) -> bool {
+        self.0.len() > 1 && self.0.values().all(|v| v.0.is_empty())
+    }
+
+    /// Check if this is a map (nested structure)
+    ///
+    /// A map has at least one non-empty value
+    pub fn is_map(&self) -> bool {
+        !self.0.is_empty() && self.0.values().any(|v| !v.0.is_empty())
+    }
+
+    /// Extract as a list of strings
+    ///
+    /// Returns the keys as a list if this is a list representation
+    pub fn as_list(&self) -> Result<Vec<&str>> {
+        if self.is_list() {
+            Ok(self.0.keys().map(|k| k.as_str()).collect())
+        } else {
+            Err(Error::ValueError(
+                "expected list (multiple keys with empty values)".to_string(),
+            ))
         }
     }
 }
@@ -178,65 +171,20 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_singleton_creation() {
-        let model = Model::singleton("hello");
-        assert!(model.is_singleton());
-        assert_eq!(model.as_str().unwrap(), "hello");
-    }
-
-    #[test]
-    fn test_list_creation() {
-        let model = Model::list(vec![Model::singleton("item1"), Model::singleton("item2")]);
-        assert!(model.is_list());
-        assert_eq!(model.as_list().unwrap().len(), 2);
+    fn test_empty_model() {
+        let model = Model::new();
+        assert!(model.0.is_empty());
     }
 
     #[test]
     fn test_map_navigation() {
-        let mut map = BTreeMap::new();
-        map.insert("name".to_string(), Model::singleton("Santa"));
-        map.insert("version".to_string(), Model::singleton("0.1.0"));
+        let mut inner = IndexMap::new();
+        inner.insert("name".to_string(), Model::new());
+        inner.insert("version".to_string(), Model::new());
 
-        let model = Model::Map(map);
-        assert_eq!(model.get("name").unwrap().as_str().unwrap(), "Santa");
-        assert_eq!(model.get("version").unwrap().as_str().unwrap(), "0.1.0");
-    }
-
-    #[test]
-    fn test_nested_navigation() {
-        let mut inner = BTreeMap::new();
-        inner.insert("host".to_string(), Model::singleton("localhost"));
-
-        let mut outer = BTreeMap::new();
-        outer.insert("database".to_string(), Model::Map(inner));
-
-        let model = Model::Map(outer);
-        assert_eq!(
-            model.at("database.host").unwrap().as_str().unwrap(),
-            "localhost"
-        );
-    }
-
-    #[test]
-    fn test_parse_value() {
-        let model = Model::singleton("42");
-        let num: i32 = model.parse_value().unwrap();
-        assert_eq!(num, 42);
-    }
-
-    #[test]
-    fn test_merge_maps() {
-        let mut map1 = BTreeMap::new();
-        map1.insert("a".to_string(), Model::singleton("1"));
-
-        let mut map2 = BTreeMap::new();
-        map2.insert("b".to_string(), Model::singleton("2"));
-
-        let result = Model::Map(map1).merge(Model::Map(map2));
-        let result_map = result.as_map().unwrap();
-
-        assert_eq!(result_map.len(), 2);
-        assert!(result_map.contains_key("a"));
-        assert!(result_map.contains_key("b"));
+        let model = Model(inner);
+        assert!(model.get("name").is_ok());
+        assert!(model.get("version").is_ok());
+        assert!(model.get("nonexistent").is_err());
     }
 }

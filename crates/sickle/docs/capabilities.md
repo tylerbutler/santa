@@ -28,7 +28,7 @@ Core Model API methods and operations covered by the test suite:
 | `get_list` | 32 | Validation type: `get_list` |
 | `get_string` | 7 | Validation type: `get_string` |
 | `parse` | 153 | Validation type: `parse` |
-| `parse_dedented` | 10 | Validation type: `parse_dedented` |
+| `parse_indented` | 10 | Validation type: `parse_indented` |
 | `round_trip` | 12 | Validation type: `round_trip` |
 
 ### Function Examples
@@ -202,19 +202,19 @@ items = item06
 items = it...
   ```
 
-#### `parse_dedented`
+#### `parse_indented`
 
 **Test coverage**: 10 test cases
 
 **Example usage from tests**:
 
-- **multiline_section_header_value_parse_dedented** (`api_proposed_behavior.json`)
+- **multiline_section_header_value_parse_indented** (`api_proposed_behavior.json`)
   ```ccl
   == Section Header =
   This continues the header
 key = value
   ```
-- **unindented_multiline_becomes_continuation_parse_dedented** (`api_proposed_behavior.json`)
+- **unindented_multiline_becomes_continuation_parse_indented** (`api_proposed_behavior.json`)
   ```ccl
   == Section Header =
 This continues the header

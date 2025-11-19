@@ -88,13 +88,12 @@ impl ImplementationConfig {
         Self {
             supported_functions: vec![
                 "parse".to_string(),
-                "parse_dedented".to_string(), // Dedenting parser for indented input
+                "parse_indented".to_string(), // Dedenting parser for indented input
                 "get_string".to_string(),
                 "get_int".to_string(),
                 "get_float".to_string(),
                 "get_bool".to_string(),
                 "build_hierarchy".to_string(),
-                "parse_value".to_string(), // OCaml parse_value → Rust parse_dedented
                 "filter".to_string(),      // Test filtering implemented in test infrastructure
                                            // Not implemented:
                                            // "get_list" - convenience method not yet implemented

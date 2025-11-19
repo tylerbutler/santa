@@ -22,7 +22,7 @@
 //! "#;
 //!
 //! let model = load(ccl).unwrap();
-//! assert_eq!(model.get("name").unwrap().as_str().unwrap(), "Santa");
+//! assert_eq!(model.get_string("name").unwrap(), "Santa");
 //! ```
 //!
 //! ### Serde Integration (requires "serde" feature)
@@ -122,12 +122,11 @@ pub fn parse(input: &str) -> Result<Vec<Entry>> {
 ///
 /// let entries = parse(ccl).unwrap();
 /// let model = build_hierarchy(&entries).unwrap();
-/// assert_eq!(model.get("name").unwrap().as_str().unwrap(), "MyApp");
+/// assert_eq!(model.get_string("name").unwrap(), "MyApp");
 /// ```
 pub fn build_hierarchy(entries: &[Entry]) -> Result<Model> {
-    // Group entries by key (preserving order with BTreeMap)
-    let mut map: std::collections::BTreeMap<String, Vec<String>> =
-        std::collections::BTreeMap::new();
+    // Group entries by key (preserving order with IndexMap)
+    let mut map: indexmap::IndexMap<String, Vec<String>> = indexmap::IndexMap::new();
 
     for entry in entries {
         map.entry(entry.key.clone())
@@ -161,84 +160,59 @@ fn is_valid_ccl_key(key: &str) -> bool {
 }
 
 /// Internal helper: Build a Model from the grouped key-value map
-fn build_model(map: std::collections::BTreeMap<String, Vec<String>>) -> Result<Model> {
-    let mut result = std::collections::BTreeMap::new();
+///
+/// Following the CCL desugaring rules:
+/// - `key = value` becomes `{"key": {"value": {}}}`
+/// - `key =` (empty value) becomes `{"key": {"": {}}}`
+/// - Multiple values become multiple nested keys
+/// - Nested CCL is recursively parsed
+fn build_model(map: indexmap::IndexMap<String, Vec<String>>) -> Result<Model> {
+    let mut result = indexmap::IndexMap::new();
 
     for (key, values) in map {
-        // Note: We preserve ALL keys including empty keys and comment keys
-        // This is important for entry counting and for CCL spec compliance
-        // Empty keys and comment keys (starting with /) are valid CCL entries
+        // Build the nested map for this key
+        let mut nested = indexmap::IndexMap::new();
 
-        let model = if values.len() == 1 {
-            let value = &values[0];
-            if value.is_empty() {
-                // Empty value
-                Model::singleton("")
-            } else if value.contains('=') {
+        for value in values {
+            if value.contains('=') {
                 // Contains '=' - might be nested CCL
-                // Try to parse and build hierarchy to check if it looks like valid CCL structure
-                match load(value) {
+                // Try to parse recursively
+                match load(&value) {
                     Ok(parsed) => {
-                        // Check if this looks like valid CCL structure vs command-line string
-                        if let Ok(map) = parsed.as_map() {
-                            if !map.is_empty() {
-                                // Check if all keys look like valid CCL keys
-                                let has_valid_keys = map.keys().all(|k| is_valid_ccl_key(k));
+                        // Check if this looks like valid CCL structure
+                        if !parsed.0.is_empty() {
+                            // Check if all keys look like valid CCL keys
+                            let has_valid_keys = parsed.0.keys().all(|k| is_valid_ccl_key(k));
 
-                                if has_valid_keys {
-                                    parsed
-                                } else {
-                                    // Keys don't look like valid CCL, treat as string
-                                    Model::singleton(value.clone())
+                            if has_valid_keys {
+                                // It's valid nested CCL, merge it into our nested map
+                                for (k, v) in parsed.0 {
+                                    nested.insert(k, v);
                                 }
                             } else {
-                                Model::singleton(value.clone())
+                                // Keys don't look like valid CCL, treat as string value
+                                nested.insert(value.clone(), Model::new());
                             }
                         } else {
-                            parsed
+                            // Empty parsed result, treat as string value
+                            nested.insert(value.clone(), Model::new());
                         }
                     }
-                    Err(_) => Model::singleton(value.clone()),
+                    Err(_) => {
+                        // Failed to parse, treat as string value
+                        nested.insert(value.clone(), Model::new());
+                    }
                 }
             } else {
-                // Plain string value
-                Model::singleton(value.clone())
+                // Plain string value - becomes a key with empty map
+                nested.insert(value, Model::new());
             }
-        } else {
-            // Multiple values = list
-            let items: Result<Vec<_>> = values
-                .iter()
-                .map(|v| {
-                    if v.contains('=') {
-                        // Try to load as nested CCL, use same validation as singleton case
-                        match load(v) {
-                            Ok(parsed) if !matches!(parsed, Model::Map(ref m) if m.is_empty()) => {
-                                // Check if keys look valid
-                                if let Ok(map) = parsed.as_map() {
-                                    let has_valid_keys = map.keys().all(|k| is_valid_ccl_key(k));
-                                    if has_valid_keys {
-                                        Ok(parsed)
-                                    } else {
-                                        Ok(Model::singleton(v.clone()))
-                                    }
-                                } else {
-                                    Ok(parsed)
-                                }
-                            }
-                            _ => Ok(Model::singleton(v.clone())),
-                        }
-                    } else {
-                        Ok(Model::singleton(v.clone()))
-                    }
-                })
-                .collect();
-            Model::list(items?)
-        };
+        }
 
-        result.insert(key, model);
+        result.insert(key, Model(nested));
     }
 
-    Ok(Model::Map(result))
+    Ok(Model(result))
 }
 
 /// Parse a CCL value string with automatic prefix detection
@@ -253,13 +227,13 @@ fn build_model(map: std::collections::BTreeMap<String, Vec<String>>) -> Result<M
 /// # Examples
 ///
 /// ```rust
-/// use sickle::parse_dedented;
+/// use sickle::parse_indented;
 ///
 /// let nested = "  servers = web1\n  servers = web2\n  cache = redis";
-/// let entries = parse_dedented(nested).unwrap();
+/// let entries = parse_indented(nested).unwrap();
 /// assert_eq!(entries.len(), 3);
 /// ```
-pub fn parse_dedented(input: &str) -> Result<Vec<Entry>> {
+pub fn parse_indented(input: &str) -> Result<Vec<Entry>> {
     // Find the minimum indentation level (common prefix)
     let min_indent = input
         .lines()
@@ -379,7 +353,7 @@ fn parse_single_entry_with_raw_value(input: &str) -> Result<Vec<Entry>> {
 /// "#;
 ///
 /// let model = load(ccl).unwrap();
-/// assert_eq!(model.get("name").unwrap().as_str().unwrap(), "MyApp");
+/// assert_eq!(model.get_string("name").unwrap(), "MyApp");
 /// ```
 pub fn load(input: &str) -> Result<Model> {
     let entries = parse(input)?;
@@ -414,8 +388,8 @@ name = Santa
 version = 0.1.0
 "#;
         let model = load(ccl).unwrap();
-        assert_eq!(model.get("name").unwrap().as_str().unwrap(), "Santa");
-        assert_eq!(model.get("version").unwrap().as_str().unwrap(), "0.1.0");
+        assert_eq!(model.get_string("name").unwrap(), "Santa");
+        assert_eq!(model.get_string("version").unwrap(), "0.1.0");
     }
 
     #[test]
@@ -454,14 +428,14 @@ name = Santa
 version = 1.0
 "#;
         let model = load(ccl).unwrap();
-        assert_eq!(model.get("name").unwrap().as_str().unwrap(), "Santa");
-        assert_eq!(model.get("version").unwrap().as_str().unwrap(), "1.0");
+        assert_eq!(model.get_string("name").unwrap(), "Santa");
+        assert_eq!(model.get_string("version").unwrap(), "1.0");
 
         // Comments are preserved as entries with key "/"
         let comments = model.get("/").unwrap().as_list().unwrap();
         assert_eq!(comments.len(), 2);
-        assert_eq!(comments[0].as_str().unwrap(), "This is a comment");
-        assert_eq!(comments[1].as_str().unwrap(), "Another comment");
+        assert_eq!(comments[0], "This is a comment");
+        assert_eq!(comments[1], "Another comment");
     }
 
     #[test]
@@ -472,7 +446,7 @@ description = This is a long
   multiple lines
 "#;
         let model = load(ccl).unwrap();
-        let desc = model.get("description").unwrap().as_str().unwrap();
+        let desc = model.get_string("description").unwrap();
         assert!(desc.contains("long"));
         assert!(desc.contains("multiple lines"));
     }
@@ -485,10 +459,10 @@ enabled = true
 "#;
         let model = load(ccl).unwrap();
 
-        let port: u16 = model.get("port").unwrap().parse_value().unwrap();
+        let port: u16 = model.get_string("port").unwrap().parse().unwrap();
         assert_eq!(port, 5432);
 
-        let enabled: bool = model.get("enabled").unwrap().parse_value().unwrap();
+        let enabled: bool = model.get_string("enabled").unwrap().parse().unwrap();
         assert!(enabled);
     }
 
@@ -512,10 +486,10 @@ symbols = <>=+
 
         let list = symbols.as_list().unwrap();
         assert_eq!(list.len(), 4);
-        assert_eq!(list[0].as_str().unwrap(), "@#$%");
-        assert_eq!(list[1].as_str().unwrap(), "!^&*()");
-        assert_eq!(list[2].as_str().unwrap(), "[]{}|");
-        assert_eq!(list[3].as_str().unwrap(), "<>=+");
+        assert_eq!(list[0], "@#$%");
+        assert_eq!(list[1], "!^&*()");
+        assert_eq!(list[2], "[]{}|");
+        assert_eq!(list[3], "<>=+");
     }
 
     #[test]

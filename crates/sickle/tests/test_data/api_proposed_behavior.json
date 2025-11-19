@@ -21,12 +21,12 @@
         "multiline"
       ],
       "functions": [
-        "parse_dedented"
+        "parse_indented"
       ],
       "input": "== Section Header =\n  This continues the header\nkey = value",
-      "name": "multiline_section_header_value_parse_dedented",
+      "name": "multiline_section_header_value_parse_indented",
       "source_test": "multiline_section_header_value",
-      "validation": "parse_dedented",
+      "validation": "parse_indented",
       "variants": [
         "proposed_behavior"
       ]
@@ -50,12 +50,12 @@
         "empty_keys"
       ],
       "functions": [
-        "parse_dedented"
+        "parse_indented"
       ],
       "input": "== Section Header =\nThis continues the header\nkey = value",
-      "name": "unindented_multiline_becomes_continuation_parse_dedented",
+      "name": "unindented_multiline_becomes_continuation_parse_indented",
       "source_test": "unindented_multiline_becomes_continuation",
-      "validation": "parse_dedented",
+      "validation": "parse_indented",
       "variants": [
         "proposed_behavior"
       ]
@@ -931,12 +931,12 @@
         "multiline"
       ],
       "functions": [
-        "parse_dedented"
+        "parse_indented"
       ],
       "input": "descriptions = First line\nsecond line\ndescriptions = Another item\ndescriptions = Third item",
-      "name": "list_multiline_values_parse_dedented",
+      "name": "list_multiline_values_parse_indented",
       "source_test": "list_multiline_values",
-      "validation": "parse_dedented",
+      "validation": "parse_indented",
       "variants": [
         "proposed_behavior"
       ]
@@ -1050,12 +1050,12 @@
       },
       "features": [],
       "functions": [
-        "parse_dedented"
+        "parse_indented"
       ],
       "input": "config =\n  servers = web1\n  servers = web2\n  database =\n    hosts = primary\n    hosts = backup\n    port = 5432\n  cache = redis\nfeatures = auth\nfeatures = api\nfeatures = ui",
-      "name": "complex_mixed_list_scenarios_parse_dedented",
+      "name": "complex_mixed_list_scenarios_parse_indented",
       "source_test": "complex_mixed_list_scenarios",
-      "validation": "parse_dedented",
+      "validation": "parse_indented",
       "variants": [
         "proposed_behavior"
       ]

@@ -62,7 +62,8 @@ features =
     // Parse typed values
     println!("\nParsed typed values:");
     if let Ok(port_model) = model.at("database.port") {
-        let port: u16 = port_model.parse_value()?;
+        let port_str = port_model.as_str()?;
+        let port: u16 = port_str.parse()?;
         println!("  Port (as u16): {}", port);
     }
 
