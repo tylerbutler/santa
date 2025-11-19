@@ -128,28 +128,28 @@ impl Model {
     /// Check if this is a string value (singleton)
     ///
     /// A string value has exactly one key with an empty value
-    pub fn is_singleton(&self) -> bool {
+    pub(crate) fn is_singleton(&self) -> bool {
         self.0.len() == 1 && self.0.values().next().map_or(false, |v| v.0.is_empty())
     }
 
     /// Check if this is a list
     ///
     /// A list has multiple keys all with empty values
-    pub fn is_list(&self) -> bool {
+    pub(crate) fn is_list(&self) -> bool {
         self.0.len() > 1 && self.0.values().all(|v| v.0.is_empty())
     }
 
     /// Check if this is a map (nested structure)
     ///
     /// A map has at least one non-empty value
-    pub fn is_map(&self) -> bool {
+    pub(crate) fn is_map(&self) -> bool {
         !self.0.is_empty() && self.0.values().any(|v| !v.0.is_empty())
     }
 
     /// Extract as a list of strings
     ///
     /// Returns the keys as a list if this is a list representation
-    pub fn as_list(&self) -> Result<Vec<&str>> {
+    pub(crate) fn as_list(&self) -> Result<Vec<&str>> {
         if self.is_list() {
             Ok(self.0.keys().map(|k| k.as_str()).collect())
         } else {
