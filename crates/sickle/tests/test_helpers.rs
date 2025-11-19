@@ -115,11 +115,11 @@ impl ImplementationConfig {
                 "optional_typed_accessors".to_string(),
             ],
             chosen_behaviors: vec![
-                "list_coercion_disabled".to_string(),  // Reference: explicit lists only
-                "crlf_preserve_literal".to_string(),    // Reference: preserve CRLF
-                "boolean_strict".to_string(),           // Reference: strict boolean parsing
-                "strict_spacing".to_string(),           // Reference: strict spacing rules
-                "tabs_preserve".to_string(),            // Reference: preserve tabs
+                "list_coercion_disabled".to_string(), // Reference: explicit lists only
+                "crlf_preserve_literal".to_string(),  // Reference: preserve CRLF
+                "boolean_strict".to_string(),         // Reference: strict boolean parsing
+                "strict_spacing".to_string(),         // Reference: strict spacing rules
+                "tabs_preserve".to_string(),          // Reference: preserve tabs
             ],
         }
     }

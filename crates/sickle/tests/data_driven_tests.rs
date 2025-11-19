@@ -62,7 +62,9 @@ fn validate_model_against_json(
             if model.0.len() != 1 {
                 panic!(
                     "Test '{}': expected singleton string at '{}', got {} keys",
-                    test_name, path, model.0.len()
+                    test_name,
+                    path,
+                    model.0.len()
                 );
             }
             let (actual_str, value) = model.0.iter().next().unwrap();
@@ -221,15 +223,12 @@ fn test_parsing_suite_basic_tests() {
 
                 // Verify each expected entry exists with correct value
                 for entry in &test.expected.entries {
-                    let value_model = model
-                        .get(&entry.key)
-                        .unwrap_or_else(|_| {
-                            panic!("Test '{}': missing expected key '{}'", test.name, entry.key)
-                        });
-                    let value = model_as_str(value_model)
-                        .unwrap_or_else(|_| {
-                            panic!("Test '{}': key '{}' is not a string", test.name, entry.key)
-                        });
+                    let value_model = model.get(&entry.key).unwrap_or_else(|_| {
+                        panic!("Test '{}': missing expected key '{}'", test.name, entry.key)
+                    });
+                    let value = model_as_str(value_model).unwrap_or_else(|_| {
+                        panic!("Test '{}': key '{}' is not a string", test.name, entry.key)
+                    });
 
                     assert_eq!(
                         value, entry.value,
@@ -356,10 +355,9 @@ fn test_typed_access_suite_strings() {
                 } else if let Some(ref expected_value) = test.expected.value {
                     let value_model = result
                         .unwrap_or_else(|_| panic!("Test '{}': missing key '{}'", test.name, key));
-                    let value = model_as_str(value_model)
-                        .unwrap_or_else(|_| {
-                            panic!("Test '{}': key '{}' is not a string", test.name, key)
-                        });
+                    let value = model_as_str(value_model).unwrap_or_else(|_| {
+                        panic!("Test '{}': key '{}' is not a string", test.name, key)
+                    });
 
                     let expected_str = expected_value.as_str().unwrap_or_else(|| {
                         panic!("Test '{}': expected value is not a string", test.name)
@@ -429,13 +427,12 @@ fn test_filter_function() {
 
             // Verify the actual entries match
             for entry in &test.expected.entries {
-                let value_model = model
-                    .get(&entry.key)
-                    .unwrap_or_else(|_| panic!("Test '{}': missing key '{}'", test.name, entry.key));
-                let value = model_as_str(value_model)
-                    .unwrap_or_else(|_| {
-                        panic!("Test '{}': key '{}' is not a string", test.name, entry.key)
-                    });
+                let value_model = model.get(&entry.key).unwrap_or_else(|_| {
+                    panic!("Test '{}': missing key '{}'", test.name, entry.key)
+                });
+                let value = model_as_str(value_model).unwrap_or_else(|_| {
+                    panic!("Test '{}': key '{}' is not a string", test.name, entry.key)
+                });
 
                 assert_eq!(
                     value, entry.value,
@@ -654,17 +651,12 @@ fn test_all_ccl_suites_comprehensive() {
                             if test.expected.error.is_some() {
                                 assert!(get_result.is_err(), "Test '{}' expected error", test.name);
                             } else if let Some(ref expected_value) = test.expected.value {
-                                let value_model = get_result
-                                    .unwrap_or_else(|_| {
-                                        panic!("Test '{}': missing key '{}'", test.name, key)
-                                    });
-                                let value = model_as_str(value_model)
-                                    .unwrap_or_else(|_| {
-                                        panic!(
-                                            "Test '{}': key '{}' is not a string",
-                                            test.name, key
-                                        )
-                                    });
+                                let value_model = get_result.unwrap_or_else(|_| {
+                                    panic!("Test '{}': missing key '{}'", test.name, key)
+                                });
+                                let value = model_as_str(value_model).unwrap_or_else(|_| {
+                                    panic!("Test '{}': key '{}' is not a string", test.name, key)
+                                });
 
                                 let expected_str = expected_value.as_str().unwrap_or_else(|| {
                                     panic!("Test '{}': expected value is not a string", test.name)
@@ -782,7 +774,10 @@ fn test_all_ccl_suites_comprehensive() {
                             });
 
                             let actual_int: i64 = value_str.parse().unwrap_or_else(|_| {
-                                panic!("Test '{}': cannot parse '{}' as integer", test.name, value_str)
+                                panic!(
+                                    "Test '{}': cannot parse '{}' as integer",
+                                    test.name, value_str
+                                )
                             });
 
                             let expected_int = expected_value.as_i64().unwrap_or_else(|| {
@@ -841,7 +836,10 @@ fn test_all_ccl_suites_comprehensive() {
                                     "false" => false,
                                     "1" => true,
                                     "0" => false,
-                                    _ => panic!("Test '{}': cannot parse '{}' as boolean", test.name, value_str),
+                                    _ => panic!(
+                                        "Test '{}': cannot parse '{}' as boolean",
+                                        test.name, value_str
+                                    ),
                                 };
 
                                 let expected_bool = expected_value.as_bool().unwrap_or_else(|| {
@@ -880,7 +878,10 @@ fn test_all_ccl_suites_comprehensive() {
                             });
 
                             let actual_float: f64 = value_str.parse().unwrap_or_else(|_| {
-                                panic!("Test '{}': cannot parse '{}' as float", test.name, value_str)
+                                panic!(
+                                    "Test '{}': cannot parse '{}' as float",
+                                    test.name, value_str
+                                )
                             });
 
                             let expected_float = expected_value.as_f64().unwrap_or_else(|| {
@@ -890,7 +891,9 @@ fn test_all_ccl_suites_comprehensive() {
                             assert!(
                                 (actual_float - expected_float).abs() < 0.0001,
                                 "Test '{}': wrong float value, expected {} got {}",
-                                test.name, expected_float, actual_float
+                                test.name,
+                                expected_float,
+                                actual_float
                             );
                         }
                     }

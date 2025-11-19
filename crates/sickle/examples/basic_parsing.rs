@@ -33,7 +33,6 @@ features =
     println!("  Version: {}", model.get_string("version")?);
     println!("  Author: {}", model.get_string("author")?);
 
-
     // Navigate nested structures using public IndexMap field
     println!("\nDatabase Configuration:");
     let db = model.get("database")?;
@@ -56,7 +55,10 @@ features =
 
     // Access nested values using chained get() calls
     println!("\nUsing nested access:");
-    let username = model.get("database")?.get("credentials")?.get_string("username")?;
+    let username = model
+        .get("database")?
+        .get("credentials")?
+        .get_string("username")?;
     println!("  DB Username: {}", username);
 
     // Parse typed values using public API

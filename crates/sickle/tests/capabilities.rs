@@ -192,11 +192,7 @@ mod tests {
         ));
 
         // Test with unsupported function
-        assert!(!registry.should_run_test(
-            &[],
-            &["canonical_format".to_string()],
-            &[]
-        ));
+        assert!(!registry.should_run_test(&[], &["canonical_format".to_string()], &[]));
 
         // Test with empty requirements (should always run)
         assert!(registry.should_run_test(&[], &[], &[]));

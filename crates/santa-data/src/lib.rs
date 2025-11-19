@@ -261,8 +261,7 @@ fn parse_complex_object(s: &str) -> Result<Value> {
 /// ```
 pub fn parse_ccl_to<T: DeserializeOwned>(ccl_content: &str) -> Result<T> {
     // Use sickle's deserializer directly instead of going through JSON
-    sickle::from_str(ccl_content)
-        .context("Failed to deserialize parsed CCL")
+    sickle::from_str(ccl_content).context("Failed to deserialize parsed CCL")
 }
 
 #[cfg(test)]

@@ -58,7 +58,10 @@ package_managers =
         model_as_str(model.get("name").unwrap()).unwrap(),
         "Santa Package Manager"
     );
-    assert_eq!(model_as_str(model.get("version").unwrap()).unwrap(), "0.1.0");
+    assert_eq!(
+        model_as_str(model.get("version").unwrap()).unwrap(),
+        "0.1.0"
+    );
 
     // Test nested map navigation - database should be parsed as a map
     let db = model.get("database").expect("database should exist");
@@ -130,7 +133,10 @@ non_empty = value
         ""
     );
     assert_eq!(model_as_str(model.get("another").unwrap()).unwrap(), "");
-    assert_eq!(model_as_str(model.get("non_empty").unwrap()).unwrap(), "value");
+    assert_eq!(
+        model_as_str(model.get("non_empty").unwrap()).unwrap(),
+        "value"
+    );
 }
 
 #[test]
@@ -222,4 +228,3 @@ database =
     assert_eq!(config.database.host, "db.example.com");
     assert_eq!(config.database.port, 3306);
 }
-
