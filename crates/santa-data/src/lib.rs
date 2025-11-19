@@ -56,10 +56,9 @@ pub fn parse_to_hashmap(ccl_content: &str) -> Result<HashMap<String, Value>> {
 
 /// Convert a sickle Model to a HashMap<String, Value>
 fn model_to_hashmap(model: &sickle::Model) -> Result<HashMap<String, Value>> {
-    // Access public IndexMap field
     let mut result = HashMap::new();
 
-    for (key, value) in &model.0 {
+    for (key, value) in model.iter() {
         result.insert(key.clone(), model_to_value(value)?);
     }
 
@@ -68,41 +67,38 @@ fn model_to_hashmap(model: &sickle::Model) -> Result<HashMap<String, Value>> {
 
 /// Convert a sickle Model to a serde_json Value
 fn model_to_value(model: &sickle::Model) -> Result<Value> {
-    // Access public IndexMap field
-    let map = &model.0;
-
     // Fast path for singleton maps
-    if map.len() == 1 {
-        let (key, value) = map.iter().next().unwrap();
+    if model.len() == 1 {
+        let (key, value) = model.iter().next().unwrap();
 
         // Check if this is a list represented with empty key
         // CCL: bat = \n  = brew\n  = scoop
         // Becomes: {"": {"brew": {}, "scoop": {}}}
-        if key.is_empty() && !value.0.is_empty() && value.0.values().all(|v| v.0.is_empty()) {
+        if key.is_empty() && !value.is_empty() && value.values().all(|v| v.is_empty()) {
             // The value is a list (keys with empty values)
-            let values: Vec<Value> = value.0.keys().map(|k| Value::String(k.clone())).collect();
+            let values: Vec<Value> = value.keys().map(|k| Value::String(k.clone())).collect();
             return Ok(Value::Array(values));
         }
 
         // Check if this is a singleton string: {"value": {}}
-        if value.0.is_empty() {
+        if value.is_empty() {
             return Ok(Value::String(key.clone()));
         }
     }
 
     // Check if this is a list (multiple keys all with empty values)
-    if map.len() > 1 && map.values().all(|v| v.0.is_empty()) {
+    if model.len() > 1 && model.values().all(|v| v.is_empty()) {
         // This is a list - keys are the list items
-        let values: Vec<Value> = map.keys().map(|k| Value::String(k.clone())).collect();
+        let values: Vec<Value> = model.keys().map(|k| Value::String(k.clone())).collect();
         return Ok(Value::Array(values));
     }
 
     // Check if there are multiple empty keys (alternative list representation)
-    let empty_key_count = map.keys().filter(|k| k.is_empty()).count();
+    let empty_key_count = model.keys().filter(|k| k.is_empty()).count();
     if empty_key_count > 1 {
         // Extract all values from empty keys
         let mut values = Vec::new();
-        for (k, v) in map {
+        for (k, v) in model.iter() {
             if k.is_empty() {
                 values.push(model_to_value(v)?);
             }
@@ -112,125 +108,9 @@ fn model_to_value(model: &sickle::Model) -> Result<Value> {
 
     // Otherwise, it's a map (object)
     let mut obj = serde_json::Map::new();
-    for (k, v) in map {
+    for (k, v) in model.iter() {
         obj.insert(k.clone(), model_to_value(v)?);
     }
-    Ok(Value::Object(obj))
-}
-
-// Experimental CCL parsing functions used only in tests
-#[cfg(test)]
-#[allow(dead_code)]
-fn parse_value_string(s: &str) -> Result<Value> {
-    let trimmed = s.trim();
-
-    // Check if it's a simple array (starts with '=')
-    if trimmed.starts_with('=') {
-        return parse_simple_array(trimmed);
-    }
-
-    // Check if it contains field assignments (complex object)
-    if trimmed.contains('=') {
-        return parse_complex_object(trimmed);
-    }
-
-    // Fallback: treat as string
-    Ok(Value::String(s.to_string()))
-}
-
-#[cfg(test)]
-#[allow(dead_code)]
-fn parse_simple_array(s: &str) -> Result<Value> {
-    let items: Vec<String> = s
-        .lines()
-        .filter_map(|line| {
-            let trimmed = line.trim();
-            if let Some(stripped) = trimmed.strip_prefix('=') {
-                let value = stripped.trim();
-                if !value.is_empty() {
-                    Some(value.to_string())
-                } else {
-                    None
-                }
-            } else {
-                None
-            }
-        })
-        .collect();
-
-    Ok(Value::Array(items.into_iter().map(Value::String).collect()))
-}
-
-#[cfg(test)]
-#[allow(dead_code)]
-fn parse_complex_object(s: &str) -> Result<Value> {
-    let mut obj = serde_json::Map::new();
-    let mut current_key: Option<String> = None;
-    let mut current_lines: Vec<String> = Vec::new();
-    let mut current_indent = 0;
-
-    for line in s.lines() {
-        let line_indent = line.len() - line.trim_start().len();
-        let trimmed = line.trim();
-
-        if trimmed.is_empty() {
-            continue;
-        }
-
-        // Check if this line starts a new field (has '=' and is at base indent or less)
-        if let Some(eq_pos) = trimmed.find('=') {
-            let is_array_element = trimmed.starts_with('=');
-
-            // If this is an array element and we're collecting, add it
-            if is_array_element && current_key.is_some() && line_indent > current_indent {
-                current_lines.push(line.to_string());
-                continue;
-            }
-
-            // This is a new field - process previous field if any
-            if let Some(key) = current_key.take() {
-                let value_str = current_lines.join("\n");
-                let value = parse_value_string(&value_str)?;
-                obj.insert(key, value);
-                current_lines.clear();
-            }
-
-            if is_array_element {
-                // Start collecting array elements without a key name
-                // This shouldn't happen in well-formed CCL but handle it
-                current_lines.push(line.to_string());
-                continue;
-            }
-
-            // Extract the new field name
-            let field_name = trimmed[..eq_pos].trim();
-            let field_value = trimmed[eq_pos + 1..].trim();
-
-            current_indent = line_indent;
-
-            if !field_value.is_empty() {
-                // Value on same line
-                obj.insert(
-                    field_name.to_string(),
-                    Value::String(field_value.to_string()),
-                );
-            } else {
-                // Value on next lines
-                current_key = Some(field_name.to_string());
-            }
-        } else if current_key.is_some() {
-            // Continuation of current field value
-            current_lines.push(line.to_string());
-        }
-    }
-
-    // Process any remaining field
-    if let Some(key) = current_key {
-        let value_str = current_lines.join("\n");
-        let value = parse_value_string(&value_str)?;
-        obj.insert(key, value);
-    }
-
     Ok(Value::Object(obj))
 }
 

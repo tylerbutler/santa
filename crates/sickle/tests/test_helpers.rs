@@ -77,15 +77,23 @@ pub struct TestSuite {
     pub tests: Vec<TestCase>,
 }
 
-/// Configuration for implementation capabilities
+/// Centralized configuration for implementation capabilities
+///
+/// This struct defines what the current sickle implementation supports.
+/// It serves as the single source of truth for:
+/// - Which CCL functions are implemented
+/// - Which behavior choices we've made
+/// - Which test variants to run (e.g., excluding proposed_behavior)
+///
+/// Update `sickle_current()` to add/remove capabilities as implementation evolves.
 #[derive(Debug, Clone)]
 pub struct ImplementationConfig {
     /// Supported functions (e.g., "parse", "build_hierarchy", "get_string")
     pub supported_functions: Vec<String>,
-    /// Supported features (e.g., "comments", "multiline", "unicode")
-    pub supported_features: Vec<String>,
     /// Chosen behaviors (e.g., "boolean_strict", "crlf_normalize_to_lf")
     pub chosen_behaviors: Vec<String>,
+    /// Supported variants (e.g., "reference_compliant", excluding "proposed_behavior")
+    pub supported_variants: Vec<String>,
 }
 
 impl ImplementationConfig {
@@ -106,20 +114,16 @@ impl ImplementationConfig {
                 "get_bool".to_string(),
                 "get_list".to_string(),
             ],
-            supported_features: vec![
-                "comments".to_string(),
-                "empty_keys".to_string(),
-                "multiline".to_string(),
-                "unicode".to_string(),
-                "whitespace".to_string(),
-                "optional_typed_accessors".to_string(),
-            ],
             chosen_behaviors: vec![
                 "list_coercion_disabled".to_string(), // Reference: explicit lists only
                 "crlf_preserve_literal".to_string(),  // Reference: preserve CRLF
                 "boolean_strict".to_string(),         // Reference: strict boolean parsing
                 "strict_spacing".to_string(),         // Reference: strict spacing rules
                 "tabs_preserve".to_string(),          // Reference: preserve tabs
+            ],
+            supported_variants: vec![
+                // Empty list means we accept tests with no variants OR reference_compliant
+                // We explicitly exclude "proposed_behavior" by not listing it here
             ],
         }
     }
@@ -162,29 +166,33 @@ impl TestSuite {
     ///
     /// This implements the test filtering strategy described in the CCL test suite guide.
     /// Tests are filtered based on:
-    /// 1. Whether all required functions are implemented
-    /// 2. Whether all required features are supported
+    /// 1. Whether test variants are supported (e.g., excludes "proposed_behavior")
+    /// 2. Whether all required functions are implemented
     /// 3. Whether behaviors conflict with chosen behaviors
     pub fn filter_by_capabilities(&self, config: &ImplementationConfig) -> Vec<&TestCase> {
         self.tests
             .iter()
             .filter(|test| {
+                // Check variant support
+                // If test has variants, at least one must be in our supported list
+                // Empty supported_variants means we only accept tests with no variants
+                if !test.variants.is_empty() {
+                    let has_supported_variant = test
+                        .variants
+                        .iter()
+                        .any(|v| config.supported_variants.contains(v));
+
+                    if !has_supported_variant {
+                        return false;
+                    }
+                }
+
                 // Check if all required functions are implemented
                 if !test.functions.is_empty()
                     && !test
                         .functions
                         .iter()
                         .all(|f| config.supported_functions.contains(f))
-                {
-                    return false;
-                }
-
-                // Check if all required features are supported
-                if !test.features.is_empty()
-                    && !test
-                        .features
-                        .iter()
-                        .all(|f| config.supported_features.contains(f))
                 {
                     return false;
                 }

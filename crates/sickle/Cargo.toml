@@ -27,9 +27,6 @@ intern = ["dep:string-interner"]
 # list-indexing = []        # Advanced list operations and indexing
 
 [dependencies]
-# Error handling
-thiserror.workspace = true
-
 # Data structures - IndexMap for insertion-order preservation
 indexmap = { version = "2.0", features = ["serde"] }
 
@@ -42,8 +39,6 @@ string-interner = { version = "0.17", optional = true }
 
 [dev-dependencies]
 # Testing framework
-rstest.workspace = true
-proptest.workspace = true
 serde_json.workspace = true
 
 [[example]]
