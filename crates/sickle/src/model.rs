@@ -41,7 +41,7 @@ impl Entry {
 /// - Uses IndexMap to preserve insertion order
 #[derive(Debug, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-pub struct Model(pub IndexMap<String, Model>);
+pub struct Model(IndexMap<String, Model>);
 
 impl Model {
     /// Create a new empty model
@@ -49,11 +49,47 @@ impl Model {
         Model(IndexMap::new())
     }
 
+    /// Create a Model from an IndexMap
+    /// This is internal-only for crate operations
+    pub(crate) fn from_map(map: IndexMap<String, Model>) -> Self {
+        Model(map)
+    }
+
     /// Get a value by key, returning an error if the key doesn't exist
     pub fn get(&self, key: &str) -> Result<&Model> {
         self.0
             .get(key)
             .ok_or_else(|| Error::MissingKey(key.to_string()))
+    }
+
+    /// Get an iterator over the keys in this model
+    pub fn keys(&self) -> impl Iterator<Item = &String> {
+        self.0.keys()
+    }
+
+    /// Get an iterator over the values in this model
+    pub fn values(&self) -> impl Iterator<Item = &Model> {
+        self.0.values()
+    }
+
+    /// Get an iterator over key-value pairs in this model
+    pub fn iter(&self) -> impl Iterator<Item = (&String, &Model)> {
+        self.0.iter()
+    }
+
+    /// Get the concrete IndexMap iterator for internal use (Serde)
+    pub(crate) fn iter_map(&self) -> indexmap::map::Iter<'_, String, Model> {
+        self.0.iter()
+    }
+
+    /// Get the number of entries in this model
+    pub fn len(&self) -> usize {
+        self.0.len()
+    }
+
+    /// Check if this model is empty
+    pub fn is_empty(&self) -> bool {
+        self.0.is_empty()
     }
 
     /// Extract a string value from the model (no key lookup)
@@ -127,7 +163,7 @@ impl Model {
     /// Each key in the map represents one list element.
     /// Example: `{"item1": {}, "item2": {}, "item3": {}}` represents the list ["item1", "item2", "item3"]
     pub(crate) fn as_list(&self) -> Vec<String> {
-        self.0.keys().cloned().collect()
+        self.keys().cloned().collect()
     }
 
     /// Get a list of string values by key
@@ -140,10 +176,17 @@ impl Model {
     /// Create a Model from a string value
     ///
     /// Creates the representation `{string: {}}`
-    pub fn from_string(s: impl Into<String>) -> Self {
+    /// This is internal-only for Serde support
+    pub(crate) fn from_string(s: impl Into<String>) -> Self {
         let mut map = IndexMap::new();
         map.insert(s.into(), Model::new());
         Model(map)
+    }
+
+    /// Extract the inner IndexMap, consuming the Model
+    /// This is internal-only for crate operations
+    pub(crate) fn into_inner(self) -> IndexMap<String, Model> {
+        self.0
     }
 }
 
@@ -160,7 +203,7 @@ mod tests {
     #[test]
     fn test_empty_model() {
         let model = Model::new();
-        assert!(model.0.is_empty());
+        assert!(model.is_empty());
     }
 
     #[test]

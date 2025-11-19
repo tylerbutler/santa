@@ -36,17 +36,17 @@ features =
     // Navigate nested structures using public IndexMap field
     println!("\nDatabase Configuration:");
     let db = model.get("database")?;
-    for (key, value) in &db.0 {
+    for (key, value) in db.iter() {
         // Check if it's a string (singleton with empty value)
-        if value.0.len() == 1 && value.0.values().next().unwrap().0.is_empty() {
-            let s = value.0.keys().next().unwrap();
+        if value.len() == 1 && value.values().next().unwrap().is_empty() {
+            let s = value.keys().next().unwrap();
             println!("  {}: {}", key, s);
         } else {
             // It's a nested map
             println!("  {}:", key);
-            for (k, v) in &value.0 {
-                if v.0.len() == 1 && v.0.values().next().unwrap().0.is_empty() {
-                    let s = v.0.keys().next().unwrap();
+            for (k, v) in value.iter() {
+                if v.len() == 1 && v.values().next().unwrap().is_empty() {
+                    let s = v.keys().next().unwrap();
                     println!("    {}: {}", k, s);
                 }
             }

@@ -180,13 +180,13 @@ fn build_model(map: indexmap::IndexMap<String, Vec<String>>) -> Result<Model> {
                 match load(&value) {
                     Ok(parsed) => {
                         // Check if this looks like valid CCL structure
-                        if !parsed.0.is_empty() {
+                        if !parsed.is_empty() {
                             // Check if all keys look like valid CCL keys
-                            let has_valid_keys = parsed.0.keys().all(|k| is_valid_ccl_key(k));
+                            let has_valid_keys = parsed.keys().all(|k| is_valid_ccl_key(k));
 
                             if has_valid_keys {
                                 // It's valid nested CCL, merge it into our nested map
-                                for (k, v) in parsed.0 {
+                                for (k, v) in parsed.into_inner() {
                                     nested.insert(k, v);
                                 }
                             } else {
@@ -209,10 +209,10 @@ fn build_model(map: indexmap::IndexMap<String, Vec<String>>) -> Result<Model> {
             }
         }
 
-        result.insert(key, Model(nested));
+        result.insert(key, Model::from_map(nested));
     }
 
-    Ok(Model(result))
+    Ok(Model::from_map(result))
 }
 
 /// Parse a CCL value string with automatic prefix detection
@@ -405,7 +405,7 @@ items =
         // The nested list syntax needs proper handling
         // The value contains nested CCL which will be parsed
         // List is represented as multiple keys with empty values
-        assert!(!items.0.is_empty());
+        assert!(!items.is_empty());
     }
 
     #[test]
@@ -418,8 +418,8 @@ database =
         let model = load(ccl).unwrap();
         let db = model.get("database").unwrap();
         // Database is a map with nested values
-        let is_map = !db.0.is_empty() && db.0.values().any(|v| !v.0.is_empty());
-        let is_singleton = db.0.len() == 1 && db.0.values().next().is_some_and(|v| v.0.is_empty());
+        let is_map = !db.is_empty() && db.values().any(|v| !v.is_empty());
+        let is_singleton = db.len() == 1 && db.values().next().is_some_and(|v| v.is_empty());
         assert!(is_map || is_singleton);
     }
 
@@ -438,7 +438,7 @@ version = 1.0
         // Comments are preserved as entries with key "/"
         let comments_model = model.get("/").unwrap();
         // Comments are stored as keys (list representation)
-        let comment_keys: Vec<&String> = comments_model.0.keys().collect();
+        let comment_keys: Vec<&String> = comments_model.keys().collect();
         assert_eq!(comment_keys.len(), 2);
         assert_eq!(comment_keys[0], "This is a comment");
         assert_eq!(comment_keys[1], "Another comment");
@@ -485,7 +485,7 @@ symbols = <>=+
         // Should create a list from duplicate keys
         let symbols = model.get("symbols").unwrap();
         // List is represented as multiple keys with empty values
-        let is_list = symbols.0.len() > 1 && symbols.0.values().all(|v| v.0.is_empty());
+        let is_list = symbols.len() > 1 && symbols.values().all(|v| v.is_empty());
         assert!(
             is_list,
             "Duplicate keys should create a list, got: {:?}",
@@ -493,7 +493,7 @@ symbols = <>=+
         );
 
         // List items are stored as keys
-        let list: Vec<&String> = symbols.0.keys().collect();
+        let list: Vec<&String> = symbols.keys().collect();
         assert_eq!(list.len(), 4);
         assert_eq!(list[0], "@#$%");
         assert_eq!(list[1], "!^&*()");

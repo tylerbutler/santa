@@ -6,9 +6,9 @@ use sickle::load;
 
 /// Test helper to extract string value from Model using public API
 fn model_as_str(model: &sickle::Model) -> Result<&str, String> {
-    if model.0.len() == 1 {
-        let (key, value) = model.0.iter().next().unwrap();
-        if value.0.is_empty() {
+    if model.len() == 1 {
+        let (key, value) = model.iter().next().unwrap();
+        if value.is_empty() {
             return Ok(key.as_str());
         }
     }
@@ -17,7 +17,7 @@ fn model_as_str(model: &sickle::Model) -> Result<&str, String> {
 
 /// Test helper to check if Model is a map using public API
 fn model_is_map(model: &sickle::Model) -> bool {
-    !model.0.is_empty() && model.0.values().any(|v| !v.0.is_empty())
+    !model.is_empty() && model.values().any(|v| !v.is_empty())
 }
 
 #[test]
@@ -107,7 +107,7 @@ other = data
     assert!(model.get("/").is_ok());
     // Comments are stored as keys in the IndexMap (list representation)
     let comments_model = model.get("/").unwrap();
-    let comment_keys: Vec<&String> = comments_model.0.keys().collect();
+    let comment_keys: Vec<&String> = comments_model.keys().collect();
     assert_eq!(comment_keys.len(), 3);
     assert_eq!(comment_keys[0], "This is a comment");
     assert_eq!(comment_keys[1], "Comments are valid entries in CCL");

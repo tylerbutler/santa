@@ -7,22 +7,6 @@ use sickle::{build_hierarchy, load, parse, parse_indented};
 use std::path::Path;
 use test_helpers::{load_all_test_suites, ImplementationConfig, TestSuite};
 
-/// Test helper to extract string value from Model using public API
-///
-/// Accesses Model.0 (the public IndexMap field). While Model has an as_string() method,
-/// it's pub(crate) and not accessible from integration tests.
-///
-/// A string value in CCL is represented as: {"string_value": {}}
-fn model_as_str(model: &sickle::Model) -> Result<&str, String> {
-    if model.0.len() == 1 {
-        let (key, value) = model.0.iter().next().unwrap();
-        if value.0.is_empty() {
-            return Ok(key.as_str());
-        }
-    }
-    Err("not a singleton string".to_string())
-}
-
 /// Helper to navigate nested paths in a Model (e.g., ["config", "database", "port"])
 fn navigate_path<'a>(
     model: &'a sickle::Model,
@@ -38,16 +22,6 @@ fn navigate_path<'a>(
     Ok(current)
 }
 
-/// Helper to extract list from Model using public API
-///
-/// Accesses Model.0 (the public IndexMap field). While Model has an as_list() method,
-/// it's pub(crate) and not accessible from integration tests.
-///
-/// A list in CCL is represented as multiple keys in the map: {"item1": {}, "item2": {}, "item3": {}}
-fn model_as_list(model: &sickle::Model) -> Vec<String> {
-    model.0.keys().cloned().collect()
-}
-
 /// Helper function to recursively validate a Model against expected JSON structure
 fn validate_model_against_json(
     model: &sickle::Model,
@@ -59,16 +33,16 @@ fn validate_model_against_json(
         serde_json::Value::String(expected_str) => {
             // Expect a singleton string: {"value": {}}
             // Access via public IndexMap field
-            if model.0.len() != 1 {
+            if model.len() != 1 {
                 panic!(
                     "Test '{}': expected singleton string at '{}', got {} keys",
                     test_name,
                     path,
-                    model.0.len()
+                    model.len()
                 );
             }
-            let (actual_str, value) = model.0.iter().next().unwrap();
-            if !value.0.is_empty() {
+            let (actual_str, value) = model.iter().next().unwrap();
+            if !value.is_empty() {
                 panic!(
                     "Test '{}': expected string singleton at '{}', but value is not empty",
                     test_name, path
@@ -90,7 +64,7 @@ fn validate_model_against_json(
                     format!("{}.{}", path, key)
                 };
 
-                let actual_model = model.0.get(key).unwrap_or_else(|| {
+                let actual_model = model.get(key).unwrap_or_else(|_| {
                     panic!("Test '{}': missing key '{}' at '{}'", test_name, key, path)
                 });
 
@@ -99,31 +73,31 @@ fn validate_model_against_json(
 
             // Check for extra keys
             assert_eq!(
-                model.0.len(),
+                model.len(),
                 expected_map.len(),
                 "Test '{}': expected {} keys at '{}', got {}",
                 test_name,
                 expected_map.len(),
                 path,
-                model.0.len()
+                model.len()
             );
         }
         serde_json::Value::Array(expected_array) => {
             // Expect a list - multiple keys with empty values
             // Access via public IndexMap field
             assert_eq!(
-                model.0.len(),
+                model.len(),
                 expected_array.len(),
                 "Test '{}': expected {} items at '{}', got {}",
                 test_name,
                 expected_array.len(),
                 path,
-                model.0.len()
+                model.len()
             );
 
             // Validate each item - lists are represented as keys in order
             for (i, (actual_key, expected_item)) in
-                model.0.keys().zip(expected_array.iter()).enumerate()
+                model.keys().zip(expected_array.iter()).enumerate()
             {
                 let new_path = format!("{}[{}]", path, i);
                 // For list items, create a synthetic Model for string comparison
@@ -210,24 +184,19 @@ fn test_parsing_suite_basic_tests() {
                 });
 
                 // Verify we got the expected number of top-level entries
-                // Use public IndexMap field
-                let map = &model.0;
                 assert_eq!(
-                    map.len(),
+                    model.len(),
                     test.expected.count,
                     "Test '{}' expected {} entries, got {}",
                     test.name,
                     test.expected.count,
-                    map.len()
+                    model.len()
                 );
 
                 // Verify each expected entry exists with correct value
                 for entry in &test.expected.entries {
-                    let value_model = model.get(&entry.key).unwrap_or_else(|_| {
-                        panic!("Test '{}': missing expected key '{}'", test.name, entry.key)
-                    });
-                    let value = model_as_str(value_model).unwrap_or_else(|_| {
-                        panic!("Test '{}': key '{}' is not a string", test.name, entry.key)
+                    let value = model.get_string(&entry.key).unwrap_or_else(|e| {
+                        panic!("Test '{}': failed to get string for key '{}': {}", test.name, entry.key, e)
                     });
 
                     assert_eq!(
@@ -286,14 +255,14 @@ fn test_comments_suite() {
                 });
 
                 // Verify entry count - use public IndexMap field
-                let map = &model.0;
+                // Removed direct .0 access
                 assert_eq!(
-                    map.len(),
+                    model.len(),
                     test.expected.count,
                     "Test '{}' expected {} entries, got {}",
                     test.name,
                     test.expected.count,
-                    map.len()
+                    model.len()
                 );
             }
         });
@@ -343,20 +312,19 @@ fn test_typed_access_suite_strings() {
 
             // Get the value at the specified key
             if let Some(ref key) = test.expected.key {
-                let result = model.get(key);
+                let result = model.get_string(key);
 
                 if test.expected.error.is_some() {
                     assert!(
                         result.is_err(),
-                        "Test '{}' expected error for key '{}'",
+                        "Test '{}' expected error for key '{}' but got: {:?}",
                         test.name,
-                        key
+                        key,
+                        result
                     );
                 } else if let Some(ref expected_value) = test.expected.value {
-                    let value_model = result
-                        .unwrap_or_else(|_| panic!("Test '{}': missing key '{}'", test.name, key));
-                    let value = model_as_str(value_model).unwrap_or_else(|_| {
-                        panic!("Test '{}': key '{}' is not a string", test.name, key)
+                    let value = result.unwrap_or_else(|e| {
+                        panic!("Test '{}': failed to get string for key '{}': {}", test.name, key, e)
                     });
 
                     let expected_str = expected_value.as_str().unwrap_or_else(|| {
@@ -417,8 +385,8 @@ fn test_filter_function() {
 
             // For filter tests, we expect the model to filter out comments
             // and only contain non-comment entries - use public IndexMap field
-            let map = &model.0;
-            let count = map.len();
+            // Removed direct .0 access
+            let count = model.len();
             assert_eq!(
                 count, test.expected.count,
                 "Test '{}' expected {} entries, got {}",
@@ -427,11 +395,8 @@ fn test_filter_function() {
 
             // Verify the actual entries match
             for entry in &test.expected.entries {
-                let value_model = model.get(&entry.key).unwrap_or_else(|_| {
-                    panic!("Test '{}': missing key '{}'", test.name, entry.key)
-                });
-                let value = model_as_str(value_model).unwrap_or_else(|_| {
-                    panic!("Test '{}': key '{}' is not a string", test.name, entry.key)
+                let value = model.get_string(&entry.key).unwrap_or_else(|e| {
+                    panic!("Test '{}': failed to get string for key '{}': {}", test.name, entry.key, e)
                 });
 
                 assert_eq!(
@@ -646,16 +611,18 @@ fn test_all_ccl_suites_comprehensive() {
                                     panic!("Test '{}' failed to build hierarchy: {}", test.name, e);
                                 });
 
-                            let get_result = model.get(key);
+                            // Use the actual get_string() method being tested
+                            let get_string_result = model.get_string(key);
 
                             if test.expected.error.is_some() {
-                                assert!(get_result.is_err(), "Test '{}' expected error", test.name);
+                                assert!(
+                                    get_string_result.is_err(),
+                                    "Test '{}' expected error but got: {:?}",
+                                    test.name, get_string_result
+                                );
                             } else if let Some(ref expected_value) = test.expected.value {
-                                let value_model = get_result.unwrap_or_else(|_| {
-                                    panic!("Test '{}': missing key '{}'", test.name, key)
-                                });
-                                let value = model_as_str(value_model).unwrap_or_else(|_| {
-                                    panic!("Test '{}': key '{}' is not a string", test.name, key)
+                                let value = get_string_result.unwrap_or_else(|e| {
+                                    panic!("Test '{}': failed to get string for key '{}': {}", test.name, key, e)
                                 });
 
                                 let expected_str = expected_value.as_str().unwrap_or_else(|| {
@@ -712,27 +679,47 @@ fn test_all_ccl_suites_comprehensive() {
                                 panic!("Test '{}' failed to build hierarchy: {}", test.name, e);
                             });
 
-                        // Navigate to the target using args as path
-                        let target_result = navigate_path(&model, &test.args, &test.name);
+                        // Navigate to parent path (all but last element) if needed
+                        let (parent_model, key) = if test.args.len() > 1 {
+                            let parent_path = &test.args[..test.args.len() - 1];
+                            let parent = navigate_path(&model, parent_path, &test.name).unwrap_or_else(|e| {
+                                panic!("Test '{}': failed to navigate path: {}", test.name, e);
+                            });
+                            (parent, test.args.last().unwrap())
+                        } else {
+                            (&model, test.args.first().unwrap())
+                        };
+
+                        // Use the actual get_list() method being tested
+                        let get_list_result = parent_model.get_list(key);
 
                         if test.expected.error.is_some() {
                             assert!(
-                                target_result.is_err(),
-                                "Test '{}' expected error",
-                                test.name
+                                get_list_result.is_err(),
+                                "Test '{}' expected error but got: {:?}",
+                                test.name, get_list_result
                             );
                         } else if test.expected.count == 0 {
-                            // Empty list case - key doesn't exist or path is invalid
-                            assert!(
-                                target_result.is_err() || target_result.unwrap().0.is_empty(),
-                                "Test '{}' expected empty list",
-                                test.name
-                            );
+                            // Empty list case
+                            if let Ok(list) = get_list_result {
+                                assert!(
+                                    list.is_empty(),
+                                    "Test '{}' expected empty list but got {} items",
+                                    test.name,
+                                    list.len()
+                                );
+                            } else {
+                                // Key doesn't exist - that's also acceptable for empty list test
+                                assert!(
+                                    get_list_result.is_err(),
+                                    "Test '{}' expected empty list or error",
+                                    test.name
+                                );
+                            }
                         } else if let Some(ref expected_list) = test.expected.list {
-                            let target_model = target_result.unwrap_or_else(|e| {
-                                panic!("Test '{}': {}", test.name, e);
+                            let actual_list = get_list_result.unwrap_or_else(|e| {
+                                panic!("Test '{}': failed to get list for key '{}': {}", test.name, key, e)
                             });
-                            let actual_list = model_as_list(target_model);
 
                             assert_eq!(
                                 actual_list.len(),
@@ -757,26 +744,31 @@ fn test_all_ccl_suites_comprehensive() {
                                 panic!("Test '{}' failed to build hierarchy: {}", test.name, e);
                             });
 
-                        let target_result = navigate_path(&model, &test.args, &test.name);
+                        // Navigate to parent path (all but last element) if needed
+                        let (parent_model, key) = if test.args.len() > 1 {
+                            let parent_path = &test.args[..test.args.len() - 1];
+                            let parent = navigate_path(&model, parent_path, &test.name).unwrap_or_else(|e| {
+                                panic!("Test '{}': failed to navigate path: {}", test.name, e);
+                            });
+                            (parent, test.args.last().unwrap())
+                        } else {
+                            (&model, test.args.first().unwrap())
+                        };
+
+                        // Use the typed accessor get_int()
+                        let int_result = parent_model.get_int(key);
 
                         if test.expected.error.is_some() {
                             assert!(
-                                target_result.is_err(),
-                                "Test '{}' expected error",
-                                test.name
+                                int_result.is_err(),
+                                "Test '{}' expected error but got: {:?}",
+                                test.name, int_result
                             );
                         } else if let Some(ref expected_value) = test.expected.value {
-                            let target_model = target_result.unwrap_or_else(|e| {
-                                panic!("Test '{}': {}", test.name, e);
-                            });
-                            let value_str = model_as_str(target_model).unwrap_or_else(|_| {
-                                panic!("Test '{}': value is not a string", test.name)
-                            });
-
-                            let actual_int: i64 = value_str.parse().unwrap_or_else(|_| {
+                            let actual_int = int_result.unwrap_or_else(|e| {
                                 panic!(
-                                    "Test '{}': cannot parse '{}' as integer",
-                                    test.name, value_str
+                                    "Test '{}': failed to get int from model: {}",
+                                    test.name, e
                                 )
                             });
 
@@ -798,49 +790,42 @@ fn test_all_ccl_suites_comprehensive() {
                                 panic!("Test '{}' failed to build hierarchy: {}", test.name, e);
                             });
 
-                        let target_result = navigate_path(&model, &test.args, &test.name);
+                        // Navigate to parent path (all but last element) if needed
+                        let (parent_model, key) = if test.args.len() > 1 {
+                            let parent_path = &test.args[..test.args.len() - 1];
+                            let parent = navigate_path(&model, parent_path, &test.name).unwrap_or_else(|e| {
+                                panic!("Test '{}': failed to navigate path: {}", test.name, e);
+                            });
+                            (parent, test.args.last().unwrap())
+                        } else {
+                            (&model, test.args.first().unwrap())
+                        };
+
+                        // Use the typed accessor get_bool()
+                        let bool_result = parent_model.get_bool(key);
 
                         if test.expected.error.is_some() {
                             assert!(
-                                target_result.is_err(),
-                                "Test '{}' expected error",
-                                test.name
+                                bool_result.is_err(),
+                                "Test '{}' expected error but got: {:?}",
+                                test.name, bool_result
                             );
                         } else if let Some(ref expected_value) = test.expected.value {
                             if expected_value.is_null() {
                                 // Test expects that the value cannot be parsed as bool
-                                // (e.g., "yes" with strict boolean parsing)
-                                let target_model = target_result.unwrap_or_else(|e| {
-                                    panic!("Test '{}': {}", test.name, e);
-                                });
-                                let value_str = model_as_str(target_model).unwrap_or_else(|_| {
-                                    panic!("Test '{}': value is not a string", test.name)
-                                });
-
-                                // In strict mode, only "true" and "false" are valid
+                                // This should result in an error from get_bool()
                                 assert!(
-                                    value_str != "true" && value_str != "false",
-                                    "Test '{}': expected null (unparseable bool) but got valid bool value",
-                                    test.name
+                                    bool_result.is_err(),
+                                    "Test '{}': expected error (unparseable bool) but got: {:?}",
+                                    test.name, bool_result
                                 );
                             } else {
-                                let target_model = target_result.unwrap_or_else(|e| {
-                                    panic!("Test '{}': {}", test.name, e);
+                                let actual_bool = bool_result.unwrap_or_else(|e| {
+                                    panic!(
+                                        "Test '{}': failed to get bool from model: {}",
+                                        test.name, e
+                                    )
                                 });
-                                let value_str = model_as_str(target_model).unwrap_or_else(|_| {
-                                    panic!("Test '{}': value is not a string", test.name)
-                                });
-
-                                let actual_bool = match value_str {
-                                    "true" => true,
-                                    "false" => false,
-                                    "1" => true,
-                                    "0" => false,
-                                    _ => panic!(
-                                        "Test '{}': cannot parse '{}' as boolean",
-                                        test.name, value_str
-                                    ),
-                                };
 
                                 let expected_bool = expected_value.as_bool().unwrap_or_else(|| {
                                     panic!("Test '{}': expected value is not a boolean", test.name)
@@ -861,26 +846,31 @@ fn test_all_ccl_suites_comprehensive() {
                                 panic!("Test '{}' failed to build hierarchy: {}", test.name, e);
                             });
 
-                        let target_result = navigate_path(&model, &test.args, &test.name);
+                        // Navigate to parent path (all but last element) if needed
+                        let (parent_model, key) = if test.args.len() > 1 {
+                            let parent_path = &test.args[..test.args.len() - 1];
+                            let parent = navigate_path(&model, parent_path, &test.name).unwrap_or_else(|e| {
+                                panic!("Test '{}': failed to navigate path: {}", test.name, e);
+                            });
+                            (parent, test.args.last().unwrap())
+                        } else {
+                            (&model, test.args.first().unwrap())
+                        };
+
+                        // Use the typed accessor get_float()
+                        let float_result = parent_model.get_float(key);
 
                         if test.expected.error.is_some() {
                             assert!(
-                                target_result.is_err(),
-                                "Test '{}' expected error",
-                                test.name
+                                float_result.is_err(),
+                                "Test '{}' expected error but got: {:?}",
+                                test.name, float_result
                             );
                         } else if let Some(ref expected_value) = test.expected.value {
-                            let target_model = target_result.unwrap_or_else(|e| {
-                                panic!("Test '{}': {}", test.name, e);
-                            });
-                            let value_str = model_as_str(target_model).unwrap_or_else(|_| {
-                                panic!("Test '{}': value is not a string", test.name)
-                            });
-
-                            let actual_float: f64 = value_str.parse().unwrap_or_else(|_| {
+                            let actual_float = float_result.unwrap_or_else(|e| {
                                 panic!(
-                                    "Test '{}': cannot parse '{}' as float",
-                                    test.name, value_str
+                                    "Test '{}': failed to get float from model: {}",
+                                    test.name, e
                                 )
                             });
 

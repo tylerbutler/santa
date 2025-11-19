@@ -80,14 +80,14 @@ impl<'de> de::Deserializer<'de> for &mut Deserializer {
         }
 
         // Check if it's a list (multiple keys at same level)
-        if self.model.0.len() > 1 && self.model.0.values().all(|v| v.0.is_empty()) {
+        if self.model.len() > 1 && self.model.values().all(|v| v.is_empty()) {
             return self.deserialize_seq(visitor);
         }
 
         // Check if it's a list with empty keys (CCL list syntax: = item1, = item2)
-        if self.model.0.len() == 1 {
-            if let Some(value) = self.model.0.get("") {
-                if value.0.len() > 1 && value.0.values().all(|v| v.0.is_empty()) {
+        if self.model.len() == 1 {
+            if let Ok(value) = self.model.get("") {
+                if value.len() > 1 && value.values().all(|v| v.is_empty()) {
                     return self.deserialize_seq(visitor);
                 }
             }
@@ -304,9 +304,9 @@ impl<'de> de::Deserializer<'de> for &mut Deserializer {
         V: Visitor<'de>,
     {
         // Check if it's a list (multiple keys with empty values)
-        if self.model.0.len() > 1 && self.model.0.values().all(|v| v.0.is_empty()) {
+        if self.model.len() > 1 && self.model.values().all(|v| v.is_empty()) {
             // Collect keys as the list items
-            let items: Vec<String> = self.model.0.keys().cloned().collect();
+            let items: Vec<String> = self.model.keys().cloned().collect();
             let seq = StringSeqDeserializer {
                 iter: items.into_iter(),
             };
@@ -341,13 +341,13 @@ impl<'de> de::Deserializer<'de> for &mut Deserializer {
         }
 
         // Check if it's a map with empty keys (list representation)
-        if self.model.0.keys().any(|k| k.is_empty()) {
+        if self.model.keys().any(|k| k.is_empty()) {
             // Special case: if there's only one empty key and its value has entries,
             // use those entries as the list
-            if self.model.0.len() == 1 {
-                if let Some(value) = self.model.0.get("") {
-                    if !value.0.is_empty() && value.0.values().all(|v| v.0.is_empty()) {
-                        let items: Vec<String> = value.0.keys().cloned().collect();
+            if self.model.len() == 1 {
+                if let Ok(value) = self.model.get("") {
+                    if !value.is_empty() && value.values().all(|v| v.is_empty()) {
+                        let items: Vec<String> = value.keys().cloned().collect();
                         let seq = StringSeqDeserializer {
                             iter: items.into_iter(),
                         };
@@ -359,7 +359,6 @@ impl<'de> de::Deserializer<'de> for &mut Deserializer {
             // Otherwise, extract values with empty keys as a list
             let list: Vec<crate::Model> = self
                 .model
-                .0
                 .iter()
                 .filter_map(|(k, v)| if k.is_empty() { Some(v.clone()) } else { None })
                 .collect();
@@ -399,9 +398,8 @@ impl<'de> de::Deserializer<'de> for &mut Deserializer {
     where
         V: Visitor<'de>,
     {
-        let map = &self.model.0;
         let map_de = MapDeserializer {
-            iter: map.iter(),
+            iter: self.model.iter_map(),
             value: None,
         };
         visitor.visit_map(map_de)
