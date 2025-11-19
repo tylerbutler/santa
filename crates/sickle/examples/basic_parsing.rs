@@ -27,45 +27,42 @@ features =
     println!("Parsing CCL document...\n");
     let model = load(ccl)?;
 
-    // Access simple values
+    // Access simple values using public API
     println!("Application Info:");
-    println!("  Name: {}", model.get("name")?.as_str()?);
-    println!("  Version: {}", model.get("version")?.as_str()?);
-    println!("  Author: {}", model.get("author")?.as_str()?);
+    println!("  Name: {}", model.get_string("name")?);
+    println!("  Version: {}", model.get_string("version")?);
+    println!("  Author: {}", model.get_string("author")?);
 
-    // Navigate nested structures
+
+    // Navigate nested structures using public IndexMap field
     println!("\nDatabase Configuration:");
     let db = model.get("database")?;
-    if let Ok(map) = db.as_map() {
-        for (key, value) in map {
-            if let Ok(s) = value.as_str() {
-                println!("  {}: {}", key, s);
-            } else if let Ok(inner_map) = value.as_map() {
-                println!("  {}:", key);
-                for (k, v) in inner_map {
-                    if let Ok(s) = v.as_str() {
-                        println!("    {}: {}", k, s);
-                    }
+    for (key, value) in &db.0 {
+        // Check if it's a string (singleton with empty value)
+        if value.0.len() == 1 && value.0.values().next().unwrap().0.is_empty() {
+            let s = value.0.keys().next().unwrap();
+            println!("  {}: {}", key, s);
+        } else {
+            // It's a nested map
+            println!("  {}:", key);
+            for (k, v) in &value.0 {
+                if v.0.len() == 1 && v.0.values().next().unwrap().0.is_empty() {
+                    let s = v.0.keys().next().unwrap();
+                    println!("    {}: {}", k, s);
                 }
             }
         }
     }
 
-    // Access with path notation
-    println!("\nUsing path notation:");
-    if let Ok(username) = model.at("database.credentials.username") {
-        if let Ok(s) = username.as_str() {
-            println!("  DB Username: {}", s);
-        }
-    }
+    // Access nested values using chained get() calls
+    println!("\nUsing nested access:");
+    let username = model.get("database")?.get("credentials")?.get_string("username")?;
+    println!("  DB Username: {}", username);
 
-    // Parse typed values
+    // Parse typed values using public API
     println!("\nParsed typed values:");
-    if let Ok(port_model) = model.at("database.port") {
-        let port_str = port_model.as_str()?;
-        let port: u16 = port_str.parse()?;
-        println!("  Port (as u16): {}", port);
-    }
+    let port = model.get("database")?.get_int("port")?;
+    println!("  Port (as i64): {}", port);
 
     Ok(())
 }

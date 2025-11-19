@@ -94,10 +94,10 @@ impl ImplementationConfig {
                 "get_float".to_string(),
                 "get_bool".to_string(),
                 "build_hierarchy".to_string(),
-                "filter".to_string(),      // Test filtering implemented in test infrastructure
-                                           // Not implemented:
-                                           // "get_list" - convenience method not yet implemented
-                                           // "canonical_format" - CCL serialization not yet implemented
+                "filter".to_string(), // Test filtering implemented in test infrastructure
+                                      // Not implemented:
+                                      // "get_list" - convenience method not yet implemented
+                                      // "canonical_format" - CCL serialization not yet implemented
             ],
             supported_features: vec![
                 "comments".to_string(),

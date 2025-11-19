@@ -443,38 +443,12 @@ fn is_list_syntax(s: &str) -> bool {
     s.lines().any(|line| line.trim().starts_with('='))
 }
 
-struct SeqDeserializer<'a> {
-    iter: std::slice::Iter<'a, Model>,
-}
-
 struct StringSeqDeserializer {
     iter: std::vec::IntoIter<String>,
 }
 
 struct ModelSeqDeserializer {
     iter: std::vec::IntoIter<Model>,
-}
-
-impl<'de, 'a> SeqAccess<'de> for SeqDeserializer<'a> {
-    type Error = DeError;
-
-    fn next_element_seed<T>(
-        &mut self,
-        seed: T,
-    ) -> std::result::Result<Option<T::Value>, Self::Error>
-    where
-        T: DeserializeSeed<'de>,
-    {
-        match self.iter.next() {
-            Some(model) => {
-                let mut de = Deserializer {
-                    model: model.clone(),
-                };
-                seed.deserialize(&mut de).map(Some)
-            }
-            None => Ok(None),
-        }
-    }
 }
 
 impl<'de> SeqAccess<'de> for StringSeqDeserializer {
@@ -565,12 +539,6 @@ impl DeError {
     fn custom(msg: impl fmt::Display) -> Self {
         DeError {
             msg: msg.to_string(),
-        }
-    }
-
-    fn from_error(err: Error) -> Self {
-        DeError {
-            msg: err.to_string(),
         }
     }
 }

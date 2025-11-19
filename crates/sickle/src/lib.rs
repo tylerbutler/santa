@@ -404,7 +404,8 @@ items =
         let items = model.get("items").unwrap();
         // The nested list syntax needs proper handling
         // The value contains nested CCL which will be parsed
-        assert!(items.is_singleton() || items.is_list() || items.is_map());
+        // List is represented as multiple keys with empty values
+        assert!(!items.0.is_empty());
     }
 
     #[test]
@@ -416,7 +417,10 @@ database =
 "#;
         let model = load(ccl).unwrap();
         let db = model.get("database").unwrap();
-        assert!(db.is_map() || db.is_singleton());
+        // Database is a map with nested values
+        let is_map = !db.0.is_empty() && db.0.values().any(|v| !v.0.is_empty());
+        let is_singleton = db.0.len() == 1 && db.0.values().next().is_some_and(|v| v.0.is_empty());
+        assert!(is_map || is_singleton);
     }
 
     #[test]
@@ -432,10 +436,12 @@ version = 1.0
         assert_eq!(model.get_string("version").unwrap(), "1.0");
 
         // Comments are preserved as entries with key "/"
-        let comments = model.get("/").unwrap().as_list().unwrap();
-        assert_eq!(comments.len(), 2);
-        assert_eq!(comments[0], "This is a comment");
-        assert_eq!(comments[1], "Another comment");
+        let comments_model = model.get("/").unwrap();
+        // Comments are stored as keys (list representation)
+        let comment_keys: Vec<&String> = comments_model.0.keys().collect();
+        assert_eq!(comment_keys.len(), 2);
+        assert_eq!(comment_keys[0], "This is a comment");
+        assert_eq!(comment_keys[1], "Another comment");
     }
 
     #[test]
@@ -478,13 +484,16 @@ symbols = <>=+
 
         // Should create a list from duplicate keys
         let symbols = model.get("symbols").unwrap();
+        // List is represented as multiple keys with empty values
+        let is_list = symbols.0.len() > 1 && symbols.0.values().all(|v| v.0.is_empty());
         assert!(
-            symbols.is_list(),
+            is_list,
             "Duplicate keys should create a list, got: {:?}",
             symbols
         );
 
-        let list = symbols.as_list().unwrap();
+        // List items are stored as keys
+        let list: Vec<&String> = symbols.0.keys().collect();
         assert_eq!(list.len(), 4);
         assert_eq!(list[0], "@#$%");
         assert_eq!(list[1], "!^&*()");

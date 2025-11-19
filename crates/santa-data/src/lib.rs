@@ -56,10 +56,10 @@ pub fn parse_to_hashmap(ccl_content: &str) -> Result<HashMap<String, Value>> {
 
 /// Convert a sickle Model to a HashMap<String, Value>
 fn model_to_hashmap(model: &sickle::Model) -> Result<HashMap<String, Value>> {
-    let map = model.as_map().context("Expected root to be a map")?;
+    // Access public IndexMap field
     let mut result = HashMap::new();
 
-    for (key, value) in map {
+    for (key, value) in &model.0 {
         result.insert(key.clone(), model_to_value(value)?);
     }
 
@@ -68,50 +68,47 @@ fn model_to_hashmap(model: &sickle::Model) -> Result<HashMap<String, Value>> {
 
 /// Convert a sickle Model to a serde_json Value
 fn model_to_value(model: &sickle::Model) -> Result<Value> {
-    match model {
-        sickle::Model::Singleton(s) => {
-            // Singletons should be plain strings - they shouldn't contain list syntax
-            // because sickle would have already parsed those as Lists or Maps
-            Ok(Value::String(s.clone()))
-        }
-        sickle::Model::List(items) => {
-            let values: Result<Vec<_>> = items.iter().map(model_to_value).collect();
-            Ok(Value::Array(values?))
-        }
-        sickle::Model::Map(map) => {
-            // Check if this is actually a list (empty key entries)
-            // In CCL, lists are represented as maps with empty string keys:
-            // bat =
-            //   = brew    <- empty key
-            //   = scoop   <- empty key
-            if map.keys().any(|k| k.is_empty()) {
-                // Special case: if there's only one empty key and its value is already a List,
-                // just return that list directly (don't double-wrap)
-                if map.len() == 1 {
-                    if let Some(value) = map.get("") {
-                        if matches!(value, sickle::Model::List(_)) {
-                            return model_to_value(value);
-                        }
-                    }
-                }
+    // Access public IndexMap field
+    let map = &model.0;
 
-                // Otherwise, extract all values from empty keys
-                let mut values = Vec::new();
-                for (k, v) in map {
-                    if k.is_empty() {
-                        values.push(model_to_value(v)?);
-                    }
-                }
-                Ok(Value::Array(values))
-            } else {
-                let mut obj = serde_json::Map::new();
-                for (k, v) in map {
-                    obj.insert(k.clone(), model_to_value(v)?);
-                }
-                Ok(Value::Object(obj))
-            }
+    // Check if this is a singleton string: {"value": {}}
+    if map.len() == 1 {
+        let (key, value) = map.iter().next().unwrap();
+        if value.0.is_empty() {
+            // This is a string value
+            return Ok(Value::String(key.clone()));
         }
     }
+
+    // Check if this is a list (multiple keys all with empty values)
+    if map.len() > 1 && map.values().all(|v| v.0.is_empty()) {
+        // This is a list - keys are the list items
+        let values: Vec<Value> = map.keys().map(|k| Value::String(k.clone())).collect();
+        return Ok(Value::Array(values));
+    }
+
+    // Check if this is a list represented with empty keys
+    // In CCL, lists are represented as maps with empty string keys:
+    // bat =
+    //   = brew    <- empty key
+    //   = scoop   <- empty key
+    if map.keys().any(|k| k.is_empty()) {
+        // Extract all values from empty keys
+        let mut values = Vec::new();
+        for (k, v) in map {
+            if k.is_empty() {
+                values.push(model_to_value(v)?);
+            }
+        }
+                return Ok(Value::Array(values));
+    }
+
+    // Otherwise, it's a map (object)
+    let mut obj = serde_json::Map::new();
+    for (k, v) in map {
+        obj.insert(k.clone(), model_to_value(v)?);
+    }
+    Ok(Value::Object(obj))
 }
 
 // Experimental CCL parsing functions used only in tests
