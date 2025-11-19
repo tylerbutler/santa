@@ -66,6 +66,10 @@ fn parse_entries(input: &str) -> Vec<Entry> {
                 current_key = Some((key, indent));
                 if !value.is_empty() {
                     value_lines.push(value);
+                } else {
+                    // Empty value after '=' - add empty string to create leading newline
+                    // when continuation lines are added
+                    value_lines.push(String::new());
                 }
             }
         } else if let Some((_, key_indent)) = current_key {
@@ -105,6 +109,10 @@ fn parse_entries(input: &str) -> Vec<Entry> {
 }
 
 /// Remove common leading whitespace from all lines while preserving relative indentation
+///
+/// Note: This function is currently unused as the CCL specification requires preserving
+/// indentation as-is. Kept for potential future use with specific parser behaviors.
+#[allow(dead_code)]
 fn dedent(s: &str) -> String {
     let lines: Vec<&str> = s.lines().collect();
     if lines.is_empty() {
@@ -143,9 +151,8 @@ pub(crate) fn parse_to_map(input: &str) -> Result<IndexMap<String, Vec<String>>>
     let mut result: IndexMap<String, Vec<String>> = IndexMap::new();
 
     for entry in entries {
-        // Dedent the value to preserve relative indentation
-        let value = dedent(&entry.value);
-        result.entry(entry.key).or_default().push(value);
+        // Preserve indentation as-is per CCL specification
+        result.entry(entry.key).or_default().push(entry.value);
     }
 
     Ok(result)
@@ -287,10 +294,10 @@ not indented key
         // "not indented key" should be separate
         assert!(map.contains_key("not indented key"));
 
-        // And it should have its own continuation (dedented)
+        // And it should have its own continuation (with indentation preserved per CCL spec)
         assert_eq!(
             map.get("not indented key").unwrap()[0],
-            "indented for not indented"
+            "  indented for not indented"
         );
     }
 }
