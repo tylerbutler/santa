@@ -133,7 +133,7 @@ impl ImplementationConfig {
             supported_variants: ["reference_compliant"]
                 .iter()
                 .map(|s| s.to_string())
-                .collect()
+                .collect(),
         }
     }
 
@@ -221,10 +221,8 @@ impl TestSuite {
                 // or the test should have no behaviors (meaning it's behavior-agnostic)
                 if !test.behaviors.is_empty() {
                     // Check if any of the test's behaviors are in our chosen behaviors
-                    let has_matching_behavior = test
-                        .behaviors
-                        .iter()
-                        .any(|b| config.supports_behavior(b));
+                    let has_matching_behavior =
+                        test.behaviors.iter().any(|b| config.supports_behavior(b));
 
                     // If no matching behavior, check if it conflicts with mutually exclusive behaviors
                     if !has_matching_behavior {

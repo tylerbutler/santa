@@ -195,7 +195,10 @@ fn test_parsing_suite_basic_tests() {
                 // Verify each expected entry exists with correct value
                 for entry in &test.expected.entries {
                     let value = model.get_string(&entry.key).unwrap_or_else(|e| {
-                        panic!("Test '{}': failed to get string for key '{}': {}", test.name, entry.key, e)
+                        panic!(
+                            "Test '{}': failed to get string for key '{}': {}",
+                            test.name, entry.key, e
+                        )
                     });
 
                     assert_eq!(
@@ -323,7 +326,10 @@ fn test_typed_access_suite_strings() {
                     );
                 } else if let Some(ref expected_value) = test.expected.value {
                     let value = result.unwrap_or_else(|e| {
-                        panic!("Test '{}': failed to get string for key '{}': {}", test.name, key, e)
+                        panic!(
+                            "Test '{}': failed to get string for key '{}': {}",
+                            test.name, key, e
+                        )
                     });
 
                     let expected_str = expected_value.as_str().unwrap_or_else(|| {
@@ -395,7 +401,10 @@ fn test_filter_function() {
             // Verify the actual entries match
             for entry in &test.expected.entries {
                 let value = model.get_string(&entry.key).unwrap_or_else(|e| {
-                    panic!("Test '{}': failed to get string for key '{}': {}", test.name, entry.key, e)
+                    panic!(
+                        "Test '{}': failed to get string for key '{}': {}",
+                        test.name, entry.key, e
+                    )
                 });
 
                 assert_eq!(
@@ -440,11 +449,25 @@ fn test_all_ccl_suites_comprehensive() {
 
     let mut functions: Vec<_> = config.supported_functions.iter().collect();
     functions.sort();
-    println!("   Functions: {}", functions.iter().map(|s| s.as_str()).collect::<Vec<_>>().join(", "));
+    println!(
+        "   Functions: {}",
+        functions
+            .iter()
+            .map(|s| s.as_str())
+            .collect::<Vec<_>>()
+            .join(", ")
+    );
 
     let mut behaviors: Vec<_> = config.chosen_behaviors.iter().collect();
     behaviors.sort();
-    println!("   Behaviors: {}\n", behaviors.iter().map(|s| s.as_str()).collect::<Vec<_>>().join(", "));
+    println!(
+        "   Behaviors: {}\n",
+        behaviors
+            .iter()
+            .map(|s| s.as_str())
+            .collect::<Vec<_>>()
+            .join(", ")
+    );
 
     let mut total_passed = 0;
     let mut total_failed = 0;
@@ -494,10 +517,101 @@ fn test_all_ccl_suites_comprehensive() {
         let skipped_by_filter = total_tests_in_suite - filtered_count;
 
         if skipped_by_filter > 0 {
-            println!(
-                "   ⚠️  Skipped {} tests due to unsupported capabilities",
-                skipped_by_filter
-            );
+            // Collect reasons for skipping
+            let mut missing_variants = std::collections::HashSet::new();
+            let mut missing_functions = std::collections::HashSet::new();
+            let mut conflicting_behaviors = std::collections::HashSet::new();
+
+            for test in &suite.tests {
+                let mut skipped = false;
+
+                // Check variant support
+                if !test.variants.is_empty() {
+                    let has_supported_variant = test
+                        .variants
+                        .iter()
+                        .any(|v| config.supported_variants.contains(v));
+                    if !has_supported_variant {
+                        for variant in &test.variants {
+                            missing_variants.insert(variant.clone());
+                        }
+                        skipped = true;
+                    }
+                }
+
+                // Check function support
+                if !skipped && !config.supports_all_functions(&test.functions) {
+                    for function in &test.functions {
+                        if !config.supported_functions.contains(function) {
+                            missing_functions.insert(function.clone());
+                        }
+                    }
+                    skipped = true;
+                }
+
+                // Check behavior conflicts
+                if !skipped && !test.behaviors.is_empty() {
+                    let has_matching_behavior =
+                        test.behaviors.iter().any(|b| config.supports_behavior(b));
+
+                    if !has_matching_behavior {
+                        let mutually_exclusive = [
+                            ("boolean_strict", "boolean_lenient"),
+                            ("crlf_preserve_literal", "crlf_normalize_to_lf"),
+                            ("list_coercion_enabled", "list_coercion_disabled"),
+                            ("strict_spacing", "relaxed_spacing"),
+                            ("tabs_preserve", "tabs_normalize"),
+                        ];
+
+                        for (opt1, opt2) in &mutually_exclusive {
+                            if (test.behaviors.contains(&opt1.to_string())
+                                && config.supports_behavior(opt2))
+                                || (test.behaviors.contains(&opt2.to_string())
+                                    && config.supports_behavior(opt1))
+                            {
+                                for behavior in &test.behaviors {
+                                    conflicting_behaviors.insert(behavior.clone());
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Determine appropriate icon and message based on skip reasons
+            let has_missing_features = !missing_functions.is_empty();
+            let only_intentional_skips = !has_missing_features
+                && (!missing_variants.is_empty() || !conflicting_behaviors.is_empty());
+
+            if only_intentional_skips {
+                println!(
+                    "   ℹ️   Skipped {} tests (incompatible with current config)",
+                    skipped_by_filter
+                );
+            } else {
+                println!(
+                    "   ⚠️   Skipped {} tests due to unsupported capabilities",
+                    skipped_by_filter
+                );
+            }
+
+            // Display reasons
+            if !missing_variants.is_empty() {
+                let mut variants: Vec<_> = missing_variants.into_iter().collect();
+                variants.sort();
+                println!("      Excluded variants: {}", variants.join(", "));
+            }
+            if !missing_functions.is_empty() {
+                let mut functions: Vec<_> = missing_functions.into_iter().collect();
+                functions.sort();
+                println!("      Missing functions: {}", functions.join(", "));
+            }
+            if !conflicting_behaviors.is_empty() {
+                let mut behaviors: Vec<_> = conflicting_behaviors.into_iter().collect();
+                behaviors.sort();
+                println!("      Alternative behaviors: {}", behaviors.join(", "));
+            }
+
             total_skipped += skipped_by_filter;
         }
 
@@ -622,11 +736,15 @@ fn test_all_ccl_suites_comprehensive() {
                                 assert!(
                                     get_string_result.is_err(),
                                     "Test '{}' expected error but got: {:?}",
-                                    test.name, get_string_result
+                                    test.name,
+                                    get_string_result
                                 );
                             } else if let Some(ref expected_value) = test.expected.value {
                                 let value = get_string_result.unwrap_or_else(|e| {
-                                    panic!("Test '{}': failed to get string for key '{}': {}", test.name, key, e)
+                                    panic!(
+                                        "Test '{}': failed to get string for key '{}': {}",
+                                        test.name, key, e
+                                    )
                                 });
 
                                 let expected_str = expected_value.as_str().unwrap_or_else(|| {
@@ -686,9 +804,10 @@ fn test_all_ccl_suites_comprehensive() {
                         // Navigate to parent path (all but last element) if needed
                         let (parent_model, key) = if test.args.len() > 1 {
                             let parent_path = &test.args[..test.args.len() - 1];
-                            let parent = navigate_path(&model, parent_path, &test.name).unwrap_or_else(|e| {
-                                panic!("Test '{}': failed to navigate path: {}", test.name, e);
-                            });
+                            let parent = navigate_path(&model, parent_path, &test.name)
+                                .unwrap_or_else(|e| {
+                                    panic!("Test '{}': failed to navigate path: {}", test.name, e);
+                                });
                             (parent, test.args.last().unwrap())
                         } else {
                             (&model, test.args.first().unwrap())
@@ -701,7 +820,8 @@ fn test_all_ccl_suites_comprehensive() {
                             assert!(
                                 get_list_result.is_err(),
                                 "Test '{}' expected error but got: {:?}",
-                                test.name, get_list_result
+                                test.name,
+                                get_list_result
                             );
                         } else if test.expected.count == 0 {
                             // Empty list case
@@ -722,7 +842,10 @@ fn test_all_ccl_suites_comprehensive() {
                             }
                         } else if let Some(ref expected_list) = test.expected.list {
                             let actual_list = get_list_result.unwrap_or_else(|e| {
-                                panic!("Test '{}': failed to get list for key '{}': {}", test.name, key, e)
+                                panic!(
+                                    "Test '{}': failed to get list for key '{}': {}",
+                                    test.name, key, e
+                                )
                             });
 
                             assert_eq!(
@@ -751,9 +874,10 @@ fn test_all_ccl_suites_comprehensive() {
                         // Navigate to parent path (all but last element) if needed
                         let (parent_model, key) = if test.args.len() > 1 {
                             let parent_path = &test.args[..test.args.len() - 1];
-                            let parent = navigate_path(&model, parent_path, &test.name).unwrap_or_else(|e| {
-                                panic!("Test '{}': failed to navigate path: {}", test.name, e);
-                            });
+                            let parent = navigate_path(&model, parent_path, &test.name)
+                                .unwrap_or_else(|e| {
+                                    panic!("Test '{}': failed to navigate path: {}", test.name, e);
+                                });
                             (parent, test.args.last().unwrap())
                         } else {
                             (&model, test.args.first().unwrap())
@@ -766,14 +890,12 @@ fn test_all_ccl_suites_comprehensive() {
                             assert!(
                                 int_result.is_err(),
                                 "Test '{}' expected error but got: {:?}",
-                                test.name, int_result
+                                test.name,
+                                int_result
                             );
                         } else if let Some(ref expected_value) = test.expected.value {
                             let actual_int = int_result.unwrap_or_else(|e| {
-                                panic!(
-                                    "Test '{}': failed to get int from model: {}",
-                                    test.name, e
-                                )
+                                panic!("Test '{}': failed to get int from model: {}", test.name, e)
                             });
 
                             let expected_int = expected_value.as_i64().unwrap_or_else(|| {
@@ -797,9 +919,10 @@ fn test_all_ccl_suites_comprehensive() {
                         // Navigate to parent path (all but last element) if needed
                         let (parent_model, key) = if test.args.len() > 1 {
                             let parent_path = &test.args[..test.args.len() - 1];
-                            let parent = navigate_path(&model, parent_path, &test.name).unwrap_or_else(|e| {
-                                panic!("Test '{}': failed to navigate path: {}", test.name, e);
-                            });
+                            let parent = navigate_path(&model, parent_path, &test.name)
+                                .unwrap_or_else(|e| {
+                                    panic!("Test '{}': failed to navigate path: {}", test.name, e);
+                                });
                             (parent, test.args.last().unwrap())
                         } else {
                             (&model, test.args.first().unwrap())
@@ -812,7 +935,8 @@ fn test_all_ccl_suites_comprehensive() {
                             assert!(
                                 bool_result.is_err(),
                                 "Test '{}' expected error but got: {:?}",
-                                test.name, bool_result
+                                test.name,
+                                bool_result
                             );
                         } else if let Some(ref expected_value) = test.expected.value {
                             if expected_value.is_null() {
@@ -821,7 +945,8 @@ fn test_all_ccl_suites_comprehensive() {
                                 assert!(
                                     bool_result.is_err(),
                                     "Test '{}': expected error (unparseable bool) but got: {:?}",
-                                    test.name, bool_result
+                                    test.name,
+                                    bool_result
                                 );
                             } else {
                                 let actual_bool = bool_result.unwrap_or_else(|e| {
@@ -853,9 +978,10 @@ fn test_all_ccl_suites_comprehensive() {
                         // Navigate to parent path (all but last element) if needed
                         let (parent_model, key) = if test.args.len() > 1 {
                             let parent_path = &test.args[..test.args.len() - 1];
-                            let parent = navigate_path(&model, parent_path, &test.name).unwrap_or_else(|e| {
-                                panic!("Test '{}': failed to navigate path: {}", test.name, e);
-                            });
+                            let parent = navigate_path(&model, parent_path, &test.name)
+                                .unwrap_or_else(|e| {
+                                    panic!("Test '{}': failed to navigate path: {}", test.name, e);
+                                });
                             (parent, test.args.last().unwrap())
                         } else {
                             (&model, test.args.first().unwrap())
@@ -868,7 +994,8 @@ fn test_all_ccl_suites_comprehensive() {
                             assert!(
                                 float_result.is_err(),
                                 "Test '{}' expected error but got: {:?}",
-                                test.name, float_result
+                                test.name,
+                                float_result
                             );
                         } else if let Some(ref expected_value) = test.expected.value {
                             let actual_float = float_result.unwrap_or_else(|e| {
@@ -959,7 +1086,7 @@ fn test_all_ccl_suites_comprehensive() {
             "  ✓ {} passed, ✗ {} failed, ⊘ {} skipped (total: {})\n",
             suite_passed,
             suite_failed,
-            suite_skipped,
+            skipped_by_filter + suite_skipped,
             suite.tests.len()
         );
     }
