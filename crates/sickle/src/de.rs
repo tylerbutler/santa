@@ -88,7 +88,7 @@ impl<'de> de::Deserializer<'de> for &mut Deserializer {
         if self.model.len() == 1 {
             if let Ok(value) = self.model.get("") {
                 // Even a single-element list should be treated as a sequence
-                if value.len() >= 1 && value.values().all(|v| v.is_empty()) {
+                if !value.is_empty() && value.values().all(|v| v.is_empty()) {
                     return self.deserialize_seq(visitor);
                 }
             }
