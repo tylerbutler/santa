@@ -169,7 +169,15 @@ fn is_valid_ccl_key(key: &str) -> bool {
 fn build_model(map: indexmap::IndexMap<String, Vec<String>>) -> Result<Model> {
     let mut result = indexmap::IndexMap::new();
 
-    for (key, values) in map {
+    for (key, mut values) in map {
+        // Reference implementation iterates hash tables in reverse insertion order
+        // Reverse ONLY for non-empty duplicate keys
+        // Empty keys (bare list items) maintain insertion order
+        #[cfg(feature = "reference_compliant")]
+        if values.len() > 1 && !key.is_empty() {
+            values.reverse();
+        }
+
         // Build the nested map for this key
         let mut nested = indexmap::IndexMap::new();
 
@@ -516,5 +524,81 @@ descriptions = Third item"#;
 
         let second_line = model.get("second line").unwrap();
         println!("DEBUG: second line = {:?}", second_line);
+    }
+
+    #[test]
+    fn debug_bare_list() {
+        let input = r#"servers =
+  = web1
+  = web2
+  = web3"#;
+
+        println!("Input:\n{}", input);
+
+        let entries = parse(input).unwrap();
+        println!("\nParsed entries:");
+        for entry in &entries {
+            println!("  key='{}', value='{}'", entry.key, entry.value);
+        }
+
+        let model = load(input).unwrap();
+        println!("\nModel structure: {:#?}", model);
+
+        if let Ok(servers) = model.get("servers") {
+            println!("\nServers node: {:#?}", servers);
+            let list = servers.as_list();
+            println!("as_list() returned: {:?}", list);
+        }
+    }
+
+    #[test]
+    fn debug_bare_list_with_comments() {
+        let input = r#"allowed_hosts =
+  /= Production hosts
+  = localhost
+  = 127.0.0.1
+  = example.com"#;
+
+        println!("Input:\n{}", input);
+
+        let entries = parse(input).unwrap();
+        println!("\nParsed entries:");
+        for entry in &entries {
+            println!("  key='{}', value='{}'", entry.key, entry.value);
+        }
+
+        let model = load(input).unwrap();
+        println!("\nModel structure: {:#?}", model);
+
+        if let Ok(hosts) = model.get("allowed_hosts") {
+            println!("\nAllowed_hosts node: {:#?}", hosts);
+            let list = hosts.as_list();
+            println!("as_list() returned: {:?}", list);
+            println!("Expected: [\"localhost\", \"127.0.0.1\", \"example.com\"]");
+        }
+    }
+
+    #[test]
+    fn debug_list_ordering() {
+        let input = r#"ports = 80
+ports = 443
+host = localhost"#;
+
+        println!("Input:\n{}", input);
+
+        let entries = parse(input).unwrap();
+        println!("\nParsed entries:");
+        for entry in &entries {
+            println!("  key='{}', value='{}'", entry.key, entry.value);
+        }
+
+        let model = load(input).unwrap();
+        println!("\nModel structure: {:#?}", model);
+
+        if let Ok(ports) = model.get("ports") {
+            println!("\nPorts node: {:#?}", ports);
+            println!("Ports keys: {:?}", ports.keys().collect::<Vec<_>>());
+            println!("Test expects: [\"443\", \"80\"] (REVERSED from input)");
+        }
     }
 }

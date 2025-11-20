@@ -1,0 +1,317 @@
+warning: variants `Strict` and `Lenient` are never constructed
+  --> crates/sickle/tests/test_helpers.rs:11:5
+   |
+ 9 | pub enum BooleanBehavior {
+   |          --------------- variants in this enum
+10 |     /// Strict boolean parsing (only "true"/"false")
+11 |     Strict,
+   |     ^^^^^^
+12 |     /// Lenient boolean parsing (allows variations)
+13 |     Lenient,
+   |     ^^^^^^^
+   |
+   = note: `BooleanBehavior` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: variants `PreserveLiteral` and `NormalizeToLF` are never constructed
+  --> crates/sickle/tests/test_helpers.rs:30:5
+   |
+28 | pub enum CRLFBehavior {
+   |          ------------ variants in this enum
+29 |     /// Preserve CRLF line endings in literals
+30 |     PreserveLiteral,
+   |     ^^^^^^^^^^^^^^^
+31 |     /// Normalize CRLF to LF
+32 |     NormalizeToLF,
+   |     ^^^^^^^^^^^^^
+   |
+   = note: `CRLFBehavior` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: variants `Enabled` and `Disabled` are never constructed
+  --> crates/sickle/tests/test_helpers.rs:49:5
+   |
+47 | pub enum ListCoercionBehavior {
+   |          -------------------- variants in this enum
+48 |     /// Enable automatic list coercion for single items
+49 |     Enabled,
+   |     ^^^^^^^
+50 |     /// Disable list coercion (explicit lists only)
+51 |     Disabled,
+   |     ^^^^^^^^
+   |
+   = note: `ListCoercionBehavior` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: variants `Strict` and `Relaxed` are never constructed
+  --> crates/sickle/tests/test_helpers.rs:68:5
+   |
+66 | pub enum SpacingBehavior {
+   |          --------------- variants in this enum
+67 |     /// Strict spacing rules
+68 |     Strict,
+   |     ^^^^^^
+69 |     /// Relaxed spacing rules
+70 |     Relaxed,
+   |     ^^^^^^^
+   |
+   = note: `SpacingBehavior` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: variants `Preserve` and `Normalize` are never constructed
+  --> crates/sickle/tests/test_helpers.rs:87:5
+   |
+85 | pub enum TabBehavior {
+   |          ----------- variants in this enum
+86 |     /// Preserve tabs as-is
+87 |     Preserve,
+   |     ^^^^^^^^
+88 |     /// Normalize tabs to spaces
+89 |     Normalize,
+   |     ^^^^^^^^^
+   |
+   = note: `TabBehavior` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: variants `UnsupportedVariant`, `MissingFunctions`, and `ConflictingBehaviors` are never constructed
+   --> crates/sickle/tests/test_helpers.rs:109:5
+    |
+107 | pub enum SkipReason {
+    |          ---------- variants in this enum
+108 |     /// Test requires unsupported variant(s)
+109 |     UnsupportedVariant(Vec<String>),
+    |     ^^^^^^^^^^^^^^^^^^
+110 |     /// Test requires unimplemented function(s)
+111 |     MissingFunctions(Vec<String>),
+    |     ^^^^^^^^^^^^^^^^
+112 |     /// Test requires conflicting behavior(s)
+113 |     ConflictingBehaviors(Vec<String>),
+    |     ^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: `SkipReason` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: method `category` is never used
+   --> crates/sickle/tests/test_helpers.rs:134:12
+    |
+116 | impl SkipReason {
+    | --------------- method in this implementation
+...
+134 |     pub fn category(&self) -> &'static str {
+    |            ^^^^^^^^
+
+warning: field `supported_variants` is never read
+   --> crates/sickle/tests/test_helpers.rs:242:9
+    |
+228 | pub struct ImplementationConfig {
+    |            -------------------- field in this struct
+...
+242 |     pub supported_variants: HashSet<String>,
+    |         ^^^^^^^^^^^^^^^^^^
+    |
+    = note: `ImplementationConfig` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: associated items `sickle_current` and `supports_behavior` are never used
+   --> crates/sickle/tests/test_helpers.rs:286:12
+    |
+245 | impl ImplementationConfig {
+    | ------------------------- associated items in this implementation
+...
+286 |     pub fn sickle_current() -> Self {
+    |            ^^^^^^^^^^^^^^
+...
+333 |     pub fn supports_behavior(&self, behavior: &str) -> bool {
+    |            ^^^^^^^^^^^^^^^^^
+
+warning: associated items `filter_by_validation`, `filter_by_function`, `should_skip_test`, and `filter_by_capabilities` are never used
+   --> crates/sickle/tests/test_helpers.rs:372:12
+    |
+363 | impl TestSuite {
+    | -------------- associated items in this implementation
+...
+372 |     pub fn filter_by_validation(&self, validation: &str) -> Vec<&TestCase> {
+    |            ^^^^^^^^^^^^^^^^^^^^
+...
+389 |     pub fn filter_by_function(&self, function: &str) -> Vec<&TestCase> {
+    |            ^^^^^^^^^^^^^^^^^^
+...
+409 |     pub fn should_skip_test(test: &TestCase, config: &ImplementationConfig) -> Option<SkipReason> {
+    |            ^^^^^^^^^^^^^^^^
+...
+487 |     pub fn filter_by_capabilities(&self, config: &ImplementationConfig) -> Vec<&TestCase> {
+    |            ^^^^^^^^^^^^^^^^^^^^^^
+
+warning: `sickle` (test "integration_tests") generated 10 warnings
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.12s
+     Running unittests src/lib.rs (target/debug/deps/sickle-d183fa937c213cc8)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 26 filtered out; finished in 0.00s
+
+     Running tests/data_driven_tests.rs (target/debug/deps/data_driven_tests-ab4dc0b936a1f05a)
+
+running 1 test
+
+🧪 Running comprehensive CCL test suite
+📁 Loaded 13 test suite files
+🔧 Implementation capabilities:
+   Functions: build_hierarchy, filter, get_bool, get_float, get_int, get_list, get_string, parse, parse_indented
+   Behaviors (type-safe configuration):
+      Boolean: boolean_strict
+      CRLF: crlf_preserve_literal
+      List Coercion: list_coercion_disabled
+      Spacing: strict_spacing
+      Tabs: tabs_preserve
+
+📋 api_advanced_processing
+  ✓ 17 passed, ✗ 0 failed, ⊘ 0 skipped (total: 17)
+
+📋 api_comments
+  ✓ 6 passed, ✗ 0 failed, ⊘ 0 skipped (total: 6)
+
+📋 api_core_ccl_hierarchy
+  ✓ 12 passed, ✗ 0 failed, ⊘ 0 skipped (total: 12)
+
+📋 api_core_ccl_integration
+  ✓ 12 passed, ✗ 0 failed, ⊘ 0 skipped (total: 12)
+
+📋 api_core_ccl_parsing
+  ✓ 8 passed, ✗ 0 failed, ⊘ 0 skipped (total: 8)
+
+📋 api_edge_cases
+  ✓ 31 passed, ✗ 4 failed, ⊘ 0 skipped (total: 35)
+
+📋 api_errors
+  ✓ 6 passed, ✗ 0 failed, ⊘ 0 skipped (total: 6)
+
+📋 api_list_access
+  ✓ 31 passed, ✗ 8 failed, ⊘ 0 skipped (total: 39)
+
+📋 api_proposed_behavior
+   ℹ️   Skipped 60 tests (incompatible with current config)
+      Excluded variants: proposed_behavior
+  ✓ 0 passed, ✗ 0 failed, ⊘ 60 skipped (total: 60)
+
+📋 api_reference_compliant
+   ⚠️   Skipped 6 tests due to unsupported capabilities
+      Missing functions: canonical_format
+  ✓ 34 passed, ✗ 4 failed, ⊘ 6 skipped (total: 44)
+
+📋 api_typed_access
+   ℹ️   Skipped 18 tests (incompatible with current config)
+      Alternative behaviors: boolean_lenient
+  ✓ 56 passed, ✗ 0 failed, ⊘ 18 skipped (total: 74)
+
+📋 property_algebraic
+   ⚠️   Skipped 3 tests due to unsupported capabilities
+      Missing functions: round_trip
+  ✓ 12 passed, ✗ 0 failed, ⊘ 3 skipped (total: 15)
+
+📋 property_round_trip
+   ⚠️   Skipped 9 tests due to unsupported capabilities
+      Missing functions: round_trip
+  ✓ 7 passed, ✗ 1 failed, ⊘ 9 skipped (total: 17)
+
+════════════════════════════════════════
+📊 Overall Results:
+  ✓ 232 passed
+  ✗ 17 failed
+  ⊘ 96 skipped (unsupported validation types)
+  Total: 345
+════════════════════════════════════════
+
+🔄 Behavior Coverage:
+   Note: Some behaviors are mutually exclusive configuration options
+  ⚙️  boolean_strict vs boolean_lenient
+      boolean_strict: 27/27 (100%)
+      boolean_lenient: 6/6 (100%)
+
+  Other behaviors:
+  ❌ crlf_preserve_literal: 0/1 (0%)
+  ⚠️ list_coercion_disabled: 12/14 (85%)
+  ⚠️ tabs_preserve: 2/4 (50%)
+
+🎯 Function Coverage:
+  ⚠️ build_hierarchy: 52/55 (94%)
+  ✅ filter: 3/3 (100%)
+  ✅ get_bool: 8/8 (100%)
+  ✅ get_float: 4/4 (100%)
+  ✅ get_int: 8/8 (100%)
+  ⚠️ get_list: 17/25 (68%)
+  ✅ get_string: 5/5 (100%)
+  ⚠️ parse: 130/135 (96%)
+  ⚠️ parse_indented: 5/6 (83%)
+
+✗ Failure Details (showing first 20):
+  [api_edge_cases] key_with_tabs_parse
+    expected entry key=	value not found
+  [api_edge_cases] spaces_vs_tabs_continuation_ocaml_reference_parse_indented
+    expected entry text=First
+    four spaces
+ tab preserved not found
+  [api_edge_cases] key_with_newline_before_equals_parse
+    expected entry key=val not found
+  [api_edge_cases] complex_multi_newline_whitespace_parse
+    expected entry key=val not found
+  [api_list_access] basic_list_from_duplicates_get_list
+    Assertion`left == right` failed: Test 'basic_list_from_duplicates_get_list' expected 3 items, got 0
+  left: 0
+ right: 3
+  [api_list_access] large_list_get_list
+    Assertion`left == right` failed: Test 'large_list_get_list' expected 20 items, got 0
+  left: 0
+ right: 20
+  [api_list_access] list_with_comments_get_list
+    Assertion`left == right` failed: Test 'list_with_comments_get_list' expected 3 items, got 0
+  left: 0
+ right: 3
+  [api_list_access] bare_list_basic_get_list
+    Assertion`left == right` failed: Test 'bare_list_basic_get_list' expected 3 items, got 0
+  left: 0
+ right: 3
+  [api_list_access] bare_list_nested_get_list
+    Assertion`left == right` failed: Test 'bare_list_nested_get_list' expected 3 items, got 0
+  left: 0
+ right: 3
+  [api_list_access] bare_list_with_comments_get_list
+    Assertion`left == right` failed: Test 'bare_list_with_comments_get_list' expected 3 items, got 0
+  left: 0
+ right: 3
+  [api_list_access] bare_list_deeply_nested_get_list
+    Assertion`left == right` failed: Test 'bare_list_deeply_nested_get_list' expected 3 items, got 0
+  left: 0
+ right: 3
+  [api_list_access] bare_list_mixed_with_other_keys_get_list
+    Assertion`left == right` failed: Test 'bare_list_mixed_with_other_keys_get_list' expected 2 items, got 0
+  left: 0
+ right: 2
+  [api_reference_compliant] mixed_duplicate_single_keys_reference_build_hierarchy
+    Assertion`left == right` failed: Test 'mixed_duplicate_single_keys_reference_build_hierarchy': wrong list value at 'ports[0]'
+  left: "80"
+ right: "443"
+  [api_reference_compliant] list_with_whitespace_reference_build_hierarchy
+    Assertion`left == right` failed: Test 'list_with_whitespace_reference_build_hierarchy': expected 2 items at 'items', got 3
+  left: 3
+ right: 2
+  [api_reference_compliant] complex_mixed_list_scenarios_reference_build_hierarchy
+    Assertion`left == right` failed: Test 'complex_mixed_list_scenarios_reference_build_hierarchy': wrong list value at 'config.database.hosts[0]'
+  left: "primary"
+ right: "backup"
+  [api_reference_compliant] canonical_format_line_endings_reference_behavior_parse
+    expected entry key1=value1 not found
+  [property_round_trip] round_trip_whitespace_normalization_parse
+    Assertion`left == right` failed: Test 'round_trip_whitespace_normalization_parse' expected 1 entries, got 2
+  left: 2
+ right: 1
+test test_all_ccl_suites_comprehensive ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 7 filtered out; finished in 0.01s
+
+     Running tests/integration_tests.rs (target/debug/deps/integration_tests-fc6a60aa9d0b9d59)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 9 filtered out; finished in 0.00s
+
+     Running tests/test_helpers.rs (target/debug/deps/test_helpers-4dc01447cdab4476)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 2 filtered out; finished in 0.00s
+

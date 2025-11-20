@@ -204,16 +204,31 @@ impl Model {
     /// - Still filters scalar literals (numbers/booleans)
     /// - Single values coerced to lists
     pub(crate) fn as_list(&self) -> Vec<String> {
-        if self.len() < 2 {
-            // Single value or empty - not a list in either mode
-            return Vec::new();
-        }
-
         #[cfg(feature = "list_coercion_disabled")]
         {
-            // Reference-compliant: ONLY return values if ALL keys are empty strings
-            // This means we're in a bare list structure
-            let all_keys_empty = self.keys().all(|k| k.is_empty());
+            // Filter out comment keys (starting with '/') when checking for bare lists
+            let non_comment_keys: Vec<&String> = self.keys().filter(|k| !k.starts_with('/')).collect();
+
+            // Handle bare list syntax: single empty-key child containing the list items
+            // Example: servers = { "": { "web1": {}, "web2": {} } }
+            // Should return ["web1", "web2"]
+            // Also handles: { "": {...}, "/": {...comment...} } - ignores comments
+            if non_comment_keys.len() == 1 && non_comment_keys[0].is_empty() {
+                if let Some(child) = self.get("").ok() {
+                    // Found empty-key child - return its keys as the list
+                    // Also filter out comment keys from the child
+                    return child.keys().filter(|k| !k.starts_with('/')).cloned().collect();
+                }
+            }
+
+            // Empty or single non-empty key = not a list
+            if non_comment_keys.len() <= 1 {
+                return Vec::new();
+            }
+
+            // Multiple non-comment keys: ONLY return values if ALL are empty strings
+            // This means we're in a bare list structure with multiple empty keys
+            let all_keys_empty = non_comment_keys.iter().all(|k| k.is_empty());
             if all_keys_empty {
                 // For bare lists, the VALUES (nested keys) are the list items
                 // But since keys are empty, we need to look at the nested structure
