@@ -13,8 +13,8 @@ categories = ["config", "parser-implementations"]
 readme = "README.md"
 
 [features]
-# Default features - recommended for most users (reference-compliant with list_coercion_disabled)
-default = ["serde", "list_coercion_disabled", "reference_compliant"]
+# Default features - insertion-order list iteration (proposed CCL spec behavior)
+default = ["serde", "list_coercion_disabled"]
 
 # Core parsing features
 serde = ["dep:serde", "dep:serde_derive"]
@@ -24,8 +24,10 @@ intern = ["dep:string-interner"]
 list_coercion_disabled = []  # get_list() only works with bare lists (empty keys), matches reference implementation
 list_coercion_enabled = []   # get_list() coerces duplicate keys into lists (non-reference behavior)
 
-# Reference implementation compatibility
-reference_compliant = []     # Reverse list order to match reference implementation hash table iteration
+# Reference implementation compatibility (opt-in for compatibility testing)
+# Note: Reverses duplicate-key list order to match reference implementation
+# Most users should NOT enable this - use insertion-order behavior (default)
+reference_compliant = []
 
 # Advanced parsing features (future)
 # section-headers = []      # Support == Section == style headers

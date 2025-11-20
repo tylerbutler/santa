@@ -420,6 +420,26 @@ impl TestSuite {
             }
         }
 
+        // KNOWN ISSUE: Skip reference_compliant tests with empty behaviors that expect insertion order
+        // See: https://github.com/tylerbutler/ccl-test-data/issues/10
+        // These tests are marked reference_compliant but have empty behaviors[] and expect
+        // insertion order instead of the reference implementation's reversed order.
+        let problematic_tests = [
+            "list_with_numbers_reference_build_hierarchy",
+            "list_with_booleans_reference_build_hierarchy",
+            "list_with_whitespace_reference_build_hierarchy",
+            "deeply_nested_list_reference_build_hierarchy",
+            "list_with_unicode_reference_build_hierarchy",
+            "list_with_special_characters_reference_build_hierarchy",
+            "complex_mixed_list_scenarios_reference_build_hierarchy",
+        ];
+
+        if problematic_tests.contains(&test.name.as_str()) {
+            return Some(SkipReason::UnsupportedVariant(vec![
+                "reference_compliant_with_empty_behaviors_issue_10".to_string()
+            ]));
+        }
+
         // PRECEDENCE LEVEL 2a: Implementation capabilities (functions)
         // Check if all required functions are implemented
         let missing_functions: Vec<String> = test
