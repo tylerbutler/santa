@@ -428,6 +428,35 @@ Investigated 3 failing `reference_compliant` tests expecting reversed list order
 4. **Whitespace normalization** (1 test):
    - `round_trip_whitespace_normalization_parse` - Round-trip whitespace handling
 
+**Test Data Issue Filed**:
+Filed https://github.com/tylerbutler/ccl-test-data/issues/10 for 7 reference_compliant tests
+with empty behaviors[] that expect insertion order instead of reversed order.
+These tests are now skipped pending resolution.
+
+**Feature Configuration**:
+- `reference_compliant` feature: opt-in (not default)
+- Default behavior: insertion-order (proposed CCL spec)
+- Users can enable `--features reference_compliant` for compatibility testing
+
+**Final Test Results** (without reference_compliant feature):
+- **Total**: 327 tests
+- **Passing**: 220+ (67%+)
+- **Failing**: 7 tests (6 actual bugs)
+- **Skipped**: 7 (test data issues)
+
+**Remaining Failures** (7 tests):
+1. **Edge cases** (4 tests):
+   - `key_with_tabs_parse`
+   - `spaces_vs_tabs_continuation_ocaml_reference_parse_indented`
+   - `key_with_newline_before_equals_parse`
+   - `complex_multi_newline_whitespace_parse`
+2. **Reference-compliant** (1 test - needs feature):
+   - `mixed_duplicate_single_keys_reference_build_hierarchy`
+3. **Line endings** (1 test):
+   - `canonical_format_line_endings_reference_behavior_parse`
+4. **Round-trip** (1 test):
+   - `round_trip_whitespace_normalization_parse`
+
 **Next Session Focus**:
 Edge case tests (4 tests) - tabs, newlines, and complex whitespace handling in parser
 
