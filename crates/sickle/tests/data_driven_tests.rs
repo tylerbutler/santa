@@ -458,16 +458,16 @@ fn test_all_ccl_suites_comprehensive() {
             .join(", ")
     );
 
-    let mut behaviors: Vec<_> = config.chosen_behaviors.iter().collect();
-    behaviors.sort();
+    // Display type-safe behavior choices
+    println!("   Behaviors (type-safe configuration):");
+    println!("      Boolean: {}", config.boolean_behavior.as_str());
+    println!("      CRLF: {}", config.crlf_behavior.as_str());
     println!(
-        "   Behaviors: {}\n",
-        behaviors
-            .iter()
-            .map(|s| s.as_str())
-            .collect::<Vec<_>>()
-            .join(", ")
+        "      List Coercion: {}",
+        config.list_coercion_behavior.as_str()
     );
+    println!("      Spacing: {}", config.spacing_behavior.as_str());
+    println!("      Tabs: {}\n", config.tab_behavior.as_str());
 
     let mut total_passed = 0;
     let mut total_failed = 0;
@@ -517,71 +517,51 @@ fn test_all_ccl_suites_comprehensive() {
         let skipped_by_filter = total_tests_in_suite - filtered_count;
 
         if skipped_by_filter > 0 {
-            // Collect reasons for skipping
+            // Collect skip reasons using the new single decision function
+            let mut skip_reasons_by_category: std::collections::HashMap<
+                &str,
+                Vec<test_helpers::SkipReason>,
+            > = std::collections::HashMap::new();
+
+            for test in &suite.tests {
+                if let Some(reason) = test_helpers::TestSuite::should_skip_test(test, &config) {
+                    skip_reasons_by_category
+                        .entry(reason.category())
+                        .or_default()
+                        .push(reason);
+                }
+            }
+
+            // Aggregate unique items per category for display
             let mut missing_variants = std::collections::HashSet::new();
             let mut missing_functions = std::collections::HashSet::new();
             let mut conflicting_behaviors = std::collections::HashSet::new();
 
-            for test in &suite.tests {
-                let mut skipped = false;
-
-                // Check variant support
-                if !test.variants.is_empty() {
-                    let has_supported_variant = test
-                        .variants
-                        .iter()
-                        .any(|v| config.supported_variants.contains(v));
-                    if !has_supported_variant {
-                        for variant in &test.variants {
-                            missing_variants.insert(variant.clone());
+            for reasons in skip_reasons_by_category.values() {
+                for reason in reasons {
+                    match reason {
+                        test_helpers::SkipReason::UnsupportedVariant(variants) => {
+                            missing_variants.extend(variants.iter().cloned());
                         }
-                        skipped = true;
-                    }
-                }
-
-                // Check function support
-                if !skipped && !config.supports_all_functions(&test.functions) {
-                    for function in &test.functions {
-                        if !config.supported_functions.contains(function) {
-                            missing_functions.insert(function.clone());
+                        test_helpers::SkipReason::MissingFunctions(functions) => {
+                            missing_functions.extend(functions.iter().cloned());
                         }
-                    }
-                    skipped = true;
-                }
-
-                // Check behavior conflicts
-                if !skipped && !test.behaviors.is_empty() {
-                    let has_matching_behavior =
-                        test.behaviors.iter().any(|b| config.supports_behavior(b));
-
-                    if !has_matching_behavior {
-                        let mutually_exclusive = [
-                            ("boolean_strict", "boolean_lenient"),
-                            ("crlf_preserve_literal", "crlf_normalize_to_lf"),
-                            ("list_coercion_enabled", "list_coercion_disabled"),
-                            ("strict_spacing", "relaxed_spacing"),
-                            ("tabs_preserve", "tabs_normalize"),
-                        ];
-
-                        for (opt1, opt2) in &mutually_exclusive {
-                            if (test.behaviors.contains(&opt1.to_string())
-                                && config.supports_behavior(opt2))
-                                || (test.behaviors.contains(&opt2.to_string())
-                                    && config.supports_behavior(opt1))
-                            {
-                                for behavior in &test.behaviors {
-                                    conflicting_behaviors.insert(behavior.clone());
-                                }
-                            }
+                        test_helpers::SkipReason::ConflictingBehaviors(behaviors) => {
+                            conflicting_behaviors.extend(behaviors.iter().cloned());
                         }
                     }
                 }
             }
 
             // Determine appropriate icon and message based on skip reasons
+            // Design Principle: Configuration Coverage Analysis
+            // Detect when variant filtering might be masking behavior conflicts
             let has_missing_features = !missing_functions.is_empty();
-            let only_intentional_skips = !has_missing_features
-                && (!missing_variants.is_empty() || !conflicting_behaviors.is_empty());
+            let has_variant_skips = !missing_variants.is_empty();
+            let has_behavior_skips = !conflicting_behaviors.is_empty();
+
+            let only_intentional_skips =
+                !has_missing_features && (has_variant_skips || has_behavior_skips);
 
             if only_intentional_skips {
                 println!(
@@ -595,21 +575,50 @@ fn test_all_ccl_suites_comprehensive() {
                 );
             }
 
-            // Display reasons
+            // Display reasons with masking pattern detection
             if !missing_variants.is_empty() {
-                let mut variants: Vec<_> = missing_variants.into_iter().collect();
+                let mut variants: Vec<_> = missing_variants.iter().collect();
                 variants.sort();
-                println!("      Excluded variants: {}", variants.join(", "));
+                println!(
+                    "      Excluded variants: {}",
+                    variants
+                        .iter()
+                        .map(|v| v.as_str())
+                        .collect::<Vec<_>>()
+                        .join(", ")
+                );
+
+                // Detect potential masking: if we have both variant and behavior skips
+                if has_behavior_skips {
+                    println!(
+                        "      ⚠️  Note: Variant filtering may mask {} behavior conflict(s)",
+                        conflicting_behaviors.len()
+                    );
+                }
             }
             if !missing_functions.is_empty() {
-                let mut functions: Vec<_> = missing_functions.into_iter().collect();
+                let mut functions: Vec<_> = missing_functions.iter().collect();
                 functions.sort();
-                println!("      Missing functions: {}", functions.join(", "));
+                println!(
+                    "      Missing functions: {}",
+                    functions
+                        .iter()
+                        .map(|f| f.as_str())
+                        .collect::<Vec<_>>()
+                        .join(", ")
+                );
             }
             if !conflicting_behaviors.is_empty() {
-                let mut behaviors: Vec<_> = conflicting_behaviors.into_iter().collect();
+                let mut behaviors: Vec<_> = conflicting_behaviors.iter().collect();
                 behaviors.sort();
-                println!("      Alternative behaviors: {}", behaviors.join(", "));
+                println!(
+                    "      Alternative behaviors: {}",
+                    behaviors
+                        .iter()
+                        .map(|b| b.as_str())
+                        .collect::<Vec<_>>()
+                        .join(", ")
+                );
             }
 
             total_skipped += skipped_by_filter;

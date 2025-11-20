@@ -4,6 +4,142 @@ use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
 use std::path::Path;
 
+/// Type-safe representation of mutually exclusive boolean parsing behaviors
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum BooleanBehavior {
+    /// Strict boolean parsing (only "true"/"false")
+    Strict,
+    /// Lenient boolean parsing (allows variations)
+    Lenient,
+}
+
+impl BooleanBehavior {
+    /// Get the string identifier for this behavior
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            Self::Strict => "boolean_strict",
+            Self::Lenient => "boolean_lenient",
+        }
+    }
+}
+
+/// Type-safe representation of mutually exclusive CRLF handling behaviors
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum CRLFBehavior {
+    /// Preserve CRLF line endings in literals
+    PreserveLiteral,
+    /// Normalize CRLF to LF
+    NormalizeToLF,
+}
+
+impl CRLFBehavior {
+    /// Get the string identifier for this behavior
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            Self::PreserveLiteral => "crlf_preserve_literal",
+            Self::NormalizeToLF => "crlf_normalize_to_lf",
+        }
+    }
+}
+
+/// Type-safe representation of mutually exclusive list coercion behaviors
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ListCoercionBehavior {
+    /// Enable automatic list coercion for single items
+    Enabled,
+    /// Disable list coercion (explicit lists only)
+    Disabled,
+}
+
+impl ListCoercionBehavior {
+    /// Get the string identifier for this behavior
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            Self::Enabled => "list_coercion_enabled",
+            Self::Disabled => "list_coercion_disabled",
+        }
+    }
+}
+
+/// Type-safe representation of mutually exclusive spacing behaviors
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum SpacingBehavior {
+    /// Strict spacing rules
+    Strict,
+    /// Relaxed spacing rules
+    Relaxed,
+}
+
+impl SpacingBehavior {
+    /// Get the string identifier for this behavior
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            Self::Strict => "strict_spacing",
+            Self::Relaxed => "relaxed_spacing",
+        }
+    }
+}
+
+/// Type-safe representation of mutually exclusive tab handling behaviors
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum TabBehavior {
+    /// Preserve tabs as-is
+    Preserve,
+    /// Normalize tabs to spaces
+    Normalize,
+}
+
+impl TabBehavior {
+    /// Get the string identifier for this behavior
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            Self::Preserve => "tabs_preserve",
+            Self::Normalize => "tabs_normalize",
+        }
+    }
+}
+
+/// Explicit reasons why a test might be skipped
+///
+/// This supports the "Single Source of Truth" design principle by making
+/// skip decisions explicit and trackable.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum SkipReason {
+    /// Test requires unsupported variant(s)
+    UnsupportedVariant(Vec<String>),
+    /// Test requires unimplemented function(s)
+    MissingFunctions(Vec<String>),
+    /// Test requires conflicting behavior(s)
+    ConflictingBehaviors(Vec<String>),
+}
+
+impl SkipReason {
+    /// Get a human-readable description of why the test was skipped
+    #[allow(dead_code)]
+    pub fn description(&self) -> String {
+        match self {
+            Self::UnsupportedVariant(variants) => {
+                format!("Unsupported variant(s): {}", variants.join(", "))
+            }
+            Self::MissingFunctions(functions) => {
+                format!("Missing function(s): {}", functions.join(", "))
+            }
+            Self::ConflictingBehaviors(behaviors) => {
+                format!("Conflicting behavior(s): {}", behaviors.join(", "))
+            }
+        }
+    }
+
+    /// Get the category of this skip reason for reporting
+    pub fn category(&self) -> &'static str {
+        match self {
+            Self::UnsupportedVariant(_) => "variant",
+            Self::MissingFunctions(_) => "function",
+            Self::ConflictingBehaviors(_) => "behavior",
+        }
+    }
+}
+
 /// Represents a single test case from the CCL test-data repository
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TestCase {
@@ -79,31 +215,74 @@ pub struct TestSuite {
 
 /// Centralized configuration for implementation capabilities
 ///
-/// This struct defines what the current sickle implementation supports.
-/// It serves as the single source of truth for:
-/// - Which CCL functions are implemented
-/// - Which behavior choices we've made
-/// - Which test variants to run (e.g., excluding proposed_behavior)
+/// This struct defines what the current sickle implementation supports using
+/// type-safe enums that make invalid configurations impossible to represent.
 ///
-/// Configuration defining which behaviors, functions, and variants are supported
-/// by the current implementation.
+/// Design Principles (from CCL test-data test-runner-design-principles.md):
+/// 1. Fail-Fast: Invalid configurations detected at compile/startup time
+/// 2. Type Safety: Mutually exclusive behaviors enforced by type system
+/// 3. Single Source of Truth: Configuration validated before any tests run
 ///
 /// Update `sickle_current()` to add/remove capabilities as implementation evolves.
 #[derive(Debug, Clone)]
 pub struct ImplementationConfig {
     /// Supported functions (e.g., "parse", "build_hierarchy", "get_string")
     pub supported_functions: HashSet<String>,
-    /// Chosen behaviors (e.g., "boolean_strict", "crlf_normalize_to_lf")
-    pub chosen_behaviors: HashSet<String>,
+    /// Type-safe boolean parsing behavior choice
+    pub boolean_behavior: BooleanBehavior,
+    /// Type-safe CRLF handling behavior choice
+    pub crlf_behavior: CRLFBehavior,
+    /// Type-safe list coercion behavior choice
+    pub list_coercion_behavior: ListCoercionBehavior,
+    /// Type-safe spacing behavior choice
+    pub spacing_behavior: SpacingBehavior,
+    /// Type-safe tab handling behavior choice
+    pub tab_behavior: TabBehavior,
     /// Supported variants (e.g., "reference_compliant", excluding "proposed_behavior")
     pub supported_variants: HashSet<String>,
 }
 
 impl ImplementationConfig {
+    /// Validate the configuration (compile-time enforcement via type system)
+    ///
+    /// This method exists primarily for documentation purposes. The type-safe
+    /// enum design makes invalid configurations impossible to construct.
+    ///
+    /// Design Principle (Fail-Fast): With type-safe enums, validation happens
+    /// at compile time rather than runtime. You cannot create a configuration
+    /// with both `boolean_strict` AND `boolean_lenient` - the type system
+    /// prevents it.
+    ///
+    /// This is superior to runtime validation because:
+    /// - Errors caught at compile time, not during test execution
+    /// - No performance overhead from validation checks
+    /// - Impossible states are unrepresentable in the type system
+    #[allow(dead_code)]
+    pub fn validate(&self) -> Result<(), String> {
+        // With type-safe enums, there's nothing to validate at runtime!
+        // The compiler ensures:
+        // - boolean_behavior is exactly one of {Strict, Lenient}
+        // - crlf_behavior is exactly one of {PreserveLiteral, NormalizeToLF}
+        // - list_coercion_behavior is exactly one of {Enabled, Disabled}
+        // - spacing_behavior is exactly one of {Strict, Relaxed}
+        // - tab_behavior is exactly one of {Preserve, Normalize}
+
+        // We could add additional validation here if needed, such as:
+        // - Checking that supported_functions is not empty
+        // - Verifying supported_variants contains valid values
+        // But for behavior conflicts, the type system already guarantees correctness.
+
+        Ok(())
+    }
+
     /// Create a new configuration with the current Sickle implementation capabilities
     ///
     /// This configuration defines a reference-compliant CCL parser that follows
     /// the OCaml reference implementation's behavior.
+    ///
+    /// Note: Type safety ensures mutually exclusive behaviors cannot coexist.
+    /// The validate() method is available but not required - invalid configs
+    /// are impossible to construct.
     pub fn sickle_current() -> Self {
         Self {
             supported_functions: [
@@ -120,16 +299,12 @@ impl ImplementationConfig {
             .iter()
             .map(|s| s.to_string())
             .collect(),
-            chosen_behaviors: [
-                "list_coercion_disabled", // Reference: explicit lists only
-                "crlf_preserve_literal",  // Reference: preserve CRLF
-                "boolean_strict",         // Reference: strict boolean parsing
-                "strict_spacing",         // Reference: strict spacing rules
-                "tabs_preserve",          // Reference: preserve tabs
-            ]
-            .iter()
-            .map(|s| s.to_string())
-            .collect(),
+            // Type-safe behavior choices (impossible to have conflicts)
+            boolean_behavior: BooleanBehavior::Strict,
+            crlf_behavior: CRLFBehavior::PreserveLiteral,
+            list_coercion_behavior: ListCoercionBehavior::Disabled,
+            spacing_behavior: SpacingBehavior::Strict,
+            tab_behavior: TabBehavior::Preserve,
             supported_variants: ["reference_compliant"]
                 .iter()
                 .map(|s| s.to_string())
@@ -137,9 +312,40 @@ impl ImplementationConfig {
         }
     }
 
+    /// Get all chosen behaviors as a set of strings for comparison
+    #[allow(dead_code)]
+    fn get_chosen_behaviors(&self) -> HashSet<String> {
+        [
+            self.boolean_behavior.as_str(),
+            self.crlf_behavior.as_str(),
+            self.list_coercion_behavior.as_str(),
+            self.spacing_behavior.as_str(),
+            self.tab_behavior.as_str(),
+        ]
+        .iter()
+        .map(|s| s.to_string())
+        .collect()
+    }
+
     /// Check if a behavior is supported
+    ///
+    /// This checks against our type-safe behavior configuration.
     pub fn supports_behavior(&self, behavior: &str) -> bool {
-        self.chosen_behaviors.contains(behavior)
+        match behavior {
+            "boolean_strict" => self.boolean_behavior == BooleanBehavior::Strict,
+            "boolean_lenient" => self.boolean_behavior == BooleanBehavior::Lenient,
+            "crlf_preserve_literal" => self.crlf_behavior == CRLFBehavior::PreserveLiteral,
+            "crlf_normalize_to_lf" => self.crlf_behavior == CRLFBehavior::NormalizeToLF,
+            "list_coercion_enabled" => self.list_coercion_behavior == ListCoercionBehavior::Enabled,
+            "list_coercion_disabled" => {
+                self.list_coercion_behavior == ListCoercionBehavior::Disabled
+            }
+            "strict_spacing" => self.spacing_behavior == SpacingBehavior::Strict,
+            "relaxed_spacing" => self.spacing_behavior == SpacingBehavior::Relaxed,
+            "tabs_preserve" => self.tab_behavior == TabBehavior::Preserve,
+            "tabs_normalize" => self.tab_behavior == TabBehavior::Normalize,
+            _ => false, // Unknown behavior
+        }
     }
 
     /// Check if a function is supported
@@ -148,6 +354,7 @@ impl ImplementationConfig {
     }
 
     /// Check if all functions in a list are supported
+    #[allow(dead_code)]
     pub fn supports_all_functions(&self, functions: &[String]) -> bool {
         functions.is_empty() || functions.iter().all(|f| self.supports_function(f))
     }
@@ -186,70 +393,99 @@ impl TestSuite {
             .collect()
     }
 
+    /// Single decision function to determine if a test should run or be skipped
+    ///
+    /// Design Principles (from test-runner-design-principles.md):
+    /// - Single Source of Truth: One function evaluates all criteria
+    /// - Explicit Precedence: Hierarchical validation with documented order
+    /// - Explicit Skip Reasons: Returns why tests are skipped, not just bool
+    ///
+    /// Precedence Hierarchy (highest to lowest):
+    /// 1. Architectural/variant choices (e.g., reference_compliant vs proposed_behavior)
+    /// 2. Implementation capabilities (functions) and behaviors
+    /// 3. (Future) Optional feature completeness
+    ///
+    /// Returns: None if test should run, Some(SkipReason) if test should be skipped
+    pub fn should_skip_test(test: &TestCase, config: &ImplementationConfig) -> Option<SkipReason> {
+        // PRECEDENCE LEVEL 1: Architectural/variant choices (highest priority)
+        // If a test has variants, at least one must be in our supported list
+        if !test.variants.is_empty() {
+            let has_supported_variant = test
+                .variants
+                .iter()
+                .any(|v| config.supported_variants.contains(v));
+
+            if !has_supported_variant {
+                return Some(SkipReason::UnsupportedVariant(test.variants.clone()));
+            }
+        }
+
+        // PRECEDENCE LEVEL 2a: Implementation capabilities (functions)
+        // Check if all required functions are implemented
+        let missing_functions: Vec<String> = test
+            .functions
+            .iter()
+            .filter(|f| !config.supports_function(f))
+            .cloned()
+            .collect();
+
+        if !missing_functions.is_empty() {
+            return Some(SkipReason::MissingFunctions(missing_functions));
+        }
+
+        // PRECEDENCE LEVEL 2b: Behavior choices
+        // If the test specifies behaviors, at least one should match our chosen behaviors
+        if !test.behaviors.is_empty() {
+            let has_matching_behavior = test.behaviors.iter().any(|b| config.supports_behavior(b));
+
+            if !has_matching_behavior {
+                // Check if it conflicts with mutually exclusive behaviors
+                let mutually_exclusive = [
+                    ("boolean_strict", "boolean_lenient"),
+                    ("crlf_preserve_literal", "crlf_normalize_to_lf"),
+                    ("list_coercion_enabled", "list_coercion_disabled"),
+                    ("strict_spacing", "relaxed_spacing"),
+                    ("tabs_preserve", "tabs_normalize"),
+                ];
+
+                let mut conflicting: Vec<String> = Vec::new();
+
+                for (opt1, opt2) in &mutually_exclusive {
+                    if (test.behaviors.contains(&opt1.to_string())
+                        && config.supports_behavior(opt2))
+                        || (test.behaviors.contains(&opt2.to_string())
+                            && config.supports_behavior(opt1))
+                    {
+                        // This test requires a behavior that conflicts with our config
+                        conflicting.extend(
+                            test.behaviors
+                                .iter()
+                                .filter(|b| *b == opt1 || *b == opt2)
+                                .cloned(),
+                        );
+                    }
+                }
+
+                if !conflicting.is_empty() {
+                    conflicting.sort();
+                    conflicting.dedup();
+                    return Some(SkipReason::ConflictingBehaviors(conflicting));
+                }
+            }
+        }
+
+        // Test should run
+        None
+    }
+
     /// Filter tests based on implementation capabilities
     ///
-    /// This implements the test filtering strategy described in the CCL test suite guide.
-    /// Tests are filtered based on:
-    /// 1. Whether test variants are supported (e.g., excludes "proposed_behavior")
-    /// 2. Whether all required functions are implemented
-    /// 3. Whether behaviors conflict with chosen behaviors
+    /// This is now a thin wrapper around should_skip_test that maintains
+    /// compatibility with existing code while using the new single decision function.
     pub fn filter_by_capabilities(&self, config: &ImplementationConfig) -> Vec<&TestCase> {
         self.tests
             .iter()
-            .filter(|test| {
-                // Check variant support
-                // If test has variants, at least one must be in our supported list
-                // Empty supported_variants means we only accept tests with no variants
-                if !test.variants.is_empty() {
-                    let has_supported_variant = test
-                        .variants
-                        .iter()
-                        .any(|v| config.supported_variants.contains(v));
-
-                    if !has_supported_variant {
-                        return false;
-                    }
-                }
-
-                // Check if all required functions are implemented
-                if !config.supports_all_functions(&test.functions) {
-                    return false;
-                }
-
-                // Check for behavior conflicts
-                // If the test specifies behaviors, at least one should match our chosen behaviors
-                // or the test should have no behaviors (meaning it's behavior-agnostic)
-                if !test.behaviors.is_empty() {
-                    // Check if any of the test's behaviors are in our chosen behaviors
-                    let has_matching_behavior =
-                        test.behaviors.iter().any(|b| config.supports_behavior(b));
-
-                    // If no matching behavior, check if it conflicts with mutually exclusive behaviors
-                    if !has_matching_behavior {
-                        // Check for mutually exclusive behavior pairs
-                        let mutually_exclusive = [
-                            ("boolean_strict", "boolean_lenient"),
-                            ("crlf_preserve_literal", "crlf_normalize_to_lf"),
-                            ("list_coercion_enabled", "list_coercion_disabled"),
-                            ("strict_spacing", "relaxed_spacing"),
-                            ("tabs_preserve", "tabs_normalize"),
-                        ];
-
-                        // If the test requires a behavior that conflicts with our chosen behavior, skip it
-                        for (opt1, opt2) in &mutually_exclusive {
-                            if (test.behaviors.contains(&opt1.to_string())
-                                && config.supports_behavior(opt2))
-                                || (test.behaviors.contains(&opt2.to_string())
-                                    && config.supports_behavior(opt1))
-                            {
-                                return false;
-                            }
-                        }
-                    }
-                }
-
-                true
-            })
+            .filter(|test| Self::should_skip_test(test, config).is_none())
             .collect()
     }
 
