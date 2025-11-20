@@ -473,6 +473,8 @@ impl TestSuite {
                 }
             }
         }
+        // Note: Tests without explicit behaviors will run with current config
+        // and may fail if they expect different behavior
 
         // Test should run
         None
