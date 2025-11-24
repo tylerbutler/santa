@@ -169,14 +169,18 @@ fn is_valid_ccl_key(key: &str) -> bool {
 fn build_model(map: indexmap::IndexMap<String, Vec<String>>) -> Result<Model> {
     let mut result = indexmap::IndexMap::new();
 
-    for (key, mut values) in map {
+    for (key, values) in map {
         // Reference implementation iterates hash tables in reverse insertion order
         // Reverse ONLY for non-empty duplicate keys
         // Empty keys (bare list items) maintain insertion order
         #[cfg(feature = "reference_compliant")]
-        if values.len() > 1 && !key.is_empty() {
-            values.reverse();
-        }
+        let values = {
+            let mut v = values;
+            if v.len() > 1 && !key.is_empty() {
+                v.reverse();
+            }
+            v
+        };
 
         // Build the nested map for this key
         let mut nested = indexmap::IndexMap::new();
