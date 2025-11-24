@@ -39,21 +39,15 @@ Core Model API methods and operations covered by the test suite:
 
 **Example usage from tests**:
 
-- **basic_list_from_duplicates_build_hierarchy** (`api_list_access.json`)
+- **single_item_as_list_reference_build_hierarchy** (`api_reference_compliant.json`)
   ```ccl
-  servers = web1
-servers = web2
-servers = web3
+  item = single
   ```
-- **large_list_build_hierarchy** (`api_list_access.json`)
+- **mixed_duplicate_single_keys_reference_build_hierarchy** (`api_reference_compliant.json`)
   ```ccl
-  items = item01
-items = item02
-items = item03
-items = item04
-items = item05
-items = item06
-items = it...
+  ports = 80
+ports = 443
+host = localhost
   ```
 
 #### `canonical_format`
@@ -62,11 +56,11 @@ items = it...
 
 **Example usage from tests**:
 
-- **canonical_format_empty_values_canonical_format** (`api_proposed_behavior.json`)
+- **canonical_format_empty_values_ocaml_reference_canonical_format** (`api_reference_compliant.json`)
   ```ccl
   empty_key =
   ```
-- **canonical_format_tab_preservation_canonical_format** (`api_proposed_behavior.json`)
+- **canonical_format_tab_preservation_ocaml_reference_canonical_format** (`api_reference_compliant.json`)
   ```ccl
   value_with_tabs = text		with	tabs	
   ```
@@ -143,21 +137,15 @@ disabled = no
 
 **Example usage from tests**:
 
-- **basic_list_from_duplicates_get_list** (`api_list_access.json`)
+- **single_item_as_list_reference_get_list** (`api_reference_compliant.json`)
   ```ccl
-  servers = web1
-servers = web2
-servers = web3
+  item = single
   ```
-- **large_list_get_list** (`api_list_access.json`)
+- **mixed_duplicate_single_keys_reference_get_list** (`api_reference_compliant.json`)
   ```ccl
-  items = item01
-items = item02
-items = item03
-items = item04
-items = item05
-items = item06
-items = it...
+  ports = 80
+ports = 443
+host = localhost
   ```
 
 #### `get_string`
@@ -185,21 +173,17 @@ debug = off
 
 **Example usage from tests**:
 
-- **basic_list_from_duplicates_parse** (`api_list_access.json`)
+- **round_trip_whitespace_normalization_parse** (`property_round_trip.json`)
   ```ccl
-  servers = web1
-servers = web2
-servers = web3
+    key  =  value  
+  nested  = 
+    sub  =  val  
   ```
-- **large_list_parse** (`api_list_access.json`)
+- **round_trip_empty_keys_lists_parse** (`property_round_trip.json`)
   ```ccl
-  items = item01
-items = item02
-items = item03
-items = item04
-items = item05
-items = item06
-items = it...
+  = item1
+= item2
+regular = value
   ```
 
 #### `parse_dedented`
@@ -208,17 +192,13 @@ items = it...
 
 **Example usage from tests**:
 
-- **multiline_section_header_value_parse_dedented** (`api_proposed_behavior.json`)
+- **indented_key_parse_dedented** (`api_edge_cases.json`)
   ```ccl
-  == Section Header =
-  This continues the header
-key = value
+    key = val
   ```
-- **unindented_multiline_becomes_continuation_parse_dedented** (`api_proposed_behavior.json`)
+- **empty_key_indented_parse_dedented** (`api_edge_cases.json`)
   ```ccl
-  == Section Header =
-This continues the header
-key = value
+    = val
   ```
 
 #### `round_trip`
@@ -227,19 +207,17 @@ key = value
 
 **Example usage from tests**:
 
-- **round_trip_property_basic_round_trip** (`property_algebraic.json`)
+- **round_trip_basic_round_trip** (`property_round_trip.json`)
   ```ccl
   key = value
-another = test
+nested =
+  sub = val
   ```
-- **round_trip_property_nested_round_trip** (`property_algebraic.json`)
+- **round_trip_whitespace_normalization_round_trip** (`property_round_trip.json`)
   ```ccl
-  config =
-  host = localhost
-  port = 8080
-  db =
-    name = mydb
-    user = admin
+    key  =  value  
+  nested  = 
+    sub  =  val  
   ```
 
 ## Behaviors
@@ -314,13 +292,13 @@ key2 = value2
 
 **Example usage from tests**:
 
-- **canonical_format_line_endings_proposed_parse** (`api_proposed_behavior.json`)
+- **canonical_format_line_endings_reference_behavior_parse** (`api_reference_compliant.json`)
   ```ccl
   key1 = value1
 key2 = value2
 
   ```
-- **canonical_format_line_endings_proposed_canonical_format** (`api_proposed_behavior.json`)
+- **canonical_format_line_endings_reference_behavior_canonical_format** (`api_reference_compliant.json`)
   ```ccl
   key1 = value1
 key2 = value2
@@ -363,13 +341,13 @@ key2 = value2
 
 **Example usage from tests**:
 
-- **canonical_format_consistent_spacing_parse** (`api_proposed_behavior.json`)
+- **canonical_format_consistent_spacing_ocaml_reference_canonical_format** (`api_reference_compliant.json`)
   ```ccl
   key1=value1
 key2  =  value2
 key3	=	value3
   ```
-- **canonical_format_consistent_spacing_canonical_format** (`api_proposed_behavior.json`)
+- **canonical_format_consistent_spacing_parse** (`api_proposed_behavior.json`)
   ```ccl
   key1=value1
 key2  =  value2
@@ -382,13 +360,13 @@ key3	=	value3
 
 **Example usage from tests**:
 
-- **canonical_format_tab_preservation_parse** (`api_proposed_behavior.json`)
+- **canonical_format_tab_preservation_ocaml_reference_canonical_format** (`api_reference_compliant.json`)
   ```ccl
   value_with_tabs = text		with	tabs	
   ```
-- **canonical_format_tab_preservation_canonical_format** (`api_proposed_behavior.json`)
+- **key_with_tabs_parse** (`api_edge_cases.json`)
   ```ccl
-  value_with_tabs = text		with	tabs	
+  	key	=	value
   ```
 
 ## Running Tests
