@@ -15,7 +15,10 @@ use serde::{Deserialize, Serialize};
 ///
 /// This helper is used to filter out scalar literals from string lists
 /// when `list_coercion_enabled` feature is active.
-#[cfg(feature = "list_coercion_enabled")]
+#[cfg(all(
+    feature = "list_coercion_enabled",
+    not(feature = "list_coercion_disabled")
+))]
 fn is_scalar_literal(s: &str) -> bool {
     // Check if it's parseable as an integer
     if s.parse::<i64>().is_ok() {

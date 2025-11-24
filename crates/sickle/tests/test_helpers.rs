@@ -1,4 +1,9 @@
 //! Test helpers for loading and executing CCL test cases from JSON files
+//!
+//! Contains type-safe representations for CCL behavior configuration and test filtering.
+//! Some types are scaffolding for future test infrastructure expansion.
+
+#![allow(dead_code)]
 
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};

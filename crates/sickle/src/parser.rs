@@ -70,8 +70,7 @@ fn normalize_multiline_keys(input: &str) -> String {
                 // Join lines from i to j into a single key=value line
                 // Only join lines at the same indentation level
                 let mut key_parts = vec![trimmed];
-                for k in (i + 1)..j {
-                    let part_line = lines[k];
+                for part_line in lines.iter().take(j).skip(i + 1) {
                     let part_trimmed = part_line.trim();
                     let part_indent = part_line.len() - part_line.trim_start().len();
 
