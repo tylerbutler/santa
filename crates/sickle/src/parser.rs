@@ -64,7 +64,12 @@ fn parse_entries(input: &str) -> Vec<Entry> {
                 let value = trimmed[eq_pos + 1..].trim().to_string();
 
                 current_key = Some((key, indent));
-                if !value.is_empty() {
+                if value.is_empty() {
+                    // Empty inline value - add empty string so that when continuation
+                    // lines are joined with "\n", the value starts with "\n"
+                    // e.g., "server =" with indented children should have value "\n  child = ..."
+                    value_lines.push(String::new());
+                } else {
                     value_lines.push(value);
                 }
             }
@@ -104,48 +109,17 @@ fn parse_entries(input: &str) -> Vec<Entry> {
     entries
 }
 
-/// Remove common leading whitespace from all lines while preserving relative indentation
-fn dedent(s: &str) -> String {
-    let lines: Vec<&str> = s.lines().collect();
-    if lines.is_empty() {
-        return String::new();
-    }
-
-    // Find the minimum indentation (ignoring empty lines)
-    let min_indent = lines
-        .iter()
-        .filter(|line| !line.trim().is_empty())
-        .map(|line| line.len() - line.trim_start().len())
-        .min()
-        .unwrap_or(0);
-
-    // Remove that amount of leading whitespace from each line
-    lines
-        .iter()
-        .map(|line| {
-            if line.trim().is_empty() {
-                ""
-            } else if line.len() >= min_indent {
-                &line[min_indent..]
-            } else {
-                line
-            }
-        })
-        .collect::<Vec<_>>()
-        .join("\n")
-        .trim()
-        .to_string()
-}
-
 /// Build hierarchical structure from flat entries
+///
+/// Note: This returns raw values preserving indentation and leading newlines.
+/// The `build_hierarchy` function handles recursive parsing with dedenting.
 pub(crate) fn parse_to_map(input: &str) -> Result<BTreeMap<String, Vec<String>>> {
     let entries = parse_entries(input);
     let mut result: BTreeMap<String, Vec<String>> = BTreeMap::new();
 
     for entry in entries {
-        // Dedent the value to preserve relative indentation
-        let value = dedent(&entry.value);
-        result.entry(entry.key).or_default().push(value);
+        // Return raw value - build_hierarchy will handle dedent during recursion
+        result.entry(entry.key).or_default().push(entry.value);
     }
 
     Ok(result)
@@ -287,10 +261,10 @@ not indented key
         // "not indented key" should be separate
         assert!(map.contains_key("not indented key"));
 
-        // And it should have its own continuation (dedented)
+        // And it should have its own continuation (raw, preserving indentation per CCL spec)
         assert_eq!(
             map.get("not indented key").unwrap()[0],
-            "indented for not indented"
+            "  indented for not indented"
         );
     }
 }

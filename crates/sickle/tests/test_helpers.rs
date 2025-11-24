@@ -80,6 +80,8 @@ pub struct ImplementationConfig {
     pub supported_features: Vec<String>,
     /// Chosen behaviors (e.g., "boolean_strict", "crlf_normalize_to_lf")
     pub chosen_behaviors: Vec<String>,
+    /// Supported test variants (tests with unsupported variants are skipped)
+    pub supported_variants: Vec<String>,
 }
 
 impl ImplementationConfig {
@@ -112,6 +114,10 @@ impl ImplementationConfig {
                 "crlf_normalize_to_lf".to_string(), // Normalize CRLF to LF
                 "list_coercion_enabled".to_string(), // Allow list coercion
             ],
+            // Variants are mutually exclusive interpretations of the spec.
+            // We implement reference_compliant behavior (indentation groups values
+            // as the parent's value) rather than proposed_behavior (flat parsing).
+            supported_variants: vec!["reference_compliant".to_string()],
         }
     }
 }
@@ -178,6 +184,20 @@ impl TestSuite {
                         .all(|f| config.supported_features.contains(f))
                 {
                     return false;
+                }
+
+                // Check for variant compatibility
+                // If the test specifies variants, skip if we don't support any of them
+                // Tests with "proposed_behavior" variant use alternative interpretation
+                // that differs from reference-compliant behavior
+                if !test.variants.is_empty() {
+                    let has_supported_variant = test
+                        .variants
+                        .iter()
+                        .any(|v| config.supported_variants.contains(v));
+                    if !has_supported_variant {
+                        return false;
+                    }
                 }
 
                 // Check for behavior conflicts
