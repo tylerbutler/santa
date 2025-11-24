@@ -250,16 +250,18 @@ pub fn parse_indented(input: &str) -> Result<Vec<Entry>> {
         .min()
         .unwrap_or(0);
 
-    // Remove the common prefix from all lines
+    // Remove the common prefix from all lines and expand tabs to spaces
     let dedented = input
         .lines()
         .map(|line| {
-            if line.trim().is_empty() {
-                line
-            } else if line.len() > min_indent {
-                &line[min_indent..]
+            // First expand tabs to spaces (treat each tab as 1 space for character-level dedenting)
+            let expanded = line.replace('\t', " ");
+            if expanded.trim().is_empty() {
+                expanded
+            } else if expanded.len() > min_indent {
+                expanded[min_indent..].to_string()
             } else {
-                line.trim_start()
+                expanded.trim_start().to_string()
             }
         })
         .collect::<Vec<_>>()
@@ -318,7 +320,7 @@ fn parse_single_entry_with_raw_value(input: &str) -> Result<Vec<Entry>> {
 
     if let Some(eq_pos) = first_line.find('=') {
         let key = first_line[..eq_pos].trim().to_string();
-        let first_value = first_line[eq_pos + 1..].to_string();
+        let first_value = first_line[eq_pos + 1..].trim_start().to_string();
 
         // Collect remaining lines as the value, preserving indentation
         let remaining_lines: Vec<&str> = lines.collect();

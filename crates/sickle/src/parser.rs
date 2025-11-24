@@ -15,18 +15,118 @@ struct Entry {
     indent: usize,
 }
 
+/// Normalize input by handling multiline keys (newlines before '=')
+/// This joins lines where a key spans multiple lines before the equals sign
+///
+/// Strategy: Only join lines if they form a multiline key at the SAME indentation level.
+/// Indented lines are continuation values, not multiline keys.
+fn normalize_multiline_keys(input: &str) -> String {
+    let lines: Vec<&str> = input.lines().collect();
+    let mut result = String::new();
+    let mut i = 0;
+
+    while i < lines.len() {
+        let line = lines[i];
+        let trimmed = line.trim();
+        let line_indent = line.len() - line.trim_start().len();
+
+        // Skip leading empty lines
+        if trimmed.is_empty() && result.is_empty() {
+            i += 1;
+            continue;
+        }
+
+        // Check if this is a multiline key pattern:
+        // Current line has no '=' AND is not indented more than base level
+        if !trimmed.is_empty() && !trimmed.contains('=') {
+            // Look ahead for the next line with '=' at SAME OR LESS indentation
+            let mut j = i + 1;
+            let mut found_equals = false;
+            while j < lines.len() {
+                let next_line = lines[j];
+                let next_trimmed = next_line.trim();
+                let next_indent = next_line.len() - next_line.trim_start().len();
+
+                if next_trimmed.is_empty() {
+                    j += 1;
+                    continue;
+                }
+
+                // If indented MORE than current line, this is a continuation value, not a key
+                if next_indent > line_indent {
+                    break;
+                }
+
+                if next_trimmed.contains('=') {
+                    found_equals = true;
+                    break;
+                }
+
+                // Another line at same/less indentation without '=' - could be multiline key continuation
+                j += 1;
+            }
+
+            if found_equals && j < lines.len() {
+                // Join lines from i to j into a single key=value line
+                // Only join lines at the same indentation level
+                let mut key_parts = vec![trimmed];
+                for k in (i + 1)..j {
+                    let part_line = lines[k];
+                    let part_trimmed = part_line.trim();
+                    let part_indent = part_line.len() - part_line.trim_start().len();
+
+                    if !part_trimmed.is_empty() && part_indent <= line_indent {
+                        key_parts.push(part_trimmed);
+                    }
+                }
+                let joined_key = key_parts.join(" ");
+                result.push_str(&joined_key);
+                result.push_str(lines[j].trim());
+                result.push('\n');
+                i = j + 1;
+                continue;
+            }
+        }
+
+        // Normal line - pass through
+        result.push_str(line);
+        result.push('\n');
+        i += 1;
+    }
+
+    result
+}
+
+/// Trim only spaces (not tabs) from the start of a string
+fn trim_spaces_start(s: &str) -> &str {
+    s.trim_start_matches(' ')
+}
+
+/// Trim only spaces (not tabs) from the end of a string
+fn trim_spaces_end(s: &str) -> &str {
+    s.trim_end_matches(' ')
+}
+
+/// Trim only spaces (not tabs) from both ends of a string
+fn trim_spaces(s: &str) -> &str {
+    trim_spaces_end(trim_spaces_start(s))
+}
+
 /// Parse CCL text into a flat list of entries
 ///
 /// This respects indentation - lines at the base level start new entries,
 /// lines indented further become part of the current entry's value
 fn parse_entries(input: &str) -> Vec<Entry> {
+    // First normalize multiline keys
+    let normalized = normalize_multiline_keys(input);
+
     let mut entries = Vec::new();
     let mut current_key: Option<(String, usize)> = None;
     let mut value_lines: Vec<String> = Vec::new();
     let mut base_indent: Option<usize> = None;
 
-    for line in input.lines() {
-        // Count leading spaces
+    for line in normalized.lines() {
+        // Count leading whitespace (spaces and tabs)
         let indent = line.len() - line.trim_start().len();
         let trimmed = line.trim();
 
@@ -60,8 +160,11 @@ fn parse_entries(input: &str) -> Vec<Entry> {
 
             // Parse new key-value pair
             if let Some(eq_pos) = trimmed.find('=') {
+                // Trim all whitespace from key (spaces and tabs)
                 let key = trimmed[..eq_pos].trim().to_string();
-                let value = trimmed[eq_pos + 1..].trim().to_string();
+                // Trim only spaces from value start, preserve tabs
+                let value_raw = &trimmed[eq_pos + 1..];
+                let value = trim_spaces(value_raw).to_string();
 
                 current_key = Some((key, indent));
                 if !value.is_empty() {

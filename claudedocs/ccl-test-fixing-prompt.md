@@ -458,7 +458,65 @@ These tests are now skipped pending resolution.
    - `round_trip_whitespace_normalization_parse`
 
 **Next Session Focus**:
-Edge case tests (4 tests) - tabs, newlines, and complex whitespace handling in parser
+Remaining failures (8 tests) - multiline values, tab preservation behaviors, and reference-compliant tests
+
+### Session 4 (2025-11-20) - Edge Case Handling
+**Focus**: Fix tab preservation, newline handling in keys, and complex whitespace normalization
+
+**Tests Fixed**: 4 (7 → 8 failures, but fixed 4 edge cases, introduced 5 new regressions that were later reduced to 1)
+- ✅ `key_with_tabs_parse` - Tab preservation in values
+- ✅ `key_with_newline_before_equals_parse` - Multiline keys with newlines before =
+- ✅ `complex_multi_newline_whitespace_parse` - Complex whitespace normalization
+- ✅ `spaces_vs_tabs_continuation_parse_indented` - Tab-to-space expansion in parse_indented
+
+**Root Cause**:
+Multiple parser issues with edge cases:
+1. **Tab preservation**: Parser was using `.trim()` which removed tabs from values
+2. **Multiline keys**: Parser didn't handle newlines between key and `=` sign
+3. **parse_indented tabs**: Tab characters not being converted to spaces during dedenting
+4. **Whitespace normalization**: Complex patterns with multiple newlines/spaces not handled
+
+**Changes**:
+- File: `crates/sickle/src/parser.rs`
+  - Lines 18-98: Added `normalize_multiline_keys()` function to handle newlines before `=`
+  - Lines 100-108: Added helper functions `trim_spaces_start/end/both()` to preserve tabs
+  - Lines 143: Changed key trimming to use `.trim()` (remove all whitespace from keys)
+  - Lines 145-147: Changed value trimming to use `trim_spaces()` (preserve tabs in values)
+
+- File: `crates/sickle/src/lib.rs`
+  - Line 321: Fixed `parse_single_entry_with_raw_value` to trim leading spaces from first value
+  - Lines 253-268: Added tab-to-space expansion in `parse_indented` dedenting logic
+
+**Tests Results After Fix**:
+- **Total**: 345 tests
+- **Passing**: 225 (65%, +5 from Session 3)
+- **Failing**: 8 (2%, -1 net from Session 3)
+- **Skipped**: 112 (32%, unchanged)
+
+**Remaining Failures** (8 tests):
+1. **Multiline value tests** (3 tests):
+   - `complete_multiline_workflow_parse` - multiline description not found
+   - `complete_multiline_workflow_build_hierarchy` - missing key 'config'
+   - `multiline_values_parse` - multiline value parsing issue
+2. **OCaml reference behaviors** (2 tests):
+   - `key_with_tabs_ocaml_reference_parse` - OCaml-specific tab handling
+   - `spaces_vs_tabs_continuation_ocaml_reference_parse_indented` - OCaml tab behavior
+3. **Reference-compliant** (2 tests):
+   - `mixed_duplicate_single_keys_reference_build_hierarchy` - List ordering (known difference)
+   - `canonical_format_line_endings_reference_behavior_parse` - CRLF handling
+4. **Round-trip** (1 test):
+   - `round_trip_whitespace_normalization_parse` - expected 1 entry, got 2
+
+**Key Insights**:
+- Tab preservation required selective trimming (spaces only, not tabs)
+- Multiline key normalization needs indentation awareness to avoid treating continuation values as keys
+- `parse_indented` converts tabs to spaces as part of dedenting (reference implementation behavior)
+- Some failures are OCaml reference-specific behaviors that may not apply to Rust implementation
+
+**Next Session Focus**:
+1. Investigate remaining multiline value parsing failures
+2. Determine if OCaml reference tests should be skipped or adapted
+3. Address round-trip whitespace normalization issue
 
 ---
 
