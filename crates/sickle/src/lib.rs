@@ -527,5 +527,4 @@ descriptions = Third item"#;
         let second_line = model.get("second line").unwrap();
         println!("DEBUG: second line = {:?}", second_line);
     }
-
 }

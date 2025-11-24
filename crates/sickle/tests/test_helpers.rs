@@ -436,7 +436,7 @@ impl TestSuite {
 
         if problematic_tests.contains(&test.name.as_str()) {
             return Some(SkipReason::UnsupportedVariant(vec![
-                "reference_compliant_with_empty_behaviors_issue_10".to_string()
+                "reference_compliant_with_empty_behaviors_issue_10".to_string(),
             ]));
         }
 
