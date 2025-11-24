@@ -167,12 +167,13 @@ fn parse_entries(input: &str) -> Vec<Entry> {
                 let value = trim_spaces(value_raw).to_string();
 
                 current_key = Some((key, indent));
-                if !value.is_empty() {
-                    value_lines.push(value);
-                } else {
-                    // Empty value after '=' - add empty string to create leading newline
-                    // when continuation lines are added
+                if value.is_empty() {
+                    // Empty inline value - add empty string so that when continuation
+                    // lines are joined with "\n", the value starts with "\n"
+                    // e.g., "server =" with indented children should have value "\n  child = ..."
                     value_lines.push(String::new());
+                } else {
+                    value_lines.push(value);
                 }
             }
         } else if let Some((_, key_indent)) = current_key {
