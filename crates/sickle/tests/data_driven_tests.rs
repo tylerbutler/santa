@@ -630,7 +630,9 @@ fn test_all_ccl_suites_comprehensive() {
 
             let test_result = std::panic::catch_unwind(|| {
                 // Parse the input based on validation type
-                let (entries, model_result) = if test.validation == "parse_dedented" {
+                let (entries, model_result) = if test.validation == "parse_dedented"
+                    || test.validation == "parse_indented"
+                {
                     let e = parse_indented(&test.input);
                     let m = e.as_ref().ok().map(|entries| build_hierarchy(entries));
                     (e, m)
@@ -1236,4 +1238,12 @@ fn test_all_ccl_suites_comprehensive() {
 
     // Assert that we have some passing tests
     assert!(total_passed > 0, "At least some tests should pass");
+
+    // Fail if any tests failed - data-driven tests should all pass
+    assert!(
+        total_failed == 0,
+        "Data-driven tests failed: {} failures out of {} tests",
+        total_failed,
+        total_passed + total_failed + total_skipped
+    );
 }

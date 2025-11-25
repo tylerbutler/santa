@@ -24,6 +24,7 @@ fn normalize_multiline_keys(input: &str) -> String {
     let lines: Vec<&str> = input.lines().collect();
     let mut result = String::new();
     let mut i = 0;
+    let mut base_indent: Option<usize> = None;
 
     while i < lines.len() {
         let line = lines[i];
@@ -36,8 +37,24 @@ fn normalize_multiline_keys(input: &str) -> String {
             continue;
         }
 
+        // Determine base indentation from first non-empty line
+        if base_indent.is_none() && !trimmed.is_empty() {
+            base_indent = Some(line_indent);
+        }
+
+        let base = base_indent.unwrap_or(0);
+
+        // If this line is indented more than base level, it's a continuation value
+        // Pass it through unchanged - don't try to interpret it as a multiline key
+        if line_indent > base {
+            result.push_str(line);
+            result.push('\n');
+            i += 1;
+            continue;
+        }
+
         // Check if this is a multiline key pattern:
-        // Current line has no '=' AND is not indented more than base level
+        // Current line has no '=' AND is at or below base level
         if !trimmed.is_empty() && !trimmed.contains('=') {
             // Look ahead for the next line with '=' at SAME OR LESS indentation
             let mut j = i + 1;
@@ -161,7 +178,7 @@ fn parse_entries(input: &str) -> Vec<Entry> {
             if let Some(eq_pos) = trimmed.find('=') {
                 // Trim all whitespace from key (spaces and tabs)
                 let key = trimmed[..eq_pos].trim().to_string();
-                // Trim only spaces from value start, preserve tabs
+                // Trim only spaces from value start, preserve tabs for tabs_preserve behavior
                 let value_raw = &trimmed[eq_pos + 1..];
                 let value = trim_spaces(value_raw).to_string();
 
