@@ -451,8 +451,8 @@ impl TestSuite {
             "list_with_unicode_reference_build_hierarchy",
             "list_with_special_characters_reference_build_hierarchy",
             "complex_mixed_list_scenarios_reference_build_hierarchy",
-            // KNOWN ISSUE: Test data expects insertion order but variant is reference_compliant
-            // (which reverses order). The expected value should be ["secondary", "primary"].
+            // Same issue as above - test data expects insertion order but variant is reference_compliant
+            // See: https://github.com/tylerbutler/ccl-test-data/issues/10
             "nested_list_access_reference_build_hierarchy",
             // KNOWN ISSUE: Test data conflict - key_with_tabs_ocaml_reference expects trimmed tabs
             // but key_with_tabs_parse expects preserved tabs. Both have tabs_preserve behavior.
