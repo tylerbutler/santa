@@ -120,6 +120,10 @@ download-ccl-tests:
 test-ccl:
     @cargo test -p sickle test_all_ccl_suites_comprehensive -- --nocapture
 
+# Generate sickle capabilities documentation from test data
+sickle-capabilities:
+    @python3 crates/sickle/scripts/generate_capabilities.py
+
 # Benchmarking Commands
 # ====================
 

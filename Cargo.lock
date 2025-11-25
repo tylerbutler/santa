@@ -1128,6 +1128,8 @@ checksum = "6717a8d2a5a929a1a2eb43a12812498ed141a0bcfb7e8f7844fbdbe4303bba9f"
 dependencies = [
  "equivalent",
  "hashbrown 0.16.0",
+ "serde",
+ "serde_core",
 ]
 
 [[package]]
@@ -1573,12 +1575,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "powershell_script"
-version = "1.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bef8336090917f3d3a044256bc0e5c51d5420e5d09dfa1df4868083c5231a454"
-
-[[package]]
 name = "ppv-lite86"
 version = "0.2.21"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1947,7 +1943,6 @@ dependencies = [
  "futures",
  "moka",
  "notify",
- "powershell_script",
  "predicates",
  "proptest",
  "rstest",
@@ -2133,13 +2128,11 @@ checksum = "0fda2ff0d084019ba4d7c6f371c95d8fd75ce3524c3cb8fb653a3023f6323e64"
 name = "sickle"
 version = "0.1.0"
 dependencies = [
- "proptest",
- "rstest",
+ "indexmap",
  "serde",
  "serde_derive",
  "serde_json",
  "string-interner",
- "thiserror",
 ]
 
 [[package]]

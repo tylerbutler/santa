@@ -303,15 +303,13 @@ mod tests {
     async fn test_config_reload_validation() {
         // Use cargo (universal package manager) with cargo-update package
         // to ensure test works on all platforms
-        let valid_config = r#"
-sources =
+        let valid_config = r#"sources =
   = cargo
 packages =
-  = cargo-update
-        "#;
+  = cargo-update"#;
 
         let mut temp_file = NamedTempFile::new().unwrap();
-        writeln!(temp_file, "{valid_config}").unwrap();
+        write!(temp_file, "{}", valid_config).unwrap();
         temp_file.flush().unwrap();
 
         let data = SantaData::default();

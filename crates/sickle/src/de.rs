@@ -33,7 +33,7 @@ pub fn from_str<'a, T>(s: &'a str) -> Result<T>
 where
     T: Deserialize<'a>,
 {
-    let model = crate::parse(s)?;
+    let model = crate::load(s)?;
     let mut deserializer = Deserializer::from_model(model);
     T::deserialize(&mut deserializer).map_err(|e| Error::ValueError(e.to_string()))
 }
@@ -59,6 +59,14 @@ impl Deserializer {
     }
 }
 
+/// Helper to extract a string value from the recursive map structure
+/// Converts our Result type to DeError for serde compatibility
+fn extract_string_value(model: &Model) -> std::result::Result<&str, DeError> {
+    model
+        .as_string()
+        .map_err(|e| DeError::custom(e.to_string()))
+}
+
 impl<'de> de::Deserializer<'de> for &mut Deserializer {
     type Error = DeError;
 
@@ -66,21 +74,38 @@ impl<'de> de::Deserializer<'de> for &mut Deserializer {
     where
         V: Visitor<'de>,
     {
-        match &self.model {
-            Model::Singleton(s) => visitor.visit_str(s),
-            Model::List(_) => self.deserialize_seq(visitor),
-            Model::Map(_) => self.deserialize_map(visitor),
+        // Check if it's a simple string value (single key with empty map)
+        if let Ok(s) = extract_string_value(&self.model) {
+            return visitor.visit_str(s);
         }
+
+        // Check if it's a list (multiple keys at same level)
+        if self.model.len() > 1 && self.model.values().all(|v| v.is_empty()) {
+            return self.deserialize_seq(visitor);
+        }
+
+        // Check if it's a list with empty keys (CCL list syntax: = item1, = item2)
+        if self.model.len() == 1 {
+            if let Ok(value) = self.model.get("") {
+                // Even a single-element list should be treated as a sequence
+                if !value.is_empty() && value.values().all(|v| v.is_empty()) {
+                    return self.deserialize_seq(visitor);
+                }
+            }
+        }
+
+        // Otherwise it's a map
+        self.deserialize_map(visitor)
     }
 
     fn deserialize_bool<V>(self, visitor: V) -> std::result::Result<V::Value, Self::Error>
     where
         V: Visitor<'de>,
     {
-        let s = self.model.as_str().map_err(DeError::from_error)?;
-        let b = s
-            .parse::<bool>()
-            .map_err(|_| DeError::custom(format!("failed to parse '{}' as bool", s)))?;
+        let b = self
+            .model
+            .as_bool()
+            .map_err(|e| DeError::custom(e.to_string()))?;
         visitor.visit_bool(b)
     }
 
@@ -88,7 +113,7 @@ impl<'de> de::Deserializer<'de> for &mut Deserializer {
     where
         V: Visitor<'de>,
     {
-        let s = self.model.as_str().map_err(DeError::from_error)?;
+        let s = extract_string_value(&self.model)?;
         let n = s
             .parse::<i8>()
             .map_err(|_| DeError::custom(format!("failed to parse '{}' as i8", s)))?;
@@ -99,7 +124,7 @@ impl<'de> de::Deserializer<'de> for &mut Deserializer {
     where
         V: Visitor<'de>,
     {
-        let s = self.model.as_str().map_err(DeError::from_error)?;
+        let s = extract_string_value(&self.model)?;
         let n = s
             .parse::<i16>()
             .map_err(|_| DeError::custom(format!("failed to parse '{}' as i16", s)))?;
@@ -110,7 +135,7 @@ impl<'de> de::Deserializer<'de> for &mut Deserializer {
     where
         V: Visitor<'de>,
     {
-        let s = self.model.as_str().map_err(DeError::from_error)?;
+        let s = extract_string_value(&self.model)?;
         let n = s
             .parse::<i32>()
             .map_err(|_| DeError::custom(format!("failed to parse '{}' as i32", s)))?;
@@ -121,7 +146,7 @@ impl<'de> de::Deserializer<'de> for &mut Deserializer {
     where
         V: Visitor<'de>,
     {
-        let s = self.model.as_str().map_err(DeError::from_error)?;
+        let s = extract_string_value(&self.model)?;
         let n = s
             .parse::<i64>()
             .map_err(|_| DeError::custom(format!("failed to parse '{}' as i64", s)))?;
@@ -132,7 +157,7 @@ impl<'de> de::Deserializer<'de> for &mut Deserializer {
     where
         V: Visitor<'de>,
     {
-        let s = self.model.as_str().map_err(DeError::from_error)?;
+        let s = extract_string_value(&self.model)?;
         let n = s
             .parse::<u8>()
             .map_err(|_| DeError::custom(format!("failed to parse '{}' as u8", s)))?;
@@ -143,7 +168,7 @@ impl<'de> de::Deserializer<'de> for &mut Deserializer {
     where
         V: Visitor<'de>,
     {
-        let s = self.model.as_str().map_err(DeError::from_error)?;
+        let s = extract_string_value(&self.model)?;
         let n = s
             .parse::<u16>()
             .map_err(|_| DeError::custom(format!("failed to parse '{}' as u16", s)))?;
@@ -154,7 +179,7 @@ impl<'de> de::Deserializer<'de> for &mut Deserializer {
     where
         V: Visitor<'de>,
     {
-        let s = self.model.as_str().map_err(DeError::from_error)?;
+        let s = extract_string_value(&self.model)?;
         let n = s
             .parse::<u32>()
             .map_err(|_| DeError::custom(format!("failed to parse '{}' as u32", s)))?;
@@ -165,7 +190,7 @@ impl<'de> de::Deserializer<'de> for &mut Deserializer {
     where
         V: Visitor<'de>,
     {
-        let s = self.model.as_str().map_err(DeError::from_error)?;
+        let s = extract_string_value(&self.model)?;
         let n = s
             .parse::<u64>()
             .map_err(|_| DeError::custom(format!("failed to parse '{}' as u64", s)))?;
@@ -176,7 +201,7 @@ impl<'de> de::Deserializer<'de> for &mut Deserializer {
     where
         V: Visitor<'de>,
     {
-        let s = self.model.as_str().map_err(DeError::from_error)?;
+        let s = extract_string_value(&self.model)?;
         let n = s
             .parse::<f32>()
             .map_err(|_| DeError::custom(format!("failed to parse '{}' as f32", s)))?;
@@ -187,7 +212,7 @@ impl<'de> de::Deserializer<'de> for &mut Deserializer {
     where
         V: Visitor<'de>,
     {
-        let s = self.model.as_str().map_err(DeError::from_error)?;
+        let s = extract_string_value(&self.model)?;
         let n = s
             .parse::<f64>()
             .map_err(|_| DeError::custom(format!("failed to parse '{}' as f64", s)))?;
@@ -198,7 +223,7 @@ impl<'de> de::Deserializer<'de> for &mut Deserializer {
     where
         V: Visitor<'de>,
     {
-        let s = self.model.as_str().map_err(DeError::from_error)?;
+        let s = extract_string_value(&self.model)?;
         let mut chars = s.chars();
         let c = chars
             .next()
@@ -213,7 +238,7 @@ impl<'de> de::Deserializer<'de> for &mut Deserializer {
     where
         V: Visitor<'de>,
     {
-        let s = self.model.as_str().map_err(DeError::from_error)?;
+        let s = extract_string_value(&self.model)?;
         visitor.visit_str(s)
     }
 
@@ -228,7 +253,7 @@ impl<'de> de::Deserializer<'de> for &mut Deserializer {
     where
         V: Visitor<'de>,
     {
-        let s = self.model.as_str().map_err(DeError::from_error)?;
+        let s = extract_string_value(&self.model)?;
         visitor.visit_bytes(s.as_bytes())
     }
 
@@ -279,14 +304,18 @@ impl<'de> de::Deserializer<'de> for &mut Deserializer {
     where
         V: Visitor<'de>,
     {
-        // Check if it's a list
-        if let Ok(list) = self.model.as_list() {
-            let seq = SeqDeserializer { iter: list.iter() };
+        // Check if it's a list (multiple keys with empty values)
+        if self.model.len() > 1 && self.model.values().all(|v| v.is_empty()) {
+            // Collect keys as the list items
+            let items: Vec<String> = self.model.keys().cloned().collect();
+            let seq = StringSeqDeserializer {
+                iter: items.into_iter(),
+            };
             return visitor.visit_seq(seq);
         }
 
         // Check if it's a singleton containing list syntax
-        if let Ok(s) = self.model.as_str() {
+        if let Ok(s) = self.model.as_string() {
             if is_list_syntax(s) {
                 // Parse as a simple list of strings
                 let items: Vec<String> = s
@@ -313,18 +342,31 @@ impl<'de> de::Deserializer<'de> for &mut Deserializer {
         }
 
         // Check if it's a map with empty keys (list representation)
-        if let Ok(map) = self.model.as_map() {
-            if map.keys().any(|k| k.is_empty()) {
-                // Extract values with empty keys as a list
-                let list: Vec<crate::Model> = map
-                    .iter()
-                    .filter_map(|(k, v)| if k.is_empty() { Some(v.clone()) } else { None })
-                    .collect();
-                let seq = ModelSeqDeserializer {
-                    iter: list.into_iter(),
-                };
-                return visitor.visit_seq(seq);
+        if self.model.keys().any(|k| k.is_empty()) {
+            // Special case: if there's only one empty key and its value has entries,
+            // use those entries as the list
+            if self.model.len() == 1 {
+                if let Ok(value) = self.model.get("") {
+                    if !value.is_empty() && value.values().all(|v| v.is_empty()) {
+                        let items: Vec<String> = value.keys().cloned().collect();
+                        let seq = StringSeqDeserializer {
+                            iter: items.into_iter(),
+                        };
+                        return visitor.visit_seq(seq);
+                    }
+                }
             }
+
+            // Otherwise, extract values with empty keys as a list
+            let list: Vec<crate::Model> = self
+                .model
+                .iter()
+                .filter_map(|(k, v)| if k.is_empty() { Some(v.clone()) } else { None })
+                .collect();
+            let seq = ModelSeqDeserializer {
+                iter: list.into_iter(),
+            };
+            return visitor.visit_seq(seq);
         }
 
         Err(DeError::custom("expected a list"))
@@ -357,9 +399,8 @@ impl<'de> de::Deserializer<'de> for &mut Deserializer {
     where
         V: Visitor<'de>,
     {
-        let map = self.model.as_map().map_err(DeError::from_error)?;
         let map_de = MapDeserializer {
-            iter: map.iter(),
+            iter: self.model.iter_map(),
             value: None,
         };
         visitor.visit_map(map_de)
@@ -386,7 +427,7 @@ impl<'de> de::Deserializer<'de> for &mut Deserializer {
     where
         V: Visitor<'de>,
     {
-        let s = self.model.as_str().map_err(DeError::from_error)?;
+        let s = extract_string_value(&self.model)?;
         visitor.visit_enum(s.into_deserializer())
     }
 
@@ -410,38 +451,12 @@ fn is_list_syntax(s: &str) -> bool {
     s.lines().any(|line| line.trim().starts_with('='))
 }
 
-struct SeqDeserializer<'a> {
-    iter: std::slice::Iter<'a, Model>,
-}
-
 struct StringSeqDeserializer {
     iter: std::vec::IntoIter<String>,
 }
 
 struct ModelSeqDeserializer {
     iter: std::vec::IntoIter<Model>,
-}
-
-impl<'de, 'a> SeqAccess<'de> for SeqDeserializer<'a> {
-    type Error = DeError;
-
-    fn next_element_seed<T>(
-        &mut self,
-        seed: T,
-    ) -> std::result::Result<Option<T::Value>, Self::Error>
-    where
-        T: DeserializeSeed<'de>,
-    {
-        match self.iter.next() {
-            Some(model) => {
-                let mut de = Deserializer {
-                    model: model.clone(),
-                };
-                seed.deserialize(&mut de).map(Some)
-            }
-            None => Ok(None),
-        }
-    }
 }
 
 impl<'de> SeqAccess<'de> for StringSeqDeserializer {
@@ -456,7 +471,7 @@ impl<'de> SeqAccess<'de> for StringSeqDeserializer {
     {
         match self.iter.next() {
             Some(s) => {
-                let model = crate::Model::singleton(s);
+                let model = crate::Model::from_string(s.clone());
                 let mut de = Deserializer { model };
                 seed.deserialize(&mut de).map(Some)
             }
@@ -486,7 +501,7 @@ impl<'de> SeqAccess<'de> for ModelSeqDeserializer {
 }
 
 struct MapDeserializer<'a> {
-    iter: std::collections::btree_map::Iter<'a, String, Model>,
+    iter: indexmap::map::Iter<'a, String, Model>,
     value: Option<&'a Model>,
 }
 
@@ -532,12 +547,6 @@ impl DeError {
     fn custom(msg: impl fmt::Display) -> Self {
         DeError {
             msg: msg.to_string(),
-        }
-    }
-
-    fn from_error(err: Error) -> Self {
-        DeError {
-            msg: err.to_string(),
         }
     }
 }
