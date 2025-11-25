@@ -630,17 +630,16 @@ fn test_all_ccl_suites_comprehensive() {
 
             let test_result = std::panic::catch_unwind(|| {
                 // Parse the input based on validation type
-                let (entries, model_result) = if test.validation == "parse_dedented"
-                    || test.validation == "parse_indented"
-                {
-                    let e = parse_indented(&test.input);
-                    let m = e.as_ref().ok().map(|entries| build_hierarchy(entries));
-                    (e, m)
-                } else {
-                    let e = parse(&test.input);
-                    let m = e.as_ref().ok().map(|entries| build_hierarchy(entries));
-                    (e, m)
-                };
+                let (entries, model_result) =
+                    if test.validation == "parse_dedented" || test.validation == "parse_indented" {
+                        let e = parse_indented(&test.input);
+                        let m = e.as_ref().ok().map(|entries| build_hierarchy(entries));
+                        (e, m)
+                    } else {
+                        let e = parse(&test.input);
+                        let m = e.as_ref().ok().map(|entries| build_hierarchy(entries));
+                        (e, m)
+                    };
 
                 // Handle different validation types
                 match test.validation.as_str() {
