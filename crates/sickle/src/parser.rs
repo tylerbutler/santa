@@ -20,11 +20,16 @@ struct Entry {
 ///
 /// Strategy: Only join lines if they form a multiline key at the SAME indentation level.
 /// Indented lines are continuation values, not multiline keys.
+///
+/// Important: A line without '=' following a complete `key = value` line should NOT
+/// be joined with subsequent lines. It should be treated as a standalone key with
+/// empty value.
 fn normalize_multiline_keys(input: &str) -> String {
     let lines: Vec<&str> = input.lines().collect();
     let mut result = String::new();
     let mut i = 0;
     let mut base_indent: Option<usize> = None;
+    let mut prev_had_complete_entry = false;
 
     while i < lines.len() {
         let line = lines[i];
@@ -44,6 +49,9 @@ fn normalize_multiline_keys(input: &str) -> String {
 
         let base = base_indent.unwrap_or(0);
 
+        // Track if this line is a complete key=value entry
+        let is_complete_entry = trimmed.contains('=');
+
         // If this line is indented more than base level, it's a continuation value
         // Pass it through unchanged - don't try to interpret it as a multiline key
         if line_indent > base {
@@ -55,7 +63,8 @@ fn normalize_multiline_keys(input: &str) -> String {
 
         // Check if this is a multiline key pattern:
         // Current line has no '=' AND is at or below base level
-        if !trimmed.is_empty() && !trimmed.contains('=') {
+        // AND the previous line was NOT a complete entry (otherwise this is a standalone key)
+        if !trimmed.is_empty() && !trimmed.contains('=') && !prev_had_complete_entry {
             // Look ahead for the next line with '=' at SAME OR LESS indentation
             let mut j = i + 1;
             let mut found_equals = false;
@@ -100,6 +109,7 @@ fn normalize_multiline_keys(input: &str) -> String {
                 result.push_str(lines[j].trim());
                 result.push('\n');
                 i = j + 1;
+                prev_had_complete_entry = true; // The joined result is a complete entry
                 continue;
             }
         }
@@ -107,6 +117,7 @@ fn normalize_multiline_keys(input: &str) -> String {
         // Normal line - pass through
         result.push_str(line);
         result.push('\n');
+        prev_had_complete_entry = is_complete_entry;
         i += 1;
     }
 
