@@ -91,7 +91,12 @@ description = This is a very long description
     assert!(desc.contains("configuration file"));
 }
 
+/// Test that comments are preserved in the model
+///
+/// Note: When `reference_compliant` feature is enabled, duplicate keys are reversed
+/// to match the OCaml reference implementation. This test expects insertion order.
 #[test]
+#[cfg_attr(feature = "reference_compliant", ignore)]
 fn test_comments_are_preserved() {
     let ccl = r#"
 /= This is a comment
