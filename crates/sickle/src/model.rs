@@ -342,6 +342,76 @@ impl Model {
     pub(crate) fn into_inner(self) -> IndexMap<String, Model> {
         self.0
     }
+
+    /// Format the model as a canonical CCL string
+    ///
+    /// This produces a deterministic, normalized representation of the CCL data.
+    /// The format preserves insertion order and uses consistent spacing.
+    ///
+    /// # Format Rules (proposed_behavior variant)
+    /// - Simple key-value pairs: `key = value`
+    /// - Empty values: `key =`
+    /// - Multiple entries separated by newlines
+    /// - No trailing newline
+    /// - Preserves insertion order
+    /// - Trims trailing whitespace from values
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use sickle::{parse, build_hierarchy};
+    /// let entries = parse("name = Alice\nage = 42").unwrap();
+    /// let model = build_hierarchy(&entries).unwrap();
+    /// assert_eq!(model.canonical_format(), "name = Alice\nage = 42");
+    /// ```
+    pub fn canonical_format(&self) -> String {
+        self.format_entries(0)
+    }
+
+    /// Internal helper to format entries at a given indentation level
+    fn format_entries(&self, indent: usize) -> String {
+        let indent_str = "  ".repeat(indent);
+        let mut lines = Vec::new();
+
+        for (key, value) in self.iter() {
+            if value.is_empty() {
+                // Leaf node: key with no children = empty value
+                if key.is_empty() {
+                    lines.push(format!("{}=", indent_str));
+                } else {
+                    lines.push(format!("{}{} =", indent_str, key));
+                }
+            } else if value.len() == 1 {
+                // Check if this is a string value (single key with empty child)
+                let (child_key, child_value) = value.iter().next().unwrap();
+                if child_value.is_empty() {
+                    // String value: "key = value"
+                    let trimmed_value = child_key.trim_end();
+                    if trimmed_value.is_empty() {
+                        lines.push(format!("{}{} =", indent_str, key));
+                    } else {
+                        lines.push(format!("{}{} = {}", indent_str, key, trimmed_value));
+                    }
+                } else {
+                    // Nested structure with one child
+                    lines.push(format!("{}{} =", indent_str, key));
+                    let nested = value.format_entries(indent + 1);
+                    if !nested.is_empty() {
+                        lines.push(nested);
+                    }
+                }
+            } else {
+                // Multiple children = nested structure or list
+                lines.push(format!("{}{} =", indent_str, key));
+                let nested = value.format_entries(indent + 1);
+                if !nested.is_empty() {
+                    lines.push(nested);
+                }
+            }
+        }
+
+        lines.join("\n")
+    }
 }
 
 impl Default for Model {

@@ -1028,6 +1028,34 @@ fn test_all_ccl_suites_comprehensive() {
                             );
                         }
                     }
+                    "canonical_format" => {
+                        let model = model_result
+                            .expect("model_result should be Some")
+                            .unwrap_or_else(|e| {
+                                panic!("Test '{}' failed to build hierarchy: {}", test.name, e);
+                            });
+
+                        // Call canonical_format on the model
+                        let formatted = model.canonical_format();
+
+                        if test.expected.error.is_some() {
+                            // canonical_format shouldn't error, but handle it if tests expect it
+                            panic!(
+                                "Test '{}': canonical_format produced output when error expected: {}",
+                                test.name, formatted
+                            );
+                        } else if let Some(ref expected_value) = test.expected.value {
+                            let expected_str = expected_value.as_str().unwrap_or_else(|| {
+                                panic!("Test '{}': expected value is not a string", test.name)
+                            });
+
+                            assert_eq!(
+                                formatted, expected_str,
+                                "Test '{}': canonical_format mismatch",
+                                test.name
+                            );
+                        }
+                    }
                     _ => {
                         // Skip unsupported validation types for now
                         panic!("Unsupported validation type: {}", test.validation);

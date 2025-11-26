@@ -300,6 +300,7 @@ impl ImplementationConfig {
                 "get_float",
                 "get_bool",
                 "get_list",
+                "canonical_format",
             ]
             .iter()
             .map(|s| s.to_string())
@@ -310,9 +311,11 @@ impl ImplementationConfig {
             list_coercion_behavior: ListCoercionBehavior::Disabled,
             spacing_behavior: SpacingBehavior::Strict,
             tab_behavior: TabBehavior::Preserve,
-            // The reference_compliant variant is supported when the feature is enabled.
-            // When enabled, tests expecting insertion order (variants: []) are skipped,
-            // and tests expecting reverse order (variants: ["reference_compliant"]) run.
+            // Variant support:
+            // - "reference_compliant": OCaml-style behavior (reverse iteration order, etc.)
+            // - "proposed_behavior": NOT YET SUPPORTED - requires test data fixes
+            //   See: https://github.com/tylerbutler/ccl-test-data/issues/12
+            //   Many proposed_behavior tests are missing list_coercion_enabled behavior tags.
             #[cfg(feature = "reference_compliant")]
             supported_variants: ["reference_compliant"]
                 .iter()
