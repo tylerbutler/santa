@@ -467,7 +467,11 @@ fn test_all_ccl_suites_comprehensive() {
         config.list_coercion_behavior.as_str()
     );
     println!("      Spacing: {}", config.spacing_behavior.as_str());
-    println!("      Tabs: {}\n", config.tab_behavior.as_str());
+    println!("      Tabs: {}", config.tab_behavior.as_str());
+    println!(
+        "      Array Order: {}\n",
+        config.array_order_behavior.as_str()
+    );
 
     let mut total_passed = 0;
     let mut total_failed = 0;

@@ -187,38 +187,50 @@ impl Model {
 
     /// Extract a list of string values from the model (no key lookup)
     ///
-    /// In CCL, lists are represented using **bare list syntax** with empty keys:
+    /// Lists in CCL can be created in two ways:
+    ///
+    /// 1. **Bare list syntax** with empty keys:
     /// ```text
     /// servers =
     ///   = web1
     ///   = web2
     /// ```
     ///
+    /// 2. **Duplicate keys** (proposed_behavior):
+    /// ```text
+    /// servers = web1
+    /// servers = web2
+    /// ```
+    ///
     /// Behavior varies by feature flag:
     ///
-    /// **With `list_coercion_disabled` (default, reference-compliant)**:
-    /// - Returns values ONLY when all keys are empty strings `""`
-    /// - Duplicate keys with values are NOT lists: `servers = web1` → `[]`
-    /// - Bare lists work: Access via `get("servers")?.get_list("")` → `["web1", "web2"]`
-    /// - Matches OCaml reference implementation
+    /// **With `list_coercion_disabled` (default)**:
+    /// - Duplicate keys with values ARE lists (proposed_behavior)
+    /// - Single values are NOT coerced to lists: `item = single` → `[]`
+    /// - Bare lists work normally
     ///
     /// **With `list_coercion_enabled`**:
-    /// - Duplicate keys create lists: `servers = web1` → `["web1", "web2"]`
-    /// - Still filters scalar literals (numbers/booleans)
-    /// - Single values coerced to lists
+    /// - Same as above, plus single values coerced to lists
     #[cfg(feature = "list_coercion_disabled")]
     pub(crate) fn as_list(&self) -> Vec<String> {
-        // Filter out comment keys (starting with '/') when checking for bare lists
-        let non_comment_keys: Vec<&String> = self.keys().filter(|k| !k.starts_with('/')).collect();
-
-        // Handle bare list syntax: single empty-key child containing the list items
+        // Reference-compliant behavior: Only bare list syntax creates lists
+        // Duplicate keys with values are NOT treated as lists
+        //
+        // Bare list syntax: key with empty value containing list items
         // Example: servers = { "": { "web1": {}, "web2": {} } }
         // Should return ["web1", "web2"]
-        // Also handles: { "": {...}, "/": {...comment...} } - ignores comments
+
+        // Filter out comment keys (starting with '/')
+        let non_comment_keys: Vec<&String> = self.keys().filter(|k| !k.starts_with('/')).collect();
+
+        // Check for bare list syntax: single empty-key child containing the list items
         if non_comment_keys.len() == 1 && non_comment_keys[0].is_empty() {
             if let Ok(child) = self.get("") {
-                // Found empty-key child - return its keys as the list
-                // Also filter out comment keys from the child
+                if child.is_empty() {
+                    // Empty child = empty value, not a list
+                    return Vec::new();
+                }
+                // Non-empty child = return its keys as the list (bare list items)
                 return child
                     .keys()
                     .filter(|k| !k.starts_with('/'))
@@ -227,23 +239,9 @@ impl Model {
             }
         }
 
-        // Empty or single non-empty key = not a list
-        if non_comment_keys.len() <= 1 {
-            return Vec::new();
-        }
-
-        // Multiple non-comment keys: ONLY return values if ALL are empty strings
-        // This means we're in a bare list structure with multiple empty keys
-        let all_keys_empty = non_comment_keys.iter().all(|k| k.is_empty());
-        if all_keys_empty {
-            // For bare lists, the VALUES (nested keys) are the list items
-            // But since keys are empty, we need to look at the nested structure
-            // For now, return empty as bare lists need special handling
-            Vec::new()
-        } else {
-            // Non-empty keys = not a list in reference mode
-            Vec::new()
-        }
+        // All other cases (single value, multiple duplicate keys) = not a list
+        // In reference_compliant with list_coercion_disabled, only bare list syntax works
+        Vec::new()
     }
 
     /// Extract a list of string values from the model (no key lookup)

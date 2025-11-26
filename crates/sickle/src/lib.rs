@@ -170,17 +170,8 @@ fn build_model(map: indexmap::IndexMap<String, Vec<String>>) -> Result<Model> {
     let mut result = indexmap::IndexMap::new();
 
     for (key, values) in map {
-        // Reference implementation iterates hash tables in reverse insertion order
-        // Reverse ONLY for non-empty duplicate keys
-        // Empty keys (bare list items) maintain insertion order
-        #[cfg(feature = "reference_compliant")]
-        let values = {
-            let mut v = values;
-            if v.len() > 1 && !key.is_empty() {
-                v.reverse();
-            }
-            v
-        };
+        // Tests with specific ordering requirements should use array_order_* behaviors.
+        let values = values;
 
         // Build the nested map for this key
         let mut nested = indexmap::IndexMap::new();
@@ -281,39 +272,14 @@ pub fn parse_indented(input: &str) -> Result<Vec<Entry>> {
         })
         .count();
 
-    // If there are multiple entries at min_indent level, parse flat
+    // If there are multiple entries at min_indent level, parse using the standard parser
+    // which handles multiline continuations properly.
     // Otherwise, parse as single entry with raw nested content
     if entries_at_min_indent > 1 {
-        parse_flat_entries(&dedented)
+        parse(&dedented)
     } else {
         parse_single_entry_with_raw_value(&dedented)
     }
-}
-
-/// Parse all key=value pairs from input as flat entries, ignoring indentation hierarchy
-fn parse_flat_entries(input: &str) -> Result<Vec<Entry>> {
-    let mut entries = Vec::new();
-
-    for line in input.lines() {
-        let trimmed = line.trim();
-
-        // Skip empty lines
-        if trimmed.is_empty() {
-            continue;
-        }
-
-        // Extract key=value pairs or treat lines without '=' as keys with empty values
-        if let Some(eq_pos) = trimmed.find('=') {
-            let key = trimmed[..eq_pos].trim().to_string();
-            let value = trimmed[eq_pos + 1..].trim().to_string();
-            entries.push(Entry::new(key, value));
-        } else {
-            // Line without '=' is a key with empty value
-            entries.push(Entry::new(trimmed.to_string(), String::new()));
-        }
-    }
-
-    Ok(entries)
 }
 
 /// Parse input as a single entry, preserving the raw value including indentation

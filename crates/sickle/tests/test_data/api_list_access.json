@@ -295,14 +295,12 @@
     },
     {
       "behaviors": [
-        "list_coercion_enabled"
+        "list_coercion_enabled",
+        "array_order_insertion"
       ],
       "conflicts": {
         "behaviors": [
           "list_coercion_disabled"
-        ],
-        "variants": [
-          "reference_compliant"
         ]
       },
       "expected": {
@@ -340,20 +338,16 @@
       "name": "list_with_comments_parse",
       "source_test": "list_with_comments",
       "validation": "parse",
-      "variants": [
-        "proposed_behavior"
-      ]
+      "variants": []
     },
     {
       "behaviors": [
-        "list_coercion_enabled"
+        "list_coercion_enabled",
+        "array_order_insertion"
       ],
       "conflicts": {
         "behaviors": [
           "list_coercion_disabled"
-        ],
-        "variants": [
-          "reference_compliant"
         ]
       },
       "expected": {
@@ -380,23 +374,19 @@
       "name": "list_with_comments_build_hierarchy",
       "source_test": "list_with_comments",
       "validation": "build_hierarchy",
-      "variants": [
-        "proposed_behavior"
-      ]
+      "variants": []
     },
     {
       "args": [
         "servers"
       ],
       "behaviors": [
-        "list_coercion_enabled"
+        "list_coercion_enabled",
+        "array_order_insertion"
       ],
       "conflicts": {
         "behaviors": [
           "list_coercion_disabled"
-        ],
-        "variants": [
-          "reference_compliant"
         ]
       },
       "expected": {
@@ -417,20 +407,16 @@
       "name": "list_with_comments_get_list",
       "source_test": "list_with_comments",
       "validation": "get_list",
-      "variants": [
-        "proposed_behavior"
-      ]
+      "variants": []
     },
     {
       "behaviors": [
-        "list_coercion_enabled"
+        "list_coercion_enabled",
+        "array_order_lexicographic"
       ],
       "conflicts": {
         "behaviors": [
           "list_coercion_disabled"
-        ],
-        "variants": [
-          "proposed_behavior"
         ]
       },
       "expected": {
@@ -465,23 +451,19 @@
         "parse"
       ],
       "input": "servers = web1\n/= Production servers\nservers = web2\nservers = web3\n/= End of list",
-      "name": "list_with_comments_reference_parse",
-      "source_test": "list_with_comments_reference",
+      "name": "list_with_comments_lexicographic_parse",
+      "source_test": "list_with_comments_lexicographic",
       "validation": "parse",
-      "variants": [
-        "reference_compliant"
-      ]
+      "variants": []
     },
     {
       "behaviors": [
-        "list_coercion_enabled"
+        "list_coercion_enabled",
+        "array_order_lexicographic"
       ],
       "conflicts": {
         "behaviors": [
           "list_coercion_disabled"
-        ],
-        "variants": [
-          "proposed_behavior"
         ]
       },
       "expected": {
@@ -505,26 +487,22 @@
         "build_hierarchy"
       ],
       "input": "servers = web1\n/= Production servers\nservers = web2\nservers = web3\n/= End of list",
-      "name": "list_with_comments_reference_build_hierarchy",
-      "source_test": "list_with_comments_reference",
+      "name": "list_with_comments_lexicographic_build_hierarchy",
+      "source_test": "list_with_comments_lexicographic",
       "validation": "build_hierarchy",
-      "variants": [
-        "reference_compliant"
-      ]
+      "variants": []
     },
     {
       "args": [
         "servers"
       ],
       "behaviors": [
-        "list_coercion_enabled"
+        "list_coercion_enabled",
+        "array_order_lexicographic"
       ],
       "conflicts": {
         "behaviors": [
           "list_coercion_disabled"
-        ],
-        "variants": [
-          "proposed_behavior"
         ]
       },
       "expected": {
@@ -542,12 +520,10 @@
         "get_list"
       ],
       "input": "servers = web1\n/= Production servers\nservers = web2\nservers = web3\n/= End of list",
-      "name": "list_with_comments_reference_get_list",
-      "source_test": "list_with_comments_reference",
+      "name": "list_with_comments_lexicographic_get_list",
+      "source_test": "list_with_comments_lexicographic",
       "validation": "get_list",
-      "variants": [
-        "reference_compliant"
-      ]
+      "variants": []
     },
     {
       "behaviors": [],
@@ -848,12 +824,9 @@
       "variants": []
     },
     {
-      "behaviors": [],
-      "conflicts": {
-        "variants": [
-          "reference_compliant"
-        ]
-      },
+      "behaviors": [
+        "array_order_insertion"
+      ],
       "expected": {
         "count": 1,
         "entries": [
@@ -873,17 +846,12 @@
       "name": "bare_list_nested_parse",
       "source_test": "bare_list_nested",
       "validation": "parse",
-      "variants": [
-        "proposed_behavior"
-      ]
+      "variants": []
     },
     {
-      "behaviors": [],
-      "conflicts": {
-        "variants": [
-          "reference_compliant"
-        ]
-      },
+      "behaviors": [
+        "array_order_insertion"
+      ],
       "expected": {
         "count": 1,
         "object": {
@@ -908,21 +876,16 @@
       "name": "bare_list_nested_build_hierarchy",
       "source_test": "bare_list_nested",
       "validation": "build_hierarchy",
-      "variants": [
-        "proposed_behavior"
-      ]
+      "variants": []
     },
     {
       "args": [
         "network",
         "ports"
       ],
-      "behaviors": [],
-      "conflicts": {
-        "variants": [
-          "reference_compliant"
-        ]
-      },
+      "behaviors": [
+        "array_order_insertion"
+      ],
       "expected": {
         "count": 3,
         "list": [
@@ -941,17 +904,12 @@
       "name": "bare_list_nested_get_list",
       "source_test": "bare_list_nested",
       "validation": "get_list",
-      "variants": [
-        "proposed_behavior"
-      ]
+      "variants": []
     },
     {
-      "behaviors": [],
-      "conflicts": {
-        "variants": [
-          "proposed_behavior"
-        ]
-      },
+      "behaviors": [
+        "array_order_lexicographic"
+      ],
       "expected": {
         "count": 1,
         "entries": [
@@ -968,20 +926,15 @@
         "parse"
       ],
       "input": "network =\n  ports =\n    = 80\n    = 443\n    = 8080",
-      "name": "bare_list_nested_reference_parse",
-      "source_test": "bare_list_nested_reference",
+      "name": "bare_list_nested_lexicographic_parse",
+      "source_test": "bare_list_nested_lexicographic",
       "validation": "parse",
-      "variants": [
-        "reference_compliant"
-      ]
+      "variants": []
     },
     {
-      "behaviors": [],
-      "conflicts": {
-        "variants": [
-          "proposed_behavior"
-        ]
-      },
+      "behaviors": [
+        "array_order_lexicographic"
+      ],
       "expected": {
         "count": 1,
         "object": {
@@ -1003,24 +956,19 @@
         "build_hierarchy"
       ],
       "input": "network =\n  ports =\n    = 80\n    = 443\n    = 8080",
-      "name": "bare_list_nested_reference_build_hierarchy",
-      "source_test": "bare_list_nested_reference",
+      "name": "bare_list_nested_lexicographic_build_hierarchy",
+      "source_test": "bare_list_nested_lexicographic",
       "validation": "build_hierarchy",
-      "variants": [
-        "reference_compliant"
-      ]
+      "variants": []
     },
     {
       "args": [
         "network",
         "ports"
       ],
-      "behaviors": [],
-      "conflicts": {
-        "variants": [
-          "proposed_behavior"
-        ]
-      },
+      "behaviors": [
+        "array_order_lexicographic"
+      ],
       "expected": {
         "count": 3,
         "list": [
@@ -1036,20 +984,15 @@
         "get_list"
       ],
       "input": "network =\n  ports =\n    = 80\n    = 443\n    = 8080",
-      "name": "bare_list_nested_reference_get_list",
-      "source_test": "bare_list_nested_reference",
+      "name": "bare_list_nested_lexicographic_get_list",
+      "source_test": "bare_list_nested_lexicographic",
       "validation": "get_list",
-      "variants": [
-        "reference_compliant"
-      ]
+      "variants": []
     },
     {
-      "behaviors": [],
-      "conflicts": {
-        "variants": [
-          "reference_compliant"
-        ]
-      },
+      "behaviors": [
+        "array_order_insertion"
+      ],
       "expected": {
         "count": 1,
         "entries": [
@@ -1070,17 +1013,12 @@
       "name": "bare_list_with_comments_parse",
       "source_test": "bare_list_with_comments",
       "validation": "parse",
-      "variants": [
-        "proposed_behavior"
-      ]
+      "variants": []
     },
     {
-      "behaviors": [],
-      "conflicts": {
-        "variants": [
-          "reference_compliant"
-        ]
-      },
+      "behaviors": [
+        "array_order_insertion"
+      ],
       "expected": {
         "count": 1,
         "object": {
@@ -1105,20 +1043,15 @@
       "name": "bare_list_with_comments_build_hierarchy",
       "source_test": "bare_list_with_comments",
       "validation": "build_hierarchy",
-      "variants": [
-        "proposed_behavior"
-      ]
+      "variants": []
     },
     {
       "args": [
         "allowed_hosts"
       ],
-      "behaviors": [],
-      "conflicts": {
-        "variants": [
-          "reference_compliant"
-        ]
-      },
+      "behaviors": [
+        "array_order_insertion"
+      ],
       "expected": {
         "count": 3,
         "list": [
@@ -1138,17 +1071,12 @@
       "name": "bare_list_with_comments_get_list",
       "source_test": "bare_list_with_comments",
       "validation": "get_list",
-      "variants": [
-        "proposed_behavior"
-      ]
+      "variants": []
     },
     {
-      "behaviors": [],
-      "conflicts": {
-        "variants": [
-          "proposed_behavior"
-        ]
-      },
+      "behaviors": [
+        "array_order_lexicographic"
+      ],
       "expected": {
         "count": 1,
         "entries": [
@@ -1166,20 +1094,15 @@
         "parse"
       ],
       "input": "allowed_hosts =\n  /= Production hosts\n  = localhost\n  = 127.0.0.1\n  = example.com",
-      "name": "bare_list_with_comments_reference_parse",
-      "source_test": "bare_list_with_comments_reference",
+      "name": "bare_list_with_comments_lexicographic_parse",
+      "source_test": "bare_list_with_comments_lexicographic",
       "validation": "parse",
-      "variants": [
-        "reference_compliant"
-      ]
+      "variants": []
     },
     {
-      "behaviors": [],
-      "conflicts": {
-        "variants": [
-          "proposed_behavior"
-        ]
-      },
+      "behaviors": [
+        "array_order_lexicographic"
+      ],
       "expected": {
         "count": 1,
         "object": {
@@ -1201,23 +1124,18 @@
         "build_hierarchy"
       ],
       "input": "allowed_hosts =\n  /= Production hosts\n  = localhost\n  = 127.0.0.1\n  = example.com",
-      "name": "bare_list_with_comments_reference_build_hierarchy",
-      "source_test": "bare_list_with_comments_reference",
+      "name": "bare_list_with_comments_lexicographic_build_hierarchy",
+      "source_test": "bare_list_with_comments_lexicographic",
       "validation": "build_hierarchy",
-      "variants": [
-        "reference_compliant"
-      ]
+      "variants": []
     },
     {
       "args": [
         "allowed_hosts"
       ],
-      "behaviors": [],
-      "conflicts": {
-        "variants": [
-          "proposed_behavior"
-        ]
-      },
+      "behaviors": [
+        "array_order_lexicographic"
+      ],
       "expected": {
         "count": 3,
         "list": [
@@ -1234,20 +1152,15 @@
         "get_list"
       ],
       "input": "allowed_hosts =\n  /= Production hosts\n  = localhost\n  = 127.0.0.1\n  = example.com",
-      "name": "bare_list_with_comments_reference_get_list",
-      "source_test": "bare_list_with_comments_reference",
+      "name": "bare_list_with_comments_lexicographic_get_list",
+      "source_test": "bare_list_with_comments_lexicographic",
       "validation": "get_list",
-      "variants": [
-        "reference_compliant"
-      ]
+      "variants": []
     },
     {
-      "behaviors": [],
-      "conflicts": {
-        "variants": [
-          "reference_compliant"
-        ]
-      },
+      "behaviors": [
+        "array_order_insertion"
+      ],
       "expected": {
         "count": 1,
         "entries": [
@@ -1267,17 +1180,12 @@
       "name": "bare_list_deeply_nested_parse",
       "source_test": "bare_list_deeply_nested",
       "validation": "parse",
-      "variants": [
-        "proposed_behavior"
-      ]
+      "variants": []
     },
     {
-      "behaviors": [],
-      "conflicts": {
-        "variants": [
-          "reference_compliant"
-        ]
-      },
+      "behaviors": [
+        "array_order_insertion"
+      ],
       "expected": {
         "count": 1,
         "object": {
@@ -1306,9 +1214,7 @@
       "name": "bare_list_deeply_nested_build_hierarchy",
       "source_test": "bare_list_deeply_nested",
       "validation": "build_hierarchy",
-      "variants": [
-        "proposed_behavior"
-      ]
+      "variants": []
     },
     {
       "args": [
@@ -1317,12 +1223,9 @@
         "production",
         "servers"
       ],
-      "behaviors": [],
-      "conflicts": {
-        "variants": [
-          "reference_compliant"
-        ]
-      },
+      "behaviors": [
+        "array_order_insertion"
+      ],
       "expected": {
         "count": 3,
         "list": [
@@ -1341,17 +1244,12 @@
       "name": "bare_list_deeply_nested_get_list",
       "source_test": "bare_list_deeply_nested",
       "validation": "get_list",
-      "variants": [
-        "proposed_behavior"
-      ]
+      "variants": []
     },
     {
-      "behaviors": [],
-      "conflicts": {
-        "variants": [
-          "proposed_behavior"
-        ]
-      },
+      "behaviors": [
+        "array_order_lexicographic"
+      ],
       "expected": {
         "count": 1,
         "entries": [
@@ -1368,20 +1266,15 @@
         "parse"
       ],
       "input": "config =\n  environments =\n    production =\n      servers =\n        = web1\n        = web2\n        = api1",
-      "name": "bare_list_deeply_nested_reference_parse",
-      "source_test": "bare_list_deeply_nested_reference",
+      "name": "bare_list_deeply_nested_lexicographic_parse",
+      "source_test": "bare_list_deeply_nested_lexicographic",
       "validation": "parse",
-      "variants": [
-        "reference_compliant"
-      ]
+      "variants": []
     },
     {
-      "behaviors": [],
-      "conflicts": {
-        "variants": [
-          "proposed_behavior"
-        ]
-      },
+      "behaviors": [
+        "array_order_lexicographic"
+      ],
       "expected": {
         "count": 1,
         "object": {
@@ -1407,12 +1300,10 @@
         "build_hierarchy"
       ],
       "input": "config =\n  environments =\n    production =\n      servers =\n        = web1\n        = web2\n        = api1",
-      "name": "bare_list_deeply_nested_reference_build_hierarchy",
-      "source_test": "bare_list_deeply_nested_reference",
+      "name": "bare_list_deeply_nested_lexicographic_build_hierarchy",
+      "source_test": "bare_list_deeply_nested_lexicographic",
       "validation": "build_hierarchy",
-      "variants": [
-        "reference_compliant"
-      ]
+      "variants": []
     },
     {
       "args": [
@@ -1421,12 +1312,9 @@
         "production",
         "servers"
       ],
-      "behaviors": [],
-      "conflicts": {
-        "variants": [
-          "proposed_behavior"
-        ]
-      },
+      "behaviors": [
+        "array_order_lexicographic"
+      ],
       "expected": {
         "count": 3,
         "list": [
@@ -1442,12 +1330,10 @@
         "get_list"
       ],
       "input": "config =\n  environments =\n    production =\n      servers =\n        = web1\n        = web2\n        = api1",
-      "name": "bare_list_deeply_nested_reference_get_list",
-      "source_test": "bare_list_deeply_nested_reference",
+      "name": "bare_list_deeply_nested_lexicographic_get_list",
+      "source_test": "bare_list_deeply_nested_lexicographic",
       "validation": "get_list",
-      "variants": [
-        "reference_compliant"
-      ]
+      "variants": []
     },
     {
       "behaviors": [],
