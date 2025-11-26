@@ -3,6 +3,11 @@
   "tests": [
     {
       "behaviors": [],
+      "conflicts": {
+        "variants": [
+          "reference_compliant"
+        ]
+      },
       "expected": {
         "count": 2,
         "entries": [
@@ -33,6 +38,11 @@
     },
     {
       "behaviors": [],
+      "conflicts": {
+        "variants": [
+          "reference_compliant"
+        ]
+      },
       "expected": {
         "count": 2,
         "entries": [
@@ -64,6 +74,14 @@
       "behaviors": [
         "list_coercion_enabled"
       ],
+      "conflicts": {
+        "behaviors": [
+          "list_coercion_disabled"
+        ],
+        "variants": [
+          "reference_compliant"
+        ]
+      },
       "expected": {
         "count": 1,
         "entries": [
@@ -89,6 +107,14 @@
       "behaviors": [
         "list_coercion_enabled"
       ],
+      "conflicts": {
+        "behaviors": [
+          "list_coercion_disabled"
+        ],
+        "variants": [
+          "reference_compliant"
+        ]
+      },
       "expected": {
         "count": 1,
         "object": {
@@ -114,6 +140,14 @@
       "behaviors": [
         "list_coercion_enabled"
       ],
+      "conflicts": {
+        "behaviors": [
+          "list_coercion_disabled"
+        ],
+        "variants": [
+          "reference_compliant"
+        ]
+      },
       "expected": {
         "count": 1,
         "list": [
@@ -136,6 +170,14 @@
       "behaviors": [
         "list_coercion_enabled"
       ],
+      "conflicts": {
+        "behaviors": [
+          "list_coercion_disabled"
+        ],
+        "variants": [
+          "reference_compliant"
+        ]
+      },
       "expected": {
         "count": 3,
         "entries": [
@@ -169,6 +211,14 @@
       "behaviors": [
         "list_coercion_enabled"
       ],
+      "conflicts": {
+        "behaviors": [
+          "list_coercion_disabled"
+        ],
+        "variants": [
+          "reference_compliant"
+        ]
+      },
       "expected": {
         "count": 1,
         "object": {
@@ -198,6 +248,14 @@
       "behaviors": [
         "list_coercion_enabled"
       ],
+      "conflicts": {
+        "behaviors": [
+          "list_coercion_disabled"
+        ],
+        "variants": [
+          "reference_compliant"
+        ]
+      },
       "expected": {
         "count": 1,
         "list": [
@@ -220,6 +278,14 @@
       "behaviors": [
         "list_coercion_enabled"
       ],
+      "conflicts": {
+        "behaviors": [
+          "list_coercion_disabled"
+        ],
+        "variants": [
+          "reference_compliant"
+        ]
+      },
       "expected": {
         "count": 1,
         "entries": [
@@ -245,6 +311,14 @@
       "behaviors": [
         "list_coercion_enabled"
       ],
+      "conflicts": {
+        "behaviors": [
+          "list_coercion_disabled"
+        ],
+        "variants": [
+          "reference_compliant"
+        ]
+      },
       "expected": {
         "count": 1,
         "object": {
@@ -277,6 +351,14 @@
       "behaviors": [
         "list_coercion_enabled"
       ],
+      "conflicts": {
+        "behaviors": [
+          "list_coercion_disabled"
+        ],
+        "variants": [
+          "reference_compliant"
+        ]
+      },
       "expected": {
         "count": 1,
         "list": [
@@ -297,6 +379,11 @@
     },
     {
       "behaviors": [],
+      "conflicts": {
+        "variants": [
+          "reference_compliant"
+        ]
+      },
       "expected": {
         "count": 1,
         "entries": [
@@ -320,6 +407,11 @@
     },
     {
       "behaviors": [],
+      "conflicts": {
+        "variants": [
+          "reference_compliant"
+        ]
+      },
       "expected": {
         "count": 1,
         "object": {
@@ -343,6 +435,11 @@
         "empty_list"
       ],
       "behaviors": [],
+      "conflicts": {
+        "variants": [
+          "reference_compliant"
+        ]
+      },
       "expected": {
         "count": 1,
         "list": [
@@ -363,6 +460,11 @@
     },
     {
       "behaviors": [],
+      "conflicts": {
+        "variants": [
+          "reference_compliant"
+        ]
+      },
       "expected": {
         "count": 4,
         "entries": [
@@ -398,6 +500,11 @@
     },
     {
       "behaviors": [],
+      "conflicts": {
+        "variants": [
+          "reference_compliant"
+        ]
+      },
       "expected": {
         "count": 1,
         "object": {
@@ -426,6 +533,11 @@
         "numbers"
       ],
       "behaviors": [],
+      "conflicts": {
+        "variants": [
+          "reference_compliant"
+        ]
+      },
       "expected": {
         "count": 4,
         "list": [
@@ -449,6 +561,11 @@
     },
     {
       "behaviors": [],
+      "conflicts": {
+        "variants": [
+          "reference_compliant"
+        ]
+      },
       "expected": {
         "count": 4,
         "entries": [
@@ -484,6 +601,11 @@
     },
     {
       "behaviors": [],
+      "conflicts": {
+        "variants": [
+          "reference_compliant"
+        ]
+      },
       "expected": {
         "count": 1,
         "object": {
@@ -512,6 +634,11 @@
         "flags"
       ],
       "behaviors": [],
+      "conflicts": {
+        "variants": [
+          "reference_compliant"
+        ]
+      },
       "expected": {
         "count": 4,
         "list": [
@@ -535,6 +662,11 @@
     },
     {
       "behaviors": [],
+      "conflicts": {
+        "variants": [
+          "reference_compliant"
+        ]
+      },
       "expected": {
         "count": 4,
         "entries": [
@@ -572,6 +704,11 @@
     },
     {
       "behaviors": [],
+      "conflicts": {
+        "variants": [
+          "reference_compliant"
+        ]
+      },
       "expected": {
         "count": 1,
         "object": {
@@ -602,6 +739,11 @@
         "items"
       ],
       "behaviors": [],
+      "conflicts": {
+        "variants": [
+          "reference_compliant"
+        ]
+      },
       "expected": {
         "count": 4,
         "list": [
@@ -627,6 +769,11 @@
     },
     {
       "behaviors": [],
+      "conflicts": {
+        "variants": [
+          "reference_compliant"
+        ]
+      },
       "expected": {
         "count": 6,
         "entries": [
@@ -670,6 +817,11 @@
     },
     {
       "behaviors": [],
+      "conflicts": {
+        "variants": [
+          "reference_compliant"
+        ]
+      },
       "expected": {
         "count": 1,
         "object": {
@@ -706,6 +858,11 @@
         "servers"
       ],
       "behaviors": [],
+      "conflicts": {
+        "variants": [
+          "reference_compliant"
+        ]
+      },
       "expected": {
         "count": 3,
         "list": [
@@ -728,6 +885,11 @@
     },
     {
       "behaviors": [],
+      "conflicts": {
+        "variants": [
+          "reference_compliant"
+        ]
+      },
       "expected": {
         "count": 4,
         "entries": [
@@ -765,6 +927,11 @@
     },
     {
       "behaviors": [],
+      "conflicts": {
+        "variants": [
+          "reference_compliant"
+        ]
+      },
       "expected": {
         "count": 1,
         "object": {
@@ -795,6 +962,11 @@
         "names"
       ],
       "behaviors": [],
+      "conflicts": {
+        "variants": [
+          "reference_compliant"
+        ]
+      },
       "expected": {
         "count": 4,
         "list": [
@@ -820,6 +992,11 @@
     },
     {
       "behaviors": [],
+      "conflicts": {
+        "variants": [
+          "reference_compliant"
+        ]
+      },
       "expected": {
         "count": 4,
         "entries": [
@@ -855,6 +1032,11 @@
     },
     {
       "behaviors": [],
+      "conflicts": {
+        "variants": [
+          "reference_compliant"
+        ]
+      },
       "expected": {
         "count": 1,
         "object": {
@@ -883,6 +1065,11 @@
         "symbols"
       ],
       "behaviors": [],
+      "conflicts": {
+        "variants": [
+          "reference_compliant"
+        ]
+      },
       "expected": {
         "count": 4,
         "list": [
@@ -906,6 +1093,11 @@
     },
     {
       "behaviors": [],
+      "conflicts": {
+        "variants": [
+          "reference_compliant"
+        ]
+      },
       "expected": {
         "count": 4,
         "entries": [
@@ -943,6 +1135,11 @@
     },
     {
       "behaviors": [],
+      "conflicts": {
+        "variants": [
+          "reference_compliant"
+        ]
+      },
       "expected": {
         "count": 1,
         "object": {
@@ -973,6 +1170,11 @@
         "descriptions"
       ],
       "behaviors": [],
+      "conflicts": {
+        "variants": [
+          "reference_compliant"
+        ]
+      },
       "expected": {
         "count": 3,
         "list": [
@@ -999,6 +1201,14 @@
       "behaviors": [
         "list_coercion_enabled"
       ],
+      "conflicts": {
+        "behaviors": [
+          "list_coercion_disabled"
+        ],
+        "variants": [
+          "reference_compliant"
+        ]
+      },
       "expected": {
         "count": 11,
         "entries": [
@@ -1064,6 +1274,14 @@
       "behaviors": [
         "list_coercion_enabled"
       ],
+      "conflicts": {
+        "behaviors": [
+          "list_coercion_disabled"
+        ],
+        "variants": [
+          "reference_compliant"
+        ]
+      },
       "expected": {
         "count": 1,
         "object": {
@@ -1107,6 +1325,14 @@
       "behaviors": [
         "list_coercion_enabled"
       ],
+      "conflicts": {
+        "behaviors": [
+          "list_coercion_disabled"
+        ],
+        "variants": [
+          "reference_compliant"
+        ]
+      },
       "expected": {
         "count": 3,
         "list": [
@@ -1131,6 +1357,14 @@
       "behaviors": [
         "list_coercion_enabled"
       ],
+      "conflicts": {
+        "behaviors": [
+          "list_coercion_disabled"
+        ],
+        "variants": [
+          "reference_compliant"
+        ]
+      },
       "expected": {
         "count": 1,
         "entries": [
@@ -1156,6 +1390,14 @@
       "behaviors": [
         "list_coercion_enabled"
       ],
+      "conflicts": {
+        "behaviors": [
+          "list_coercion_disabled"
+        ],
+        "variants": [
+          "reference_compliant"
+        ]
+      },
       "expected": {
         "count": 1,
         "object": {
@@ -1181,6 +1423,14 @@
       "behaviors": [
         "list_coercion_enabled"
       ],
+      "conflicts": {
+        "behaviors": [
+          "list_coercion_disabled"
+        ],
+        "variants": [
+          "reference_compliant"
+        ]
+      },
       "expected": {
         "count": 1,
         "list": [
@@ -1201,6 +1451,11 @@
     },
     {
       "behaviors": [],
+      "conflicts": {
+        "variants": [
+          "reference_compliant"
+        ]
+      },
       "expected": {
         "count": 1,
         "entries": [
@@ -1224,6 +1479,11 @@
     },
     {
       "behaviors": [],
+      "conflicts": {
+        "variants": [
+          "reference_compliant"
+        ]
+      },
       "expected": {
         "count": 1,
         "object": {
@@ -1247,6 +1507,11 @@
         "empty_key"
       ],
       "behaviors": [],
+      "conflicts": {
+        "variants": [
+          "reference_compliant"
+        ]
+      },
       "expected": {
         "count": 1,
         "value": ""
@@ -1265,6 +1530,11 @@
     },
     {
       "behaviors": [],
+      "conflicts": {
+        "variants": [
+          "reference_compliant"
+        ]
+      },
       "expected": {
         "count": 1,
         "entries": [
@@ -1288,6 +1558,11 @@
     },
     {
       "behaviors": [],
+      "conflicts": {
+        "variants": [
+          "reference_compliant"
+        ]
+      },
       "expected": {
         "count": 1,
         "value": "empty_key ="
@@ -1308,6 +1583,14 @@
       "behaviors": [
         "tabs_preserve"
       ],
+      "conflicts": {
+        "behaviors": [
+          "tabs_to_spaces"
+        ],
+        "variants": [
+          "reference_compliant"
+        ]
+      },
       "expected": {
         "count": 1,
         "entries": [
@@ -1333,6 +1616,14 @@
       "behaviors": [
         "tabs_preserve"
       ],
+      "conflicts": {
+        "behaviors": [
+          "tabs_to_spaces"
+        ],
+        "variants": [
+          "reference_compliant"
+        ]
+      },
       "expected": {
         "count": 1,
         "value": "value_with_tabs = text\t\twith\ttabs"
@@ -1351,6 +1642,11 @@
     },
     {
       "behaviors": [],
+      "conflicts": {
+        "variants": [
+          "reference_compliant"
+        ]
+      },
       "expected": {
         "count": 2,
         "entries": [
@@ -1380,6 +1676,11 @@
     },
     {
       "behaviors": [],
+      "conflicts": {
+        "variants": [
+          "reference_compliant"
+        ]
+      },
       "expected": {
         "count": 1,
         "value": "unicode = 你好世界\nemo = 🌟✨"
@@ -1402,6 +1703,14 @@
       "behaviors": [
         "crlf_preserve_literal"
       ],
+      "conflicts": {
+        "behaviors": [
+          "crlf_normalize_to_lf"
+        ],
+        "variants": [
+          "reference_compliant"
+        ]
+      },
       "expected": {
         "count": 2,
         "entries": [
@@ -1431,6 +1740,14 @@
       "behaviors": [
         "crlf_preserve_literal"
       ],
+      "conflicts": {
+        "behaviors": [
+          "crlf_normalize_to_lf"
+        ],
+        "variants": [
+          "reference_compliant"
+        ]
+      },
       "expected": {
         "count": 1,
         "value": "key1 = value1\nkey2 = value2"
@@ -1451,6 +1768,14 @@
       "behaviors": [
         "crlf_normalize_to_lf"
       ],
+      "conflicts": {
+        "behaviors": [
+          "crlf_preserve_literal"
+        ],
+        "variants": [
+          "reference_compliant"
+        ]
+      },
       "expected": {
         "count": 2,
         "entries": [
@@ -1480,6 +1805,14 @@
       "behaviors": [
         "crlf_normalize_to_lf"
       ],
+      "conflicts": {
+        "behaviors": [
+          "crlf_preserve_literal"
+        ],
+        "variants": [
+          "reference_compliant"
+        ]
+      },
       "expected": {
         "count": 1,
         "value": "key1 = value1\nkey2 = value2"
@@ -1500,6 +1833,14 @@
       "behaviors": [
         "crlf_normalize_to_lf"
       ],
+      "conflicts": {
+        "behaviors": [
+          "crlf_preserve_literal"
+        ],
+        "variants": [
+          "reference_compliant"
+        ]
+      },
       "expected": {
         "count": 2,
         "entries": [
@@ -1529,6 +1870,14 @@
       "behaviors": [
         "crlf_normalize_to_lf"
       ],
+      "conflicts": {
+        "behaviors": [
+          "crlf_preserve_literal"
+        ],
+        "variants": [
+          "reference_compliant"
+        ]
+      },
       "expected": {
         "count": 1,
         "value": "key1 =\n  value1 =\nkey2 =\n  value2 =\n"
@@ -1549,6 +1898,14 @@
       "behaviors": [
         "strict_spacing"
       ],
+      "conflicts": {
+        "behaviors": [
+          "loose_spacing"
+        ],
+        "variants": [
+          "reference_compliant"
+        ]
+      },
       "expected": {
         "count": 3,
         "entries": [
@@ -1582,6 +1939,14 @@
       "behaviors": [
         "strict_spacing"
       ],
+      "conflicts": {
+        "behaviors": [
+          "loose_spacing"
+        ],
+        "variants": [
+          "reference_compliant"
+        ]
+      },
       "expected": {
         "count": 1,
         "value": "key1 = value1\nkey2 = value2\nkey3 = \tvalue3"
@@ -1600,6 +1965,11 @@
     },
     {
       "behaviors": [],
+      "conflicts": {
+        "variants": [
+          "reference_compliant"
+        ]
+      },
       "expected": {
         "count": 3,
         "entries": [
@@ -1631,6 +2001,11 @@
     },
     {
       "behaviors": [],
+      "conflicts": {
+        "variants": [
+          "reference_compliant"
+        ]
+      },
       "expected": {
         "count": 1,
         "value": "z = last\na = first\nm = middle"

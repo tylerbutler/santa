@@ -145,6 +145,11 @@
     },
     {
       "behaviors": [],
+      "conflicts": {
+        "variants": [
+          "reference_compliant"
+        ]
+      },
       "expected": {
         "count": 2,
         "entries": [
@@ -166,10 +171,17 @@
       "name": "complete_lists_workflow_parse",
       "source_test": "complete_lists_workflow",
       "validation": "parse",
-      "variants": []
+      "variants": [
+        "proposed_behavior"
+      ]
     },
     {
       "behaviors": [],
+      "conflicts": {
+        "variants": [
+          "reference_compliant"
+        ]
+      },
       "expected": {
         "count": 1,
         "object": {
@@ -196,7 +208,78 @@
       "name": "complete_lists_workflow_build_hierarchy",
       "source_test": "complete_lists_workflow",
       "validation": "build_hierarchy",
-      "variants": []
+      "variants": [
+        "proposed_behavior"
+      ]
+    },
+    {
+      "behaviors": [],
+      "conflicts": {
+        "variants": [
+          "proposed_behavior"
+        ]
+      },
+      "expected": {
+        "count": 2,
+        "entries": [
+          {
+            "key": "servers",
+            "value": "\n  server = web1\n  server = web2\n  server = web3"
+          },
+          {
+            "key": "ports",
+            "value": "\n  port = 80\n  port = 443"
+          }
+        ]
+      },
+      "features": [],
+      "functions": [
+        "parse"
+      ],
+      "input": "servers =\n  server = web1\n  server = web2\n  server = web3\nports =\n  port = 80\n  port = 443",
+      "name": "complete_lists_workflow_reference_parse",
+      "source_test": "complete_lists_workflow_reference",
+      "validation": "parse",
+      "variants": [
+        "reference_compliant"
+      ]
+    },
+    {
+      "behaviors": [],
+      "conflicts": {
+        "variants": [
+          "proposed_behavior"
+        ]
+      },
+      "expected": {
+        "count": 1,
+        "object": {
+          "ports": {
+            "port": [
+              "443",
+              "80"
+            ]
+          },
+          "servers": {
+            "server": [
+              "web1",
+              "web2",
+              "web3"
+            ]
+          }
+        }
+      },
+      "features": [],
+      "functions": [
+        "build_hierarchy"
+      ],
+      "input": "servers =\n  server = web1\n  server = web2\n  server = web3\nports =\n  port = 80\n  port = 443",
+      "name": "complete_lists_workflow_reference_build_hierarchy",
+      "source_test": "complete_lists_workflow_reference",
+      "validation": "build_hierarchy",
+      "variants": [
+        "reference_compliant"
+      ]
     },
     {
       "behaviors": [],

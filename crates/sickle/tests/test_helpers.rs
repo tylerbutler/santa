@@ -311,18 +311,30 @@ impl ImplementationConfig {
             list_coercion_behavior: ListCoercionBehavior::Disabled,
             spacing_behavior: SpacingBehavior::Strict,
             tab_behavior: TabBehavior::Preserve,
-            // Variant support:
-            // - "reference_compliant": OCaml-style behavior (reverse iteration order, etc.)
-            // - "proposed_behavior": NOT YET SUPPORTED - requires test data fixes
-            //   See: https://github.com/tylerbutler/ccl-test-data/issues/12
-            //   Many proposed_behavior tests are missing list_coercion_enabled behavior tags.
+            // Variant support: Choose which specification variant to run
+            //
+            // Per ccl-test-data docs, variants represent "specification variant interpretations
+            // for areas where the CCL specification is currently ambiguous or evolving."
+            //
+            // - Tests with empty variants[] are UNIVERSAL - they work for any implementation
+            // - Tests with variants: ["reference_compliant"] match OCaml reference behavior
+            // - Tests with variants: ["proposed_behavior"] match proposed spec enhancements
+            //
+            // IMPORTANT: Variants are MUTUALLY EXCLUSIVE. The same test input may have
+            // different expected outputs for each variant. You must choose ONE.
+            //
+            // Default: proposed_behavior (sickle's preferred interpretation)
+            // Use `--features reference_compliant` for OCaml-compatible behavior
             #[cfg(feature = "reference_compliant")]
             supported_variants: ["reference_compliant"]
                 .iter()
                 .map(|s| s.to_string())
                 .collect(),
             #[cfg(not(feature = "reference_compliant"))]
-            supported_variants: HashSet::new(),
+            supported_variants: ["proposed_behavior"]
+                .iter()
+                .map(|s| s.to_string())
+                .collect(),
         }
     }
 
@@ -422,7 +434,13 @@ impl TestSuite {
     /// Returns: None if test should run, Some(SkipReason) if test should be skipped
     pub fn should_skip_test(test: &TestCase, config: &ImplementationConfig) -> Option<SkipReason> {
         // PRECEDENCE LEVEL 1: Architectural/variant choices (highest priority)
-        // If a test has variants, at least one must be in our supported list
+        //
+        // Per ccl-test-data docs:
+        // - Tests with empty variants[] are UNIVERSAL - they work for any implementation
+        // - Tests with non-empty variants[] require at least one matching supported variant
+        //
+        // Note: variants are for SPECIFICATION AMBIGUITIES (proposed vs reference behavior),
+        // not for implementation choices like insertion order. Those are BEHAVIORS.
         if !test.variants.is_empty() {
             let has_supported_variant = test
                 .variants
@@ -432,15 +450,8 @@ impl TestSuite {
             if !has_supported_variant {
                 return Some(SkipReason::UnsupportedVariant(test.variants.clone()));
             }
-        } else {
-            // Tests with empty variants expect default (insertion-order) behavior.
-            // Skip them when reference_compliant is enabled (which uses reverse order).
-            if config.supported_variants.contains("reference_compliant") {
-                return Some(SkipReason::UnsupportedVariant(vec![
-                    "requires_insertion_order".to_string(),
-                ]));
-            }
         }
+        // Tests with empty variants are universal - always run them
 
         // KNOWN ISSUE: Skip reference_compliant tests with empty behaviors that expect insertion order
         // See: https://github.com/tylerbutler/ccl-test-data/issues/10
