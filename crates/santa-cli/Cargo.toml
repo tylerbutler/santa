@@ -14,7 +14,7 @@ readme.workspace = true
 publish = true
 
 [features]
-default = []
+default = ["tui"]
 bench = []
 tui = ["dep:ratatui", "dep:crossterm"]
 
