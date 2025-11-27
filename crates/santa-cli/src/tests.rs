@@ -70,7 +70,7 @@ mod cli_parsing_tests {
         assert!(!cli.builtin_only, "Default builtin_only should be false");
 
         match cli.command {
-            Commands::Status { all } => assert!(!all, "Default all should be false"),
+            Commands::Status { all, .. } => assert!(!all, "Default all should be false"),
             _ => panic!("Should parse as Status command"),
         }
     }
@@ -80,7 +80,7 @@ mod cli_parsing_tests {
         let cli = Cli::try_parse_from(vec!["santa", "status", "--all"]).unwrap();
 
         match cli.command {
-            Commands::Status { all } => assert!(all, "All flag should be true"),
+            Commands::Status { all, .. } => assert!(all, "All flag should be true"),
             _ => panic!("Should parse as Status command"),
         }
     }
@@ -187,7 +187,7 @@ mod cli_parsing_tests {
         assert!(cli.builtin_only, "Builtin-only should work with status");
 
         match cli.command {
-            Commands::Status { all } => assert!(all, "All flag should work with global flags"),
+            Commands::Status { all, .. } => assert!(all, "All flag should work with global flags"),
             _ => panic!("Should be Status command"),
         }
     }
@@ -353,7 +353,7 @@ mod command_routing_tests {
         let cli = Cli::try_parse_from(vec!["santa", "status", "--all"]).unwrap();
 
         match cli.command {
-            Commands::Status { all } => {
+            Commands::Status { all, .. } => {
                 assert!(all, "All flag should be true");
             }
             _ => panic!("Should have parsed as Status command"),
@@ -486,7 +486,7 @@ mod integration_tests {
         assert_eq!(cli.verbose, 1, "Verbose should be 1");
 
         match cli.command {
-            Commands::Status { all } => assert!(all, "All flag should be true"),
+            Commands::Status { all, .. } => assert!(all, "All flag should be true"),
             _ => panic!("Should be status command"),
         }
     }

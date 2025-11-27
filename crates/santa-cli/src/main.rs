@@ -56,6 +56,11 @@ enum Commands {
         /// List all packages, not just missing ones
         #[clap(short, long)]
         all: bool,
+
+        /// Launch interactive TUI dashboard
+        #[cfg(feature = "tui")]
+        #[clap(long)]
+        tui: bool,
     },
     /// Installs packages
     Install { source: Option<String> },
@@ -77,6 +82,10 @@ enum Commands {
         /// Shell to generate completions for
         shell: Shell,
     },
+    /// Launch interactive TUI dashboard
+    #[cfg(feature = "tui")]
+    #[command(alias = "dashboard")]
+    Tui,
 }
 
 /// Script format options for CLI
@@ -255,6 +264,22 @@ pub async fn run() -> Result<(), anyhow::Error> {
         .unwrap_or_else(|| std::env::current_dir().expect("Failed to get current directory"));
 
     match &cli.command {
+        #[cfg(feature = "tui")]
+        Commands::Tui => {
+            debug!("santa tui");
+            santa::tui::run_tui(config, data, cache).await?;
+        }
+        #[cfg(feature = "tui")]
+        Commands::Status { all: _, tui: true } => {
+            debug!("santa status --tui");
+            santa::tui::run_tui(config, data, cache).await?;
+        }
+        #[cfg(feature = "tui")]
+        Commands::Status { all, tui: false } => {
+            debug!("santa status");
+            crate::commands::status_command(&mut config, &data, cache, all).await?;
+        }
+        #[cfg(not(feature = "tui"))]
         Commands::Status { all } => {
             debug!("santa status");
             crate::commands::status_command(&mut config, &data, cache, all).await?;
