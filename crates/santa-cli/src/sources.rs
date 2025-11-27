@@ -150,9 +150,41 @@ impl Default for PackageCache {
 }
 
 impl PackageCache {
-    /// Checks for a package in the cache. This accesses the cache only, and will not modify it.
+    /// Checks for a package in the cache, resolving source-specific name overrides.
+    ///
+    /// This method handles the case where a package has a different name in a specific source.
+    /// For example, `github-cli` is installed as `gh` via brew. When checking if `github-cli`
+    /// is installed, this method will look up the source-specific name (`gh`) from the package
+    /// data and check for that name in the cache instead.
+    ///
+    /// # Arguments
+    ///
+    /// * `source` - The package source to check
+    /// * `config_pkg_name` - The package name as specified in the user's config
+    /// * `data` - The Santa data containing package definitions with source-specific overrides
+    ///
+    /// # Returns
+    ///
+    /// `true` if the package is installed (found in cache), `false` otherwise
     #[must_use]
-    pub fn check(&self, source: &PackageSource, pkg: &str) -> bool {
+    pub fn check(&self, source: &PackageSource, config_pkg_name: &str, data: &SantaData) -> bool {
+        // Resolve the source-specific package name
+        let actual_name = Self::resolve_package_name(config_pkg_name, source.name(), data);
+        trace!(
+            "Resolved package name '{}' to '{}' for source {}",
+            config_pkg_name,
+            actual_name,
+            source
+        );
+        self.check_raw(source, &actual_name)
+    }
+
+    /// Checks for a package in the cache without resolving name overrides.
+    ///
+    /// This is a low-level method that checks the cache directly. Most callers
+    /// should use `check()` instead, which resolves source-specific name overrides.
+    #[must_use]
+    fn check_raw(&self, source: &PackageSource, pkg: &str) -> bool {
         match self.cache.get(&source.name_str()) {
             Some(packages) => {
                 trace!("Cache hit for {}", source);
@@ -163,6 +195,29 @@ impl PackageCache {
                 false
             }
         }
+    }
+
+    /// Resolves a config package name to its source-specific name.
+    ///
+    /// Looks up the package in data.packages and returns the source-specific name
+    /// if one is defined, otherwise returns the original config name.
+    fn resolve_package_name(
+        config_pkg_name: &str,
+        source_name: &KnownSources,
+        data: &SantaData,
+    ) -> String {
+        // Look up the package in the data
+        if let Some(source_configs) = data.packages.get(config_pkg_name) {
+            // Check if there's config for this specific source
+            if let Some(Some(pkg_data)) = source_configs.get(source_name) {
+                // If PackageData has a name override, use it
+                if let Some(ref override_name) = pkg_data.name {
+                    return override_name.clone();
+                }
+            }
+        }
+        // No override found, use the config name as-is
+        config_pkg_name.to_string()
     }
 
     pub fn cache_for(&self, source: &PackageSource) {
@@ -735,16 +790,29 @@ impl PackageSource {
         escaped
     }
 
+    /// Generate a table showing package installation status.
+    ///
+    /// This method resolves source-specific package name overrides. For example,
+    /// if `github-cli` is configured but installed as `gh` via brew, this will
+    /// correctly show it as installed.
+    ///
+    /// # Arguments
+    ///
+    /// * `pkgs` - List of package names (as specified in user config)
+    /// * `cache` - Package cache containing installed package lists
+    /// * `data` - Santa data containing package definitions with source-specific overrides
+    /// * `include_installed` - Whether to include installed packages in the output
     #[must_use]
     pub fn table(
         &self,
         pkgs: &Vec<String>,
         cache: &PackageCache,
+        data: &SantaData,
         include_installed: bool,
     ) -> Table {
         let mut table = Table::new("{:<} {:<}");
         for pkg in pkgs {
-            let installed = cache.check(self, pkg);
+            let installed = cache.check(self, pkg, data);
             let emoji = if installed { "✅" } else { "❌" };
 
             #[allow(clippy::nonminimal_bool)]
@@ -996,11 +1064,19 @@ mod tests {
 
     #[test]
     fn test_package_cache_basic_operations() {
+        use crate::data::{PackageDataList, SantaData};
+
         let cache = PackageCache::new();
         let source = create_test_source();
 
+        // Create minimal data for the check method
+        let data = SantaData {
+            sources: vec![source.clone()],
+            packages: PackageDataList::new(),
+        };
+
         // Initially, cache should be empty
-        assert!(!cache.check(&source, "git"));
+        assert!(!cache.check(&source, "git", &data));
 
         // After caching, we can't easily test without mocking subprocess execution
         // This documents that the cache needs integration testing with mocked commands
