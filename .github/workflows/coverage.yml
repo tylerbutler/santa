@@ -23,10 +23,55 @@ jobs:
         with:
           tools: cargo-llvm-cov,cargo-nextest
 
+      # Run unit tests (exclude data-driven tests)
       - name: Clean coverage artifacts
         run: cargo llvm-cov clean --workspace
 
-      - name: Generate coverage data
+      - name: Generate unit test coverage
+        run: |
+          cargo llvm-cov nextest \
+            --all-features \
+            --workspace \
+            --lcov \
+            --output-path lcov-unittests.info \
+            -E 'not test(::data_driven_tests::)'
+
+      - name: Upload unit test coverage to Codecov
+        uses: codecov/codecov-action@b9fd7d16f6d7d1b5d2bec1a2887e65ceed900238 # ratchet:codecov/codecov-action@v4
+        with:
+          files: lcov-unittests.info
+          fail_ci_if_error: false
+          token: ${{ secrets.CODECOV_TOKEN }}
+          flags: unittests
+          name: santa-unittests
+
+      # Run data-driven tests separately
+      - name: Clean coverage artifacts for data-driven tests
+        run: cargo llvm-cov clean --workspace
+
+      - name: Generate data-driven test coverage
+        run: |
+          cargo llvm-cov nextest \
+            --all-features \
+            --workspace \
+            --lcov \
+            --output-path lcov-datadriven.info \
+            -E 'test(::data_driven_tests::)'
+
+      - name: Upload data-driven test coverage to Codecov
+        uses: codecov/codecov-action@b9fd7d16f6d7d1b5d2bec1a2887e65ceed900238 # ratchet:codecov/codecov-action@v4
+        with:
+          files: lcov-datadriven.info
+          fail_ci_if_error: false
+          token: ${{ secrets.CODECOV_TOKEN }}
+          flags: datadriven
+          name: santa-datadriven
+
+      # Generate combined HTML report for local review
+      - name: Clean coverage artifacts for combined report
+        run: cargo llvm-cov clean --workspace
+
+      - name: Generate combined coverage data
         run: cargo llvm-cov nextest --all-features --workspace --lcov --output-path lcov.info
 
       - name: Generate HTML coverage report
@@ -34,18 +79,8 @@ jobs:
 
       - name: Check coverage threshold
         run: |
-          # Check if coverage meets minimum threshold (80%)
           cargo llvm-cov report --summary-only || true
-          echo "Note: Coverage threshold check is informational only (does not fail CI)"
-
-      - name: Upload to Codecov
-        uses: codecov/codecov-action@b9fd7d16f6d7d1b5d2bec1a2887e65ceed900238 # ratchet:codecov/codecov-action@v4
-        with:
-          files: lcov.info
-          fail_ci_if_error: false
-          token: ${{ secrets.CODECOV_TOKEN }}
-          flags: unittests
-          name: santa-coverage
+          echo "Note: Coverage threshold check is informational only"
 
       - name: Archive coverage artifacts
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # ratchet:actions/upload-artifact@v4
@@ -53,4 +88,6 @@ jobs:
           name: coverage-report
           path: |
             lcov.info
+            lcov-unittests.info
+            lcov-datadriven.info
             target/llvm-cov/html/
