@@ -1,10 +1,10 @@
 //! Data-driven CCL tests using JSON test suites
 
-mod test_helpers;
+mod common;
 
+use common::{load_all_test_suites, ImplementationConfig, TestSuite};
 use sickle::{build_hierarchy, load, parse, parse_indented};
 use std::path::Path;
-use test_helpers::{load_all_test_suites, ImplementationConfig, TestSuite};
 
 /// Helper to navigate nested paths in a Model (e.g., ["config", "database", "port"])
 fn navigate_path<'a>(
@@ -520,11 +520,11 @@ fn test_all_ccl_suites_comprehensive() {
             // Collect skip reasons using the new single decision function
             let mut skip_reasons_by_category: std::collections::HashMap<
                 &str,
-                Vec<test_helpers::SkipReason>,
+                Vec<common::SkipReason>,
             > = std::collections::HashMap::new();
 
             for test in &suite.tests {
-                if let Some(reason) = test_helpers::TestSuite::should_skip_test(test, &config) {
+                if let Some(reason) = common::TestSuite::should_skip_test(test, &config) {
                     skip_reasons_by_category
                         .entry(reason.category())
                         .or_default()
@@ -540,13 +540,13 @@ fn test_all_ccl_suites_comprehensive() {
             for reasons in skip_reasons_by_category.values() {
                 for reason in reasons {
                     match reason {
-                        test_helpers::SkipReason::UnsupportedVariant(variants) => {
+                        common::SkipReason::UnsupportedVariant(variants) => {
                             missing_variants.extend(variants.iter().cloned());
                         }
-                        test_helpers::SkipReason::MissingFunctions(functions) => {
+                        common::SkipReason::MissingFunctions(functions) => {
                             missing_functions.extend(functions.iter().cloned());
                         }
-                        test_helpers::SkipReason::ConflictingBehaviors(behaviors) => {
+                        common::SkipReason::ConflictingBehaviors(behaviors) => {
                             conflicting_behaviors.extend(behaviors.iter().cloned());
                         }
                     }
