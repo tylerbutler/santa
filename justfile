@@ -194,6 +194,11 @@ audit:
     cargo audit
     cargo deny check
 
+# Check for semver-incompatible changes
+semver:
+    @echo "🔍 Checking semver compatibility..."
+    cargo semver-checks
+
 # Check for supply chain vulnerabilities
 supply-chain:
     @echo "🔗 Checking supply chain security..."
