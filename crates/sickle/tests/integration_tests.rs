@@ -1,7 +1,5 @@
 //! Integration tests for the sickle CCL parser
 
-mod test_helpers;
-
 use sickle::load;
 
 /// Test helper to extract string value from Model using public API
