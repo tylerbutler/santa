@@ -12,7 +12,7 @@ jobs:
     # This job serves as the Ubuntu test runner AND coverage generator.
     # Coverage runs the same tests as cargo test, just with LLVM instrumentation.
     # macOS/Windows testing is handled separately in test.yml.
-    name: Test & Coverage (Ubuntu)
+    name: Generate Coverage Report
     runs-on: ubuntu-latest
     if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
     steps:
