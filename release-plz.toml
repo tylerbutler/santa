@@ -34,23 +34,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 # Santa Data Library - Core data models and CCL parser
 [[package]]
 name = "santa-data"
-# Published to crates.io as a standalone library
 publish = true
-# Don't create git tags - this is a library-only package, not distributed by cargo-dist
 git_tag_enable = false
+
+# Exclude commits scoped to other packages from this changelog
+[package.changelog]
+commit_parsers = [
+    { message = "^.*\\(sickle\\)", skip = true },
+    { message = "^.*\\(santa\\)", skip = true },
+    { message = "^.*\\(santa-cli\\)", skip = true },
+]
 
 # Sickle - CCL Parser Library
 [[package]]
 name = "sickle"
-# Published to crates.io as a standalone library
 publish = true
-# Don't create git tags - this is a library-only package, not distributed by cargo-dist
 git_tag_enable = false
 
+[package.changelog]
+commit_parsers = [
+    { message = "^.*\\(santa-data\\)", skip = true },
+    { message = "^.*\\(santa\\)", skip = true },
+    { message = "^.*\\(santa-cli\\)", skip = true },
+]
+
 # Santa CLI - Main binary application
+# Note: scopes "santa" and "santa-cli" are treated as equivalent
 [[package]]
 name = "santa"
-# Published to crates.io
 publish = true
-# Enable git tags - this is the main binary distributed by cargo-dist
 git_tag_enable = true
+
+[package.changelog]
+commit_parsers = [
+    { message = "^.*\\(sickle\\)", skip = true },
+    { message = "^.*\\(santa-data\\)", skip = true },
+]
