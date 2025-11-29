@@ -956,18 +956,31 @@ mod tests {
         for dangerous_pkg in dangerous_packages {
             let adjusted = source.adjust_package_name(dangerous_pkg);
             // Dangerous packages should now be properly escaped using shell-escape
-            // They should be wrapped in single quotes to prevent shell interpretation
+            // shell-escape uses single quotes on Unix and double quotes on Windows
+            #[cfg(unix)]
             assert_eq!(adjusted, format!("'{}'", dangerous_pkg));
+            #[cfg(windows)]
+            assert_eq!(adjusted, format!("\"{}\"", dangerous_pkg));
         }
 
         // Path traversal gets sanitized by our security implementation
         let path_traversal = "../../../etc/passwd";
         let adjusted_path = source.adjust_package_name(path_traversal);
-        assert_eq!(adjusted_path, "'\\.\\.\\./\\.\\.\\./\\.\\.\\./etc/passwd'"); // Path traversal is sanitized and quoted
+        // Path traversal is sanitized and quoted (quote style is platform-dependent)
+        #[cfg(unix)]
+        assert_eq!(adjusted_path, "'\\.\\.\\./\\.\\.\\./\\.\\.\\./etc/passwd'");
+        #[cfg(windows)]
+        assert_eq!(
+            adjusted_path,
+            "\"\\.\\.\\./\\.\\.\\./\\.\\.\\./etc/passwd\""
+        );
 
         // Test install command construction with dangerous package names
         let command = source.install_packages_command(vec!["git; rm -rf /".to_string()]);
+        #[cfg(unix)]
         assert_eq!(command, "brew install 'git; rm -rf /'");
+        #[cfg(windows)]
+        assert_eq!(command, "brew install \"git; rm -rf /\"");
 
         // This test verifies the injection vulnerability has been fixed
         // Dangerous package names are now properly escaped with shell-escape

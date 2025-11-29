@@ -25,18 +25,18 @@ semver_check = true
 name = "sickle"
 publish = true
 git_tag_enable = false
-changelog_config = "crates/sickle/cliff.toml"
+changelog_update = false  # git-cliff handles this separately
 
 # Santa Data Library - Core data models and CCL parser
 [[package]]
 name = "santa-data"
 publish = true
 git_tag_enable = false
-changelog_config = "crates/santa-data/cliff.toml"
+changelog_update = false  # git-cliff handles this separately
 
 # Santa CLI - Main binary application
 [[package]]
 name = "santa"
 publish = true
 git_tag_enable = true
-changelog_config = "crates/santa-cli/cliff.toml"
+changelog_update = false  # git-cliff handles this separately
