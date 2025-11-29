@@ -5,26 +5,68 @@
 # Require clean working directory (no uncommitted changes) for releases
 allow_dirty = false
 
+# Only release when merging release PR (manual control)
+release_always = false
+
+# Generate and update CHANGELOG.md
+changelog_update = true
+
+# Create GitHub releases - disabled to let cargo-dist handle release creation with binary assets
+git_release_enable = false
+
+# Publish to crates.io when release PR is merged
+publish = true
+
+# Check for API breaking changes with cargo-semver-checks
+semver_check = true
+
+# Changelog customization
+[changelog]
+header = """# Changelog
+
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+"""
+
 # Santa Data Library - Core data models and CCL parser
 [[package]]
 name = "santa-data"
-# Published to crates.io as a standalone library
 publish = true
-# Don't create git tags - this is a library-only package, not distributed by cargo-dist
 git_tag_enable = false
+
+# Exclude commits scoped to other packages from this changelog
+[package.changelog]
+commit_parsers = [
+    { message = "^.*\\(sickle\\)", skip = true },
+    { message = "^.*\\(santa\\)", skip = true },
+    { message = "^.*\\(santa-cli\\)", skip = true },
+]
 
 # Sickle - CCL Parser Library
 [[package]]
 name = "sickle"
-# Published to crates.io as a standalone library
 publish = true
-# Don't create git tags - this is a library-only package, not distributed by cargo-dist
 git_tag_enable = false
 
+[package.changelog]
+commit_parsers = [
+    { message = "^.*\\(santa-data\\)", skip = true },
+    { message = "^.*\\(santa\\)", skip = true },
+    { message = "^.*\\(santa-cli\\)", skip = true },
+]
+
 # Santa CLI - Main binary application
+# Note: scopes "santa" and "santa-cli" are treated as equivalent
 [[package]]
 name = "santa"
-# Published to crates.io
 publish = true
-# Enable git tags - this is the main binary distributed by cargo-dist
 git_tag_enable = true
+
+[package.changelog]
+commit_parsers = [
+    { message = "^.*\\(sickle\\)", skip = true },
+    { message = "^.*\\(santa-data\\)", skip = true },
+]

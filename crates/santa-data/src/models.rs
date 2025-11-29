@@ -45,7 +45,9 @@ pub enum OS {
 #[serde(rename_all = "camelCase")]
 pub enum Arch {
     X64,
+    X86,
     Aarch64,
+    Arm,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, Eq, PartialEq, Hash)]
