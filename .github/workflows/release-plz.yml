@@ -19,7 +19,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # ratchet:actions/checkout@v5
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # ratchet:actions/checkout@v5
         with:
           fetch-depth: 0
           persist-credentials: false
@@ -27,7 +27,7 @@ jobs:
       - uses: ./.github/actions/setup-rust
 
       - name: Run release-plz release
-        uses: release-plz/action@d529f731ae3e89610ada96eda34e5c6ba3b12214 # ratchet:release-plz/action@v0.5
+        uses: release-plz/action@1efcf74dfcd6e500990dad806e286899ae384064 # ratchet:release-plz/action@v0.5
         with:
           command: release
         env:
@@ -43,7 +43,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # ratchet:actions/checkout@v5
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # ratchet:actions/checkout@v5
         with:
           fetch-depth: 0
           token: ${{ secrets.RELEASE_PLZ_TOKEN }}
@@ -52,7 +52,7 @@ jobs:
 
       - name: Run release-plz release-pr
         id: release-plz
-        uses: release-plz/action@d529f731ae3e89610ada96eda34e5c6ba3b12214 # ratchet:release-plz/action@v0.5
+        uses: release-plz/action@1efcf74dfcd6e500990dad806e286899ae384064 # ratchet:release-plz/action@v0.5
         with:
           command: release-pr
         env:
@@ -61,7 +61,7 @@ jobs:
 
       - name: Install git-cliff
         if: steps.release-plz.outputs.prs_created == 'true'
-        uses: taiki-e/install-action@b4ed516d498dd85ebf2e42c2dbb9556c37faca89 # ratchet:taiki-e/install-action@v2
+        uses: taiki-e/install-action@b4b80945859e8ef89a9732a0f46499a443b196fe # ratchet:taiki-e/install-action@v2
         with:
           tool: git-cliff
 
