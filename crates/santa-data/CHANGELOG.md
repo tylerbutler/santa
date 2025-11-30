@@ -2,36 +2,54 @@
 
 All notable changes to this project will be documented in this file.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+### CI
+
+- Use per-crate git-cliff configs for changelog generation (#35)
+
+- Add semver check
 
 
-## [0.1.4](https://github.com/tylerbutler/santa/compare/santa-data-v0.1.3...santa-data-v0.1.4) - 2025-11-17
+### Miscellaneous
 
-### Fixed
+- Release v0.1.4 (#25)
 
-- *(dist)* exclude santa-data library from cargo-dist releases
 
-## [0.1.3](https://github.com/tylerbutler/santa/compare/santa-data-v0.1.2...santa-data-v0.1.3) - 2025-11-17
+### Features
 
-### Added
+- Enhance workspace configuration and CI for multi-package best practices (#23)
 
-- enhance workspace configuration and CI for multi-package best practices ([#23](https://github.com/tylerbutler/santa/pull/23))
 
-## [0.1.2](https://github.com/tylerbutler/santa/compare/santa-data-v0.1.1...santa-data-v0.1.2) - 2025-11-17
+### Miscellaneous
 
-### Fixed
+- Release v0.1.3 (#24)
 
-- make source system extensible without code changes ([#19](https://github.com/tylerbutler/santa/pull/19))
 
-## [0.1.1](https://github.com/tylerbutler/santa/compare/santa-data-v0.1.0...santa-data-v0.1.1) - 2025-11-17
+### Bug Fixes
 
-### Other
+- Make source system extensible without code changes (#19)
 
-- remove unused dependencies and fix clippy warnings ([#12](https://github.com/tylerbutler/santa/pull/12))
 
-## [0.1.0](https://github.com/tylerbutler/santa/releases/tag/santa-data-v0.1.0) - 2025-11-16
+### Miscellaneous
 
-### Other
+- Release v0.1.2 (#20)
 
-- migrate to workspace structure with santa-data crate ([#6](https://github.com/tylerbutler/santa/pull/6))
+
+### Miscellaneous
+
+- Release v0.1.1 (#14)
+
+
+### Refactoring
+
+- Remove unused dependencies and fix clippy warnings (#12)
+
+
+### Miscellaneous
+
+- Release (#3)
+
+
+### Refactoring
+
+- Migrate to workspace structure with santa-data crate (#6)
+
