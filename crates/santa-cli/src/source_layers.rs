@@ -93,8 +93,7 @@ impl SourceLayerManager {
             sickle::from_str(&content).context("Downloaded content is not valid CCL")?;
 
         // Ensure config directory exists
-        fs::create_dir_all(&self.config_dir)
-            .context("Failed to create config directory")?;
+        fs::create_dir_all(&self.config_dir).context("Failed to create config directory")?;
 
         // Write the downloaded sources
         let path = self.downloaded_sources_path();
@@ -195,10 +194,7 @@ impl SourceLayerManager {
         let mut sources: Vec<LayeredSource> = result.into_values().collect();
         sources.sort_by(|a, b| a.name.cmp(&b.name));
 
-        info!(
-            "Merged {} total sources from all layers",
-            sources.len()
-        );
+        info!("Merged {} total sources from all layers", sources.len());
         Ok(sources)
     }
 
@@ -220,8 +216,7 @@ impl SourceLayerManager {
     pub fn clear_downloaded_sources(&self) -> Result<()> {
         let path = self.downloaded_sources_path();
         if path.exists() {
-            fs::remove_file(&path)
-                .with_context(|| format!("Failed to remove {:?}", path))?;
+            fs::remove_file(&path).with_context(|| format!("Failed to remove {:?}", path))?;
             info!("Removed downloaded sources at {:?}", path);
         }
         Ok(())
