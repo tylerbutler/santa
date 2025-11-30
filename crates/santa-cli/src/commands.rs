@@ -92,8 +92,8 @@ pub async fn status_command(
     cache: PackageCache,
     all: &bool,
 ) -> Result<()> {
-    use std::time::Instant;
     use std::collections::HashMap;
+    use std::time::Instant;
 
     #[cfg(debug_assertions)]
     let start = Instant::now();
@@ -161,7 +161,9 @@ pub async fn status_command(
 
     // Extract durations from Arc
     let durations = Arc::try_unwrap(durations)
-        .map_err(|_| SantaError::Concurrency("Failed to unwrap durations - still in use".to_string()))?
+        .map_err(|_| {
+            SantaError::Concurrency("Failed to unwrap durations - still in use".to_string())
+        })?
         .into_inner();
 
     // Extract cache from Arc<Mutex<>> for further use
@@ -180,7 +182,11 @@ pub async fn status_command(
         let groups_start = Instant::now();
         let groups = config.groups(data);
         #[cfg(debug_assertions)]
-        debug!("⏱️  Groups computation for {} took: {:?}", source.name(), groups_start.elapsed());
+        debug!(
+            "⏱️  Groups computation for {} took: {:?}",
+            source.name(),
+            groups_start.elapsed()
+        );
 
         for (key, pkgs) in groups {
             if source.name() == &key {
@@ -189,8 +195,12 @@ pub async fn status_command(
                 let pkg_count = pkgs.len();
                 let table = format!("{}", source.table(&pkgs, &cache, data, *all));
                 #[cfg(debug_assertions)]
-                debug!("⏱️  Table generation for {} ({} pkgs) took: {:?}",
-                       source.name(), pkg_count, table_start.elapsed());
+                debug!(
+                    "⏱️  Table generation for {} ({} pkgs) took: {:?}",
+                    source.name(),
+                    pkg_count,
+                    table_start.elapsed()
+                );
 
                 // Get duration for this source
                 let duration_str = if let Some(duration) = durations.get(&source.name_str()) {
