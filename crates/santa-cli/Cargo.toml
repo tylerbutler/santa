@@ -100,6 +100,9 @@ chrono = { version = "0.4", features = ["serde"] }
 # Structured error types with derive macros
 thiserror = "1.0"
 
+# HTTP client for fetching remote sources
+ureq = "2.10"
+
 [dev-dependencies]
 # Parameterized testing framework with fixtures
 rstest = "0.18"

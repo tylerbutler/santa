@@ -58,6 +58,9 @@ tera = "1.19"
 powershell_script = "1.1"
 chrono = { version = "0.4", features = ["serde"] }
 
+# HTTP client (minimal, blocking)
+ureq = "2.10"
+
 # Dev dependencies
 rstest = "0.18"
 tempfile = "3.21"
