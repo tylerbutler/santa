@@ -85,7 +85,7 @@ jobs:
   semver:
     name: Semver Check
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' || github.event.pull_request.draft == false
+    if: github.event_name == 'pull_request' && github.event.pull_request.draft == false
     steps:
       - name: Checkout repository
         uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # ratchet:actions/checkout@v5
