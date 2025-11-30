@@ -92,8 +92,9 @@ pub async fn status_command(
     cache: PackageCache,
     all: &bool,
 ) -> Result<()> {
-    #[cfg(debug_assertions)]
     use std::time::Instant;
+    use std::collections::HashMap;
+
     #[cfg(debug_assertions)]
     let start = Instant::now();
 
@@ -113,6 +114,9 @@ pub async fn status_command(
     let source_names: Vec<String> = sources.iter().map(|s| s.name().to_string()).collect();
     eprintln!("Checking package managers: {}...", source_names.join(", "));
 
+    // Track durations for each source
+    let durations = Arc::new(RwLock::new(HashMap::new()));
+
     // Use structured concurrency to cache data for all sources concurrently
     #[cfg(debug_assertions)]
     let cache_setup_start = Instant::now();
@@ -121,16 +125,22 @@ pub async fn status_command(
         .iter()
         .map(|source| {
             let cache_clone: Arc<RwLock<PackageCache>> = Arc::clone(&cache);
+            let durations_clone = Arc::clone(&durations);
             let source = source.clone();
             async move {
-                #[cfg(debug_assertions)]
                 let task_start = Instant::now();
                 eprint!("  Checking {}... ", source.name());
                 let cache = cache_clone.write().await;
                 let result = cache.cache_for_async(&source).await;
+                let duration = task_start.elapsed();
+
+                // Store duration
+                let mut durations = durations_clone.write().await;
+                durations.insert(source.name_str(), duration);
+
                 eprintln!("✓");
                 #[cfg(debug_assertions)]
-                debug!("⏱️  Cache for {} took: {:?}", source.name(), task_start.elapsed());
+                debug!("⏱️  Cache for {} took: {:?}", source.name(), duration);
                 result
             }
         })
@@ -148,6 +158,11 @@ pub async fn status_command(
     #[cfg(debug_assertions)]
     debug!("⏱️  Total caching took: {:?}", caching_start.elapsed());
     eprintln!();
+
+    // Extract durations from Arc
+    let durations = Arc::try_unwrap(durations)
+        .map_err(|_| SantaError::Concurrency("Failed to unwrap durations - still in use".to_string()))?
+        .into_inner();
 
     // Extract cache from Arc<Mutex<>> for further use
     #[cfg(debug_assertions)]
@@ -177,7 +192,18 @@ pub async fn status_command(
                 debug!("⏱️  Table generation for {} ({} pkgs) took: {:?}",
                        source.name(), pkg_count, table_start.elapsed());
 
-                println!("{source} ({pkg_count} packages total)");
+                // Get duration for this source
+                let duration_str = if let Some(duration) = durations.get(&source.name_str()) {
+                    if duration.as_secs() > 0 {
+                        format!(" - checked in {:.1}s", duration.as_secs_f64())
+                    } else {
+                        format!(" - checked in {}ms", duration.as_millis())
+                    }
+                } else {
+                    String::new()
+                };
+
+                println!("{source} ({pkg_count} packages total{duration_str})");
                 println!("{table}");
                 break;
             }
