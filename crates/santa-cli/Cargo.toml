@@ -14,8 +14,9 @@ readme.workspace = true
 publish = true
 
 [features]
-default = []
+default = ["tui"]
 bench = []
+tui = ["dep:ratatui", "dep:crossterm"]
 
 [dependencies]
 # Error handling with context and chaining
@@ -99,6 +100,10 @@ chrono = { version = "0.4", features = ["serde"] }
 
 # Structured error types with derive macros
 thiserror = "1.0"
+
+# TUI dependencies (optional, enabled via 'tui' feature)
+ratatui = { workspace = true, optional = true }
+crossterm = { workspace = true, optional = true }
 
 [dev-dependencies]
 # Parameterized testing framework with fixtures

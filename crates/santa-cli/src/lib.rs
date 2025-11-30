@@ -91,6 +91,9 @@ pub mod script_generator;
 pub mod sources;
 pub mod traits;
 
+#[cfg(feature = "tui")]
+pub mod tui;
+
 // Re-export commonly used types
 pub use configuration::SantaConfig;
 pub use data::{KnownSources, PackageData, SantaData};
