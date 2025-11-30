@@ -1,31 +1,63 @@
 name: PR Validation
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
   pull_request:
     branches: [main]
 
 jobs:
-  checks:
-    name: PR Checks
+  format:
+    name: Format Check
     runs-on: ubuntu-latest
-    if: github.event.pull_request.draft == false
+    if: github.event_name == 'push' || github.event.pull_request.draft == false
     steps:
       - name: Checkout repository
         uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # ratchet:actions/checkout@v5
 
       - uses: ./.github/actions/setup-rust
         with:
-          components: "clippy,rustfmt"
+          components: rustfmt
 
       - uses: ./.github/actions/install-tools
         with:
-          tools: "just,cargo-udeps,cargo-audit,cargo-deny"
+          tools: just
 
       - name: Check formatting
         run: just format --check
 
-      - name: Clippy check (lint)
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' || github.event.pull_request.draft == false
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # ratchet:actions/checkout@v5
+
+      - uses: ./.github/actions/setup-rust
+        with:
+          components: clippy
+
+      - uses: ./.github/actions/install-tools
+        with:
+          tools: just
+
+      - name: Clippy check
         run: just lint
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' || github.event.pull_request.draft == false
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # ratchet:actions/checkout@v5
+
+      - uses: ./.github/actions/setup-rust
+
+      - uses: ./.github/actions/install-tools
+        with:
+          tools: just
 
       - name: Debug build
         run: just build
@@ -33,13 +65,27 @@ jobs:
       - name: Verify package
         run: just verify-package
 
+  audit:
+    name: Security Audit
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' || github.event.pull_request.draft == false
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # ratchet:actions/checkout@v5
+
+      - uses: ./.github/actions/setup-rust
+
+      - uses: ./.github/actions/install-tools
+        with:
+          tools: just,cargo-audit,cargo-deny
+
       - name: Security audit
         run: just audit
 
   semver:
-    name: Semver Compatibility Check
+    name: Semver Check
     runs-on: ubuntu-latest
-    if: github.event.pull_request.draft == false
+    if: github.event_name == 'push' || github.event.pull_request.draft == false
     steps:
       - name: Checkout repository
         uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # ratchet:actions/checkout@v5
@@ -50,15 +96,15 @@ jobs:
 
       - uses: ./.github/actions/install-tools
         with:
-          tools: "cargo-semver-checks"
+          tools: just,cargo-semver-checks
 
       - name: Check semver compatibility
         run: just semver
 
   workspace-consistency:
-    name: Workspace Consistency Checks
+    name: Workspace Consistency
     runs-on: ubuntu-latest
-    if: github.event.pull_request.draft == false
+    if: github.event_name == 'push' || github.event.pull_request.draft == false
     steps:
       - name: Checkout repository
         uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # ratchet:actions/checkout@v5

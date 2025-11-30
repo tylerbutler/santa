@@ -526,6 +526,9 @@ mod tests {
                 KnownSources::Unknown(_) => {
                     panic!("detect_available_package_managers should only return known sources")
                 }
+                _ => {
+                    // Handle any future variants added to the non-exhaustive enum
+                }
             }
         }
 
@@ -878,6 +881,9 @@ git =
                 }
                 KnownSources::Unknown(_) => {
                     panic!("detect_available_package_managers returned Unknown variant");
+                }
+                _ => {
+                    // Handle any future variants added to the non-exhaustive enum
                 }
             }
         }
