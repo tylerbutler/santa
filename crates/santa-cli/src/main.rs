@@ -13,6 +13,7 @@ use std::path::Path;
 
 use santa::commands;
 use santa::script_generator::{ExecutionMode, ScriptFormat};
+use santa::source_layers::SourceLayerManager;
 use santa::sources::PackageCache;
 
 #[cfg(test)]
@@ -77,6 +78,29 @@ enum Commands {
         /// Shell to generate completions for
         shell: Shell,
     },
+    /// Manage package sources
+    #[clap(subcommand)]
+    Sources(SourcesCommands),
+}
+
+/// Subcommands for managing package sources
+#[derive(Subcommand)]
+enum SourcesCommands {
+    /// Download the latest source definitions from GitHub
+    Update,
+    /// List all available sources (from all layers)
+    List {
+        /// Show only sources from a specific origin (bundled, downloaded, custom)
+        #[clap(long)]
+        origin: Option<String>,
+    },
+    /// Show details about a specific source
+    Show {
+        /// Name of the source to show
+        name: String,
+    },
+    /// Remove downloaded sources (revert to bundled only)
+    Clear,
 }
 
 /// Script format options for CLI
@@ -159,6 +183,171 @@ fn build_cli() -> Command {
                 .value_parser(clap::value_parser!(std::path::PathBuf))
                 .global(true),
         )
+}
+
+/// Handle the sources subcommand
+async fn handle_sources_command(
+    cmd: &SourcesCommands,
+    config: &SantaConfig,
+) -> Result<(), anyhow::Error> {
+    use colored::Colorize;
+    use santa::source_layers::SourceOrigin;
+
+    let manager = SourceLayerManager::with_default_config_dir()?;
+
+    match cmd {
+        SourcesCommands::Update => {
+            println!("Fetching latest sources from GitHub...");
+            manager.update_sources()?;
+            println!("{}", "Sources updated successfully!".green());
+
+            // Show summary
+            let merged = manager.merge_sources(None)?;
+            let summary = manager.sources_summary(&merged);
+            println!(
+                "\nTotal sources: {} ({} bundled, {} downloaded)",
+                merged.len(),
+                summary.get(&SourceOrigin::Bundled).unwrap_or(&0),
+                summary.get(&SourceOrigin::Downloaded).unwrap_or(&0)
+            );
+        }
+        SourcesCommands::List { origin } => {
+            // Convert user custom sources from config to SourcesDefinition format
+            let user_custom = config.custom_sources.as_ref().map(|sources| {
+                sources
+                    .iter()
+                    .map(|s| {
+                        (
+                            s.name.to_string(),
+                            santa::data::schemas::SourceDefinition {
+                                emoji: s.emoji.clone(),
+                                install: s.install_command.clone(),
+                                check: s.check_command.clone(),
+                                prefix: s.prepend_to_package_name.clone(),
+                                overrides: None, // TODO: convert overrides
+                            },
+                        )
+                    })
+                    .collect::<std::collections::HashMap<_, _>>()
+            });
+
+            let merged = manager.merge_sources(user_custom.as_ref())?;
+
+            // Filter by origin if specified
+            let filtered: Vec<_> = if let Some(origin_filter) = origin {
+                let target_origin = match origin_filter.to_lowercase().as_str() {
+                    "bundled" => SourceOrigin::Bundled,
+                    "downloaded" => SourceOrigin::Downloaded,
+                    "custom" | "user" => SourceOrigin::UserCustom,
+                    _ => {
+                        eprintln!(
+                            "Unknown origin '{}'. Valid options: bundled, downloaded, custom",
+                            origin_filter
+                        );
+                        return Ok(());
+                    }
+                };
+                merged
+                    .into_iter()
+                    .filter(|s| s.origin == target_origin)
+                    .collect()
+            } else {
+                merged
+            };
+
+            if filtered.is_empty() {
+                println!("No sources found.");
+                return Ok(());
+            }
+
+            println!(
+                "{:<15} {:<8} {:<12} {}",
+                "NAME".bold(),
+                "EMOJI".bold(),
+                "ORIGIN".bold(),
+                "INSTALL COMMAND".bold()
+            );
+            println!("{}", "-".repeat(70));
+
+            for source in &filtered {
+                let origin_str = match source.origin {
+                    SourceOrigin::Bundled => "bundled".dimmed(),
+                    SourceOrigin::Downloaded => "downloaded".cyan(),
+                    SourceOrigin::UserCustom => "custom".yellow(),
+                };
+                // Truncate install command for display
+                let install_display = if source.definition.install.len() > 35 {
+                    format!("{}...", &source.definition.install[..32])
+                } else {
+                    source.definition.install.clone()
+                };
+                println!(
+                    "{:<15} {:<8} {:<12} {}",
+                    source.name, source.definition.emoji, origin_str, install_display
+                );
+            }
+
+            println!("\nTotal: {} sources", filtered.len());
+        }
+        SourcesCommands::Show { name } => {
+            // Convert user custom sources from config
+            let user_custom = config.custom_sources.as_ref().map(|sources| {
+                sources
+                    .iter()
+                    .map(|s| {
+                        (
+                            s.name.to_string(),
+                            santa::data::schemas::SourceDefinition {
+                                emoji: s.emoji.clone(),
+                                install: s.install_command.clone(),
+                                check: s.check_command.clone(),
+                                prefix: s.prepend_to_package_name.clone(),
+                                overrides: None,
+                            },
+                        )
+                    })
+                    .collect::<std::collections::HashMap<_, _>>()
+            });
+
+            let merged = manager.merge_sources(user_custom.as_ref())?;
+
+            if let Some(source) = merged.iter().find(|s| s.name == *name) {
+                println!("{}: {}", "Name".bold(), source.name);
+                println!("{}: {}", "Emoji".bold(), source.definition.emoji);
+                println!("{}: {}", "Origin".bold(), source.origin);
+                println!("{}: {}", "Install".bold(), source.definition.install);
+                println!("{}: {}", "Check".bold(), source.definition.check);
+                if let Some(prefix) = &source.definition.prefix {
+                    println!("{}: {}", "Prefix".bold(), prefix);
+                }
+                if let Some(overrides) = &source.definition.overrides {
+                    println!("{}:", "Platform Overrides".bold());
+                    for (platform, override_def) in overrides {
+                        println!("  {}:", platform);
+                        if let Some(install) = &override_def.install {
+                            println!("    install: {}", install);
+                        }
+                        if let Some(check) = &override_def.check {
+                            println!("    check: {}", check);
+                        }
+                    }
+                }
+            } else {
+                eprintln!("Source '{}' not found.", name);
+            }
+        }
+        SourcesCommands::Clear => {
+            if manager.has_downloaded_sources() {
+                manager.clear_downloaded_sources()?;
+                println!("{}", "Downloaded sources removed.".green());
+                println!("Santa will now use bundled sources only.");
+            } else {
+                println!("No downloaded sources to remove.");
+            }
+        }
+    }
+
+    Ok(())
 }
 
 pub async fn run() -> Result<(), anyhow::Error> {
@@ -283,6 +472,9 @@ pub async fn run() -> Result<(), anyhow::Error> {
         Commands::Completions { shell: _ } => {
             // This is handled earlier in the function
             unreachable!("Completions should be handled before this point");
+        }
+        Commands::Sources(sources_cmd) => {
+            handle_sources_command(sources_cmd, &config).await?;
         }
     }
 
