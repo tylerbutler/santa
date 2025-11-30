@@ -92,15 +92,30 @@ pub async fn status_command(
     cache: PackageCache,
     all: &bool,
 ) -> Result<()> {
+    #[cfg(debug_assertions)]
+    use std::time::Instant;
+    #[cfg(debug_assertions)]
+    let start = Instant::now();
+
     // filter sources to those enabled in the config (avoiding clone)
+    #[cfg(debug_assertions)]
+    let filter_start = Instant::now();
     let sources: SourceList = data
         .sources
         .iter()
         .filter(|source| config.source_is_enabled(source))
         .cloned()
         .collect();
+    #[cfg(debug_assertions)]
+    debug!("⏱️  Source filtering took: {:?}", filter_start.elapsed());
+
+    // Show user what's being checked
+    let source_names: Vec<String> = sources.iter().map(|s| s.name().to_string()).collect();
+    eprintln!("Checking package managers: {}...", source_names.join(", "));
 
     // Use structured concurrency to cache data for all sources concurrently
+    #[cfg(debug_assertions)]
+    let cache_setup_start = Instant::now();
     let cache = Arc::new(RwLock::new(cache));
     let cache_tasks: Vec<_> = sources
         .iter()
@@ -108,34 +123,71 @@ pub async fn status_command(
             let cache_clone: Arc<RwLock<PackageCache>> = Arc::clone(&cache);
             let source = source.clone();
             async move {
+                #[cfg(debug_assertions)]
+                let task_start = Instant::now();
+                eprint!("  Checking {}... ", source.name());
                 let cache = cache_clone.write().await;
-                cache.cache_for_async(&source).await
+                let result = cache.cache_for_async(&source).await;
+                eprintln!("✓");
+                #[cfg(debug_assertions)]
+                debug!("⏱️  Cache for {} took: {:?}", source.name(), task_start.elapsed());
+                result
             }
         })
         .collect();
+    #[cfg(debug_assertions)]
+    debug!("⏱️  Cache setup took: {:?}", cache_setup_start.elapsed());
 
     // All tasks are structured under this scope - they'll be awaited together
+    #[cfg(debug_assertions)]
+    let caching_start = Instant::now();
     match try_join_all(cache_tasks).await {
         Ok(_) => debug!("Successfully cached data for all sources"),
         Err(e) => tracing::error!("Some cache operations failed: {}", e),
     }
+    #[cfg(debug_assertions)]
+    debug!("⏱️  Total caching took: {:?}", caching_start.elapsed());
+    eprintln!();
 
     // Extract cache from Arc<Mutex<>> for further use
+    #[cfg(debug_assertions)]
+    let unwrap_start = Instant::now();
     let cache = Arc::try_unwrap(cache)
         .map_err(|_| SantaError::Concurrency("Failed to unwrap cache - still in use".to_string()))?
         .into_inner();
+    #[cfg(debug_assertions)]
+    debug!("⏱️  Cache unwrap took: {:?}", unwrap_start.elapsed());
+
+    #[cfg(debug_assertions)]
+    let display_start = Instant::now();
     for source in &sources {
+        #[cfg(debug_assertions)]
+        let groups_start = Instant::now();
         let groups = config.groups(data);
+        #[cfg(debug_assertions)]
+        debug!("⏱️  Groups computation for {} took: {:?}", source.name(), groups_start.elapsed());
+
         for (key, pkgs) in groups {
             if source.name() == &key {
+                #[cfg(debug_assertions)]
+                let table_start = Instant::now();
                 let pkg_count = pkgs.len();
                 let table = format!("{}", source.table(&pkgs, &cache, data, *all));
+                #[cfg(debug_assertions)]
+                debug!("⏱️  Table generation for {} ({} pkgs) took: {:?}",
+                       source.name(), pkg_count, table_start.elapsed());
+
                 println!("{source} ({pkg_count} packages total)");
                 println!("{table}");
                 break;
             }
         }
     }
+    #[cfg(debug_assertions)]
+    debug!("⏱️  Display phase took: {:?}", display_start.elapsed());
+    #[cfg(debug_assertions)]
+    debug!("⏱️  TOTAL status_command took: {:?}", start.elapsed());
+
     Ok(())
 }
 
