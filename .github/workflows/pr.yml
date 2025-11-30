@@ -12,8 +12,6 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # ratchet:actions/checkout@v5
-        with:
-          fetch-depth: 0 # Required for cargo-semver-checks
 
       - uses: ./.github/actions/setup-rust
         with:
@@ -21,7 +19,7 @@ jobs:
 
       - uses: ./.github/actions/install-tools
         with:
-          tools: "just,cargo-udeps,cargo-audit,cargo-deny,cargo-semver-checks"
+          tools: "just,cargo-udeps,cargo-audit,cargo-deny"
 
       - name: Check formatting
         run: just format --check
@@ -37,6 +35,22 @@ jobs:
 
       - name: Security audit
         run: just audit
+
+  semver:
+    name: Semver Compatibility Check
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # ratchet:actions/checkout@v5
+        with:
+          fetch-depth: 0 # Required for cargo-semver-checks
+
+      - uses: ./.github/actions/setup-rust
+
+      - uses: ./.github/actions/install-tools
+        with:
+          tools: "cargo-semver-checks"
 
       - name: Check semver compatibility
         run: just semver
