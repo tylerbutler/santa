@@ -98,6 +98,15 @@ test-coverage:
     @echo "  - LCOV: coverage/lcov.info"
     @echo "  - HTML: coverage/html/index.html"
 
+# Run sickle data-driven tests with coverage
+test-coverage-sickle:
+    @echo "🧪 Running sickle data-driven tests with coverage..."
+    cargo llvm-cov nextest -p sickle --all-features \
+      --lcov --output-path coverage/sickle-lcov.info \
+      -E 'binary(data_driven_tests)'
+    cargo llvm-cov report --html --output-dir coverage/sickle-html
+    @echo "📊 Sickle coverage: coverage/sickle-html/index.html"
+
 # Run tests in watch mode
 test-watch:
     @echo "🧪 Running tests in watch mode..."
@@ -184,6 +193,11 @@ audit:
     @echo "🔒 Running security audit..."
     cargo audit
     cargo deny check
+
+# Check for semver-incompatible changes
+semver:
+    @echo "🔍 Checking semver compatibility..."
+    cargo semver-checks
 
 # Check for supply chain vulnerabilities
 supply-chain:

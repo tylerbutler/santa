@@ -1,6 +1,7 @@
 codecov:
   require_ci_to_pass: yes
   notify:
+    after_n_builds: 2 # Wait for both unittests and datadriven uploads
     wait_for_ci: yes
 
 coverage:
@@ -13,50 +14,44 @@ coverage:
       default:
         target: auto
         threshold: 1%
-        informational: false
     patch:
       default:
         target: auto
         threshold: 1%
-        informational: false
 
 component_management:
+  default_rules:
+    statuses:
+      - type: project
+        target: auto
+        threshold: 1%
   individual_components:
-    - component_id: santa-cli
-      name: Santa CLI
+    - component_id: santa
+      name: santa
       paths:
-        - crates/santa-cli/**
+        - crates/santa-cli/src/**
 
     - component_id: santa-data
-      name: Santa Data
+      name: santa-data
       paths:
-        - crates/santa-data/**
+        - crates/santa-data/src/**
 
     - component_id: sickle
-      name: Sickle CCL Parser
+      name: sickle
       paths:
-        - crates/sickle/**
+        - crates/sickle/src/**
 
-flags:
-  unittests:
-    paths:
-      - crates/
-    carryforward: true
+flag_management:
+  default_rules:
+    carryforward: false
+  individual_flags:
+    # Coverage from all tests except data-driven tests
+    - name: unittests
+      carryforward: false
 
-  santa-cli:
-    paths:
-      - crates/santa-cli/
-    carryforward: true
-
-  santa-data:
-    paths:
-      - crates/santa-data/
-    carryforward: true
-
-  sickle:
-    paths:
-      - crates/sickle/
-    carryforward: true
+    # Coverage from sickle's data-driven test suite only
+    - name: datadriven
+      carryforward: false
 
 comment:
   layout: "reach,diff,flags,tree,components"
@@ -66,7 +61,9 @@ comment:
   require_head: true
 
 ignore:
-  - "tests/"
-  - "benches/"
+  - "**/tests/"
+  - "**/benches/"
+  - "**/examples/"
   - "**/tests.rs"
   - "**/test_*.rs"
+  - "**/test_helpers.rs"

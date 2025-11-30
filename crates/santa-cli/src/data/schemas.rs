@@ -174,6 +174,7 @@ impl SourceDefinition {
                 OS::Windows => "windows",
                 OS::Linux => "linux",
                 OS::Macos => "macos",
+                _ => return &self.install, // Unknown OS, use default
             };
 
             if let Some(platform_override) = overrides.get(platform_key) {
@@ -192,6 +193,7 @@ impl SourceDefinition {
                 OS::Windows => "windows",
                 OS::Linux => "linux",
                 OS::Macos => "macos",
+                _ => return &self.check, // Unknown OS, use default
             };
 
             if let Some(platform_override) = overrides.get(platform_key) {

@@ -53,13 +53,19 @@ impl PlatformExt for Platform {
         // Compile-time architecture detection
         if cfg!(target_arch = "x86_64") {
             platform.arch = Arch::X64;
+        } else if cfg!(target_arch = "x86") {
+            platform.arch = Arch::X86;
         } else if cfg!(target_arch = "aarch64") {
             platform.arch = Arch::Aarch64;
+        } else if cfg!(target_arch = "arm") {
+            platform.arch = Arch::Arm;
         } else {
             // Fallback to runtime detection
             match std::env::consts::ARCH {
                 "x86_64" => platform.arch = Arch::X64,
+                "x86" => platform.arch = Arch::X86,
                 "aarch64" => platform.arch = Arch::Aarch64,
+                "arm" => platform.arch = Arch::Arm,
                 _ => panic!("Unsupported architecture: {}", std::env::consts::ARCH),
             }
         }
@@ -520,6 +526,9 @@ mod tests {
                 KnownSources::Unknown(_) => {
                     panic!("detect_available_package_managers should only return known sources")
                 }
+                _ => {
+                    // Handle any future variants added to the non-exhaustive enum
+                }
             }
         }
 
@@ -872,6 +881,9 @@ git =
                 }
                 KnownSources::Unknown(_) => {
                     panic!("detect_available_package_managers returned Unknown variant");
+                }
+                _ => {
+                    // Handle any future variants added to the non-exhaustive enum
                 }
             }
         }

@@ -129,7 +129,7 @@ pub async fn status_command(
         for (key, pkgs) in groups {
             if source.name() == &key {
                 let pkg_count = pkgs.len();
-                let table = format!("{}", source.table(&pkgs, &cache, *all));
+                let table = format!("{}", source.table(&pkgs, &cache, data, *all));
                 println!("{source} ({pkg_count} packages total)");
                 println!("{table}");
                 break;
@@ -294,7 +294,7 @@ pub async fn install_command(
             if source.name() == &key {
                 let pkgs: Vec<String> = pkgs
                     .iter()
-                    .filter(|p| !cache.check(source, p))
+                    .filter(|p| !cache.check(source, p, data))
                     .map(|p| p.to_string())
                     .collect();
                 source.exec_install(
