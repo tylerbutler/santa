@@ -2,6 +2,10 @@
 .claude
 .serena
 
+# CycloneDX SBOM files (if generated locally)
+*.cdx.xml
+*.cdx.json
+
 # Coverage outputs
 coverage/
 lcov.info
