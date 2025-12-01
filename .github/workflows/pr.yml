@@ -117,15 +117,6 @@ jobs:
           echo "Checking for duplicate dependencies across workspace..."
           cargo tree --duplicates --workspace || echo "No duplicates found"
 
-      - name: Test package isolation
-        run: |
-          echo "Testing santa-cli in isolation..."
-          cargo test -p santa --no-fail-fast
-          echo "Testing santa-data in isolation..."
-          cargo test -p santa-data --no-fail-fast
-          echo "Testing sickle in isolation..."
-          cargo test -p sickle --no-fail-fast
-
       - name: Verify dependency tree
         run: |
           echo "Analyzing santa-data dependencies..."
@@ -134,3 +125,22 @@ jobs:
           cargo tree --edges normal --invert sickle
           echo "Analyzing santa-cli dependencies..."
           cargo tree -p santa --depth 3
+
+  package-isolation:
+    name: Package Isolation
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # ratchet:actions/checkout@v5
+
+      - uses: ./.github/actions/setup-rust
+
+      - name: Test packages in isolation
+        run: |
+          echo "Testing santa-cli in isolation..."
+          cargo test -p santa --no-fail-fast
+          echo "Testing santa-data in isolation..."
+          cargo test -p santa-data --no-fail-fast
+          echo "Testing sickle in isolation..."
+          cargo test -p sickle --no-fail-fast
