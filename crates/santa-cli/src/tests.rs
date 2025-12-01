@@ -70,7 +70,7 @@ mod cli_parsing_tests {
         assert!(!cli.builtin_only, "Default builtin_only should be false");
 
         match cli.command {
-            Commands::Status { all } => assert!(!all, "Default all should be false"),
+            Some(Commands::Status { all }) => assert!(!all, "Default all should be false"),
             _ => panic!("Should parse as Status command"),
         }
     }
@@ -80,7 +80,7 @@ mod cli_parsing_tests {
         let cli = Cli::try_parse_from(vec!["santa", "status", "--all"]).unwrap();
 
         match cli.command {
-            Commands::Status { all } => assert!(all, "All flag should be true"),
+            Some(Commands::Status { all }) => assert!(all, "All flag should be true"),
             _ => panic!("Should parse as Status command"),
         }
     }
@@ -90,7 +90,7 @@ mod cli_parsing_tests {
         let cli = Cli::try_parse_from(vec!["santa", "install"]).unwrap();
 
         match cli.command {
-            Commands::Install { source } => {
+            Some(Commands::Install { source }) => {
                 assert!(source.is_none(), "Default source should be None");
             }
             _ => panic!("Should parse as Install command"),
@@ -102,7 +102,7 @@ mod cli_parsing_tests {
         let cli = Cli::try_parse_from(vec!["santa", "config"]).unwrap();
 
         match cli.command {
-            Commands::Config { packages, pipe } => {
+            Some(Commands::Config { packages, pipe }) => {
                 assert!(!packages, "Default packages flag should be false");
                 assert!(!pipe, "Default pipe flag should be false");
             }
@@ -115,7 +115,7 @@ mod cli_parsing_tests {
         let cli = Cli::try_parse_from(vec!["santa", "config", "--packages"]).unwrap();
 
         match cli.command {
-            Commands::Config { packages, pipe } => {
+            Some(Commands::Config { packages, pipe }) => {
                 assert!(packages, "Packages flag should be true");
                 assert!(!pipe, "Pipe flag should remain false");
             }
@@ -128,7 +128,7 @@ mod cli_parsing_tests {
         let cli = Cli::try_parse_from(vec!["santa", "completions", "bash"]).unwrap();
 
         match cli.command {
-            Commands::Completions { shell } => {
+            Some(Commands::Completions { shell }) => {
                 assert_eq!(shell, Shell::Bash, "Shell should be Bash");
             }
             _ => panic!("Should parse as Completions command"),
@@ -170,12 +170,24 @@ mod cli_parsing_tests {
     }
 
     #[test]
-    fn test_no_subcommand_fails() {
+    fn test_no_subcommand_parses_successfully() {
+        // With Option<Commands>, no subcommand parses (shows help at runtime)
         let result = Cli::try_parse_from(vec!["santa"]);
         assert!(
-            result.is_err(),
-            "No subcommand should fail due to subcommand_required"
+            result.is_ok(),
+            "No subcommand should parse successfully (command is Option)"
         );
+        let cli = result.unwrap();
+        assert!(cli.command.is_none(), "Command should be None");
+    }
+
+    #[test]
+    fn test_markdown_help_flag_parses() {
+        let result = Cli::try_parse_from(vec!["santa", "--markdown-help"]);
+        assert!(result.is_ok(), "--markdown-help should parse successfully");
+        let cli = result.unwrap();
+        assert!(cli.markdown_help, "markdown_help flag should be true");
+        assert!(cli.command.is_none(), "No command needed with --markdown-help");
     }
 
     #[test]
@@ -187,7 +199,7 @@ mod cli_parsing_tests {
         assert!(cli.builtin_only, "Builtin-only should work with status");
 
         match cli.command {
-            Commands::Status { all } => assert!(all, "All flag should work with global flags"),
+            Some(Commands::Status { all }) => assert!(all, "All flag should work with global flags"),
             _ => panic!("Should be Status command"),
         }
     }
@@ -353,7 +365,7 @@ mod command_routing_tests {
         let cli = Cli::try_parse_from(vec!["santa", "status", "--all"]).unwrap();
 
         match cli.command {
-            Commands::Status { all } => {
+            Some(Commands::Status { all }) => {
                 assert!(all, "All flag should be true");
             }
             _ => panic!("Should have parsed as Status command"),
@@ -365,7 +377,7 @@ mod command_routing_tests {
         let cli = Cli::try_parse_from(vec!["santa", "install"]).unwrap();
 
         match cli.command {
-            Commands::Install { source } => {
+            Some(Commands::Install { source }) => {
                 assert!(source.is_none(), "Source should be None when not provided");
             }
             _ => panic!("Should have parsed as Install command"),
@@ -377,7 +389,7 @@ mod command_routing_tests {
         let cli = Cli::try_parse_from(vec!["santa", "config", "--packages"]).unwrap();
 
         match cli.command {
-            Commands::Config { packages, pipe } => {
+            Some(Commands::Config { packages, pipe }) => {
                 assert!(packages, "Packages flag should be true");
                 assert!(!pipe, "Pipe flag should be false by default");
             }
@@ -390,7 +402,7 @@ mod command_routing_tests {
         let cli = Cli::try_parse_from(vec!["santa", "completions", "zsh"]).unwrap();
 
         match cli.command {
-            Commands::Completions { shell } => {
+            Some(Commands::Completions { shell }) => {
                 assert_eq!(shell, Shell::Zsh, "Shell should be Zsh");
             }
             _ => panic!("Should have parsed as Completions command"),
@@ -402,7 +414,7 @@ mod command_routing_tests {
         let cli = Cli::try_parse_from(vec!["santa", "add"]).unwrap();
 
         match cli.command {
-            Commands::Add { source, package } => {
+            Some(Commands::Add { source, package }) => {
                 assert!(source.is_none(), "Source should be None when not provided");
                 assert!(
                     package.is_none(),
@@ -486,7 +498,7 @@ mod integration_tests {
         assert_eq!(cli.verbose, 1, "Verbose should be 1");
 
         match cli.command {
-            Commands::Status { all } => assert!(all, "All flag should be true"),
+            Some(Commands::Status { all }) => assert!(all, "All flag should be true"),
             _ => panic!("Should be status command"),
         }
     }
@@ -523,7 +535,7 @@ mod error_handling_tests {
         let cli = Cli::try_parse_from(vec!["santa", "add", "git", "brew"]).unwrap();
 
         match cli.command {
-            Commands::Add { source, package } => {
+            Some(Commands::Add { source, package }) => {
                 assert_eq!(source, Some("brew".to_string()));
                 assert_eq!(package, Some("git".to_string()));
             }
