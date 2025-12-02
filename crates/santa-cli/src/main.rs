@@ -12,8 +12,8 @@ use directories::BaseDirs;
 use std::path::Path;
 
 use santa::commands;
+use santa::data_layers::DataLayerManager;
 use santa::script_generator::{ExecutionMode, ScriptFormat};
-use santa::source_layers::SourceLayerManager;
 use santa::sources::PackageCache;
 
 #[cfg(test)]
@@ -191,24 +191,46 @@ async fn handle_sources_command(
     config: &SantaConfig,
 ) -> Result<(), anyhow::Error> {
     use colored::Colorize;
-    use santa::source_layers::SourceOrigin;
+    use santa::data_layers::DataOrigin;
 
-    let manager = SourceLayerManager::with_default_config_dir()?;
+    let manager = DataLayerManager::with_default_config_dir()?;
 
     match cmd {
         SourcesCommands::Update => {
-            println!("Fetching latest sources from GitHub...");
-            manager.update_sources()?;
-            println!("{}", "Sources updated successfully!".green());
+            use std::io::Write;
+            println!("Fetching latest data from GitHub...");
+
+            // Update sources
+            print!("  Updating sources... ");
+            std::io::stdout().flush()?;
+            let sources_count = manager.update_sources()?;
+            println!("{} ({} sources)", "✓".green(), sources_count);
+
+            // Update packages
+            print!("  Updating packages... ");
+            std::io::stdout().flush()?;
+            let packages_count = manager.update_packages()?;
+            println!("{} ({} packages)", "✓".green(), packages_count);
+
+            println!("{}", "\nData updated successfully!".green());
 
             // Show summary
-            let merged = manager.merge_sources(None)?;
-            let summary = manager.sources_summary(&merged);
+            let merged_sources = manager.merge_sources(None)?;
+            let sources_summary = manager.sources_summary(&merged_sources);
+            let merged_packages = manager.merge_packages(None)?;
+            let packages_summary = manager.packages_summary(&merged_packages);
+
             println!(
-                "\nTotal sources: {} ({} bundled, {} downloaded)",
-                merged.len(),
-                summary.get(&SourceOrigin::Bundled).unwrap_or(&0),
-                summary.get(&SourceOrigin::Downloaded).unwrap_or(&0)
+                "\nSources: {} total ({} bundled, {} downloaded)",
+                merged_sources.len(),
+                sources_summary.get(&DataOrigin::Bundled).unwrap_or(&0),
+                sources_summary.get(&DataOrigin::Downloaded).unwrap_or(&0)
+            );
+            println!(
+                "Packages: {} total ({} bundled, {} downloaded)",
+                merged_packages.len(),
+                packages_summary.get(&DataOrigin::Bundled).unwrap_or(&0),
+                packages_summary.get(&DataOrigin::Downloaded).unwrap_or(&0)
             );
         }
         SourcesCommands::List { origin } => {
@@ -236,9 +258,9 @@ async fn handle_sources_command(
             // Filter by origin if specified
             let filtered: Vec<_> = if let Some(origin_filter) = origin {
                 let target_origin = match origin_filter.to_lowercase().as_str() {
-                    "bundled" => SourceOrigin::Bundled,
-                    "downloaded" => SourceOrigin::Downloaded,
-                    "custom" | "user" => SourceOrigin::UserCustom,
+                    "bundled" => DataOrigin::Bundled,
+                    "downloaded" => DataOrigin::Downloaded,
+                    "custom" | "user" => DataOrigin::UserCustom,
                     _ => {
                         eprintln!(
                             "Unknown origin '{}'. Valid options: bundled, downloaded, custom",
@@ -271,9 +293,9 @@ async fn handle_sources_command(
 
             for source in &filtered {
                 let origin_str = match source.origin {
-                    SourceOrigin::Bundled => "bundled".dimmed(),
-                    SourceOrigin::Downloaded => "downloaded".cyan(),
-                    SourceOrigin::UserCustom => "custom".yellow(),
+                    DataOrigin::Bundled => "bundled".dimmed(),
+                    DataOrigin::Downloaded => "downloaded".cyan(),
+                    DataOrigin::UserCustom => "custom".yellow(),
                 };
                 // Truncate install command for display
                 let install_display = if source.definition.install.len() > 35 {
@@ -337,12 +359,20 @@ async fn handle_sources_command(
             }
         }
         SourcesCommands::Clear => {
-            if manager.has_downloaded_sources() {
-                manager.clear_downloaded_sources()?;
-                println!("{}", "Downloaded sources removed.".green());
-                println!("Santa will now use bundled sources only.");
+            let had_sources = manager.has_downloaded_sources();
+            let had_packages = manager.has_downloaded_packages();
+
+            if had_sources || had_packages {
+                manager.clear_all()?;
+                if had_sources {
+                    println!("{}", "Downloaded sources removed.".green());
+                }
+                if had_packages {
+                    println!("{}", "Downloaded packages removed.".green());
+                }
+                println!("Santa will now use bundled data only.");
             } else {
-                println!("No downloaded sources to remove.");
+                println!("No downloaded data to remove.");
             }
         }
     }
