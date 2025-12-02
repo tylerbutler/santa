@@ -53,7 +53,7 @@ serde_json = "1.0"
 
 # CCL configuration parser with serde support
 sickle = { version = "0.1.0", path = "../sickle", features = ["serde"] }
-santa-data = { version = "0.1.4", path = "../santa-data" }
+santa-data = { version = "0.2.0", path = "../santa-data" }
 
 # YAML parser for migration from legacy configs
 serde_yaml = "0.9"
