@@ -11,8 +11,7 @@ COMMIT_TYPES = [
     ("refactor", "Refactoring"),
     ("perf", "Performance"),
     ("test", "Testing"),
-    ("chore", "Miscellaneous"),
-    ("ci", "CI"),
+    # chore and ci commits are excluded from changelogs
 ]
 
 TEMPLATE = '''# git-cliff config for {name}
