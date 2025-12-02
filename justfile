@@ -41,6 +41,7 @@ setup:
 build *ARGS='':
     @echo "🔨 Building santa (debug)..."
     cargo build {{ARGS}}
+    @just markdown-help
 
 # Build the project in release mode
 build-release *ARGS='':
@@ -206,6 +207,13 @@ supply-chain:
 
 # Documentation Commands
 # ======================
+
+# Generate CLI help in markdown format
+markdown-help:
+    @echo "📖 Generating CLI markdown help..."
+    @mkdir -p docs
+    cargo run -p santa --quiet -- --markdown-help > docs/cli-reference.md
+    @echo "✅ Generated docs/cli-reference.md"
 
 # Generate and open documentation
 docs:

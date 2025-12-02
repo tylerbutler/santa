@@ -24,6 +24,9 @@ anyhow = "1.0.99"
 # Command-line argument parsing with derive macros and colors
 clap = { version = "4.5", features = ["color", "derive", "cargo", "wrap_help"] }
 
+# Markdown documentation generation for CLI
+clap-markdown = "0.1"
+
 # Shell completion generation for CLI commands
 clap_complete = "4.5"
 

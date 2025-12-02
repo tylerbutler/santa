@@ -1,5 +1,5 @@
 use anyhow::{bail, Context};
-use clap::{ArgAction, Command, Parser, Subcommand, ValueEnum};
+use clap::{ArgAction, Command, CommandFactory, Parser, Subcommand, ValueEnum};
 use clap_complete::{generate, Shell};
 use santa::completions::EnhancedCompletions;
 use santa::configuration::{SantaConfig, SantaConfigExt};
@@ -27,7 +27,7 @@ static DEFAULT_CONFIG_FILE_PATH: &str = ".config/santa/config.ccl";
 // #[clap(global_setting(AppSettings::PropagateVersion))]
 struct Cli {
     #[clap(subcommand)]
-    command: Commands,
+    command: Option<Commands>,
 
     /// Load ONLY the default config
     #[clap(short, long, global = true)]
@@ -48,6 +48,10 @@ struct Cli {
     /// Output directory for generated scripts
     #[clap(long, global = true)]
     output_dir: Option<std::path::PathBuf>,
+
+    /// Print help in markdown format (for documentation generation)
+    #[clap(long, hide = true)]
+    markdown_help: bool,
 }
 
 #[derive(Subcommand)]
@@ -383,8 +387,23 @@ async fn handle_sources_command(
 pub async fn run() -> Result<(), anyhow::Error> {
     let cli = Cli::parse();
 
+    // Handle markdown help generation (for documentation)
+    if cli.markdown_help {
+        clap_markdown::print_help_markdown::<Cli>();
+        return Ok(());
+    }
+
+    // Show help when no command is provided
+    let command = match cli.command {
+        Some(cmd) => cmd,
+        None => {
+            Cli::command().print_help()?;
+            return Ok(());
+        }
+    };
+
     // Handle shell completions with enhanced suggestions
-    if let Commands::Completions { shell } = &cli.command {
+    if let Commands::Completions { shell } = &command {
         let mut cmd = build_cli();
 
         // Try to load config and data for enhanced completions
@@ -473,7 +492,7 @@ pub async fn run() -> Result<(), anyhow::Error> {
         .output_dir
         .unwrap_or_else(|| std::env::current_dir().expect("Failed to get current directory"));
 
-    match &cli.command {
+    match &command {
         Commands::Status { all } => {
             debug!("santa status");
             crate::commands::status_command(&mut config, &data, cache, all).await?;

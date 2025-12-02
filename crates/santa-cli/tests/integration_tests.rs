@@ -180,8 +180,20 @@ fn test_config_output_format() {
 fn test_no_arguments_shows_help() {
     let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("santa"));
     cmd.assert()
-        .failure()
-        .stderr(predicate::str::contains("Usage:"));
+        .success()
+        .stdout(predicate::str::contains("Usage:"))
+        .stdout(predicate::str::contains("Commands:"));
+}
+
+#[test]
+fn test_markdown_help_generation() {
+    let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("santa"));
+    cmd.arg("--markdown-help");
+    cmd.assert()
+        .success()
+        .stdout(predicate::str::contains("# Command-Line Help for `santa`"))
+        .stdout(predicate::str::contains("## `santa`"))
+        .stdout(predicate::str::contains("## `santa status`"));
 }
 
 #[test]

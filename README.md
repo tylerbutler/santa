@@ -310,6 +310,7 @@ just bench
 ## Documentation
 
 - **User Guide:** [santa-cli README](crates/santa-cli/README.md)
+- **CLI Reference:** [docs/cli-reference.md](docs/cli-reference.md) - Complete command-line reference
 - **API Docs:** [docs.rs/santa-data](https://docs.rs/santa-data) | [docs.rs/sickle](https://docs.rs/sickle)
 - **CCL Format:** See [sickle documentation](crates/sickle/README.md)
 - **Project Docs:** [CLAUDE.md](CLAUDE.md) - Project context and architecture
