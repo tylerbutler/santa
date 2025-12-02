@@ -1,7 +1,7 @@
 codecov:
   require_ci_to_pass: yes
   notify:
-    after_n_builds: 2 # Wait for both unittests and datadriven uploads
+    after_n_builds: 1
     wait_for_ci: yes
 
 coverage:
