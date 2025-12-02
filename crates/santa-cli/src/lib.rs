@@ -102,7 +102,13 @@ pub use script_generator::{ExecutionMode, ScriptFormat, ScriptGenerator};
 pub use sources::{PackageCache, PackageSource};
 
 // Backwards compatibility - deprecated, use data_layers instead
-#[deprecated(since = "0.2.0", note = "Use DataLayerManager from data_layers module instead")]
+#[deprecated(
+    since = "0.2.0",
+    note = "Use DataLayerManager from data_layers module instead"
+)]
 pub use source_layers::SourceLayerManager;
-#[deprecated(since = "0.2.0", note = "Use DataOrigin from data_layers module instead")]
+#[deprecated(
+    since = "0.2.0",
+    note = "Use DataOrigin from data_layers module instead"
+)]
 pub use source_layers::SourceOrigin;
