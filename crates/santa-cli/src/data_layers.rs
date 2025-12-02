@@ -726,4 +726,304 @@ new-from-download =
         assert_eq!(summary.get(&DataOrigin::Downloaded), Some(&1));
         assert_eq!(summary.get(&DataOrigin::UserCustom), Some(&1));
     }
+
+    #[test]
+    fn test_sources_summary() {
+        let (manager, temp) = create_test_manager();
+
+        // Create downloaded sources
+        let downloaded_content = r#"
+new-from-download =
+  emoji = 📦
+  install = test install {package}
+  check = test check
+"#;
+        fs::create_dir_all(temp.path()).unwrap();
+        fs::write(manager.downloaded_sources_path(), downloaded_content).unwrap();
+
+        // Create user custom
+        let mut custom = SourcesDefinition::new();
+        custom.insert(
+            "user-only-source".to_string(),
+            SourceDefinition {
+                emoji: "🎁".to_string(),
+                install: "user install {package}".to_string(),
+                check: "user check".to_string(),
+                prefix: None,
+                overrides: None,
+            },
+        );
+
+        let merged = manager.merge_sources(Some(&custom)).unwrap();
+        let summary = manager.sources_summary(&merged);
+
+        assert!(summary.get(&DataOrigin::Bundled).unwrap_or(&0) > &0);
+        assert_eq!(summary.get(&DataOrigin::Downloaded), Some(&1));
+        assert_eq!(summary.get(&DataOrigin::UserCustom), Some(&1));
+    }
+
+    #[test]
+    fn test_user_custom_overrides_downloaded_sources() {
+        let (manager, temp) = create_test_manager();
+
+        // Create downloaded sources file
+        let downloaded_content = r#"
+brew =
+  emoji = 🍺
+  install = downloaded-brew install {package}
+  check = downloaded-brew list
+"#;
+        fs::create_dir_all(temp.path()).unwrap();
+        fs::write(manager.downloaded_sources_path(), downloaded_content).unwrap();
+
+        // Create user custom that overrides
+        let mut custom = SourcesDefinition::new();
+        custom.insert(
+            "brew".to_string(),
+            SourceDefinition {
+                emoji: "🍻".to_string(),
+                install: "user-brew install {package}".to_string(),
+                check: "user-brew list".to_string(),
+                prefix: None,
+                overrides: None,
+            },
+        );
+
+        let merged = manager.merge_sources(Some(&custom)).unwrap();
+        let brew = merged.iter().find(|s| s.name == "brew").unwrap();
+
+        // User custom should win
+        assert_eq!(brew.origin, DataOrigin::UserCustom);
+        assert_eq!(brew.definition.emoji, "🍻");
+    }
+
+    #[test]
+    fn test_merge_sources_with_new_user_source() {
+        let (manager, _temp) = create_test_manager();
+
+        // Create a completely new source
+        let mut custom = SourcesDefinition::new();
+        custom.insert(
+            "my-custom-source".to_string(),
+            SourceDefinition {
+                emoji: "🎉".to_string(),
+                install: "custom install {package}".to_string(),
+                check: "custom check".to_string(),
+                prefix: Some("prefix-".to_string()),
+                overrides: None,
+            },
+        );
+
+        let merged = manager.merge_sources(Some(&custom)).unwrap();
+
+        // Should have the new source
+        let custom_src = merged
+            .iter()
+            .find(|s| s.name == "my-custom-source")
+            .unwrap();
+        assert_eq!(custom_src.origin, DataOrigin::UserCustom);
+        assert_eq!(custom_src.definition.prefix, Some("prefix-".to_string()));
+
+        // Should still have bundled sources
+        let brew = merged.iter().find(|s| s.name == "brew").unwrap();
+        assert_eq!(brew.origin, DataOrigin::Bundled);
+    }
+
+    #[test]
+    fn test_all_three_layers_sources() {
+        let (manager, temp) = create_test_manager();
+
+        // Layer 1: Bundled (already exists)
+        // Layer 2: Downloaded - overrides one bundled, adds one new
+        let downloaded_content = r#"
+brew =
+  emoji = 🍺🍺
+  install = downloaded-brew install {package}
+  check = downloaded-brew list
+
+downloaded-only =
+  emoji = 📥
+  install = download install {package}
+  check = download check
+"#;
+        fs::create_dir_all(temp.path()).unwrap();
+        fs::write(manager.downloaded_sources_path(), downloaded_content).unwrap();
+
+        // Layer 3: User custom - overrides brew again, adds one new
+        let mut custom = SourcesDefinition::new();
+        custom.insert(
+            "brew".to_string(),
+            SourceDefinition {
+                emoji: "🍻".to_string(),
+                install: "custom-brew install {package}".to_string(),
+                check: "custom-brew list".to_string(),
+                prefix: None,
+                overrides: None,
+            },
+        );
+        custom.insert(
+            "custom-only".to_string(),
+            SourceDefinition {
+                emoji: "✨".to_string(),
+                install: "custom install {package}".to_string(),
+                check: "custom check".to_string(),
+                prefix: None,
+                overrides: None,
+            },
+        );
+
+        let merged = manager.merge_sources(Some(&custom)).unwrap();
+
+        // brew should be from user custom (overrides downloaded which overrides bundled)
+        let brew = merged.iter().find(|s| s.name == "brew").unwrap();
+        assert_eq!(brew.origin, DataOrigin::UserCustom);
+        assert_eq!(brew.definition.emoji, "🍻");
+
+        // downloaded-only should be from downloaded layer
+        let downloaded_only = merged.iter().find(|s| s.name == "downloaded-only").unwrap();
+        assert_eq!(downloaded_only.origin, DataOrigin::Downloaded);
+
+        // custom-only should be from user custom layer
+        let custom_only = merged.iter().find(|s| s.name == "custom-only").unwrap();
+        assert_eq!(custom_only.origin, DataOrigin::UserCustom);
+
+        // cargo should still be bundled (not overridden)
+        let cargo = merged.iter().find(|s| s.name == "cargo").unwrap();
+        assert_eq!(cargo.origin, DataOrigin::Bundled);
+    }
+
+    #[test]
+    fn test_all_three_layers_packages() {
+        let (manager, temp) = create_test_manager();
+
+        // Layer 2: Downloaded - overrides one bundled, adds one new
+        let downloaded_content = r#"
+bat =
+  = downloaded-source
+
+downloaded-only-pkg =
+  = some-source
+"#;
+        fs::create_dir_all(temp.path()).unwrap();
+        fs::write(manager.downloaded_packages_path(), downloaded_content).unwrap();
+
+        // Layer 3: User custom - overrides bat again, adds one new
+        let mut custom = PackagesDefinition::new();
+        custom.insert(
+            "bat".to_string(),
+            PackageDefinition::Simple(vec!["custom-source".to_string()]),
+        );
+        custom.insert(
+            "custom-only-pkg".to_string(),
+            PackageDefinition::Simple(vec!["brew".to_string()]),
+        );
+
+        let merged = manager.merge_packages(Some(&custom)).unwrap();
+
+        // bat should be from user custom
+        let bat = merged.iter().find(|p| p.name == "bat").unwrap();
+        assert_eq!(bat.origin, DataOrigin::UserCustom);
+
+        // downloaded-only-pkg should be from downloaded layer
+        let downloaded_only = merged
+            .iter()
+            .find(|p| p.name == "downloaded-only-pkg")
+            .unwrap();
+        assert_eq!(downloaded_only.origin, DataOrigin::Downloaded);
+
+        // custom-only-pkg should be from user custom layer
+        let custom_only = merged.iter().find(|p| p.name == "custom-only-pkg").unwrap();
+        assert_eq!(custom_only.origin, DataOrigin::UserCustom);
+    }
+
+    #[test]
+    fn test_clear_nonexistent_sources() {
+        let (manager, _temp) = create_test_manager();
+
+        // Should not error when clearing non-existent file
+        assert!(!manager.has_downloaded_sources());
+        manager.clear_downloaded_sources().unwrap();
+        assert!(!manager.has_downloaded_sources());
+    }
+
+    #[test]
+    fn test_clear_nonexistent_packages() {
+        let (manager, _temp) = create_test_manager();
+
+        // Should not error when clearing non-existent file
+        assert!(!manager.has_downloaded_packages());
+        manager.clear_downloaded_packages().unwrap();
+        assert!(!manager.has_downloaded_packages());
+    }
+
+    #[test]
+    fn test_clear_all_nonexistent() {
+        let (manager, _temp) = create_test_manager();
+
+        // Should not error when clearing non-existent files
+        assert!(!manager.has_any_downloaded());
+        manager.clear_all().unwrap();
+        assert!(!manager.has_any_downloaded());
+    }
+
+    #[test]
+    fn test_path_accessors() {
+        let temp_dir = TempDir::new().unwrap();
+        let manager = DataLayerManager::new(temp_dir.path().to_path_buf());
+
+        let sources_path = manager.downloaded_sources_path();
+        let packages_path = manager.downloaded_packages_path();
+
+        assert!(sources_path.ends_with(DOWNLOADED_SOURCES_FILENAME));
+        assert!(packages_path.ends_with(DOWNLOADED_PACKAGES_FILENAME));
+        assert_eq!(sources_path.parent(), packages_path.parent());
+    }
+
+    #[test]
+    fn test_has_any_downloaded_sources_only() {
+        let (manager, temp) = create_test_manager();
+
+        fs::create_dir_all(temp.path()).unwrap();
+        fs::write(manager.downloaded_sources_path(), "test").unwrap();
+
+        assert!(manager.has_downloaded_sources());
+        assert!(!manager.has_downloaded_packages());
+        assert!(manager.has_any_downloaded());
+    }
+
+    #[test]
+    fn test_has_any_downloaded_packages_only() {
+        let (manager, temp) = create_test_manager();
+
+        fs::create_dir_all(temp.path()).unwrap();
+        fs::write(manager.downloaded_packages_path(), "test").unwrap();
+
+        assert!(!manager.has_downloaded_sources());
+        assert!(manager.has_downloaded_packages());
+        assert!(manager.has_any_downloaded());
+    }
+
+    #[test]
+    fn test_merged_sources_are_sorted() {
+        let (manager, _temp) = create_test_manager();
+        let merged = manager.merge_sources(None).unwrap();
+
+        // Verify sources are sorted alphabetically
+        let names: Vec<_> = merged.iter().map(|s| &s.name).collect();
+        let mut sorted_names = names.clone();
+        sorted_names.sort();
+        assert_eq!(names, sorted_names);
+    }
+
+    #[test]
+    fn test_merged_packages_are_sorted() {
+        let (manager, _temp) = create_test_manager();
+        let merged = manager.merge_packages(None).unwrap();
+
+        // Verify packages are sorted alphabetically
+        let names: Vec<_> = merged.iter().map(|p| &p.name).collect();
+        let mut sorted_names = names.clone();
+        sorted_names.sort();
+        assert_eq!(names, sorted_names);
+    }
 }
