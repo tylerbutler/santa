@@ -187,7 +187,10 @@ mod cli_parsing_tests {
         assert!(result.is_ok(), "--markdown-help should parse successfully");
         let cli = result.unwrap();
         assert!(cli.markdown_help, "markdown_help flag should be true");
-        assert!(cli.command.is_none(), "No command needed with --markdown-help");
+        assert!(
+            cli.command.is_none(),
+            "No command needed with --markdown-help"
+        );
     }
 
     #[test]
@@ -199,7 +202,9 @@ mod cli_parsing_tests {
         assert!(cli.builtin_only, "Builtin-only should work with status");
 
         match cli.command {
-            Some(Commands::Status { all }) => assert!(all, "All flag should work with global flags"),
+            Some(Commands::Status { all }) => {
+                assert!(all, "All flag should work with global flags")
+            }
             _ => panic!("Should be Status command"),
         }
     }
