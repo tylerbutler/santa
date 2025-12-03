@@ -10,7 +10,7 @@
 use anyhow::{Context, Result};
 use std::collections::HashMap;
 use std::fs;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use tracing::{debug, info};
 
 use crate::data::schemas::{PackageDefinition, SourceDefinition, SourcesDefinition};
@@ -89,12 +89,17 @@ impl DataLayerManager {
         Self { config_dir }
     }
 
+    /// Returns the config directory path
+    pub fn config_dir(&self) -> &Path {
+        &self.config_dir
+    }
+
     /// Create a DataLayerManager using the default config directory
+    /// Uses ~/.config/santa/ to match where the config file is stored
     pub fn with_default_config_dir() -> Result<Self> {
-        let config_dir = directories::ProjectDirs::from("com", "tylerbutler", "santa")
-            .context("Failed to determine config directory")?
-            .config_dir()
-            .to_path_buf();
+        let base_dirs =
+            directories::BaseDirs::new().context("Failed to determine base directories")?;
+        let config_dir = base_dirs.home_dir().join(".config/santa");
         Ok(Self::new(config_dir))
     }
 

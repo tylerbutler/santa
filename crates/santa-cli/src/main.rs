@@ -236,6 +236,10 @@ async fn handle_sources_command(
                 packages_summary.get(&DataOrigin::Bundled).unwrap_or(&0),
                 packages_summary.get(&DataOrigin::Downloaded).unwrap_or(&0)
             );
+            println!(
+                "\nData location: {}",
+                manager.config_dir().display().to_string().dimmed()
+            );
         }
         SourcesCommands::List { origin } => {
             // Convert user custom sources from config to SourcesDefinition format
@@ -314,6 +318,10 @@ async fn handle_sources_command(
             }
 
             println!("\nTotal: {} sources", filtered.len());
+            println!(
+                "Data location: {}",
+                manager.config_dir().display().to_string().dimmed()
+            );
         }
         SourcesCommands::Show { name } => {
             // Convert user custom sources from config
