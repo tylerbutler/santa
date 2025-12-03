@@ -37,6 +37,7 @@
 
 use crate::configuration::SantaConfigExt; // Import extension trait for method access
 use crate::data::SantaData;
+use crate::configuration::UnknownPackageReason;
 use crate::data::SourceList;
 use crate::errors::{Result, SantaError};
 use crate::script_generator::{ExecutionMode, ScriptFormat};
@@ -44,6 +45,7 @@ use crate::traits::Exportable;
 use crate::{configuration::SantaConfig, sources::PackageCache};
 use futures::future::try_join_all;
 use std::sync::Arc;
+use tabular::{Row, Table};
 use tokio::sync::RwLock;
 
 use tracing::debug;
@@ -219,6 +221,25 @@ pub async fn status_command(
             }
         }
     }
+
+    // Display unknown packages (no definition or no matching source)
+    let unknown = config.unknown_packages(data);
+    if !unknown.is_empty() {
+        println!("Unknown ({} packages)", unknown.len());
+        let mut table = Table::new("{:<} {:<} {:<}");
+        for (pkg, reason) in &unknown {
+            let (emoji, reason_str) = match reason {
+                UnknownPackageReason::NoDefinition => ("👻", "no definition".to_string()),
+                UnknownPackageReason::NoMatchingSource(available) => {
+                    let sources: Vec<String> = available.iter().map(|s| s.to_string()).collect();
+                    ("🚫", format!("available in: {}", sources.join(", ")))
+                }
+            };
+            table.add_row(Row::new().with_cell(emoji).with_cell(pkg).with_cell(reason_str));
+        }
+        println!("{table}");
+    }
+
     #[cfg(debug_assertions)]
     debug!("⏱️  Display phase took: {:?}", display_start.elapsed());
     #[cfg(debug_assertions)]

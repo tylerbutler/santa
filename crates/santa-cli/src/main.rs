@@ -483,8 +483,8 @@ pub async fn run() -> Result<(), anyhow::Error> {
     };
     config.log_level = cli.verbose;
 
-    // let mut data = data; // re-declare variable to make it mutable
-    // data.update_from_config(&config);
+    // Validate config against available package data (emits warnings for issues)
+    config.validate_with_data(&data)?;
 
     let cache: PackageCache = PackageCache::new();
 

@@ -14,6 +14,15 @@ use tracing::{trace, warn};
 
 use crate::data::{constants, KnownSources, SantaData};
 
+/// Reason why a package is unknown/unresolvable
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum UnknownPackageReason {
+    /// Package has no definition in the packages database
+    NoDefinition,
+    /// Package has definitions but none for the configured sources
+    NoMatchingSource(Vec<KnownSources>),
+}
+
 // Re-export SantaConfig and related types from santa-data
 pub use santa_data::config::{
     ConfigPackageSource, PackageNameOverride, SantaConfig, SantaConfigBuilder,
@@ -29,6 +38,9 @@ pub trait SantaConfigExt {
 
     /// Validate source/package compatibility with available data
     fn validate_source_package_compatibility(&self, data: &SantaData) -> anyhow::Result<()>;
+
+    /// Get packages that have no definition or no valid source
+    fn unknown_packages(&self, data: &SantaData) -> Vec<(String, UnknownPackageReason)>;
 
     /// Comprehensive validation including business logic
     fn validate_with_data(&self, data: &SantaData) -> anyhow::Result<()>;
@@ -129,14 +141,41 @@ impl SantaConfigExt for SantaConfig {
             }
 
             if !has_valid_source {
-                return Err(anyhow::anyhow!(
-                    "Package '{}' is not available from any configured source. Available sources: {:?}",
+                warn!(
+                    "Package '{}' has no definition for any configured source. Available sources: {:?}",
                     package,
                     available_sources.keys().collect::<Vec<_>>()
-                ));
+                );
             }
         }
         Ok(())
+    }
+
+    fn unknown_packages(&self, data: &SantaData) -> Vec<(String, UnknownPackageReason)> {
+        let mut unknown = Vec::new();
+
+        for package in &self.packages {
+            match data.packages.get(package) {
+                None => {
+                    unknown.push((package.clone(), UnknownPackageReason::NoDefinition));
+                }
+                Some(available_sources) => {
+                    let has_valid_source = self
+                        .sources
+                        .iter()
+                        .any(|s| available_sources.contains_key(s));
+
+                    if !has_valid_source {
+                        let available: Vec<KnownSources> =
+                            available_sources.keys().cloned().collect();
+                        unknown
+                            .push((package.clone(), UnknownPackageReason::NoMatchingSource(available)));
+                    }
+                }
+            }
+        }
+
+        unknown
     }
 
     fn validate_with_data(&self, data: &SantaData) -> anyhow::Result<()> {
