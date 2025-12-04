@@ -48,7 +48,7 @@ impl CRLFBehavior {
 }
 
 /// Type-safe representation of mutually exclusive list coercion behaviors
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum ListCoercionBehavior {
     /// Enable automatic list coercion for single items
     Enabled,
@@ -71,8 +71,8 @@ impl ListCoercionBehavior {
 pub enum SpacingBehavior {
     /// Strict spacing rules
     Strict,
-    /// Relaxed spacing rules
-    Relaxed,
+    /// Loose spacing rules (allows tabs/spaces around '=')
+    Loose,
 }
 
 impl SpacingBehavior {
@@ -80,7 +80,7 @@ impl SpacingBehavior {
     pub fn as_str(&self) -> &'static str {
         match self {
             Self::Strict => "strict_spacing",
-            Self::Relaxed => "relaxed_spacing",
+            Self::Loose => "loose_spacing",
         }
     }
 }
@@ -90,8 +90,8 @@ impl SpacingBehavior {
 pub enum TabBehavior {
     /// Preserve tabs as-is
     Preserve,
-    /// Normalize tabs to spaces
-    Normalize,
+    /// Convert tabs to spaces
+    ToSpaces,
 }
 
 impl TabBehavior {
@@ -99,7 +99,26 @@ impl TabBehavior {
     pub fn as_str(&self) -> &'static str {
         match self {
             Self::Preserve => "tabs_preserve",
-            Self::Normalize => "tabs_normalize",
+            Self::ToSpaces => "tabs_to_spaces",
+        }
+    }
+}
+
+/// Type-safe representation of mutually exclusive array ordering behaviors
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ArrayOrderBehavior {
+    /// Preserve insertion order
+    Insertion,
+    /// Sort lexicographically
+    Lexicographic,
+}
+
+impl ArrayOrderBehavior {
+    /// Get the string identifier for this behavior
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            Self::Insertion => "array_order_insertion",
+            Self::Lexicographic => "array_order_lexicographic",
         }
     }
 }
@@ -237,14 +256,17 @@ pub struct ImplementationConfig {
     pub boolean_behavior: BooleanBehavior,
     /// Type-safe CRLF handling behavior choice
     pub crlf_behavior: CRLFBehavior,
-    /// Type-safe list coercion behavior choice
-    pub list_coercion_behavior: ListCoercionBehavior,
     /// Type-safe spacing behavior choice
     pub spacing_behavior: SpacingBehavior,
     /// Type-safe tab handling behavior choice
     pub tab_behavior: TabBehavior,
+    /// Type-safe array ordering behavior choice
+    pub array_order_behavior: ArrayOrderBehavior,
     /// Supported variants (e.g., "reference_compliant", excluding "proposed_behavior")
     pub supported_variants: HashSet<String>,
+    /// Supported list coercion behaviors (runtime-configurable via ListOptions)
+    /// When both are present, the test runner will use the appropriate option based on the test
+    pub supported_list_coercion_behaviors: HashSet<ListCoercionBehavior>,
 }
 
 impl ImplementationConfig {
@@ -307,9 +329,9 @@ impl ImplementationConfig {
             // Type-safe behavior choices (impossible to have conflicts)
             boolean_behavior: BooleanBehavior::Strict,
             crlf_behavior: CRLFBehavior::PreserveLiteral,
-            list_coercion_behavior: ListCoercionBehavior::Disabled,
             spacing_behavior: SpacingBehavior::Strict,
             tab_behavior: TabBehavior::Preserve,
+            array_order_behavior: ArrayOrderBehavior::Insertion,
             // The reference_compliant variant is supported when the feature is enabled.
             // When enabled, tests expecting insertion order (variants: []) are skipped,
             // and tests expecting reverse order (variants: ["reference_compliant"]) run.
@@ -320,22 +342,36 @@ impl ImplementationConfig {
                 .collect(),
             #[cfg(not(feature = "reference_compliant"))]
             supported_variants: HashSet::new(),
+            // List coercion is runtime-configurable via ListOptions - we support both
+            supported_list_coercion_behaviors: [
+                ListCoercionBehavior::Enabled,
+                ListCoercionBehavior::Disabled,
+            ]
+            .into_iter()
+            .collect(),
         }
     }
 
     /// Get all chosen behaviors as a set of strings for comparison
     #[allow(dead_code)]
     fn get_chosen_behaviors(&self) -> HashSet<String> {
-        [
+        let mut behaviors: HashSet<String> = [
             self.boolean_behavior.as_str(),
             self.crlf_behavior.as_str(),
-            self.list_coercion_behavior.as_str(),
             self.spacing_behavior.as_str(),
             self.tab_behavior.as_str(),
+            self.array_order_behavior.as_str(),
         ]
         .iter()
         .map(|s| s.to_string())
-        .collect()
+        .collect();
+
+        // Add runtime-configurable behaviors
+        for b in &self.supported_list_coercion_behaviors {
+            behaviors.insert(b.as_str().to_string());
+        }
+
+        behaviors
     }
 
     /// Check if a behavior is supported
@@ -347,14 +383,20 @@ impl ImplementationConfig {
             "boolean_lenient" => self.boolean_behavior == BooleanBehavior::Lenient,
             "crlf_preserve_literal" => self.crlf_behavior == CRLFBehavior::PreserveLiteral,
             "crlf_normalize_to_lf" => self.crlf_behavior == CRLFBehavior::NormalizeToLF,
-            "list_coercion_enabled" => self.list_coercion_behavior == ListCoercionBehavior::Enabled,
-            "list_coercion_disabled" => {
-                self.list_coercion_behavior == ListCoercionBehavior::Disabled
-            }
+            "list_coercion_enabled" => self
+                .supported_list_coercion_behaviors
+                .contains(&ListCoercionBehavior::Enabled),
+            "list_coercion_disabled" => self
+                .supported_list_coercion_behaviors
+                .contains(&ListCoercionBehavior::Disabled),
             "strict_spacing" => self.spacing_behavior == SpacingBehavior::Strict,
-            "relaxed_spacing" => self.spacing_behavior == SpacingBehavior::Relaxed,
+            "loose_spacing" => self.spacing_behavior == SpacingBehavior::Loose,
             "tabs_preserve" => self.tab_behavior == TabBehavior::Preserve,
-            "tabs_normalize" => self.tab_behavior == TabBehavior::Normalize,
+            "tabs_to_spaces" => self.tab_behavior == TabBehavior::ToSpaces,
+            "array_order_insertion" => self.array_order_behavior == ArrayOrderBehavior::Insertion,
+            "array_order_lexicographic" => {
+                self.array_order_behavior == ArrayOrderBehavior::Lexicographic
+            }
             _ => false, // Unknown behavior
         }
     }
@@ -468,6 +510,12 @@ impl TestSuite {
             "round_trip_whitespace_normalization_parse",
             // KNOWN ISSUE: canonical_format function not implemented yet
             "canonical_format_line_endings_reference_behavior_parse",
+            // KNOWN ISSUE: Missing behaviors on variant tests - these tests should inherit
+            // loose_spacing/tabs_to_spaces behaviors from their source tests but don't.
+            // See: https://github.com/tylerbutler/ccl-test-data/issues/13
+            "spacing_loose_multiline_various_build_hierarchy",
+            "tabs_to_spaces_in_value_build_hierarchy",
+            "tabs_to_spaces_in_value_get_string",
         ];
 
         if problematic_tests.contains(&test.name.as_str()) {
@@ -490,43 +538,35 @@ impl TestSuite {
         }
 
         // PRECEDENCE LEVEL 2b: Behavior choices
-        // If the test specifies behaviors, at least one should match our chosen behaviors
+        // If the test specifies any behavior that conflicts with our config, skip it
+        // Note: Tests may specify multiple behaviors (e.g., both tabs_preserve AND loose_spacing)
+        // We must check ALL behaviors for conflicts, not just require one to match
         if !test.behaviors.is_empty() {
-            let has_matching_behavior = test.behaviors.iter().any(|b| config.supports_behavior(b));
+            let mutually_exclusive = [
+                ("boolean_strict", "boolean_lenient"),
+                ("crlf_preserve_literal", "crlf_normalize_to_lf"),
+                ("list_coercion_enabled", "list_coercion_disabled"),
+                ("strict_spacing", "loose_spacing"),
+                ("tabs_preserve", "tabs_to_spaces"),
+                ("array_order_insertion", "array_order_lexicographic"),
+            ];
 
-            if !has_matching_behavior {
-                // Check if it conflicts with mutually exclusive behaviors
-                let mutually_exclusive = [
-                    ("boolean_strict", "boolean_lenient"),
-                    ("crlf_preserve_literal", "crlf_normalize_to_lf"),
-                    ("list_coercion_enabled", "list_coercion_disabled"),
-                    ("strict_spacing", "relaxed_spacing"),
-                    ("tabs_preserve", "tabs_normalize"),
-                ];
+            let mut conflicting: Vec<String> = Vec::new();
 
-                let mut conflicting: Vec<String> = Vec::new();
-
-                for (opt1, opt2) in &mutually_exclusive {
-                    if (test.behaviors.contains(&opt1.to_string())
-                        && config.supports_behavior(opt2))
-                        || (test.behaviors.contains(&opt2.to_string())
-                            && config.supports_behavior(opt1))
-                    {
-                        // This test requires a behavior that conflicts with our config
-                        conflicting.extend(
-                            test.behaviors
-                                .iter()
-                                .filter(|b| *b == opt1 || *b == opt2)
-                                .cloned(),
-                        );
-                    }
+            for (opt1, opt2) in &mutually_exclusive {
+                // Check if test requires opt1 but we configured opt2 (or vice versa)
+                if test.behaviors.contains(&opt1.to_string()) && config.supports_behavior(opt2) {
+                    conflicting.push(opt1.to_string());
                 }
-
-                if !conflicting.is_empty() {
-                    conflicting.sort();
-                    conflicting.dedup();
-                    return Some(SkipReason::ConflictingBehaviors(conflicting));
+                if test.behaviors.contains(&opt2.to_string()) && config.supports_behavior(opt1) {
+                    conflicting.push(opt2.to_string());
                 }
+            }
+
+            if !conflicting.is_empty() {
+                conflicting.sort();
+                conflicting.dedup();
+                return Some(SkipReason::ConflictingBehaviors(conflicting));
             }
         }
         // Note: Tests without explicit behaviors will run with current config

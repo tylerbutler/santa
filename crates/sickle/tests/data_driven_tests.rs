@@ -463,11 +463,20 @@ fn test_all_ccl_suites_comprehensive() {
     println!("      Boolean: {}", config.boolean_behavior.as_str());
     println!("      CRLF: {}", config.crlf_behavior.as_str());
     println!(
-        "      List Coercion: {}",
-        config.list_coercion_behavior.as_str()
+        "      List Coercion: {} (runtime configurable)",
+        config
+            .supported_list_coercion_behaviors
+            .iter()
+            .map(|b| b.as_str())
+            .collect::<Vec<_>>()
+            .join(", ")
     );
     println!("      Spacing: {}", config.spacing_behavior.as_str());
-    println!("      Tabs: {}\n", config.tab_behavior.as_str());
+    println!("      Tabs: {}", config.tab_behavior.as_str());
+    println!(
+        "      Array Order: {}\n",
+        config.array_order_behavior.as_str()
+    );
 
     let mut total_passed = 0;
     let mut total_failed = 0;
@@ -823,8 +832,12 @@ fn test_all_ccl_suites_comprehensive() {
                             (&model, test.args.first().unwrap())
                         };
 
-                        // Use the actual get_list() method being tested
-                        let get_list_result = parent_model.get_list(key);
+                        // Use get_list or get_list_coerced based on test behaviors
+                        let get_list_result = if test.behaviors.contains(&"list_coercion_enabled".to_string()) {
+                            parent_model.get_list_coerced(key)
+                        } else {
+                            parent_model.get_list(key)
+                        };
 
                         if test.expected.error.is_some() {
                             assert!(

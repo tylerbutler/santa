@@ -61,9 +61,7 @@
       ]
     },
     {
-      "behaviors": [
-        "list_coercion_enabled"
-      ],
+      "behaviors": [],
       "expected": {
         "count": 1,
         "entries": [
@@ -86,9 +84,7 @@
       ]
     },
     {
-      "behaviors": [
-        "list_coercion_enabled"
-      ],
+      "behaviors": [],
       "expected": {
         "count": 1,
         "object": {
@@ -133,9 +129,7 @@
       ]
     },
     {
-      "behaviors": [
-        "list_coercion_enabled"
-      ],
+      "behaviors": [],
       "expected": {
         "count": 3,
         "entries": [
@@ -166,9 +160,7 @@
       ]
     },
     {
-      "behaviors": [
-        "list_coercion_enabled"
-      ],
+      "behaviors": [],
       "expected": {
         "count": 1,
         "object": {
@@ -217,9 +209,7 @@
       ]
     },
     {
-      "behaviors": [
-        "list_coercion_enabled"
-      ],
+      "behaviors": [],
       "expected": {
         "count": 1,
         "entries": [
@@ -242,9 +232,7 @@
       ]
     },
     {
-      "behaviors": [
-        "list_coercion_enabled"
-      ],
+      "behaviors": [],
       "expected": {
         "count": 1,
         "object": {
@@ -996,9 +984,7 @@
       ]
     },
     {
-      "behaviors": [
-        "list_coercion_enabled"
-      ],
+      "behaviors": [],
       "expected": {
         "count": 11,
         "entries": [
@@ -1061,9 +1047,7 @@
       ]
     },
     {
-      "behaviors": [
-        "list_coercion_enabled"
-      ],
+      "behaviors": [],
       "expected": {
         "count": 1,
         "object": {
@@ -1128,9 +1112,7 @@
       ]
     },
     {
-      "behaviors": [
-        "list_coercion_enabled"
-      ],
+      "behaviors": [],
       "expected": {
         "count": 1,
         "entries": [
@@ -1153,9 +1135,7 @@
       ]
     },
     {
-      "behaviors": [
-        "list_coercion_enabled"
-      ],
+      "behaviors": [],
       "expected": {
         "count": 1,
         "object": {
@@ -1579,9 +1559,7 @@
       ]
     },
     {
-      "behaviors": [
-        "strict_spacing"
-      ],
+      "behaviors": [],
       "expected": {
         "count": 1,
         "value": "key1 = value1\nkey2 = value2\nkey3 = \tvalue3"

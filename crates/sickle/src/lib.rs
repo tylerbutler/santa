@@ -68,7 +68,7 @@ mod parser;
 pub mod de;
 
 pub use error::{Error, Result};
-pub use model::{Entry, CclObject};
+pub use model::{CclObject, Entry};
 
 /// Parse a CCL string into a flat list of entries
 ///

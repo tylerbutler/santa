@@ -2,9 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "tests": [
     {
-      "behaviors": [
-        "list_coercion_enabled"
-      ],
+      "behaviors": [],
       "expected": {
         "count": 3,
         "entries": [
@@ -33,9 +31,7 @@
       "variants": []
     },
     {
-      "behaviors": [
-        "list_coercion_enabled"
-      ],
+      "behaviors": [],
       "expected": {
         "count": 1,
         "object": {
@@ -82,9 +78,7 @@
       "variants": []
     },
     {
-      "behaviors": [
-        "list_coercion_enabled"
-      ],
+      "behaviors": [],
       "expected": {
         "count": 20,
         "entries": [
@@ -181,9 +175,7 @@
       "variants": []
     },
     {
-      "behaviors": [
-        "list_coercion_enabled"
-      ],
+      "behaviors": [],
       "expected": {
         "count": 1,
         "object": {
@@ -264,9 +256,7 @@
       "variants": []
     },
     {
-      "behaviors": [
-        "list_coercion_enabled"
-      ],
+      "behaviors": [],
       "expected": {
         "count": 5,
         "entries": [
@@ -306,7 +296,7 @@
     },
     {
       "behaviors": [
-        "list_coercion_enabled"
+        "array_order_insertion"
       ],
       "expected": {
         "count": 1,
@@ -339,7 +329,8 @@
         "servers"
       ],
       "behaviors": [
-        "list_coercion_enabled"
+        "list_coercion_enabled",
+        "array_order_insertion"
       ],
       "expected": {
         "count": 3,
@@ -358,6 +349,103 @@
       "input": "servers = web1\n/= Production servers\nservers = web2\nservers = web3\n/= End of list",
       "name": "list_with_comments_get_list",
       "source_test": "list_with_comments",
+      "validation": "get_list",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 5,
+        "entries": [
+          {
+            "key": "servers",
+            "value": "web1"
+          },
+          {
+            "key": "/",
+            "value": "Production servers"
+          },
+          {
+            "key": "servers",
+            "value": "web2"
+          },
+          {
+            "key": "servers",
+            "value": "web3"
+          },
+          {
+            "key": "/",
+            "value": "End of list"
+          }
+        ]
+      },
+      "features": [
+        "comments"
+      ],
+      "functions": [
+        "parse"
+      ],
+      "input": "servers = web1\n/= Production servers\nservers = web2\nservers = web3\n/= End of list",
+      "name": "list_with_comments_lexicographic_parse",
+      "source_test": "list_with_comments_lexicographic",
+      "validation": "parse",
+      "variants": []
+    },
+    {
+      "behaviors": [
+        "array_order_lexicographic"
+      ],
+      "expected": {
+        "count": 1,
+        "object": {
+          "/": [
+            "End of list",
+            "Production servers"
+          ],
+          "servers": [
+            "web1",
+            "web2",
+            "web3"
+          ]
+        }
+      },
+      "features": [
+        "comments"
+      ],
+      "functions": [
+        "build_hierarchy"
+      ],
+      "input": "servers = web1\n/= Production servers\nservers = web2\nservers = web3\n/= End of list",
+      "name": "list_with_comments_lexicographic_build_hierarchy",
+      "source_test": "list_with_comments_lexicographic",
+      "validation": "build_hierarchy",
+      "variants": []
+    },
+    {
+      "args": [
+        "servers"
+      ],
+      "behaviors": [
+        "list_coercion_enabled",
+        "array_order_lexicographic"
+      ],
+      "expected": {
+        "count": 3,
+        "list": [
+          "web1",
+          "web2",
+          "web3"
+        ]
+      },
+      "features": [
+        "comments"
+      ],
+      "functions": [
+        "get_list"
+      ],
+      "input": "servers = web1\n/= Production servers\nservers = web2\nservers = web3\n/= End of list",
+      "name": "list_with_comments_lexicographic_get_list",
+      "source_test": "list_with_comments_lexicographic",
       "validation": "get_list",
       "variants": []
     },
@@ -683,7 +771,9 @@
       "variants": []
     },
     {
-      "behaviors": [],
+      "behaviors": [
+        "array_order_insertion"
+      ],
       "expected": {
         "count": 1,
         "object": {
@@ -715,7 +805,9 @@
         "network",
         "ports"
       ],
-      "behaviors": [],
+      "behaviors": [
+        "array_order_insertion"
+      ],
       "expected": {
         "count": 3,
         "list": [
@@ -733,6 +825,87 @@
       "input": "network =\n  ports =\n    = 80\n    = 443\n    = 8080",
       "name": "bare_list_nested_get_list",
       "source_test": "bare_list_nested",
+      "validation": "get_list",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "entries": [
+          {
+            "key": "network",
+            "value": "\n  ports =\n    = 80\n    = 443\n    = 8080"
+          }
+        ]
+      },
+      "features": [
+        "empty_keys"
+      ],
+      "functions": [
+        "parse"
+      ],
+      "input": "network =\n  ports =\n    = 80\n    = 443\n    = 8080",
+      "name": "bare_list_nested_lexicographic_parse",
+      "source_test": "bare_list_nested_lexicographic",
+      "validation": "parse",
+      "variants": []
+    },
+    {
+      "behaviors": [
+        "array_order_lexicographic"
+      ],
+      "expected": {
+        "count": 1,
+        "object": {
+          "network": {
+            "ports": {
+              "": [
+                "443",
+                "80",
+                "8080"
+              ]
+            }
+          }
+        }
+      },
+      "features": [
+        "empty_keys"
+      ],
+      "functions": [
+        "build_hierarchy"
+      ],
+      "input": "network =\n  ports =\n    = 80\n    = 443\n    = 8080",
+      "name": "bare_list_nested_lexicographic_build_hierarchy",
+      "source_test": "bare_list_nested_lexicographic",
+      "validation": "build_hierarchy",
+      "variants": []
+    },
+    {
+      "args": [
+        "network",
+        "ports"
+      ],
+      "behaviors": [
+        "array_order_lexicographic"
+      ],
+      "expected": {
+        "count": 3,
+        "list": [
+          "443",
+          "80",
+          "8080"
+        ]
+      },
+      "features": [
+        "empty_keys"
+      ],
+      "functions": [
+        "get_list"
+      ],
+      "input": "network =\n  ports =\n    = 80\n    = 443\n    = 8080",
+      "name": "bare_list_nested_lexicographic_get_list",
+      "source_test": "bare_list_nested_lexicographic",
       "validation": "get_list",
       "variants": []
     },
@@ -761,7 +934,9 @@
       "variants": []
     },
     {
-      "behaviors": [],
+      "behaviors": [
+        "array_order_insertion"
+      ],
       "expected": {
         "count": 1,
         "object": {
@@ -792,7 +967,9 @@
       "args": [
         "allowed_hosts"
       ],
-      "behaviors": [],
+      "behaviors": [
+        "array_order_insertion"
+      ],
       "expected": {
         "count": 3,
         "list": [
@@ -820,6 +997,88 @@
         "count": 1,
         "entries": [
           {
+            "key": "allowed_hosts",
+            "value": "\n  /= Production hosts\n  = localhost\n  = 127.0.0.1\n  = example.com"
+          }
+        ]
+      },
+      "features": [
+        "empty_keys",
+        "comments"
+      ],
+      "functions": [
+        "parse"
+      ],
+      "input": "allowed_hosts =\n  /= Production hosts\n  = localhost\n  = 127.0.0.1\n  = example.com",
+      "name": "bare_list_with_comments_lexicographic_parse",
+      "source_test": "bare_list_with_comments_lexicographic",
+      "validation": "parse",
+      "variants": []
+    },
+    {
+      "behaviors": [
+        "array_order_lexicographic"
+      ],
+      "expected": {
+        "count": 1,
+        "object": {
+          "allowed_hosts": {
+            "": [
+              "127.0.0.1",
+              "example.com",
+              "localhost"
+            ],
+            "/": "Production hosts"
+          }
+        }
+      },
+      "features": [
+        "empty_keys",
+        "comments"
+      ],
+      "functions": [
+        "build_hierarchy"
+      ],
+      "input": "allowed_hosts =\n  /= Production hosts\n  = localhost\n  = 127.0.0.1\n  = example.com",
+      "name": "bare_list_with_comments_lexicographic_build_hierarchy",
+      "source_test": "bare_list_with_comments_lexicographic",
+      "validation": "build_hierarchy",
+      "variants": []
+    },
+    {
+      "args": [
+        "allowed_hosts"
+      ],
+      "behaviors": [
+        "array_order_lexicographic"
+      ],
+      "expected": {
+        "count": 3,
+        "list": [
+          "127.0.0.1",
+          "example.com",
+          "localhost"
+        ]
+      },
+      "features": [
+        "empty_keys",
+        "comments"
+      ],
+      "functions": [
+        "get_list"
+      ],
+      "input": "allowed_hosts =\n  /= Production hosts\n  = localhost\n  = 127.0.0.1\n  = example.com",
+      "name": "bare_list_with_comments_lexicographic_get_list",
+      "source_test": "bare_list_with_comments_lexicographic",
+      "validation": "get_list",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "entries": [
+          {
             "key": "config",
             "value": "\n  environments =\n    production =\n      servers =\n        = web1\n        = web2\n        = api1"
           }
@@ -838,7 +1097,9 @@
       "variants": []
     },
     {
-      "behaviors": [],
+      "behaviors": [
+        "array_order_insertion"
+      ],
       "expected": {
         "count": 1,
         "object": {
@@ -876,7 +1137,9 @@
         "production",
         "servers"
       ],
-      "behaviors": [],
+      "behaviors": [
+        "array_order_insertion"
+      ],
       "expected": {
         "count": 3,
         "list": [
@@ -894,6 +1157,93 @@
       "input": "config =\n  environments =\n    production =\n      servers =\n        = web1\n        = web2\n        = api1",
       "name": "bare_list_deeply_nested_get_list",
       "source_test": "bare_list_deeply_nested",
+      "validation": "get_list",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "entries": [
+          {
+            "key": "config",
+            "value": "\n  environments =\n    production =\n      servers =\n        = web1\n        = web2\n        = api1"
+          }
+        ]
+      },
+      "features": [
+        "empty_keys"
+      ],
+      "functions": [
+        "parse"
+      ],
+      "input": "config =\n  environments =\n    production =\n      servers =\n        = web1\n        = web2\n        = api1",
+      "name": "bare_list_deeply_nested_lexicographic_parse",
+      "source_test": "bare_list_deeply_nested_lexicographic",
+      "validation": "parse",
+      "variants": []
+    },
+    {
+      "behaviors": [
+        "array_order_lexicographic"
+      ],
+      "expected": {
+        "count": 1,
+        "object": {
+          "config": {
+            "environments": {
+              "production": {
+                "servers": {
+                  "": [
+                    "api1",
+                    "web1",
+                    "web2"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "features": [
+        "empty_keys"
+      ],
+      "functions": [
+        "build_hierarchy"
+      ],
+      "input": "config =\n  environments =\n    production =\n      servers =\n        = web1\n        = web2\n        = api1",
+      "name": "bare_list_deeply_nested_lexicographic_build_hierarchy",
+      "source_test": "bare_list_deeply_nested_lexicographic",
+      "validation": "build_hierarchy",
+      "variants": []
+    },
+    {
+      "args": [
+        "config",
+        "environments",
+        "production",
+        "servers"
+      ],
+      "behaviors": [
+        "array_order_lexicographic"
+      ],
+      "expected": {
+        "count": 3,
+        "list": [
+          "api1",
+          "web1",
+          "web2"
+        ]
+      },
+      "features": [
+        "empty_keys"
+      ],
+      "functions": [
+        "get_list"
+      ],
+      "input": "config =\n  environments =\n    production =\n      servers =\n        = web1\n        = web2\n        = api1",
+      "name": "bare_list_deeply_nested_lexicographic_get_list",
+      "source_test": "bare_list_deeply_nested_lexicographic",
       "validation": "get_list",
       "variants": []
     },
@@ -1020,7 +1370,9 @@
         "config",
         "setting"
       ],
-      "behaviors": [],
+      "behaviors": [
+        "list_coercion_disabled"
+      ],
       "expected": {
         "count": 0
       },
