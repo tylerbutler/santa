@@ -168,8 +168,10 @@ impl SantaConfigExt for SantaConfig {
                     if !has_valid_source {
                         let available: Vec<KnownSources> =
                             available_sources.keys().cloned().collect();
-                        unknown
-                            .push((package.clone(), UnknownPackageReason::NoMatchingSource(available)));
+                        unknown.push((
+                            package.clone(),
+                            UnknownPackageReason::NoMatchingSource(available),
+                        ));
                     }
                 }
             }

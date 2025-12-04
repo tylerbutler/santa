@@ -36,8 +36,8 @@
 //! ```
 
 use crate::configuration::SantaConfigExt; // Import extension trait for method access
-use crate::data::SantaData;
 use crate::configuration::UnknownPackageReason;
+use crate::data::SantaData;
 use crate::data::SourceList;
 use crate::errors::{Result, SantaError};
 use crate::script_generator::{ExecutionMode, ScriptFormat};
@@ -235,7 +235,12 @@ pub async fn status_command(
                     ("🚫", format!("available in: {}", sources.join(", ")))
                 }
             };
-            table.add_row(Row::new().with_cell(emoji).with_cell(pkg).with_cell(reason_str));
+            table.add_row(
+                Row::new()
+                    .with_cell(emoji)
+                    .with_cell(pkg)
+                    .with_cell(reason_str),
+            );
         }
         println!("{table}");
     }
