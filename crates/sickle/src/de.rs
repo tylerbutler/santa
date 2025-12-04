@@ -3,7 +3,7 @@
 //! This module provides Serde integration, allowing CCL to be deserialized
 //! into Rust structs using the standard `#[derive(Deserialize)]` pattern.
 
-use crate::{Error, CclObject, Result};
+use crate::{CclObject, Error, Result};
 use serde::de::{self, DeserializeSeed, IntoDeserializer, MapAccess, SeqAccess, Visitor};
 use serde::Deserialize;
 use std::fmt;

@@ -833,7 +833,10 @@ fn test_all_ccl_suites_comprehensive() {
                         };
 
                         // Use get_list or get_list_coerced based on test behaviors
-                        let get_list_result = if test.behaviors.contains(&"list_coercion_enabled".to_string()) {
+                        let get_list_result = if test
+                            .behaviors
+                            .contains(&"list_coercion_enabled".to_string())
+                        {
                             parent_model.get_list_coerced(key)
                         } else {
                             parent_model.get_list(key)
@@ -1052,10 +1055,7 @@ fn test_all_ccl_suites_comprehensive() {
 
                         if let Some(ref expected_value) = test.expected.value {
                             let expected_str = expected_value.as_str().unwrap_or_else(|| {
-                                panic!(
-                                    "Test '{}': expected value is not a string",
-                                    test.name
-                                )
+                                panic!("Test '{}': expected value is not a string", test.name)
                             });
 
                             assert_eq!(

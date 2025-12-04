@@ -291,7 +291,9 @@ impl CclObject {
     /// For typed access to lists of scalars, use `get_list_typed::<T>()` instead.
     /// For reference-compliant behavior, use `get_list()`.
     pub fn get_list_coerced(&self, key: &str) -> Result<Vec<String>> {
-        Ok(self.get(key)?.as_list_with_options(ListOptions::with_coerce()))
+        Ok(self
+            .get(key)?
+            .as_list_with_options(ListOptions::with_coerce()))
     }
 
     /// Get a typed list of values by key
