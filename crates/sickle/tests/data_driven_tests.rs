@@ -3,7 +3,7 @@
 mod common;
 
 use common::{load_all_test_suites, ImplementationConfig, TestSuite};
-use sickle::{build_hierarchy, load, parse, parse_indented};
+use sickle::{build_hierarchy, load, parse, parse_indented, CclPrinter};
 use std::path::Path;
 
 /// Helper to navigate nested paths in a Model (e.g., ["config", "database", "port"])
@@ -1038,6 +1038,30 @@ fn test_all_ccl_suites_comprehensive() {
                                 test.name,
                                 expected_float,
                                 actual_float
+                            );
+                        }
+                    }
+                    "canonical_format" => {
+                        // Parse input and convert to canonical format
+                        let model = load(&test.input).unwrap_or_else(|e| {
+                            panic!("Test '{}' failed to load: {}", test.name, e);
+                        });
+
+                        let printer = CclPrinter::new();
+                        let canonical_output = printer.print(&model);
+
+                        if let Some(ref expected_value) = test.expected.value {
+                            let expected_str = expected_value.as_str().unwrap_or_else(|| {
+                                panic!(
+                                    "Test '{}': expected value is not a string",
+                                    test.name
+                                )
+                            });
+
+                            assert_eq!(
+                                canonical_output, expected_str,
+                                "Test '{}': canonical format mismatch",
+                                test.name
                             );
                         }
                     }

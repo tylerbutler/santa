@@ -322,6 +322,7 @@ impl ImplementationConfig {
                 "get_float",
                 "get_bool",
                 "get_list",
+                "canonical_format",
             ]
             .iter()
             .map(|s| s.to_string())

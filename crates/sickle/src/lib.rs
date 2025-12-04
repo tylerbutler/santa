@@ -63,12 +63,14 @@
 pub mod error;
 pub mod model;
 mod parser;
+pub mod printer;
 
 #[cfg(feature = "serde")]
 pub mod de;
 
 pub use error::{Error, Result};
 pub use model::{CclObject, Entry};
+pub use printer::{CclPrinter, PrinterConfig};
 
 /// Parse a CCL string into a flat list of entries
 ///
