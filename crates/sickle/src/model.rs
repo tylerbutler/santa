@@ -69,22 +69,22 @@ impl Entry {
 /// - Uses IndexMap to preserve insertion order
 #[derive(Debug, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-pub struct Model(IndexMap<String, Model>);
+pub struct CclObject(IndexMap<String, CclObject>);
 
-impl Model {
+impl CclObject {
     /// Create a new empty model
     pub fn new() -> Self {
-        Model(IndexMap::new())
+        CclObject(IndexMap::new())
     }
 
     /// Create a Model from an IndexMap
     /// This is internal-only for crate operations
-    pub(crate) fn from_map(map: IndexMap<String, Model>) -> Self {
-        Model(map)
+    pub(crate) fn from_map(map: IndexMap<String, CclObject>) -> Self {
+        CclObject(map)
     }
 
     /// Get a value by key, returning an error if the key doesn't exist
-    pub fn get(&self, key: &str) -> Result<&Model> {
+    pub fn get(&self, key: &str) -> Result<&CclObject> {
         self.0
             .get(key)
             .ok_or_else(|| Error::MissingKey(key.to_string()))
@@ -96,17 +96,17 @@ impl Model {
     }
 
     /// Get an iterator over the values in this model
-    pub fn values(&self) -> impl Iterator<Item = &Model> {
+    pub fn values(&self) -> impl Iterator<Item = &CclObject> {
         self.0.values()
     }
 
     /// Get an iterator over key-value pairs in this model
-    pub fn iter(&self) -> impl Iterator<Item = (&String, &Model)> {
+    pub fn iter(&self) -> impl Iterator<Item = (&String, &CclObject)> {
         self.0.iter()
     }
 
     /// Get the concrete IndexMap iterator for internal use (Serde)
-    pub(crate) fn iter_map(&self) -> indexmap::map::Iter<'_, String, Model> {
+    pub(crate) fn iter_map(&self) -> indexmap::map::Iter<'_, String, CclObject> {
         self.0.iter()
     }
 
@@ -277,7 +277,7 @@ impl Model {
     /// # Examples
     ///
     /// ```
-    /// # use sickle::{Model, parse, build_hierarchy};
+    /// # use sickle::{CclObject, parse, build_hierarchy};
     /// # use sickle::error::Result;
     /// # fn example() -> Result<()> {
     /// // Numbers list
@@ -333,18 +333,18 @@ impl Model {
     /// This is internal-only for Serde support
     pub(crate) fn from_string(s: impl Into<String>) -> Self {
         let mut map = IndexMap::new();
-        map.insert(s.into(), Model::new());
-        Model(map)
+        map.insert(s.into(), CclObject::new());
+        CclObject(map)
     }
 
     /// Extract the inner IndexMap, consuming the Model
     /// This is internal-only for crate operations
-    pub(crate) fn into_inner(self) -> IndexMap<String, Model> {
+    pub(crate) fn into_inner(self) -> IndexMap<String, CclObject> {
         self.0
     }
 }
 
-impl Default for Model {
+impl Default for CclObject {
     fn default() -> Self {
         Self::new()
     }
@@ -356,17 +356,17 @@ mod tests {
 
     #[test]
     fn test_empty_model() {
-        let model = Model::new();
+        let model = CclObject::new();
         assert!(model.is_empty());
     }
 
     #[test]
     fn test_map_navigation() {
         let mut inner = IndexMap::new();
-        inner.insert("name".to_string(), Model::new());
-        inner.insert("version".to_string(), Model::new());
+        inner.insert("name".to_string(), CclObject::new());
+        inner.insert("version".to_string(), CclObject::new());
 
-        let model = Model(inner);
+        let model = CclObject(inner);
         assert!(model.get("name").is_ok());
         assert!(model.get("version").is_ok());
         assert!(model.get("nonexistent").is_err());

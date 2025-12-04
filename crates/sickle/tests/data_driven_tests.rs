@@ -8,10 +8,10 @@ use std::path::Path;
 
 /// Helper to navigate nested paths in a Model (e.g., ["config", "database", "port"])
 fn navigate_path<'a>(
-    model: &'a sickle::Model,
+    model: &'a sickle::CclObject,
     path: &[String],
     test_name: &str,
-) -> Result<&'a sickle::Model, String> {
+) -> Result<&'a sickle::CclObject, String> {
     let mut current = model;
     for key in path {
         current = current
@@ -23,7 +23,7 @@ fn navigate_path<'a>(
 
 /// Helper function to recursively validate a Model against expected JSON structure
 fn validate_model_against_json(
-    model: &sickle::Model,
+    model: &sickle::CclObject,
     expected: &serde_json::Value,
     test_name: &str,
     path: &str,
