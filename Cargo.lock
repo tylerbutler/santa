@@ -2243,6 +2243,7 @@ dependencies = [
  "serde_derive",
  "serde_json",
  "serde_test",
+ "sickle",
  "string-interner",
 ]
 
