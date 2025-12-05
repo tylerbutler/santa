@@ -650,4 +650,137 @@ mod tests {
         let ccl = to_string(&config).unwrap();
         assert!(ccl.contains("status = Active"));
     }
+
+    #[test]
+    fn test_serialize_vec() {
+        #[derive(Serialize)]
+        struct Config {
+            tags: Vec<String>,
+        }
+
+        let config = Config {
+            tags: vec!["rust".to_string(), "ccl".to_string(), "parser".to_string()],
+        };
+
+        let ccl = to_string(&config).unwrap();
+        assert!(ccl.contains("tags ="));
+        assert!(ccl.contains("rust"));
+        assert!(ccl.contains("ccl"));
+        assert!(ccl.contains("parser"));
+    }
+
+    #[test]
+    fn test_serialize_hashmap() {
+        use std::collections::HashMap;
+
+        let mut env: HashMap<String, String> = HashMap::new();
+        env.insert("HOME".to_string(), "/home/user".to_string());
+        env.insert("PATH".to_string(), "/usr/bin".to_string());
+
+        let ccl = to_string(&env).unwrap();
+        assert!(ccl.contains("HOME = /home/user"));
+        assert!(ccl.contains("PATH = /usr/bin"));
+    }
+
+    #[test]
+    fn test_serialize_floats() {
+        #[derive(Serialize)]
+        struct Config {
+            ratio: f64,
+            scale: f32,
+        }
+
+        let config = Config {
+            ratio: 3.14159,
+            scale: 2.5,
+        };
+
+        let ccl = to_string(&config).unwrap();
+        assert!(ccl.contains("ratio = 3.14159"));
+        assert!(ccl.contains("scale = 2.5"));
+    }
+
+    #[test]
+    fn test_serialize_deeply_nested() {
+        #[derive(Serialize)]
+        struct Level3 {
+            value: String,
+        }
+
+        #[derive(Serialize)]
+        struct Level2 {
+            level3: Level3,
+        }
+
+        #[derive(Serialize)]
+        struct Level1 {
+            level2: Level2,
+        }
+
+        let config = Level1 {
+            level2: Level2 {
+                level3: Level3 {
+                    value: "deep".to_string(),
+                },
+            },
+        };
+
+        let ccl = to_string(&config).unwrap();
+        assert!(ccl.contains("level2 ="));
+        assert!(ccl.contains("level3 ="));
+        assert!(ccl.contains("value = deep"));
+    }
+
+    #[test]
+    fn test_roundtrip_simple() {
+        use serde::Deserialize;
+
+        #[derive(Serialize, Deserialize, Debug, PartialEq)]
+        struct Config {
+            name: String,
+            port: u16,
+            enabled: bool,
+        }
+
+        let original = Config {
+            name: "MyApp".to_string(),
+            port: 8080,
+            enabled: true,
+        };
+
+        let ccl = to_string(&original).unwrap();
+        let parsed: Config = crate::from_str(&ccl).unwrap();
+
+        assert_eq!(original, parsed);
+    }
+
+    #[test]
+    fn test_roundtrip_nested() {
+        use serde::Deserialize;
+
+        #[derive(Serialize, Deserialize, Debug, PartialEq)]
+        struct Database {
+            host: String,
+            port: u16,
+        }
+
+        #[derive(Serialize, Deserialize, Debug, PartialEq)]
+        struct Config {
+            name: String,
+            database: Database,
+        }
+
+        let original = Config {
+            name: "MyApp".to_string(),
+            database: Database {
+                host: "localhost".to_string(),
+                port: 5432,
+            },
+        };
+
+        let ccl = to_string(&original).unwrap();
+        let parsed: Config = crate::from_str(&ccl).unwrap();
+
+        assert_eq!(original, parsed);
+    }
 }
