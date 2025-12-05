@@ -269,14 +269,20 @@ impl<'a> ser::Serializer for &'a mut Serializer {
         value.serialize(self)
     }
 
-    fn serialize_seq(self, _len: Option<usize>) -> std::result::Result<Self::SerializeSeq, Self::Error> {
+    fn serialize_seq(
+        self,
+        _len: Option<usize>,
+    ) -> std::result::Result<Self::SerializeSeq, Self::Error> {
         Ok(SeqSerializer {
             ser: self,
             items: Vec::new(),
         })
     }
 
-    fn serialize_tuple(self, _len: usize) -> std::result::Result<Self::SerializeTuple, Self::Error> {
+    fn serialize_tuple(
+        self,
+        _len: usize,
+    ) -> std::result::Result<Self::SerializeTuple, Self::Error> {
         Ok(SeqSerializer {
             ser: self,
             items: Vec::new(),
@@ -307,12 +313,18 @@ impl<'a> ser::Serializer for &'a mut Serializer {
         })
     }
 
-    fn serialize_map(self, _len: Option<usize>) -> std::result::Result<Self::SerializeMap, Self::Error> {
+    fn serialize_map(
+        self,
+        _len: Option<usize>,
+    ) -> std::result::Result<Self::SerializeMap, Self::Error> {
         // Save the current key (if any) as the parent key for this nested map
         let parent_key = self.current_key.take();
         // Push a new object onto the stack for nested maps
         self.stack.push(CclObject::new());
-        Ok(MapSerializer { ser: self, parent_key })
+        Ok(MapSerializer {
+            ser: self,
+            parent_key,
+        })
     }
 
     fn serialize_struct(
@@ -324,7 +336,10 @@ impl<'a> ser::Serializer for &'a mut Serializer {
         let parent_key = self.current_key.take();
         // Push a new object onto the stack for nested structs
         self.stack.push(CclObject::new());
-        Ok(MapSerializer { ser: self, parent_key })
+        Ok(MapSerializer {
+            ser: self,
+            parent_key,
+        })
     }
 
     fn serialize_struct_variant(
@@ -336,7 +351,10 @@ impl<'a> ser::Serializer for &'a mut Serializer {
     ) -> std::result::Result<Self::SerializeStructVariant, Self::Error> {
         let parent_key = self.current_key.take();
         self.stack.push(CclObject::new());
-        Ok(MapSerializer { ser: self, parent_key })
+        Ok(MapSerializer {
+            ser: self,
+            parent_key,
+        })
     }
 }
 
