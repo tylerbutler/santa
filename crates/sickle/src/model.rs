@@ -7,6 +7,28 @@ use std::str::FromStr;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
+/// Options for list access operations
+///
+/// Controls how `get_list()` interprets the CCL data structure.
+#[derive(Debug, Clone, Copy, Default)]
+pub struct ListOptions {
+    /// When true, duplicate keys are coerced into lists and scalar literals are filtered.
+    /// When false (default), only bare list syntax (empty keys) produces lists.
+    pub coerce: bool,
+}
+
+impl ListOptions {
+    /// Create default options (coerce = false)
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    /// Create options with coercion enabled
+    pub fn with_coerce() -> Self {
+        Self { coerce: true }
+    }
+}
+
 /// Check if a string is a scalar literal (number or boolean)
 ///
 /// CCL distinguishes between string values and scalar literals:
@@ -14,11 +36,7 @@ use serde::{Deserialize, Serialize};
 /// - Booleans: true/false/yes/no
 ///
 /// This helper is used to filter out scalar literals from string lists
-/// when `list_coercion_enabled` feature is active.
-#[cfg(all(
-    feature = "list_coercion_enabled",
-    not(feature = "list_coercion_disabled")
-))]
+/// when coercion is enabled.
 fn is_scalar_literal(s: &str) -> bool {
     // Check if it's parseable as an integer
     if s.parse::<i64>().is_ok() {
@@ -69,22 +87,22 @@ impl Entry {
 /// - Uses IndexMap to preserve insertion order
 #[derive(Debug, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-pub struct Model(IndexMap<String, Model>);
+pub struct CclObject(IndexMap<String, CclObject>);
 
-impl Model {
+impl CclObject {
     /// Create a new empty model
     pub fn new() -> Self {
-        Model(IndexMap::new())
+        CclObject(IndexMap::new())
     }
 
     /// Create a Model from an IndexMap
     /// This is internal-only for crate operations
-    pub(crate) fn from_map(map: IndexMap<String, Model>) -> Self {
-        Model(map)
+    pub(crate) fn from_map(map: IndexMap<String, CclObject>) -> Self {
+        CclObject(map)
     }
 
     /// Get a value by key, returning an error if the key doesn't exist
-    pub fn get(&self, key: &str) -> Result<&Model> {
+    pub fn get(&self, key: &str) -> Result<&CclObject> {
         self.0
             .get(key)
             .ok_or_else(|| Error::MissingKey(key.to_string()))
@@ -96,17 +114,17 @@ impl Model {
     }
 
     /// Get an iterator over the values in this model
-    pub fn values(&self) -> impl Iterator<Item = &Model> {
+    pub fn values(&self) -> impl Iterator<Item = &CclObject> {
         self.0.values()
     }
 
     /// Get an iterator over key-value pairs in this model
-    pub fn iter(&self) -> impl Iterator<Item = (&String, &Model)> {
+    pub fn iter(&self) -> impl Iterator<Item = (&String, &CclObject)> {
         self.0.iter()
     }
 
     /// Get the concrete IndexMap iterator for internal use (Serde)
-    pub(crate) fn iter_map(&self) -> indexmap::map::Iter<'_, String, Model> {
+    pub(crate) fn iter_map(&self) -> indexmap::map::Iter<'_, String, CclObject> {
         self.0.iter()
     }
 
@@ -194,79 +212,88 @@ impl Model {
     ///   = web2
     /// ```
     ///
-    /// Behavior varies by feature flag:
+    /// Behavior varies by `options.coerce`:
     ///
-    /// **With `list_coercion_disabled` (default, reference-compliant)**:
+    /// **With `coerce = false` (default, reference-compliant)**:
     /// - Returns values ONLY when all keys are empty strings `""`
     /// - Duplicate keys with values are NOT lists: `servers = web1` → `[]`
-    /// - Bare lists work: Access via `get("servers")?.get_list("")` → `["web1", "web2"]`
+    /// - Bare lists work: Access via `get("servers")?.as_list_with_options(...)` → `["web1", "web2"]`
     /// - Matches OCaml reference implementation
     ///
-    /// **With `list_coercion_enabled`**:
+    /// **With `coerce = true`**:
     /// - Duplicate keys create lists: `servers = web1` → `["web1", "web2"]`
     /// - Still filters scalar literals (numbers/booleans)
     /// - Single values coerced to lists
-    #[cfg(feature = "list_coercion_disabled")]
-    pub(crate) fn as_list(&self) -> Vec<String> {
-        // Filter out comment keys (starting with '/') when checking for bare lists
-        let non_comment_keys: Vec<&String> = self.keys().filter(|k| !k.starts_with('/')).collect();
+    pub(crate) fn as_list_with_options(&self, options: ListOptions) -> Vec<String> {
+        if options.coerce {
+            // Coercion mode: duplicate keys create lists, but filter scalars
+            self.keys()
+                .filter(|k| !is_scalar_literal(k))
+                .cloned()
+                .collect()
+        } else {
+            // Reference-compliant mode: only bare list syntax works
+            // Filter out comment keys (starting with '/') when checking for bare lists
+            let non_comment_keys: Vec<&String> =
+                self.keys().filter(|k| !k.starts_with('/')).collect();
 
-        // Handle bare list syntax: single empty-key child containing the list items
-        // Example: servers = { "": { "web1": {}, "web2": {} } }
-        // Should return ["web1", "web2"]
-        // Also handles: { "": {...}, "/": {...comment...} } - ignores comments
-        if non_comment_keys.len() == 1 && non_comment_keys[0].is_empty() {
-            if let Ok(child) = self.get("") {
-                // Found empty-key child - return its keys as the list
-                // Also filter out comment keys from the child
-                return child
-                    .keys()
-                    .filter(|k| !k.starts_with('/'))
-                    .cloned()
-                    .collect();
+            // Handle bare list syntax: single empty-key child containing the list items
+            // Example: servers = { "": { "web1": {}, "web2": {} } }
+            // Should return ["web1", "web2"]
+            // Also handles: { "": {...}, "/": {...comment...} } - ignores comments
+            if non_comment_keys.len() == 1 && non_comment_keys[0].is_empty() {
+                if let Ok(child) = self.get("") {
+                    // Found empty-key child - return its keys as the list
+                    // Also filter out comment keys from the child
+                    return child
+                        .keys()
+                        .filter(|k| !k.starts_with('/'))
+                        .cloned()
+                        .collect();
+                }
+            }
+
+            // Empty or single non-empty key = not a list
+            if non_comment_keys.len() <= 1 {
+                return Vec::new();
+            }
+
+            // Multiple non-comment keys: ONLY return values if ALL are empty strings
+            // This means we're in a bare list structure with multiple empty keys
+            let all_keys_empty = non_comment_keys.iter().all(|k| k.is_empty());
+            if all_keys_empty {
+                // For bare lists, the VALUES (nested keys) are the list items
+                // But since keys are empty, we need to look at the nested structure
+                // For now, return empty as bare lists need special handling
+                Vec::new()
+            } else {
+                // Non-empty keys = not a list in reference mode
+                Vec::new()
             }
         }
-
-        // Empty or single non-empty key = not a list
-        if non_comment_keys.len() <= 1 {
-            return Vec::new();
-        }
-
-        // Multiple non-comment keys: ONLY return values if ALL are empty strings
-        // This means we're in a bare list structure with multiple empty keys
-        let all_keys_empty = non_comment_keys.iter().all(|k| k.is_empty());
-        if all_keys_empty {
-            // For bare lists, the VALUES (nested keys) are the list items
-            // But since keys are empty, we need to look at the nested structure
-            // For now, return empty as bare lists need special handling
-            Vec::new()
-        } else {
-            // Non-empty keys = not a list in reference mode
-            Vec::new()
-        }
     }
 
-    /// Extract a list of string values from the model (no key lookup)
-    #[cfg(all(
-        feature = "list_coercion_enabled",
-        not(feature = "list_coercion_disabled")
-    ))]
-    pub(crate) fn as_list(&self) -> Vec<String> {
-        // Coercion mode: duplicate keys create lists, but filter scalars
-        self.keys()
-            .filter(|k| !is_scalar_literal(k))
-            .cloned()
-            .collect()
-    }
-
-    /// Get a list of string values by key
+    /// Get a list of string values by key (reference-compliant behavior)
     ///
-    /// Looks up the key and extracts its list representation.
-    /// Filters out scalar literals (numbers and booleans).
+    /// Only bare list syntax produces lists. Duplicate keys with values are NOT
+    /// treated as lists.
     ///
     /// For typed access to lists of scalars, use `get_list_typed::<T>()` instead.
+    /// For coercion behavior, use `get_list_coerced()`.
     pub fn get_list(&self, key: &str) -> Result<Vec<String>> {
-        Ok(self.get(key)?.as_list())
+        Ok(self.get(key)?.as_list_with_options(ListOptions::new()))
+    }
+
+    /// Get a list of string values by key (with coercion)
+    ///
+    /// Duplicate keys are coerced into lists, and scalar literals are filtered.
+    ///
+    /// For typed access to lists of scalars, use `get_list_typed::<T>()` instead.
+    /// For reference-compliant behavior, use `get_list()`.
+    pub fn get_list_coerced(&self, key: &str) -> Result<Vec<String>> {
+        Ok(self
+            .get(key)?
+            .as_list_with_options(ListOptions::with_coerce()))
     }
 
     /// Get a typed list of values by key
@@ -277,7 +304,7 @@ impl Model {
     /// # Examples
     ///
     /// ```
-    /// # use sickle::{Model, parse, build_hierarchy};
+    /// # use sickle::{CclObject, parse, build_hierarchy};
     /// # use sickle::error::Result;
     /// # fn example() -> Result<()> {
     /// // Numbers list
@@ -333,18 +360,18 @@ impl Model {
     /// This is internal-only for Serde support
     pub(crate) fn from_string(s: impl Into<String>) -> Self {
         let mut map = IndexMap::new();
-        map.insert(s.into(), Model::new());
-        Model(map)
+        map.insert(s.into(), CclObject::new());
+        CclObject(map)
     }
 
     /// Extract the inner IndexMap, consuming the Model
     /// This is internal-only for crate operations
-    pub(crate) fn into_inner(self) -> IndexMap<String, Model> {
+    pub(crate) fn into_inner(self) -> IndexMap<String, CclObject> {
         self.0
     }
 }
 
-impl Default for Model {
+impl Default for CclObject {
     fn default() -> Self {
         Self::new()
     }
@@ -356,17 +383,17 @@ mod tests {
 
     #[test]
     fn test_empty_model() {
-        let model = Model::new();
+        let model = CclObject::new();
         assert!(model.is_empty());
     }
 
     #[test]
     fn test_map_navigation() {
         let mut inner = IndexMap::new();
-        inner.insert("name".to_string(), Model::new());
-        inner.insert("version".to_string(), Model::new());
+        inner.insert("name".to_string(), CclObject::new());
+        inner.insert("version".to_string(), CclObject::new());
 
-        let model = Model(inner);
+        let model = CclObject(inner);
         assert!(model.get("name").is_ok());
         assert!(model.get("version").is_ok());
         assert!(model.get("nonexistent").is_err());

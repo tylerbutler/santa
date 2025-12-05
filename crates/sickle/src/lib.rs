@@ -63,12 +63,14 @@
 pub mod error;
 pub mod model;
 mod parser;
+pub mod printer;
 
 #[cfg(feature = "serde")]
 pub mod de;
 
 pub use error::{Error, Result};
-pub use model::{Entry, Model};
+pub use model::{CclObject, Entry};
+pub use printer::{CclPrinter, PrinterConfig};
 
 /// Parse a CCL string into a flat list of entries
 ///
@@ -124,7 +126,7 @@ pub fn parse(input: &str) -> Result<Vec<Entry>> {
 /// let model = build_hierarchy(&entries).unwrap();
 /// assert_eq!(model.get_string("name").unwrap(), "MyApp");
 /// ```
-pub fn build_hierarchy(entries: &[Entry]) -> Result<Model> {
+pub fn build_hierarchy(entries: &[Entry]) -> Result<CclObject> {
     // Group entries by key (preserving order with IndexMap)
     let mut map: indexmap::IndexMap<String, Vec<String>> = indexmap::IndexMap::new();
 
@@ -166,7 +168,7 @@ fn is_valid_ccl_key(key: &str) -> bool {
 /// - `key =` (empty value) becomes `{"key": {"": {}}}`
 /// - Multiple values become multiple nested keys
 /// - Nested CCL is recursively parsed
-fn build_model(map: indexmap::IndexMap<String, Vec<String>>) -> Result<Model> {
+fn build_model(map: indexmap::IndexMap<String, Vec<String>>) -> Result<CclObject> {
     let mut result = indexmap::IndexMap::new();
 
     for (key, values) in map {
@@ -203,28 +205,28 @@ fn build_model(map: indexmap::IndexMap<String, Vec<String>>) -> Result<Model> {
                                 }
                             } else {
                                 // Keys don't look like valid CCL, treat as string value
-                                nested.insert(value.clone(), Model::new());
+                                nested.insert(value.clone(), CclObject::new());
                             }
                         } else {
                             // Empty parsed result, treat as string value
-                            nested.insert(value.clone(), Model::new());
+                            nested.insert(value.clone(), CclObject::new());
                         }
                     }
                     Err(_) => {
                         // Failed to parse, treat as string value
-                        nested.insert(value.clone(), Model::new());
+                        nested.insert(value.clone(), CclObject::new());
                     }
                 }
             } else {
                 // Plain string value - becomes a key with empty map
-                nested.insert(value, Model::new());
+                nested.insert(value, CclObject::new());
             }
         }
 
-        result.insert(key, Model::from_map(nested));
+        result.insert(key, CclObject::from_map(nested));
     }
 
-    Ok(Model::from_map(result))
+    Ok(CclObject::from_map(result))
 }
 
 /// Parse a CCL value string with automatic prefix detection
@@ -369,7 +371,7 @@ fn parse_single_entry_with_raw_value(input: &str) -> Result<Vec<Entry>> {
 /// let model = load(ccl).unwrap();
 /// assert_eq!(model.get_string("name").unwrap(), "MyApp");
 /// ```
-pub fn load(input: &str) -> Result<Model> {
+pub fn load(input: &str) -> Result<CclObject> {
     let entries = parse(input)?;
     build_hierarchy(&entries)
 }

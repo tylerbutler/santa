@@ -55,7 +55,7 @@ pub fn parse_to_hashmap(ccl_content: &str) -> Result<HashMap<String, Value>> {
 }
 
 /// Convert a sickle Model to a HashMap<String, Value>
-fn model_to_hashmap(model: &sickle::Model) -> Result<HashMap<String, Value>> {
+fn model_to_hashmap(model: &sickle::CclObject) -> Result<HashMap<String, Value>> {
     let mut result = HashMap::new();
 
     for (key, value) in model.iter() {
@@ -66,7 +66,7 @@ fn model_to_hashmap(model: &sickle::Model) -> Result<HashMap<String, Value>> {
 }
 
 /// Convert a sickle Model to a serde_json Value
-fn model_to_value(model: &sickle::Model) -> Result<Value> {
+fn model_to_value(model: &sickle::CclObject) -> Result<Value> {
     // Fast path for singleton maps
     if model.len() == 1 {
         let (key, value) = model.iter().next().unwrap();
