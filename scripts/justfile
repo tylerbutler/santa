@@ -15,9 +15,25 @@ sync:
 lock:
 	uv lock
 
-# Run the script
+# Run the legacy script
 run:
 	uv run python collect-packages.py
+
+# Collect packages from all sources
+collect-all:
+	uv run python collect_all.py
+
+# Collect from specific source(s)
+collect *sources:
+	uv run python collect_all.py --sources {{sources}}
+
+# Collect from all sources except slow ones (scoop, flathub)
+collect-fast:
+	uv run python collect_all.py --skip scoop flathub
+
+# List available collectors
+collect-list:
+	uv run python collect_all.py --list
 
 # Format code with Ruff
 format:
