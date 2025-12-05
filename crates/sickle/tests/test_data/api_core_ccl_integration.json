@@ -169,7 +169,9 @@
       "variants": []
     },
     {
-      "behaviors": [],
+      "behaviors": [
+        "array_order_insertion"
+      ],
       "expected": {
         "count": 1,
         "object": {
@@ -195,6 +197,63 @@
       "input": "servers =\n  server = web1\n  server = web2\n  server = web3\nports =\n  port = 80\n  port = 443",
       "name": "complete_lists_workflow_build_hierarchy",
       "source_test": "complete_lists_workflow",
+      "validation": "build_hierarchy",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 2,
+        "entries": [
+          {
+            "key": "servers",
+            "value": "\n  server = web1\n  server = web2\n  server = web3"
+          },
+          {
+            "key": "ports",
+            "value": "\n  port = 80\n  port = 443"
+          }
+        ]
+      },
+      "features": [],
+      "functions": [
+        "parse"
+      ],
+      "input": "servers =\n  server = web1\n  server = web2\n  server = web3\nports =\n  port = 80\n  port = 443",
+      "name": "complete_lists_workflow_lexicographic_parse",
+      "source_test": "complete_lists_workflow_lexicographic",
+      "validation": "parse",
+      "variants": []
+    },
+    {
+      "behaviors": [
+        "array_order_lexicographic"
+      ],
+      "expected": {
+        "count": 1,
+        "object": {
+          "ports": {
+            "port": [
+              "443",
+              "80"
+            ]
+          },
+          "servers": {
+            "server": [
+              "web1",
+              "web2",
+              "web3"
+            ]
+          }
+        }
+      },
+      "features": [],
+      "functions": [
+        "build_hierarchy"
+      ],
+      "input": "servers =\n  server = web1\n  server = web2\n  server = web3\nports =\n  port = 80\n  port = 443",
+      "name": "complete_lists_workflow_lexicographic_build_hierarchy",
+      "source_test": "complete_lists_workflow_lexicographic",
       "validation": "build_hierarchy",
       "variants": []
     },

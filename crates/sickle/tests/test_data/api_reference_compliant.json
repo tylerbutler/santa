@@ -2,9 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "tests": [
     {
-      "behaviors": [
-        "list_coercion_disabled"
-      ],
+      "behaviors": [],
       "expected": {
         "count": 1,
         "entries": [
@@ -27,9 +25,7 @@
       ]
     },
     {
-      "behaviors": [
-        "list_coercion_disabled"
-      ],
+      "behaviors": [],
       "expected": {
         "count": 1,
         "object": {
@@ -71,9 +67,7 @@
       ]
     },
     {
-      "behaviors": [
-        "list_coercion_disabled"
-      ],
+      "behaviors": [],
       "expected": {
         "count": 3,
         "entries": [
@@ -99,13 +93,11 @@
       "name": "mixed_duplicate_single_keys_reference_parse",
       "source_test": "mixed_duplicate_single_keys_reference",
       "validation": "parse",
-      "variants": [
-        "reference_compliant"
-      ]
+      "variants": []
     },
     {
       "behaviors": [
-        "list_coercion_disabled"
+        "array_order_lexicographic"
       ],
       "expected": {
         "count": 1,
@@ -125,16 +117,15 @@
       "name": "mixed_duplicate_single_keys_reference_build_hierarchy",
       "source_test": "mixed_duplicate_single_keys_reference",
       "validation": "build_hierarchy",
-      "variants": [
-        "reference_compliant"
-      ]
+      "variants": []
     },
     {
       "args": [
         "host"
       ],
       "behaviors": [
-        "list_coercion_disabled"
+        "list_coercion_disabled",
+        "array_order_lexicographic"
       ],
       "expected": {
         "count": 0
@@ -147,14 +138,10 @@
       "name": "mixed_duplicate_single_keys_reference_get_list",
       "source_test": "mixed_duplicate_single_keys_reference",
       "validation": "get_list",
-      "variants": [
-        "reference_compliant"
-      ]
+      "variants": []
     },
     {
-      "behaviors": [
-        "list_coercion_disabled"
-      ],
+      "behaviors": [],
       "expected": {
         "count": 1,
         "entries": [
@@ -177,9 +164,7 @@
       ]
     },
     {
-      "behaviors": [
-        "list_coercion_disabled"
-      ],
+      "behaviors": [],
       "expected": {
         "count": 1,
         "object": {
@@ -321,20 +306,20 @@
       "name": "list_with_numbers_reference_parse",
       "source_test": "list_with_numbers_reference",
       "validation": "parse",
-      "variants": [
-        "reference_compliant"
-      ]
+      "variants": []
     },
     {
-      "behaviors": [],
+      "behaviors": [
+        "array_order_lexicographic"
+      ],
       "expected": {
         "count": 1,
         "object": {
           "numbers": [
-            "1",
-            "42",
             "-17",
-            "0"
+            "0",
+            "1",
+            "42"
           ]
         }
       },
@@ -346,15 +331,16 @@
       "name": "list_with_numbers_reference_build_hierarchy",
       "source_test": "list_with_numbers_reference",
       "validation": "build_hierarchy",
-      "variants": [
-        "reference_compliant"
-      ]
+      "variants": []
     },
     {
       "args": [
         "numbers"
       ],
-      "behaviors": [],
+      "behaviors": [
+        "list_coercion_disabled",
+        "array_order_lexicographic"
+      ],
       "expected": {
         "count": 0
       },
@@ -366,9 +352,7 @@
       "name": "list_with_numbers_reference_get_list",
       "source_test": "list_with_numbers_reference",
       "validation": "get_list",
-      "variants": [
-        "reference_compliant"
-      ]
+      "variants": []
     },
     {
       "behaviors": [],
@@ -401,20 +385,20 @@
       "name": "list_with_booleans_reference_parse",
       "source_test": "list_with_booleans_reference",
       "validation": "parse",
-      "variants": [
-        "reference_compliant"
-      ]
+      "variants": []
     },
     {
-      "behaviors": [],
+      "behaviors": [
+        "array_order_lexicographic"
+      ],
       "expected": {
         "count": 1,
         "object": {
           "flags": [
-            "true",
             "false",
-            "yes",
-            "no"
+            "no",
+            "true",
+            "yes"
           ]
         }
       },
@@ -426,15 +410,16 @@
       "name": "list_with_booleans_reference_build_hierarchy",
       "source_test": "list_with_booleans_reference",
       "validation": "build_hierarchy",
-      "variants": [
-        "reference_compliant"
-      ]
+      "variants": []
     },
     {
       "args": [
         "flags"
       ],
-      "behaviors": [],
+      "behaviors": [
+        "list_coercion_disabled",
+        "array_order_lexicographic"
+      ],
       "expected": {
         "count": 0
       },
@@ -446,9 +431,7 @@
       "name": "list_with_booleans_reference_get_list",
       "source_test": "list_with_booleans_reference",
       "validation": "get_list",
-      "variants": [
-        "reference_compliant"
-      ]
+      "variants": []
     },
     {
       "behaviors": [],
@@ -483,18 +466,18 @@
       "name": "list_with_whitespace_reference_parse",
       "source_test": "list_with_whitespace_reference",
       "validation": "parse",
-      "variants": [
-        "reference_compliant"
-      ]
+      "variants": []
     },
     {
-      "behaviors": [],
+      "behaviors": [
+        "array_order_lexicographic"
+      ],
       "expected": {
         "count": 1,
         "object": {
           "items": [
-            "spaced",
-            "normal"
+            "normal",
+            "spaced"
           ]
         }
       },
@@ -508,15 +491,16 @@
       "name": "list_with_whitespace_reference_build_hierarchy",
       "source_test": "list_with_whitespace_reference",
       "validation": "build_hierarchy",
-      "variants": [
-        "reference_compliant"
-      ]
+      "variants": []
     },
     {
       "args": [
         "items"
       ],
-      "behaviors": [],
+      "behaviors": [
+        "list_coercion_disabled",
+        "array_order_lexicographic"
+      ],
       "expected": {
         "count": 0
       },
@@ -530,9 +514,7 @@
       "name": "list_with_whitespace_reference_get_list",
       "source_test": "list_with_whitespace_reference",
       "validation": "get_list",
-      "variants": [
-        "reference_compliant"
-      ]
+      "variants": []
     },
     {
       "behaviors": [],
@@ -553,12 +535,12 @@
       "name": "deeply_nested_list_reference_parse",
       "source_test": "deeply_nested_list_reference",
       "validation": "parse",
-      "variants": [
-        "reference_compliant"
-      ]
+      "variants": []
     },
     {
-      "behaviors": [],
+      "behaviors": [
+        "array_order_lexicographic"
+      ],
       "expected": {
         "count": 1,
         "object": {
@@ -566,9 +548,9 @@
             "environments": {
               "production": {
                 "servers": [
+                  "api1",
                   "web1",
-                  "web2",
-                  "api1"
+                  "web2"
                 ]
               }
             }
@@ -583,9 +565,7 @@
       "name": "deeply_nested_list_reference_build_hierarchy",
       "source_test": "deeply_nested_list_reference",
       "validation": "build_hierarchy",
-      "variants": [
-        "reference_compliant"
-      ]
+      "variants": []
     },
     {
       "args": [
@@ -594,7 +574,10 @@
         "production",
         "servers"
       ],
-      "behaviors": [],
+      "behaviors": [
+        "list_coercion_disabled",
+        "array_order_lexicographic"
+      ],
       "expected": {
         "count": 0
       },
@@ -606,9 +589,7 @@
       "name": "deeply_nested_list_reference_get_list",
       "source_test": "deeply_nested_list_reference",
       "validation": "get_list",
-      "variants": [
-        "reference_compliant"
-      ]
+      "variants": []
     },
     {
       "behaviors": [],
@@ -643,20 +624,20 @@
       "name": "list_with_unicode_reference_parse",
       "source_test": "list_with_unicode_reference",
       "validation": "parse",
-      "variants": [
-        "reference_compliant"
-      ]
+      "variants": []
     },
     {
-      "behaviors": [],
+      "behaviors": [
+        "array_order_lexicographic"
+      ],
       "expected": {
         "count": 1,
         "object": {
           "names": [
-            "张三",
-            "José",
             "François",
-            "العربية"
+            "José",
+            "العربية",
+            "张三"
           ]
         }
       },
@@ -670,15 +651,16 @@
       "name": "list_with_unicode_reference_build_hierarchy",
       "source_test": "list_with_unicode_reference",
       "validation": "build_hierarchy",
-      "variants": [
-        "reference_compliant"
-      ]
+      "variants": []
     },
     {
       "args": [
         "names"
       ],
-      "behaviors": [],
+      "behaviors": [
+        "list_coercion_disabled",
+        "array_order_lexicographic"
+      ],
       "expected": {
         "count": 0
       },
@@ -692,9 +674,7 @@
       "name": "list_with_unicode_reference_get_list",
       "source_test": "list_with_unicode_reference",
       "validation": "get_list",
-      "variants": [
-        "reference_compliant"
-      ]
+      "variants": []
     },
     {
       "behaviors": [],
@@ -723,18 +703,18 @@
       "name": "list_with_special_characters_reference_parse",
       "source_test": "list_with_special_characters_reference",
       "validation": "parse",
-      "variants": [
-        "reference_compliant"
-      ]
+      "variants": []
     },
     {
-      "behaviors": [],
+      "behaviors": [
+        "array_order_lexicographic"
+      ],
       "expected": {
         "count": 1,
         "object": {
           "symbols": [
-            "@#$%",
             "!^\u0026*()",
+            "@#$%",
             "[]{}|"
           ]
         }
@@ -747,15 +727,16 @@
       "name": "list_with_special_characters_reference_build_hierarchy",
       "source_test": "list_with_special_characters_reference",
       "validation": "build_hierarchy",
-      "variants": [
-        "reference_compliant"
-      ]
+      "variants": []
     },
     {
       "args": [
         "symbols"
       ],
-      "behaviors": [],
+      "behaviors": [
+        "list_coercion_disabled",
+        "array_order_lexicographic"
+      ],
       "expected": {
         "count": 0
       },
@@ -767,13 +748,11 @@
       "name": "list_with_special_characters_reference_get_list",
       "source_test": "list_with_special_characters_reference",
       "validation": "get_list",
-      "variants": [
-        "reference_compliant"
-      ]
+      "variants": []
     },
     {
       "behaviors": [
-        "list_coercion_disabled"
+        "array_order_lexicographic"
       ],
       "expected": {
         "count": 1,
@@ -788,8 +767,8 @@
               "port": "5432"
             },
             "servers": [
-              "web2",
-              "web1"
+              "web1",
+              "web2"
             ]
           },
           "features": [
@@ -807,16 +786,15 @@
       "name": "complex_mixed_list_scenarios_reference_build_hierarchy",
       "source_test": "complex_mixed_list_scenarios_reference",
       "validation": "build_hierarchy",
-      "variants": [
-        "reference_compliant"
-      ]
+      "variants": []
     },
     {
       "args": [
         "features"
       ],
       "behaviors": [
-        "list_coercion_disabled"
+        "list_coercion_disabled",
+        "array_order_lexicographic"
       ],
       "expected": {
         "count": 0
@@ -829,14 +807,10 @@
       "name": "complex_mixed_list_scenarios_reference_get_list",
       "source_test": "complex_mixed_list_scenarios_reference",
       "validation": "get_list",
-      "variants": [
-        "reference_compliant"
-      ]
+      "variants": []
     },
     {
-      "behaviors": [
-        "list_coercion_disabled"
-      ],
+      "behaviors": [],
       "expected": {
         "count": 1,
         "entries": [
@@ -859,9 +833,7 @@
       ]
     },
     {
-      "behaviors": [
-        "list_coercion_disabled"
-      ],
+      "behaviors": [],
       "expected": {
         "count": 1,
         "object": {
@@ -1053,9 +1025,7 @@
       ]
     },
     {
-      "behaviors": [
-        "strict_spacing"
-      ],
+      "behaviors": [],
       "expected": {
         "count": 1,
         "value": "key1 =\n  value1 =\nkey2 =\n  value2 =\nkey3 =\n  value3 =\n"

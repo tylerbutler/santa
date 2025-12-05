@@ -3,15 +3,15 @@
 mod common;
 
 use common::{load_all_test_suites, ImplementationConfig, TestSuite};
-use sickle::{build_hierarchy, load, parse, parse_indented};
+use sickle::{build_hierarchy, load, parse, parse_indented, CclPrinter};
 use std::path::Path;
 
 /// Helper to navigate nested paths in a Model (e.g., ["config", "database", "port"])
 fn navigate_path<'a>(
-    model: &'a sickle::Model,
+    model: &'a sickle::CclObject,
     path: &[String],
     test_name: &str,
-) -> Result<&'a sickle::Model, String> {
+) -> Result<&'a sickle::CclObject, String> {
     let mut current = model;
     for key in path {
         current = current
@@ -23,7 +23,7 @@ fn navigate_path<'a>(
 
 /// Helper function to recursively validate a Model against expected JSON structure
 fn validate_model_against_json(
-    model: &sickle::Model,
+    model: &sickle::CclObject,
     expected: &serde_json::Value,
     test_name: &str,
     path: &str,
@@ -463,11 +463,20 @@ fn test_all_ccl_suites_comprehensive() {
     println!("      Boolean: {}", config.boolean_behavior.as_str());
     println!("      CRLF: {}", config.crlf_behavior.as_str());
     println!(
-        "      List Coercion: {}",
-        config.list_coercion_behavior.as_str()
+        "      List Coercion: {} (runtime configurable)",
+        config
+            .supported_list_coercion_behaviors
+            .iter()
+            .map(|b| b.as_str())
+            .collect::<Vec<_>>()
+            .join(", ")
     );
     println!("      Spacing: {}", config.spacing_behavior.as_str());
-    println!("      Tabs: {}\n", config.tab_behavior.as_str());
+    println!("      Tabs: {}", config.tab_behavior.as_str());
+    println!(
+        "      Array Order: {}\n",
+        config.array_order_behavior.as_str()
+    );
 
     let mut total_passed = 0;
     let mut total_failed = 0;
@@ -823,8 +832,15 @@ fn test_all_ccl_suites_comprehensive() {
                             (&model, test.args.first().unwrap())
                         };
 
-                        // Use the actual get_list() method being tested
-                        let get_list_result = parent_model.get_list(key);
+                        // Use get_list or get_list_coerced based on test behaviors
+                        let get_list_result = if test
+                            .behaviors
+                            .contains(&"list_coercion_enabled".to_string())
+                        {
+                            parent_model.get_list_coerced(key)
+                        } else {
+                            parent_model.get_list(key)
+                        };
 
                         if test.expected.error.is_some() {
                             assert!(
@@ -1025,6 +1041,27 @@ fn test_all_ccl_suites_comprehensive() {
                                 test.name,
                                 expected_float,
                                 actual_float
+                            );
+                        }
+                    }
+                    "canonical_format" => {
+                        // Parse input and convert to canonical format
+                        let model = load(&test.input).unwrap_or_else(|e| {
+                            panic!("Test '{}' failed to load: {}", test.name, e);
+                        });
+
+                        let printer = CclPrinter::new();
+                        let canonical_output = printer.print(&model);
+
+                        if let Some(ref expected_value) = test.expected.value {
+                            let expected_str = expected_value.as_str().unwrap_or_else(|| {
+                                panic!("Test '{}': expected value is not a string", test.name)
+                            });
+
+                            assert_eq!(
+                                canonical_output, expected_str,
+                                "Test '{}': canonical format mismatch",
+                                test.name
                             );
                         }
                     }
