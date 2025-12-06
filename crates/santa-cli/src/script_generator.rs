@@ -392,4 +392,141 @@ mod tests {
         assert!(ps_filename.starts_with("santa_check_"));
         assert!(ps_filename.ends_with(".ps1"));
     }
+
+    #[test]
+    fn test_script_format_template_names() {
+        assert_eq!(ScriptFormat::Shell.install_template_name(), "install.sh");
+        assert_eq!(
+            ScriptFormat::PowerShell.install_template_name(),
+            "install.ps1"
+        );
+        assert_eq!(ScriptFormat::Batch.install_template_name(), "install.bat");
+
+        assert_eq!(ScriptFormat::Shell.check_template_name(), "check.sh");
+        assert_eq!(ScriptFormat::PowerShell.check_template_name(), "check.ps1");
+        assert_eq!(ScriptFormat::Batch.check_template_name(), "check.bat");
+    }
+
+    #[test]
+    fn test_generate_install_script_shell() {
+        let generator = ScriptGenerator::new().unwrap();
+        let packages = vec!["git".to_string(), "curl".to_string()];
+        let script = generator
+            .generate_install_script(&packages, "brew", ScriptFormat::Shell, "homebrew")
+            .unwrap();
+
+        assert!(script.contains("brew"), "Script should contain manager name");
+        assert!(script.contains("git"), "Script should contain package name");
+        assert!(script.contains("curl"), "Script should contain package name");
+    }
+
+    #[test]
+    fn test_generate_install_script_powershell() {
+        let generator = ScriptGenerator::new().unwrap();
+        let packages = vec!["git".to_string()];
+        let script = generator
+            .generate_install_script(&packages, "choco", ScriptFormat::PowerShell, "chocolatey")
+            .unwrap();
+
+        assert!(
+            script.contains("choco"),
+            "Script should contain manager name"
+        );
+        assert!(script.contains("git"), "Script should contain package name");
+    }
+
+    #[test]
+    fn test_generate_check_script_shell() {
+        let generator = ScriptGenerator::new().unwrap();
+        let script = generator
+            .generate_check_script("brew", "brew list", ScriptFormat::Shell, "homebrew")
+            .unwrap();
+
+        assert!(
+            script.contains("brew list"),
+            "Script should contain check command"
+        );
+    }
+
+    #[test]
+    fn test_generate_check_script_powershell() {
+        let generator = ScriptGenerator::new().unwrap();
+        let script = generator
+            .generate_check_script("choco", "choco list", ScriptFormat::PowerShell, "chocolatey")
+            .unwrap();
+
+        assert!(
+            script.contains("choco list"),
+            "Script should contain check command"
+        );
+    }
+
+    #[test]
+    fn test_shell_escape_filter() {
+        // Test that shell escaping works correctly
+        let result = shell_escape_filter("simple".to_string());
+        assert!(!result.is_empty());
+
+        let result_space = shell_escape_filter("with space".to_string());
+        assert!(result_space.contains("with space"));
+    }
+
+    #[test]
+    fn test_powershell_escape_filter() {
+        let result = powershell_escape_filter("simple".to_string());
+        assert_eq!(result, "'simple'");
+
+        let result_quote = powershell_escape_filter("with'quote".to_string());
+        assert_eq!(result_quote, "'with''quote'");
+    }
+
+    #[test]
+    fn test_validate_package_filter_valid() {
+        let result = validate_package_filter("git".to_string());
+        assert!(result.is_ok());
+        assert_eq!(result.unwrap(), "git");
+    }
+
+    #[test]
+    fn test_validate_package_filter_invalid() {
+        let result = validate_package_filter("$(evil)".to_string());
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_script_generator_default() {
+        let generator = ScriptGenerator::default();
+        let packages = vec!["test".to_string()];
+        // Should not panic and should produce valid output
+        let result =
+            generator.generate_install_script(&packages, "brew", ScriptFormat::Shell, "test");
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_generate_install_script_empty_packages() {
+        let generator = ScriptGenerator::new().unwrap();
+        let packages: Vec<String> = vec![];
+        let script = generator
+            .generate_install_script(&packages, "brew", ScriptFormat::Shell, "homebrew")
+            .unwrap();
+
+        // Should still generate a valid script structure
+        assert!(!script.is_empty());
+    }
+
+    #[test]
+    fn test_generate_install_script_includes_metadata() {
+        let generator = ScriptGenerator::new().unwrap();
+        let packages = vec!["git".to_string()];
+        let script = generator
+            .generate_install_script(&packages, "brew", ScriptFormat::Shell, "homebrew")
+            .unwrap();
+
+        // Script should include source name and version info
+        assert!(
+            script.contains("homebrew"),
+            "Script should contain source name"
+        );
+    }
 }
