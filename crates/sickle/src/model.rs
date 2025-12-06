@@ -584,6 +584,7 @@ impl CclObject {
 
     /// Extract the inner IndexMap, consuming the Model
     /// This is internal-only for crate operations
+    #[allow(dead_code)]
     pub(crate) fn into_inner(self) -> CclMap {
         self.0
     }
@@ -593,8 +594,8 @@ impl CclObject {
     #[cfg(feature = "serde-serialize")]
     pub(crate) fn insert_string(&mut self, key: &str, value: String) {
         let mut inner = IndexMap::new();
-        inner.insert(value, CclObject::new());
-        self.0.insert(key.to_string(), CclObject(inner));
+        inner.insert(value, vec![CclObject::new()]);
+        self.0.insert(key.to_string(), vec![CclObject(inner)]);
     }
 
     /// Insert a list of string values at the given key
@@ -603,15 +604,15 @@ impl CclObject {
     pub(crate) fn insert_list(&mut self, key: &str, values: Vec<String>) {
         let mut inner = IndexMap::new();
         for value in values {
-            inner.insert(value, CclObject::new());
+            inner.insert(value, vec![CclObject::new()]);
         }
-        self.0.insert(key.to_string(), CclObject(inner));
+        self.0.insert(key.to_string(), vec![CclObject(inner)]);
     }
 
     /// Insert a nested object at the given key
     #[cfg(feature = "serde-serialize")]
     pub(crate) fn insert_object(&mut self, key: &str, obj: CclObject) {
-        self.0.insert(key.to_string(), obj);
+        self.0.insert(key.to_string(), vec![obj]);
     }
 }
 

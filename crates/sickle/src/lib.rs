@@ -256,7 +256,7 @@ fn build_model(map: indexmap::IndexMap<String, Vec<String>>) -> Result<CclObject
         if !key.is_empty() && nested_values.len() > 1 {
             let all_simple_strings = nested_values.iter().all(|obj| {
                 // A simple string value has exactly one key, and that key maps to empty
-                obj.len() == 1 && obj.iter().next().map_or(false, |(_, v)| v.is_empty())
+                obj.len() == 1 && obj.iter().next().is_some_and(|(_, v)| v.is_empty())
             });
 
             if all_simple_strings {

@@ -343,30 +343,32 @@ impl<'de> de::Deserializer<'de> for &mut Deserializer {
 
         // Check if it's a map with empty keys (list representation)
         if self.model.keys().any(|k| k.is_empty()) {
-            // Special case: if there's only one empty key and its value has entries,
-            // use those entries as the list
-            if self.model.len() == 1 {
-                if let Ok(value) = self.model.get("") {
-                    if !value.is_empty() && value.values().all(|v| v.is_empty()) {
-                        let items: Vec<String> = value.keys().cloned().collect();
-                        let seq = StringSeqDeserializer {
-                            iter: items.into_iter(),
-                        };
-                        return visitor.visit_seq(seq);
-                    }
+            // Get all values for the empty key
+            if let Ok(values) = self.model.get_all("") {
+                // Check if all values are simple string values (each has exactly one key with empty children)
+                let all_simple_strings = values
+                    .iter()
+                    .all(|v| v.len() == 1 && v.values().all(|child| child.is_empty()));
+
+                if all_simple_strings {
+                    // Extract the string values from each entry
+                    let items: Vec<String> = values
+                        .iter()
+                        .filter_map(|v| v.keys().next().cloned())
+                        .collect();
+                    let seq = StringSeqDeserializer {
+                        iter: items.into_iter(),
+                    };
+                    return visitor.visit_seq(seq);
+                } else {
+                    // Not simple strings, return the CclObjects
+                    let list: Vec<crate::CclObject> = values.to_vec();
+                    let seq = ModelSeqDeserializer {
+                        iter: list.into_iter(),
+                    };
+                    return visitor.visit_seq(seq);
                 }
             }
-
-            // Otherwise, extract values with empty keys as a list
-            let list: Vec<crate::CclObject> = self
-                .model
-                .iter()
-                .filter_map(|(k, v)| if k.is_empty() { Some(v.clone()) } else { None })
-                .collect();
-            let seq = ModelSeqDeserializer {
-                iter: list.into_iter(),
-            };
-            return visitor.visit_seq(seq);
         }
 
         Err(DeError::custom("expected a list"))
