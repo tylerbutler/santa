@@ -97,6 +97,7 @@ impl CclObject {
 
     /// Create a Model from an IndexMap
     /// This is internal-only for crate operations
+    #[cfg(feature = "hierarchy")]
     pub(crate) fn from_map(map: IndexMap<String, CclObject>) -> Self {
         CclObject(map)
     }
@@ -124,6 +125,7 @@ impl CclObject {
     }
 
     /// Get the concrete IndexMap iterator for internal use (Serde)
+    #[cfg(feature = "serde-deserialize")]
     pub(crate) fn iter_map(&self) -> indexmap::map::Iter<'_, String, CclObject> {
         self.0.iter()
     }
@@ -358,6 +360,7 @@ impl CclObject {
     ///
     /// Creates the representation `{string: {}}`
     /// This is internal-only for Serde support
+    #[cfg(feature = "serde-deserialize")]
     pub(crate) fn from_string(s: impl Into<String>) -> Self {
         let mut map = IndexMap::new();
         map.insert(s.into(), CclObject::new());
@@ -366,8 +369,35 @@ impl CclObject {
 
     /// Extract the inner IndexMap, consuming the Model
     /// This is internal-only for crate operations
+    #[cfg(feature = "hierarchy")]
     pub(crate) fn into_inner(self) -> IndexMap<String, CclObject> {
         self.0
+    }
+
+    /// Insert a string value at the given key
+    /// Creates the CCL representation: `{key: {value: {}}}`
+    #[cfg(feature = "serde-serialize")]
+    pub(crate) fn insert_string(&mut self, key: &str, value: String) {
+        let mut inner = IndexMap::new();
+        inner.insert(value, CclObject::new());
+        self.0.insert(key.to_string(), CclObject(inner));
+    }
+
+    /// Insert a list of string values at the given key
+    /// Creates the CCL representation: `{key: {item1: {}, item2: {}, ...}}`
+    #[cfg(feature = "serde-serialize")]
+    pub(crate) fn insert_list(&mut self, key: &str, values: Vec<String>) {
+        let mut inner = IndexMap::new();
+        for value in values {
+            inner.insert(value, CclObject::new());
+        }
+        self.0.insert(key.to_string(), CclObject(inner));
+    }
+
+    /// Insert a nested object at the given key
+    #[cfg(feature = "serde-serialize")]
+    pub(crate) fn insert_object(&mut self, key: &str, obj: CclObject) {
+        self.0.insert(key.to_string(), obj);
     }
 }
 
