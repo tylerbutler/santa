@@ -69,7 +69,7 @@ impl Serializer {
 
     /// Get the resulting model after serialization
     pub fn into_model(mut self) -> CclObject {
-        self.stack.pop().unwrap_or_else(CclObject::new)
+        self.stack.pop().unwrap_or_default()
     }
 
     /// Get mutable reference to the current object being built
@@ -214,9 +214,9 @@ impl<'a> ser::Serializer for &'a mut Serializer {
         Ok(())
     }
 
-    fn serialize_some<T: ?Sized>(self, value: &T) -> std::result::Result<(), Self::Error>
+    fn serialize_some<T>(self, value: &T) -> std::result::Result<(), Self::Error>
     where
-        T: Serialize,
+        T: ?Sized + Serialize,
     {
         value.serialize(self)
     }
@@ -239,18 +239,18 @@ impl<'a> ser::Serializer for &'a mut Serializer {
         Ok(())
     }
 
-    fn serialize_newtype_struct<T: ?Sized>(
+    fn serialize_newtype_struct<T>(
         self,
         _name: &'static str,
         value: &T,
     ) -> std::result::Result<(), Self::Error>
     where
-        T: Serialize,
+        T: ?Sized + Serialize,
     {
         value.serialize(self)
     }
 
-    fn serialize_newtype_variant<T: ?Sized>(
+    fn serialize_newtype_variant<T>(
         self,
         _name: &'static str,
         _variant_index: u32,
@@ -258,7 +258,7 @@ impl<'a> ser::Serializer for &'a mut Serializer {
         value: &T,
     ) -> std::result::Result<(), Self::Error>
     where
-        T: Serialize,
+        T: ?Sized + Serialize,
     {
         // Store the variant name as the key
         let key = self.current_key.take();
@@ -368,9 +368,9 @@ impl<'a> ser::SerializeSeq for SeqSerializer<'a> {
     type Ok = ();
     type Error = SerError;
 
-    fn serialize_element<T: ?Sized>(&mut self, value: &T) -> std::result::Result<(), Self::Error>
+    fn serialize_element<T>(&mut self, value: &T) -> std::result::Result<(), Self::Error>
     where
-        T: Serialize,
+        T: ?Sized + Serialize,
     {
         // Serialize the element to a string
         let mut element_ser = Serializer::new();
@@ -399,9 +399,9 @@ impl<'a> ser::SerializeTuple for SeqSerializer<'a> {
     type Ok = ();
     type Error = SerError;
 
-    fn serialize_element<T: ?Sized>(&mut self, value: &T) -> std::result::Result<(), Self::Error>
+    fn serialize_element<T>(&mut self, value: &T) -> std::result::Result<(), Self::Error>
     where
-        T: Serialize,
+        T: ?Sized + Serialize,
     {
         ser::SerializeSeq::serialize_element(self, value)
     }
@@ -415,9 +415,9 @@ impl<'a> ser::SerializeTupleStruct for SeqSerializer<'a> {
     type Ok = ();
     type Error = SerError;
 
-    fn serialize_field<T: ?Sized>(&mut self, value: &T) -> std::result::Result<(), Self::Error>
+    fn serialize_field<T>(&mut self, value: &T) -> std::result::Result<(), Self::Error>
     where
-        T: Serialize,
+        T: ?Sized + Serialize,
     {
         ser::SerializeSeq::serialize_element(self, value)
     }
@@ -431,9 +431,9 @@ impl<'a> ser::SerializeTupleVariant for SeqSerializer<'a> {
     type Ok = ();
     type Error = SerError;
 
-    fn serialize_field<T: ?Sized>(&mut self, value: &T) -> std::result::Result<(), Self::Error>
+    fn serialize_field<T>(&mut self, value: &T) -> std::result::Result<(), Self::Error>
     where
-        T: Serialize,
+        T: ?Sized + Serialize,
     {
         ser::SerializeSeq::serialize_element(self, value)
     }
@@ -454,9 +454,9 @@ impl<'a> ser::SerializeMap for MapSerializer<'a> {
     type Ok = ();
     type Error = SerError;
 
-    fn serialize_key<T: ?Sized>(&mut self, key: &T) -> std::result::Result<(), Self::Error>
+    fn serialize_key<T>(&mut self, key: &T) -> std::result::Result<(), Self::Error>
     where
-        T: Serialize,
+        T: ?Sized + Serialize,
     {
         // Serialize the key to a string
         let mut key_ser = Serializer::new();
@@ -472,9 +472,9 @@ impl<'a> ser::SerializeMap for MapSerializer<'a> {
         Ok(())
     }
 
-    fn serialize_value<T: ?Sized>(&mut self, value: &T) -> std::result::Result<(), Self::Error>
+    fn serialize_value<T>(&mut self, value: &T) -> std::result::Result<(), Self::Error>
     where
-        T: Serialize,
+        T: ?Sized + Serialize,
     {
         value.serialize(&mut *self.ser)
     }
@@ -502,13 +502,13 @@ impl<'a> ser::SerializeStruct for MapSerializer<'a> {
     type Ok = ();
     type Error = SerError;
 
-    fn serialize_field<T: ?Sized>(
+    fn serialize_field<T>(
         &mut self,
         key: &'static str,
         value: &T,
     ) -> std::result::Result<(), Self::Error>
     where
-        T: Serialize,
+        T: ?Sized + Serialize,
     {
         self.ser.current_key = Some(key.to_string());
         value.serialize(&mut *self.ser)
@@ -523,13 +523,13 @@ impl<'a> ser::SerializeStructVariant for MapSerializer<'a> {
     type Ok = ();
     type Error = SerError;
 
-    fn serialize_field<T: ?Sized>(
+    fn serialize_field<T>(
         &mut self,
         key: &'static str,
         value: &T,
     ) -> std::result::Result<(), Self::Error>
     where
-        T: Serialize,
+        T: ?Sized + Serialize,
     {
         ser::SerializeStruct::serialize_field(self, key, value)
     }
