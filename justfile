@@ -456,11 +456,12 @@ record-size:
         echo "Release binary not found. Run 'just build-release' first."
         exit 1
     fi
+    VERSION=$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[] | select(.name == "santa") | .version')
     SIZE=$(stat --format="%s" "$BINARY")
     HUMAN=$(numfmt --to=iec --suffix=B "$SIZE")
     DATE=$(date +%Y-%m-%d)
-    echo "$DATE santa $SIZE $HUMAN" >> metrics/binary-size.txt
-    echo "Recorded: $DATE santa $SIZE ($HUMAN)"
+    echo "$DATE v$VERSION $SIZE $HUMAN" >> metrics/binary-size.txt
+    echo "Recorded: $DATE v$VERSION $SIZE ($HUMAN)"
 
 # Maintenance Commands
 # ===================

@@ -2,4 +2,4 @@
 # Format: date binary size_bytes size_human
 # Updated by: just record-size
 
-2025-12-06 santa 10600184 11MB
+2025-12-06 v0.2.0 10600184 11MB
