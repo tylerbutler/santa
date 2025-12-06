@@ -12,6 +12,7 @@ alias b := build
 alias br := build-release
 alias r := release
 alias t := test
+alias ta := test-all
 alias tf := test-fast
 alias l := lint
 alias f := fix
@@ -89,6 +90,11 @@ test-unit:
 test-integration:
     @echo "🧪 Running integration tests..."
     cargo test --test '*'
+
+# Run tests with all features enabled
+test-all *ARGS='':
+    @echo "🧪 Running tests with all features..."
+    cargo test --all-features {{ARGS}}
 
 # Run tests with coverage reporting (uses nextest for speed)
 test-coverage:
