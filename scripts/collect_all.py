@@ -10,6 +10,7 @@ Usage:
 
 import argparse
 import sys
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
 # Add scripts directory to path for imports
@@ -106,12 +107,10 @@ Examples:
         print("No sources selected to run")
         return 1
 
-    print(f"Running collectors: {', '.join(sources_to_run)}\n")
+    print(f"Running collectors in parallel: {', '.join(sources_to_run)}\n")
 
-    total_packages = 0
-    results = {}
-
-    for source_name in sources_to_run:
+    def run_collector(source_name: str) -> tuple[str, dict]:
+        """Run a single collector and return results."""
         collector_class = COLLECTORS[source_name]
         collector = collector_class()
 
@@ -123,22 +122,30 @@ Examples:
         else:
             limit = args.limit
 
-        print(f"\n{'='*60}")
-        print(f"Collecting from: {source_name}")
-        print(f"{'='*60}")
-
         try:
             packages, output_path = collector.run(limit=limit)
-            results[source_name] = {
+            return source_name, {
                 "count": len(packages),
                 "output": str(output_path),
                 "errors": collector.errors,
             }
-            total_packages += len(packages)
-            print(f"Saved to: {output_path}")
         except Exception as e:
-            print(f"ERROR: {e}")
-            results[source_name] = {"count": 0, "output": None, "errors": [str(e)]}
+            return source_name, {"count": 0, "output": None, "errors": [str(e)]}
+
+    results = {}
+    total_packages = 0
+
+    with ThreadPoolExecutor(max_workers=len(sources_to_run)) as executor:
+        futures = {
+            executor.submit(run_collector, name): name for name in sources_to_run
+        }
+
+        for future in as_completed(futures):
+            source_name, result = future.result()
+            results[source_name] = result
+            total_packages += result["count"]
+            status = "OK" if result["count"] > 0 else "FAILED"
+            print(f"  {source_name}: {result['count']} packages [{status}]")
 
     # Print summary
     print(f"\n{'='*60}")

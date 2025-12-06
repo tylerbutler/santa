@@ -6,7 +6,7 @@ Uses the pkgstats.archlinux.de API to get packages sorted by usage popularity.
 from datetime import date
 from typing import Optional
 
-from collectors.base import BaseCollector, RateLimiter
+from collectors.base import BaseCollector
 from models import Package
 
 
@@ -22,11 +22,6 @@ class ArchCollector(BaseCollector):
     # pkgstats API endpoint
     API_URL = "https://pkgstats.archlinux.de/api/packages"
 
-    def __init__(self):
-        super().__init__()
-        # Be respectful of the API
-        self.rate_limiter = RateLimiter(requests_per_hour=120)
-
     def collect(self, limit: Optional[int] = 200) -> list[Package]:
         """Collect top packages from Arch Linux official repositories.
 
@@ -34,7 +29,7 @@ class ArchCollector(BaseCollector):
         actual installation statistics from contributing users.
 
         Args:
-            limit: Maximum number of packages to collect. Defaults to 500.
+            limit: Maximum number of packages to collect. Defaults to 200.
 
         Returns:
             List of Package objects with popularity data.
@@ -43,10 +38,9 @@ class ArchCollector(BaseCollector):
 
         packages = []
         offset = 0
-        batch_size = 100  # API default limit
+        batch_size = 500  # API supports up to 500 per request
 
         while len(packages) < (limit or float("inf")):
-            self.rate_limiter.wait()
 
             try:
                 response = self.session.get(
