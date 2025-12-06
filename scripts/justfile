@@ -44,7 +44,7 @@ verify limit="500":
 	uv run python verify_packages.py --limit {{limit}}
 
 # Generate CCL output from verified packages
-generate-ccl min_sources="2":
+generate-ccl min_sources="1":
 	uv run python generate_ccl.py --min-sources {{min_sources}}
 
 # Full pipeline: collect -> crossref -> verify -> generate
@@ -52,7 +52,7 @@ pipeline:
 	uv run python collect_all.py
 	uv run python crossref_packages.py --top 500
 	uv run python verify_packages.py --limit 500
-	uv run python generate_ccl.py --min-sources 1
+	uv run python generate_ccl.py --min-sources 1 --write
 
 # Format code with Ruff
 format:
