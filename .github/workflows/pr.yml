@@ -99,11 +99,20 @@ jobs:
         with:
           tools: just,cargo-semver-checks
 
+      - name: Get merge base
+        id: merge-base
+        run: |
+          # Find the merge base between this PR and main
+          MERGE_BASE=$(git merge-base origin/main HEAD)
+          echo "sha=$MERGE_BASE" >> "$GITHUB_OUTPUT"
+          echo "Comparing against merge base: $MERGE_BASE"
+
       - name: Check semver compatibility
         id: semver
         run: |
           set +e
-          OUTPUT=$(cargo semver-checks 2>&1)
+          # Compare against the merge base with main, not the last published version
+          OUTPUT=$(cargo semver-checks --baseline-rev ${{ steps.merge-base.outputs.sha }} 2>&1)
           EXIT_CODE=$?
           echo "$OUTPUT"
           # Save output for comment (escape for multiline)
@@ -124,7 +133,7 @@ jobs:
           message: |
             ## ⚠️ Semver Breaking Changes Detected
 
-            This PR contains API changes that may be semver-incompatible:
+            This PR introduces API changes that may be semver-incompatible (compared to main branch):
 
             ```
             ${{ steps.semver.outputs.output }}
