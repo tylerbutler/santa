@@ -10,7 +10,7 @@
 use anyhow::{Context, Result};
 use std::collections::HashMap;
 use std::fs;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use tracing::{debug, info};
 
 use crate::data::schemas::{PackageDefinition, SourceDefinition, SourcesDefinition};
@@ -89,12 +89,17 @@ impl DataLayerManager {
         Self { config_dir }
     }
 
+    /// Returns the config directory path
+    pub fn config_dir(&self) -> &Path {
+        &self.config_dir
+    }
+
     /// Create a DataLayerManager using the default config directory
+    /// Uses ~/.config/santa/ to match where the config file is stored
     pub fn with_default_config_dir() -> Result<Self> {
-        let config_dir = directories::ProjectDirs::from("com", "tylerbutler", "santa")
-            .context("Failed to determine config directory")?
-            .config_dir()
-            .to_path_buf();
+        let base_dirs =
+            directories::BaseDirs::new().context("Failed to determine base directories")?;
+        let config_dir = base_dirs.home_dir().join(".config/santa");
         Ok(Self::new(config_dir))
     }
 
@@ -1025,5 +1030,27 @@ downloaded-only-pkg =
         let mut sorted_names = names.clone();
         sorted_names.sort();
         assert_eq!(names, sorted_names);
+    }
+
+    #[test]
+    fn test_config_dir_returns_correct_path() {
+        let temp_dir = TempDir::new().unwrap();
+        let expected_path = temp_dir.path().to_path_buf();
+        let manager = DataLayerManager::new(expected_path.clone());
+
+        assert_eq!(manager.config_dir(), expected_path.as_path());
+    }
+
+    #[test]
+    fn test_config_dir_is_parent_of_downloaded_paths() {
+        let temp_dir = TempDir::new().unwrap();
+        let manager = DataLayerManager::new(temp_dir.path().to_path_buf());
+
+        let config_dir = manager.config_dir();
+        let sources_path = manager.downloaded_sources_path();
+        let packages_path = manager.downloaded_packages_path();
+
+        assert_eq!(sources_path.parent().unwrap(), config_dir);
+        assert_eq!(packages_path.parent().unwrap(), config_dir);
     }
 }

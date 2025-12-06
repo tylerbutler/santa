@@ -565,8 +565,6 @@ impl CclObject {
         }
     }
 
-    /// Create a Model from a string value
-    ///
     /// Create a CclObject representing a string value
     ///
     /// In CCL, a string is represented as a map with a single key (the string)
@@ -590,6 +588,32 @@ impl CclObject {
     /// This is internal-only for crate operations
     pub(crate) fn into_inner(self) -> CclMap {
         self.0
+    }
+
+    /// Insert a string value at the given key
+    /// Creates the CCL representation: `{key: {value: {}}}`
+    #[cfg(feature = "serde-serialize")]
+    pub(crate) fn insert_string(&mut self, key: &str, value: String) {
+        let mut inner = IndexMap::new();
+        inner.insert(value, CclObject::new());
+        self.0.insert(key.to_string(), CclObject(inner));
+    }
+
+    /// Insert a list of string values at the given key
+    /// Creates the CCL representation: `{key: {item1: {}, item2: {}, ...}}`
+    #[cfg(feature = "serde-serialize")]
+    pub(crate) fn insert_list(&mut self, key: &str, values: Vec<String>) {
+        let mut inner = IndexMap::new();
+        for value in values {
+            inner.insert(value, CclObject::new());
+        }
+        self.0.insert(key.to_string(), CclObject(inner));
+    }
+
+    /// Insert a nested object at the given key
+    #[cfg(feature = "serde-serialize")]
+    pub(crate) fn insert_object(&mut self, key: &str, obj: CclObject) {
+        self.0.insert(key.to_string(), obj);
     }
 }
 
