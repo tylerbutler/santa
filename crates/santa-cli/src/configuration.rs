@@ -397,4 +397,245 @@ packages =
         let _config = SantaConfig::default_for_platform();
         // If we get here, the test passed
     }
+
+    // ============= UnknownPackageReason and unknown_packages() Tests =============
+
+    #[test]
+    fn test_unknown_package_reason_no_definition() {
+        let reason = UnknownPackageReason::NoDefinition;
+        assert_eq!(reason, UnknownPackageReason::NoDefinition);
+
+        // Test Debug trait
+        let debug_str = format!("{:?}", reason);
+        assert!(debug_str.contains("NoDefinition"));
+    }
+
+    #[test]
+    fn test_unknown_package_reason_no_matching_source() {
+        let sources = vec![KnownSources::Brew, KnownSources::Cargo];
+        let reason = UnknownPackageReason::NoMatchingSource(sources.clone());
+
+        match reason {
+            UnknownPackageReason::NoMatchingSource(available) => {
+                assert_eq!(available.len(), 2);
+                assert!(available.contains(&KnownSources::Brew));
+                assert!(available.contains(&KnownSources::Cargo));
+            }
+            _ => panic!("Expected NoMatchingSource variant"),
+        }
+    }
+
+    #[test]
+    fn test_unknown_package_reason_clone() {
+        let reason1 = UnknownPackageReason::NoDefinition;
+        let reason2 = reason1.clone();
+        assert_eq!(reason1, reason2);
+
+        let reason3 = UnknownPackageReason::NoMatchingSource(vec![KnownSources::Npm]);
+        let reason4 = reason3.clone();
+        assert_eq!(reason3, reason4);
+    }
+
+    #[test]
+    fn test_unknown_packages_empty_when_all_valid() {
+        use crate::data::SantaData;
+
+        // Create minimal SantaData with a package that has brew source
+        // PackageDataList = HashMap<String, HashMap<KnownSources, Option<PackageData>>>
+        let mut packages = std::collections::HashMap::new();
+        let mut git_sources = std::collections::HashMap::new();
+        git_sources.insert(KnownSources::Brew, None); // None means use default package name
+        packages.insert("git".to_string(), git_sources);
+
+        let data = SantaData {
+            packages,
+            sources: vec![],
+        };
+
+        let config = SantaConfig {
+            sources: vec![KnownSources::Brew],
+            packages: vec!["git".to_string()],
+            custom_sources: None,
+            _groups: None,
+            log_level: 0,
+        };
+
+        let unknown = config.unknown_packages(&data);
+        assert!(unknown.is_empty(), "All packages should be valid");
+    }
+
+    #[test]
+    fn test_unknown_packages_no_definition() {
+        use crate::data::SantaData;
+
+        // Empty package database
+        let data = SantaData {
+            packages: std::collections::HashMap::new(),
+            sources: vec![],
+        };
+
+        let config = SantaConfig {
+            sources: vec![KnownSources::Brew],
+            packages: vec!["nonexistent-package".to_string()],
+            custom_sources: None,
+            _groups: None,
+            log_level: 0,
+        };
+
+        let unknown = config.unknown_packages(&data);
+        assert_eq!(unknown.len(), 1);
+        assert_eq!(unknown[0].0, "nonexistent-package");
+        assert_eq!(unknown[0].1, UnknownPackageReason::NoDefinition);
+    }
+
+    #[test]
+    fn test_unknown_packages_no_matching_source() {
+        use crate::data::SantaData;
+
+        // Package exists but only for cargo, not brew
+        let mut packages = std::collections::HashMap::new();
+        let mut ripgrep_sources = std::collections::HashMap::new();
+        ripgrep_sources.insert(KnownSources::Cargo, None);
+        packages.insert("ripgrep".to_string(), ripgrep_sources);
+
+        let data = SantaData {
+            packages,
+            sources: vec![],
+        };
+
+        // Config only has brew as source
+        let config = SantaConfig {
+            sources: vec![KnownSources::Brew],
+            packages: vec!["ripgrep".to_string()],
+            custom_sources: None,
+            _groups: None,
+            log_level: 0,
+        };
+
+        let unknown = config.unknown_packages(&data);
+        assert_eq!(unknown.len(), 1);
+        assert_eq!(unknown[0].0, "ripgrep");
+
+        match &unknown[0].1 {
+            UnknownPackageReason::NoMatchingSource(available) => {
+                assert_eq!(available.len(), 1);
+                assert!(available.contains(&KnownSources::Cargo));
+            }
+            _ => panic!("Expected NoMatchingSource variant"),
+        }
+    }
+
+    #[test]
+    fn test_unknown_packages_mixed_results() {
+        use crate::data::SantaData;
+
+        let mut packages = std::collections::HashMap::new();
+
+        // git is available in brew
+        let mut git_sources = std::collections::HashMap::new();
+        git_sources.insert(KnownSources::Brew, None);
+        packages.insert("git".to_string(), git_sources);
+
+        // ripgrep only in cargo
+        let mut ripgrep_sources = std::collections::HashMap::new();
+        ripgrep_sources.insert(KnownSources::Cargo, None);
+        packages.insert("ripgrep".to_string(), ripgrep_sources);
+
+        let data = SantaData {
+            packages,
+            sources: vec![],
+        };
+
+        let config = SantaConfig {
+            sources: vec![KnownSources::Brew],
+            packages: vec![
+                "git".to_string(),
+                "ripgrep".to_string(),
+                "unknown-pkg".to_string(),
+            ],
+            custom_sources: None,
+            _groups: None,
+            log_level: 0,
+        };
+
+        let unknown = config.unknown_packages(&data);
+        assert_eq!(unknown.len(), 2);
+
+        // Find the specific entries
+        let ripgrep_entry = unknown.iter().find(|(name, _)| name == "ripgrep");
+        let unknown_entry = unknown.iter().find(|(name, _)| name == "unknown-pkg");
+
+        assert!(ripgrep_entry.is_some());
+        assert!(unknown_entry.is_some());
+
+        match &ripgrep_entry.unwrap().1 {
+            UnknownPackageReason::NoMatchingSource(_) => {}
+            _ => panic!("ripgrep should have NoMatchingSource"),
+        }
+
+        match &unknown_entry.unwrap().1 {
+            UnknownPackageReason::NoDefinition => {}
+            _ => panic!("unknown-pkg should have NoDefinition"),
+        }
+    }
+
+    #[test]
+    fn test_unknown_packages_with_multiple_sources() {
+        use crate::data::SantaData;
+
+        let mut packages = std::collections::HashMap::new();
+
+        // bat available in both brew and cargo
+        let mut bat_sources = std::collections::HashMap::new();
+        bat_sources.insert(KnownSources::Brew, None);
+        bat_sources.insert(KnownSources::Cargo, None);
+        packages.insert("bat".to_string(), bat_sources);
+
+        let data = SantaData {
+            packages,
+            sources: vec![],
+        };
+
+        // Config has npm which bat doesn't support
+        let config = SantaConfig {
+            sources: vec![KnownSources::Npm],
+            packages: vec!["bat".to_string()],
+            custom_sources: None,
+            _groups: None,
+            log_level: 0,
+        };
+
+        let unknown = config.unknown_packages(&data);
+        assert_eq!(unknown.len(), 1);
+
+        match &unknown[0].1 {
+            UnknownPackageReason::NoMatchingSource(available) => {
+                assert_eq!(available.len(), 2);
+                assert!(available.contains(&KnownSources::Brew));
+                assert!(available.contains(&KnownSources::Cargo));
+            }
+            _ => panic!("Expected NoMatchingSource"),
+        }
+    }
+
+    #[test]
+    fn test_unknown_packages_empty_config() {
+        use crate::data::SantaData;
+
+        let data = SantaData {
+            packages: std::collections::HashMap::new(),
+            sources: vec![],
+        };
+
+        let config = SantaConfig {
+            sources: vec![KnownSources::Brew],
+            packages: vec![],
+            custom_sources: None,
+            _groups: None,
+            log_level: 0,
+        };
+
+        let unknown = config.unknown_packages(&data);
+        assert!(unknown.is_empty());
+    }
 }

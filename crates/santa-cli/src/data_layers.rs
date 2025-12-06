@@ -1031,4 +1031,26 @@ downloaded-only-pkg =
         sorted_names.sort();
         assert_eq!(names, sorted_names);
     }
+
+    #[test]
+    fn test_config_dir_returns_correct_path() {
+        let temp_dir = TempDir::new().unwrap();
+        let expected_path = temp_dir.path().to_path_buf();
+        let manager = DataLayerManager::new(expected_path.clone());
+
+        assert_eq!(manager.config_dir(), expected_path.as_path());
+    }
+
+    #[test]
+    fn test_config_dir_is_parent_of_downloaded_paths() {
+        let temp_dir = TempDir::new().unwrap();
+        let manager = DataLayerManager::new(temp_dir.path().to_path_buf());
+
+        let config_dir = manager.config_dir();
+        let sources_path = manager.downloaded_sources_path();
+        let packages_path = manager.downloaded_packages_path();
+
+        assert_eq!(sources_path.parent().unwrap(), config_dir);
+        assert_eq!(packages_path.parent().unwrap(), config_dir);
+    }
 }
