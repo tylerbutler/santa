@@ -7,6 +7,8 @@
 
 export RUST_BACKTRACE := "1"
 
+set windows-shell := ["powershell.exe", "-NoLogo", "-Command"]
+
 # Common aliases for faster development
 alias b := build
 alias br := build-release
@@ -428,6 +430,31 @@ ci-windows:
     @echo "🪟 Running Windows CI simulation..."
     cargo test --target x86_64-pc-windows-gnu
     cargo build --release --target x86_64-pc-windows-gnu
+
+# Binary Size Analysis Commands
+# =============================
+
+# Run cargo-bloated on santa and sickle, save to metrics/ (Linux only)
+[linux]
+bloat:
+    cargo bloated -p santa --output crates | tee metrics/bloat.txt
+    cargo bloated --lib -p sickle --all-features --output crates | tee metrics/bloat-sickle.txt
+
+# Record release binary size to metrics/binary-size.txt
+[linux]
+record-size:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    BINARY="target/release/santa"
+    if [ ! -f "$BINARY" ]; then
+        echo "Release binary not found. Run 'just build-release' first."
+        exit 1
+    fi
+    SIZE=$(stat --format="%s" "$BINARY")
+    HUMAN=$(numfmt --to=iec --suffix=B "$SIZE")
+    DATE=$(date +%Y-%m-%d)
+    echo "$DATE santa $SIZE $HUMAN" >> metrics/binary-size.txt
+    echo "Recorded: $DATE santa $SIZE ($HUMAN)"
 
 # Maintenance Commands
 # ===================
