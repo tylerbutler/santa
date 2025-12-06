@@ -415,9 +415,15 @@ mod tests {
             .generate_install_script(&packages, "brew", ScriptFormat::Shell, "homebrew")
             .unwrap();
 
-        assert!(script.contains("brew"), "Script should contain manager name");
+        assert!(
+            script.contains("brew"),
+            "Script should contain manager name"
+        );
         assert!(script.contains("git"), "Script should contain package name");
-        assert!(script.contains("curl"), "Script should contain package name");
+        assert!(
+            script.contains("curl"),
+            "Script should contain package name"
+        );
     }
 
     #[test]
@@ -452,7 +458,12 @@ mod tests {
     fn test_generate_check_script_powershell() {
         let generator = ScriptGenerator::new().unwrap();
         let script = generator
-            .generate_check_script("choco", "choco list", ScriptFormat::PowerShell, "chocolatey")
+            .generate_check_script(
+                "choco",
+                "choco list",
+                ScriptFormat::PowerShell,
+                "chocolatey",
+            )
             .unwrap();
 
         assert!(
