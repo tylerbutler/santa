@@ -52,7 +52,7 @@ pipeline:
 	uv run python collect_all.py --skip scoop flathub
 	uv run python crossref_packages.py --top 150
 	uv run python verify_packages.py --limit 100
-	uv run python generate_ccl.py --min-sources 2
+	uv run python generate_ccl.py --min-sources 1
 
 # Format code with Ruff
 format:
