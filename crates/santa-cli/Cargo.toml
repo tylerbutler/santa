@@ -12,6 +12,7 @@ categories.workspace = true
 keywords.workspace = true
 readme.workspace = true
 publish = true
+default-run = "santa"
 
 [features]
 default = []
