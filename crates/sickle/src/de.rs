@@ -402,6 +402,7 @@ impl<'de> de::Deserializer<'de> for &mut Deserializer {
         let map_de = MapDeserializer {
             iter: self.model.iter_map(),
             value: None,
+            full_vec: None,
         };
         visitor.visit_map(map_de)
     }
@@ -501,8 +502,9 @@ impl<'de> SeqAccess<'de> for ModelSeqDeserializer {
 }
 
 struct MapDeserializer<'a> {
-    iter: indexmap::map::Iter<'a, String, CclObject>,
+    iter: crate::model::CclMapIter<'a>,
     value: Option<&'a CclObject>,
+    full_vec: Option<&'a Vec<CclObject>>,
 }
 
 impl<'de, 'a> MapAccess<'de> for MapDeserializer<'a> {
@@ -513,8 +515,11 @@ impl<'de, 'a> MapAccess<'de> for MapDeserializer<'a> {
         K: DeserializeSeed<'de>,
     {
         match self.iter.next() {
-            Some((key, value)) => {
-                self.value = Some(value);
+            Some((key, vec)) => {
+                // Take the first value from the Vec (serde expects single values per key)
+                self.value = vec.first();
+                // Store the full Vec for potential list deserialization
+                self.full_vec = Some(vec);
                 seed.deserialize(key.as_str().into_deserializer()).map(Some)
             }
             None => Ok(None),
@@ -525,6 +530,18 @@ impl<'de, 'a> MapAccess<'de> for MapDeserializer<'a> {
     where
         V: DeserializeSeed<'de>,
     {
+        // If there are multiple values in the Vec, compose them into one for deserialization
+        // This handles the case of duplicate keys becoming a list
+        if let Some(vec) = self.full_vec.take() {
+            if vec.len() > 1 {
+                // Multiple values for this key - compose them into a single object
+                // that can be deserialized as a sequence
+                let composed = vec.iter().fold(CclObject::new(), |acc, obj| acc.compose(obj));
+                let mut de = Deserializer { model: composed };
+                return seed.deserialize(&mut de);
+            }
+        }
+
         match self.value.take() {
             Some(value) => {
                 let mut de = Deserializer {
