@@ -33,7 +33,7 @@ def write_ccl_file(filepath, manager_name, packages):
     Args:
         filepath: Path to write the CCL file
         manager_name: Name of the package manager (e.g., 'brew', 'scoop')
-        packages: List of package names
+        packages: List of dicts with 'name' and optional 'description' keys
 
     TODO: Replace this simple string-based implementation with proper sickle
           library calls once we have CCL generation support.
@@ -45,9 +45,31 @@ def write_ccl_file(filepath, manager_name, packages):
         f.write(f"/= Found {len(packages)} installable packages\n")
         f.write("\n")
 
-        # Write packages in simple format: package =
-        for package_name in sorted(set(packages)):
-            f.write(f"{package_name} =\n")
+        # Deduplicate and sort by name
+        seen = set()
+        unique_packages = []
+        for pkg in packages:
+            name = pkg['name'] if isinstance(pkg, dict) else pkg
+            if name not in seen:
+                seen.add(name)
+                unique_packages.append(pkg)
+        unique_packages.sort(key=lambda p: p['name'] if isinstance(p, dict) else p)
+
+        # Write packages
+        for pkg in unique_packages:
+            if isinstance(pkg, dict):
+                name = pkg['name']
+                desc = pkg.get('description', '')
+                if desc:
+                    # Package with description - use complex format
+                    f.write(f"{name} =\n")
+                    f.write(f"  _description = {desc}\n")
+                else:
+                    # Simple format
+                    f.write(f"{name} =\n")
+            else:
+                # Just a name string
+                f.write(f"{pkg} =\n")
 
 # ============================================================================
 # End CCL Writing Functions
@@ -185,7 +207,7 @@ with open("cli_tools_with_installs.json", "w") as f:
 # Output to source-organized CCL files
 print("\nGenerating source-organized CCL files...")
 
-# Organize tools by package manager
+# Organize tools by package manager (now includes description)
 tools_by_manager = {}
 for mgr in available_managers:
     tools_by_manager[mgr] = []
@@ -194,18 +216,22 @@ for tool in tools.values():
     if "install" in tool and tool["install"]:
         for mgr in tool["install"].keys():
             if mgr in tools_by_manager:
-                tools_by_manager[mgr].append(tool["name"])
+                # Include both name and description
+                tools_by_manager[mgr].append({
+                    "name": tool["name"],
+                    "description": tool.get("description", "")
+                })
 
 # Write CCL files for each manager using isolated CCL writing function
 os.makedirs("generated_sources", exist_ok=True)
 
-for mgr, tool_names in tools_by_manager.items():
-    if not tool_names:
+for mgr, tool_list in tools_by_manager.items():
+    if not tool_list:
         continue
 
     ccl_path = f"generated_sources/{mgr}.ccl"
-    write_ccl_file(ccl_path, mgr, tool_names)
-    print(f"  ✅ Generated {ccl_path} ({len(tool_names)} packages)")
+    write_ccl_file(ccl_path, mgr, tool_list)
+    print(f"  ✅ Generated {ccl_path} ({len(tool_list)} packages)")
 
 print(f"\nCollected {len(tools)} unique tools with installability metadata.")
 print(f"Generated CCL files in generated_sources/ directory")

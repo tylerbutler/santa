@@ -25,12 +25,15 @@ enum PackageConfig {
 struct PackageData {
     /// Map of source name to package config
     sources: BTreeMap<String, PackageConfig>,
+    /// Package description (if provided)
+    description: Option<String>,
 }
 
 impl PackageData {
     fn new() -> Self {
         Self {
             sources: BTreeMap::new(),
+            description: None,
         }
     }
 
@@ -38,11 +41,20 @@ impl PackageData {
         self.sources.insert(source, config);
     }
 
-    /// Returns true if this is a simple package (all sources have no config)
+    fn set_description(&mut self, desc: String) {
+        // Only set if not already set (first one wins)
+        if self.description.is_none() && !desc.is_empty() {
+            self.description = Some(desc);
+        }
+    }
+
+    /// Returns true if this is a simple package (all sources have no config, no description)
     fn is_simple(&self) -> bool {
-        self.sources
-            .values()
-            .all(|config| matches!(config, PackageConfig::Simple))
+        self.description.is_none()
+            && self
+                .sources
+                .values()
+                .all(|config| matches!(config, PackageConfig::Simple))
     }
 }
 
@@ -55,7 +67,14 @@ fn extract_string_value(obj: &sickle::CclObject) -> Option<String> {
     }
 }
 
-fn parse_source_file(path: &Path) -> Result<BTreeMap<String, PackageConfig>> {
+/// Parsed package info from a source file
+#[derive(Debug)]
+struct ParsedPackage {
+    config: PackageConfig,
+    description: Option<String>,
+}
+
+fn parse_source_file(path: &Path) -> Result<BTreeMap<String, ParsedPackage>> {
     let content = fs::read_to_string(path)
         .with_context(|| format!("Failed to read source file: {}", path.display()))?;
 
@@ -72,33 +91,42 @@ fn parse_source_file(path: &Path) -> Result<BTreeMap<String, PackageConfig>> {
 
         let value = model.get(key)?;
 
-        let config = if value.is_empty() {
+        let (config, description) = if value.is_empty() {
             // Empty object means simple package (no config)
-            PackageConfig::Simple
+            (PackageConfig::Simple, None)
         } else if let Some(s) = extract_string_value(value) {
             // Empty string means simple package, non-empty means name override
             if s.is_empty() {
-                PackageConfig::Simple
+                (PackageConfig::Simple, None)
             } else {
-                PackageConfig::NameOverride(s)
+                (PackageConfig::NameOverride(s), None)
             }
         } else {
-            // This is a nested object (complex config)
+            // This is a nested object - check for _description and other config
             let mut config_map = BTreeMap::new();
+            let mut desc = None;
+
             for nested_key in value.keys() {
                 let nested_value = value.get(nested_key)?;
-                if let Some(s) = extract_string_value(nested_value) {
+                if nested_key == "_description" {
+                    if let Some(s) = extract_string_value(nested_value) {
+                        desc = Some(s);
+                    }
+                } else if let Some(s) = extract_string_value(nested_value) {
                     config_map.insert(nested_key.clone(), s);
                 }
             }
-            if config_map.is_empty() {
+
+            let config = if config_map.is_empty() {
                 PackageConfig::Simple
             } else {
                 PackageConfig::Complex(config_map)
-            }
+            };
+
+            (config, desc)
         };
 
-        packages.insert(key.clone(), config);
+        packages.insert(key.clone(), ParsedPackage { config, description });
     }
 
     Ok(packages)
@@ -124,11 +152,14 @@ fn generate_index(sources_dir: &Path) -> Result<String> {
 
             let packages = parse_source_file(&path)?;
 
-            for (package_name, config) in packages {
-                all_packages
+            for (package_name, parsed) in packages {
+                let pkg_data = all_packages
                     .entry(package_name)
-                    .or_insert_with(PackageData::new)
-                    .add_source(source_name.clone(), config);
+                    .or_insert_with(PackageData::new);
+                pkg_data.add_source(source_name.clone(), parsed.config);
+                if let Some(desc) = parsed.description {
+                    pkg_data.set_description(desc);
+                }
             }
         }
     }
@@ -166,12 +197,17 @@ fn generate_index(sources_dir: &Path) -> Result<String> {
     // Add complex packages section header
     if !complex_packages.is_empty() {
         map.insert("".to_string(), vec![sickle::CclObject::empty()]); // Blank line
-        map.insert("/= Packages with complex format (have source-specific overrides)".to_string(), vec![sickle::CclObject::empty()]);
+        map.insert("/= Packages with complex format (have source-specific overrides or descriptions)".to_string(), vec![sickle::CclObject::empty()]);
 
         for package_name in complex_packages {
             let data = &all_packages[package_name];
             let mut package_obj = sickle::CclObject::new();
             let package_map = package_obj.inner_mut();
+
+            // Add description first if present
+            if let Some(desc) = &data.description {
+                package_map.insert("_description".to_string(), vec![sickle::CclObject::from_string(desc)]);
+            }
 
             // Collect sources with no config and sources with config
             let mut simple_sources = Vec::new();
@@ -184,7 +220,7 @@ fn generate_index(sources_dir: &Path) -> Result<String> {
                 }
             }
 
-            // Add source-specific overrides first
+            // Add source-specific overrides
             for (source, config) in override_sources {
                 match config {
                     PackageConfig::NameOverride(name) => {

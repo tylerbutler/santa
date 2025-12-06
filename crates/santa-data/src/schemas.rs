@@ -37,11 +37,23 @@ impl PackageDefinition {
     pub fn is_available_in(&self, source: &str) -> bool {
         self.get_sources().contains(&source)
     }
+
+    /// Get the package description if available
+    pub fn get_description(&self) -> Option<&str> {
+        match self {
+            PackageDefinition::Simple(_) => None,
+            PackageDefinition::Complex(complex) => complex.description.as_deref(),
+        }
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 #[serde(default)]
 pub struct ComplexPackageDefinition {
+    /// Short description of the package
+    #[serde(rename = "_description", skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+
     /// List of sources where package is available with same name as key
     #[serde(rename = "_sources", skip_serializing_if = "Option::is_none")]
     pub sources: Option<Vec<String>>,
@@ -276,5 +288,39 @@ check = brew leaves --installed-on-request
 
         assert_eq!(def.emoji, "🍺");
         assert!(def.install.contains("{package}"));
+    }
+
+    #[test]
+    fn test_package_with_description() {
+        let ccl = r#"
+bat =
+  _description = A cat clone with syntax highlighting.
+  _sources =
+    = brew
+    = scoop
+"#;
+        let packages: HashMap<String, PackageDefinition> = crate::parse_ccl_to(ccl).unwrap();
+        let def = packages.get("bat").unwrap();
+
+        // Should have description
+        assert_eq!(def.get_description(), Some("A cat clone with syntax highlighting."));
+
+        // Should still have sources
+        assert!(def.is_available_in("brew"));
+        assert!(def.is_available_in("scoop"));
+    }
+
+    #[test]
+    fn test_simple_package_no_description() {
+        let ccl = r#"
+jq =
+  = brew
+  = apt
+"#;
+        let packages: HashMap<String, PackageDefinition> = crate::parse_ccl_to(ccl).unwrap();
+        let def = packages.get("jq").unwrap();
+
+        // Simple format has no description
+        assert_eq!(def.get_description(), None);
     }
 }
