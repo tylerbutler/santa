@@ -436,17 +436,11 @@ ci-windows:
 # Binary Size Analysis Commands
 # =============================
 
-# Run cargo-bloat and save crate breakdown to metrics/bloat.txt
+# Run cargo-bloated on santa and sickle, save to metrics/ (Linux only)
+[linux]
 bloat:
-    just _bloat-{{os_family()}}
-
-[unix]
-_bloat-unix:
-    cargo bloat --release -p santa --crates -n 30 | tee metrics/bloat.txt
-
-[windows]
-_bloat-windows:
-    cargo bloat --release -p santa --crates -n 30 | Tee-Object -FilePath metrics/bloat.txt
+    cargo bloated -p santa --output crates | tee metrics/bloat.txt
+    cargo bloated --lib -p sickle --all-features --output crates | tee metrics/bloat-sickle.txt
 
 # Maintenance Commands
 # ===================

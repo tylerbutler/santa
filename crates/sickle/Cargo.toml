@@ -12,6 +12,9 @@ keywords = ["ccl", "config", "parser", "categorical", "configuration"]
 categories = ["config", "parser-implementations"]
 readme = "README.md"
 
+[lib]
+crate-type = ["rlib", "dylib"]
+
 [features]
 # Default features - includes only essential functionality
 # Users opt-in to additional features as needed
