@@ -129,6 +129,10 @@ criterion = { version = "0.5", features = ["html_reports", "async_tokio"] }
 name = "santa"
 path = "src/main.rs"
 
+[[bin]]
+name = "generate-index"
+path = "src/bin/generate_index.rs"
+
 [[bench]]
 name = "subprocess_performance"
 harness = false

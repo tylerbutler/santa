@@ -67,18 +67,37 @@ fn model_to_hashmap(model: &sickle::CclObject) -> Result<HashMap<String, Value>>
 
 /// Convert a sickle Model to a serde_json Value
 fn model_to_value(model: &sickle::CclObject) -> Result<Value> {
+    // Check if this is a list with empty keys (CCL: = item1\n = item2)
+    // Empty keys have all their values stored in a Vec under the "" key
+    if let Ok(empty_key_values) = model.get_all("") {
+        if !empty_key_values.is_empty() {
+            // Check if all values are simple string values (single key with empty value)
+            let all_simple_strings = empty_key_values
+                .iter()
+                .all(|v| v.len() == 1 && v.values().all(|child| child.is_empty()));
+
+            if all_simple_strings {
+                // Extract string values
+                let values: Vec<Value> = empty_key_values
+                    .iter()
+                    .filter_map(|v| v.keys().next().cloned())
+                    .map(Value::String)
+                    .collect();
+                return Ok(Value::Array(values));
+            } else {
+                // Convert each value recursively
+                let values: Vec<Value> = empty_key_values
+                    .iter()
+                    .map(model_to_value)
+                    .collect::<Result<Vec<_>>>()?;
+                return Ok(Value::Array(values));
+            }
+        }
+    }
+
     // Fast path for singleton maps
     if model.len() == 1 {
         let (key, value) = model.iter().next().unwrap();
-
-        // Check if this is a list represented with empty key
-        // CCL: bat = \n  = brew\n  = scoop
-        // Becomes: {"": {"brew": {}, "scoop": {}}}
-        if key.is_empty() && !value.is_empty() && value.values().all(|v| v.is_empty()) {
-            // The value is a list (keys with empty values)
-            let values: Vec<Value> = value.keys().map(|k| Value::String(k.clone())).collect();
-            return Ok(Value::Array(values));
-        }
 
         // Check if this is a singleton string: {"value": {}}
         if value.is_empty() {
@@ -90,19 +109,6 @@ fn model_to_value(model: &sickle::CclObject) -> Result<Value> {
     if model.len() > 1 && model.values().all(|v| v.is_empty()) {
         // This is a list - keys are the list items
         let values: Vec<Value> = model.keys().map(|k| Value::String(k.clone())).collect();
-        return Ok(Value::Array(values));
-    }
-
-    // Check if there are multiple empty keys (alternative list representation)
-    let empty_key_count = model.keys().filter(|k| k.is_empty()).count();
-    if empty_key_count > 1 {
-        // Extract all values from empty keys
-        let mut values = Vec::new();
-        for (k, v) in model.iter() {
-            if k.is_empty() {
-                values.push(model_to_value(v)?);
-            }
-        }
         return Ok(Value::Array(values));
     }
 

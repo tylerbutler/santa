@@ -343,30 +343,32 @@ impl<'de> de::Deserializer<'de> for &mut Deserializer {
 
         // Check if it's a map with empty keys (list representation)
         if self.model.keys().any(|k| k.is_empty()) {
-            // Special case: if there's only one empty key and its value has entries,
-            // use those entries as the list
-            if self.model.len() == 1 {
-                if let Ok(value) = self.model.get("") {
-                    if !value.is_empty() && value.values().all(|v| v.is_empty()) {
-                        let items: Vec<String> = value.keys().cloned().collect();
-                        let seq = StringSeqDeserializer {
-                            iter: items.into_iter(),
-                        };
-                        return visitor.visit_seq(seq);
-                    }
+            // Get all values for the empty key
+            if let Ok(values) = self.model.get_all("") {
+                // Check if all values are simple string values (each has exactly one key with empty children)
+                let all_simple_strings = values
+                    .iter()
+                    .all(|v| v.len() == 1 && v.values().all(|child| child.is_empty()));
+
+                if all_simple_strings {
+                    // Extract the string values from each entry
+                    let items: Vec<String> = values
+                        .iter()
+                        .filter_map(|v| v.keys().next().cloned())
+                        .collect();
+                    let seq = StringSeqDeserializer {
+                        iter: items.into_iter(),
+                    };
+                    return visitor.visit_seq(seq);
+                } else {
+                    // Not simple strings, return the CclObjects
+                    let list: Vec<crate::CclObject> = values.to_vec();
+                    let seq = ModelSeqDeserializer {
+                        iter: list.into_iter(),
+                    };
+                    return visitor.visit_seq(seq);
                 }
             }
-
-            // Otherwise, extract values with empty keys as a list
-            let list: Vec<crate::CclObject> = self
-                .model
-                .iter()
-                .filter_map(|(k, v)| if k.is_empty() { Some(v.clone()) } else { None })
-                .collect();
-            let seq = ModelSeqDeserializer {
-                iter: list.into_iter(),
-            };
-            return visitor.visit_seq(seq);
         }
 
         Err(DeError::custom("expected a list"))
@@ -402,6 +404,7 @@ impl<'de> de::Deserializer<'de> for &mut Deserializer {
         let map_de = MapDeserializer {
             iter: self.model.iter_map(),
             value: None,
+            full_vec: None,
         };
         visitor.visit_map(map_de)
     }
@@ -501,8 +504,9 @@ impl<'de> SeqAccess<'de> for ModelSeqDeserializer {
 }
 
 struct MapDeserializer<'a> {
-    iter: indexmap::map::Iter<'a, String, CclObject>,
+    iter: crate::model::CclMapIter<'a>,
     value: Option<&'a CclObject>,
+    full_vec: Option<&'a Vec<CclObject>>,
 }
 
 impl<'de, 'a> MapAccess<'de> for MapDeserializer<'a> {
@@ -513,8 +517,11 @@ impl<'de, 'a> MapAccess<'de> for MapDeserializer<'a> {
         K: DeserializeSeed<'de>,
     {
         match self.iter.next() {
-            Some((key, value)) => {
-                self.value = Some(value);
+            Some((key, vec)) => {
+                // Take the first value from the Vec (serde expects single values per key)
+                self.value = vec.first();
+                // Store the full Vec for potential list deserialization
+                self.full_vec = Some(vec);
                 seed.deserialize(key.as_str().into_deserializer()).map(Some)
             }
             None => Ok(None),
@@ -525,6 +532,20 @@ impl<'de, 'a> MapAccess<'de> for MapDeserializer<'a> {
     where
         V: DeserializeSeed<'de>,
     {
+        // If there are multiple values in the Vec, compose them into one for deserialization
+        // This handles the case of duplicate keys becoming a list
+        if let Some(vec) = self.full_vec.take() {
+            if vec.len() > 1 {
+                // Multiple values for this key - compose them into a single object
+                // that can be deserialized as a sequence
+                let composed = vec
+                    .iter()
+                    .fold(CclObject::new(), |acc, obj| acc.compose(obj));
+                let mut de = Deserializer { model: composed };
+                return seed.deserialize(&mut de);
+            }
+        }
+
         match self.value.take() {
             Some(value) => {
                 let mut de = Deserializer {

@@ -107,7 +107,8 @@ impl CclPrinter {
     fn print_object(&self, model: &CclObject, indent: usize, output: &mut String) {
         let indent_str = " ".repeat(indent);
 
-        for (key, value) in model.iter() {
+        // Use iter_all() to print all values including duplicates
+        for (key, value) in model.iter_all() {
             self.print_entry(key, value, &indent_str, indent, output);
         }
     }

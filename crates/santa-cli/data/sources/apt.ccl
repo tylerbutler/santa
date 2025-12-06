@@ -1,0 +1,8 @@
+/= APT packages
+github-cli =
+go =
+mc =
+python =
+thefuck =
+tmux =
+wget =
