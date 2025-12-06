@@ -1,12 +1,57 @@
+#!/usr/bin/env python3
+"""
+Package Collection Script for Santa
+
+Collects CLI tools from various sources and checks their availability across
+different package managers. Outputs both JSON (for analysis) and source-organized
+CCL files (for santa package data).
+
+IMPORTANT: All CCL reading/writing is isolated in the section marked with
+=========== CCL Functions ===========
+This allows easy replacement with proper sickle library integration later.
+"""
+
 import requests
 import re
 import json
 import subprocess
+import os
 from bs4 import BeautifulSoup
 from tabulate import tabulate
 
 tools = {}
 available_managers = {}
+
+# ============================================================================
+# CCL Writing Functions (TODO: Replace with proper sickle library integration)
+# ============================================================================
+
+def write_ccl_file(filepath, manager_name, packages):
+    """
+    Write a CCL file for a specific package manager.
+
+    Args:
+        filepath: Path to write the CCL file
+        manager_name: Name of the package manager (e.g., 'brew', 'scoop')
+        packages: List of package names
+
+    TODO: Replace this simple string-based implementation with proper sickle
+          library calls once we have CCL generation support.
+    """
+    with open(filepath, "w") as f:
+        # Write header comments
+        f.write(f"/= {manager_name.capitalize()} packages\n")
+        f.write(f"/= Auto-generated from package collection script\n")
+        f.write(f"/= Found {len(packages)} installable packages\n")
+        f.write("\n")
+
+        # Write packages in simple format: package =
+        for package_name in sorted(set(packages)):
+            f.write(f"{package_name} =\n")
+
+# ============================================================================
+# End CCL Writing Functions
+# ============================================================================
 
 # Check which package managers are available
 def check_manager(cmd):
@@ -133,8 +178,34 @@ for i, (key, tool) in enumerate(limited_tools.items(), 1):
 headers = ["Tool"] + list(available_managers.keys())
 print(tabulate(table_rows, headers=headers, tablefmt="grid"))
 
-# Output to JSON
+# Output to JSON (for reference)
 with open("cli_tools_with_installs.json", "w") as f:
     json.dump(list(tools.values()), f, indent=2)
 
+# Output to source-organized CCL files
+print("\nGenerating source-organized CCL files...")
+
+# Organize tools by package manager
+tools_by_manager = {}
+for mgr in available_managers:
+    tools_by_manager[mgr] = []
+
+for tool in tools.values():
+    if "install" in tool and tool["install"]:
+        for mgr in tool["install"].keys():
+            if mgr in tools_by_manager:
+                tools_by_manager[mgr].append(tool["name"])
+
+# Write CCL files for each manager using isolated CCL writing function
+os.makedirs("generated_sources", exist_ok=True)
+
+for mgr, tool_names in tools_by_manager.items():
+    if not tool_names:
+        continue
+
+    ccl_path = f"generated_sources/{mgr}.ccl"
+    write_ccl_file(ccl_path, mgr, tool_names)
+    print(f"  ✅ Generated {ccl_path} ({len(tool_names)} packages)")
+
 print(f"\nCollected {len(tools)} unique tools with installability metadata.")
+print(f"Generated CCL files in generated_sources/ directory")
