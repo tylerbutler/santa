@@ -6,7 +6,7 @@
 //!
 //! # Architecture
 //!
-//! - [`ScriptGenerator`]: Tera-based template engine for script generation
+//! - [`ScriptGenerator`]: MiniJinja-based template engine for script generation
 //! - [`ExecutionMode`]: Safe (script generation) vs Execute (direct execution)
 //! - [`ScriptFormat`]: Platform-specific script formats (Shell, PowerShell, Batch)
 //!
@@ -43,10 +43,9 @@
 
 use crate::errors::{Result, SantaError};
 use chrono::Utc;
+use minijinja::Environment;
 use serde::{Deserialize, Serialize};
 use shell_escape::escape;
-use std::collections::HashMap;
-use tera::{Context, Tera, Value};
 
 /// Execution modes for Santa - determines whether to execute directly or generate scripts.
 ///
@@ -126,9 +125,9 @@ impl ScriptFormat {
     }
 }
 
-/// Script generator using Tera templates for safe script generation.
+/// Script generator using MiniJinja templates for safe script generation.
 ///
-/// The generator uses embedded Tera templates to create platform-specific
+/// The generator uses embedded MiniJinja templates to create platform-specific
 /// scripts with proper escaping and validation. This design prevents command
 /// injection attacks and allows users to review generated scripts before execution.
 ///
@@ -162,13 +161,13 @@ impl ScriptFormat {
 /// # }
 /// ```
 pub struct ScriptGenerator {
-    tera: Tera,
+    env: Environment<'static>,
 }
 
 impl ScriptGenerator {
     /// Create new script generator with built-in templates.
     ///
-    /// Initializes the Tera template engine with embedded templates for
+    /// Initializes the MiniJinja template engine with embedded templates for
     /// Shell, PowerShell, and Batch formats, and registers custom filters
     /// for secure escaping.
     ///
@@ -177,27 +176,27 @@ impl ScriptGenerator {
     /// Returns a new [`ScriptGenerator`] or a [`SantaError::Template`] if
     /// template initialization fails.
     pub fn new() -> Result<Self> {
-        let mut tera = Tera::default();
+        let mut env = Environment::new();
 
         // Add built-in templates for different script formats
-        tera.add_raw_template("install.sh", include_str!("../templates/install.sh.tera"))
+        env.add_template("install.sh", include_str!("../templates/install.sh.tera"))
             .map_err(|e| SantaError::Template(e.to_string()))?;
 
-        tera.add_raw_template("install.ps1", include_str!("../templates/install.ps1.tera"))
+        env.add_template("install.ps1", include_str!("../templates/install.ps1.tera"))
             .map_err(|e| SantaError::Template(e.to_string()))?;
 
-        tera.add_raw_template("check.sh", include_str!("../templates/check.sh.tera"))
+        env.add_template("check.sh", include_str!("../templates/check.sh.tera"))
             .map_err(|e| SantaError::Template(e.to_string()))?;
 
-        tera.add_raw_template("check.ps1", include_str!("../templates/check.ps1.tera"))
+        env.add_template("check.ps1", include_str!("../templates/check.ps1.tera"))
             .map_err(|e| SantaError::Template(e.to_string()))?;
 
         // Register custom filters for safe escaping
-        tera.register_filter("shell_escape", shell_escape_filter);
-        tera.register_filter("powershell_escape", powershell_escape_filter);
-        tera.register_filter("validate_package", validate_package_filter);
+        env.add_filter("shell_escape", shell_escape_filter);
+        env.add_filter("powershell_escape", powershell_escape_filter);
+        env.add_filter("validate_package", validate_package_filter);
 
-        Ok(Self { tera })
+        Ok(Self { env })
     }
 
     /// Generate installation script for given packages and manager
@@ -208,17 +207,22 @@ impl ScriptGenerator {
         format: ScriptFormat,
         source_name: &str,
     ) -> Result<String> {
-        let mut context = Context::new();
-        context.insert("packages", packages);
-        context.insert("manager", manager);
-        context.insert("source_name", source_name);
-        context.insert("timestamp", &Utc::now().to_rfc3339());
-        context.insert("version", env!("CARGO_PKG_VERSION"));
-        context.insert("package_count", &packages.len());
-
         let template_name = format.install_template_name();
+        let template = self
+            .env
+            .get_template(template_name)
+            .map_err(|e| SantaError::Template(e.to_string()))?;
 
-        self.tera.render(template_name, &context).map_err(|e| {
+        let context = minijinja::context! {
+            packages => packages,
+            manager => manager,
+            source_name => source_name,
+            timestamp => Utc::now().to_rfc3339(),
+            version => env!("CARGO_PKG_VERSION"),
+            package_count => packages.len(),
+        };
+
+        template.render(context).map_err(|e| {
             SantaError::Template(format!(
                 "Failed to render {} template: {}",
                 template_name, e
@@ -234,16 +238,21 @@ impl ScriptGenerator {
         format: ScriptFormat,
         source_name: &str,
     ) -> Result<String> {
-        let mut context = Context::new();
-        context.insert("manager", manager);
-        context.insert("check_command", check_command);
-        context.insert("source_name", source_name);
-        context.insert("timestamp", &Utc::now().to_rfc3339());
-        context.insert("version", env!("CARGO_PKG_VERSION"));
-
         let template_name = format.check_template_name();
+        let template = self
+            .env
+            .get_template(template_name)
+            .map_err(|e| SantaError::Template(e.to_string()))?;
 
-        self.tera.render(template_name, &context).map_err(|e| {
+        let context = minijinja::context! {
+            manager => manager,
+            check_command => check_command,
+            source_name => source_name,
+            timestamp => Utc::now().to_rfc3339(),
+            version => env!("CARGO_PKG_VERSION"),
+        };
+
+        template.render(context).map_err(|e| {
             SantaError::Template(format!(
                 "Failed to render {} template: {}",
                 template_name, e
@@ -264,33 +273,25 @@ impl Default for ScriptGenerator {
     }
 }
 
-/// Tera filter for shell escaping using shell-escape crate
-fn shell_escape_filter(value: &Value, _: &HashMap<String, Value>) -> tera::Result<Value> {
-    match value.as_str() {
-        Some(s) => Ok(Value::String(escape(s.into()).into_owned())),
-        None => Err("shell_escape filter can only be used on strings".into()),
-    }
+/// MiniJinja filter for shell escaping using shell-escape crate
+fn shell_escape_filter(value: String) -> String {
+    escape(value.into()).into_owned()
 }
 
-/// Tera filter for PowerShell argument escaping
-fn powershell_escape_filter(value: &Value, _: &HashMap<String, Value>) -> tera::Result<Value> {
-    match value.as_str() {
-        Some(s) => Ok(Value::String(escape_powershell_arg(s))),
-        None => Err("powershell_escape filter can only be used on strings".into()),
-    }
+/// MiniJinja filter for PowerShell argument escaping
+fn powershell_escape_filter(value: String) -> String {
+    escape_powershell_arg(&value)
 }
 
-/// Tera filter for package name validation
-fn validate_package_filter(value: &Value, _: &HashMap<String, Value>) -> tera::Result<Value> {
-    match value.as_str() {
-        Some(s) => {
-            if is_safe_package_name(s) {
-                Ok(Value::String(s.to_string()))
-            } else {
-                Err(format!("Package name contains dangerous characters: {}", s).into())
-            }
-        }
-        None => Err("validate_package filter can only be used on strings".into()),
+/// MiniJinja filter for package name validation
+fn validate_package_filter(value: String) -> std::result::Result<String, minijinja::Error> {
+    if is_safe_package_name(&value) {
+        Ok(value)
+    } else {
+        Err(minijinja::Error::new(
+            minijinja::ErrorKind::InvalidOperation,
+            format!("Package name contains dangerous characters: {}", value),
+        ))
     }
 }
 
@@ -390,5 +391,153 @@ mod tests {
             ScriptGenerator::generate_filename("santa_check", &ScriptFormat::PowerShell);
         assert!(ps_filename.starts_with("santa_check_"));
         assert!(ps_filename.ends_with(".ps1"));
+    }
+
+    #[test]
+    fn test_script_format_template_names() {
+        assert_eq!(ScriptFormat::Shell.install_template_name(), "install.sh");
+        assert_eq!(
+            ScriptFormat::PowerShell.install_template_name(),
+            "install.ps1"
+        );
+        assert_eq!(ScriptFormat::Batch.install_template_name(), "install.bat");
+
+        assert_eq!(ScriptFormat::Shell.check_template_name(), "check.sh");
+        assert_eq!(ScriptFormat::PowerShell.check_template_name(), "check.ps1");
+        assert_eq!(ScriptFormat::Batch.check_template_name(), "check.bat");
+    }
+
+    #[test]
+    fn test_generate_install_script_shell() {
+        let generator = ScriptGenerator::new().unwrap();
+        let packages = vec!["git".to_string(), "curl".to_string()];
+        let script = generator
+            .generate_install_script(&packages, "brew", ScriptFormat::Shell, "homebrew")
+            .unwrap();
+
+        assert!(
+            script.contains("brew"),
+            "Script should contain manager name"
+        );
+        assert!(script.contains("git"), "Script should contain package name");
+        assert!(
+            script.contains("curl"),
+            "Script should contain package name"
+        );
+    }
+
+    #[test]
+    fn test_generate_install_script_powershell() {
+        let generator = ScriptGenerator::new().unwrap();
+        let packages = vec!["git".to_string()];
+        let script = generator
+            .generate_install_script(&packages, "choco", ScriptFormat::PowerShell, "chocolatey")
+            .unwrap();
+
+        assert!(
+            script.contains("choco"),
+            "Script should contain manager name"
+        );
+        assert!(script.contains("git"), "Script should contain package name");
+    }
+
+    #[test]
+    fn test_generate_check_script_shell() {
+        let generator = ScriptGenerator::new().unwrap();
+        let script = generator
+            .generate_check_script("brew", "brew list", ScriptFormat::Shell, "homebrew")
+            .unwrap();
+
+        assert!(
+            script.contains("brew list"),
+            "Script should contain check command"
+        );
+    }
+
+    #[test]
+    fn test_generate_check_script_powershell() {
+        let generator = ScriptGenerator::new().unwrap();
+        let script = generator
+            .generate_check_script(
+                "choco",
+                "choco list",
+                ScriptFormat::PowerShell,
+                "chocolatey",
+            )
+            .unwrap();
+
+        assert!(
+            script.contains("choco list"),
+            "Script should contain check command"
+        );
+    }
+
+    #[test]
+    fn test_shell_escape_filter() {
+        // Test that shell escaping works correctly
+        let result = shell_escape_filter("simple".to_string());
+        assert!(!result.is_empty());
+
+        let result_space = shell_escape_filter("with space".to_string());
+        assert!(result_space.contains("with space"));
+    }
+
+    #[test]
+    fn test_powershell_escape_filter() {
+        let result = powershell_escape_filter("simple".to_string());
+        assert_eq!(result, "'simple'");
+
+        let result_quote = powershell_escape_filter("with'quote".to_string());
+        assert_eq!(result_quote, "'with''quote'");
+    }
+
+    #[test]
+    fn test_validate_package_filter_valid() {
+        let result = validate_package_filter("git".to_string());
+        assert!(result.is_ok());
+        assert_eq!(result.unwrap(), "git");
+    }
+
+    #[test]
+    fn test_validate_package_filter_invalid() {
+        let result = validate_package_filter("$(evil)".to_string());
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_script_generator_default() {
+        let generator = ScriptGenerator::default();
+        let packages = vec!["test".to_string()];
+        // Should not panic and should produce valid output
+        let result =
+            generator.generate_install_script(&packages, "brew", ScriptFormat::Shell, "test");
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_generate_install_script_empty_packages() {
+        let generator = ScriptGenerator::new().unwrap();
+        let packages: Vec<String> = vec![];
+        let script = generator
+            .generate_install_script(&packages, "brew", ScriptFormat::Shell, "homebrew")
+            .unwrap();
+
+        // Should still generate a valid script structure
+        assert!(!script.is_empty());
+    }
+
+    #[test]
+    fn test_generate_install_script_includes_metadata() {
+        let generator = ScriptGenerator::new().unwrap();
+        let packages = vec!["git".to_string()];
+        let script = generator
+            .generate_install_script(&packages, "brew", ScriptFormat::Shell, "homebrew")
+            .unwrap();
+
+        // Script should include source name and version info
+        assert!(
+            script.contains("homebrew"),
+            "Script should contain source name"
+        );
     }
 }

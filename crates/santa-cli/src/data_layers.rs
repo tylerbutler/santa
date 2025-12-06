@@ -119,13 +119,14 @@ impl DataLayerManager {
     pub fn update_sources(&self) -> Result<usize> {
         info!("Fetching sources from {}", SOURCES_URL);
 
-        let response = ureq::get(SOURCES_URL)
-            .call()
+        let response = minreq::get(SOURCES_URL)
+            .send()
             .context("Failed to fetch sources from GitHub")?;
 
         let content = response
-            .into_string()
-            .context("Failed to read response body")?;
+            .as_str()
+            .context("Failed to read response body")?
+            .to_string();
 
         // Validate that the content is valid CCL before saving
         let sources: SourcesDefinition =
@@ -269,13 +270,14 @@ impl DataLayerManager {
     pub fn update_packages(&self) -> Result<usize> {
         info!("Fetching packages from {}", PACKAGES_URL);
 
-        let response = ureq::get(PACKAGES_URL)
-            .call()
+        let response = minreq::get(PACKAGES_URL)
+            .send()
             .context("Failed to fetch packages from GitHub")?;
 
         let content = response
-            .into_string()
-            .context("Failed to read response body")?;
+            .as_str()
+            .context("Failed to read response body")?
+            .to_string();
 
         // Validate that the content is valid CCL before saving
         let packages: PackagesDefinition =
