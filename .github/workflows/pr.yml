@@ -86,7 +86,6 @@ jobs:
   semver:
     name: Semver Check (Informational)
     runs-on: ubuntu-latest
-    continue-on-error: true # Non-blocking - shows warning instead of failure
     if: github.event_name == 'pull_request' && github.event.pull_request.draft == false
     steps:
       - name: Checkout repository
@@ -114,7 +113,8 @@ jobs:
             echo "EOF"
           } >> "$GITHUB_OUTPUT"
           echo "has_breaking=$([[ $EXIT_CODE -ne 0 ]] && echo true || echo false)" >> "$GITHUB_OUTPUT"
-          exit $EXIT_CODE
+          # Always exit 0 - this is informational only, breaking changes are reported via PR comment
+          exit 0
 
       - name: Comment on PR with breaking changes
         if: steps.semver.outputs.has_breaking == 'true'
