@@ -15,9 +15,44 @@ sync:
 lock:
 	uv lock
 
-# Run the script
+# Run the legacy script
 run:
 	uv run python collect-packages.py
+
+# Collect packages from all sources
+collect-all:
+	uv run python collect_all.py
+
+# Collect from specific source(s)
+collect *sources:
+	uv run python collect_all.py --sources {{sources}}
+
+# Collect from all sources (all are fast now with caching)
+collect-fast:
+	uv run python collect_all.py
+
+# List available collectors
+collect-list:
+	uv run python collect_all.py --list
+
+# Cross-reference collected packages and score them
+crossref top="500":
+	uv run python crossref_packages.py --top {{top}}
+
+# Verify package availability in package managers
+verify limit="500":
+	uv run python verify_packages.py --limit {{limit}}
+
+# Generate CCL output from verified packages
+generate-ccl min_sources="1":
+	uv run python generate_ccl.py --min-sources {{min_sources}}
+
+# Full pipeline: collect -> crossref -> verify -> generate
+pipeline:
+	uv run python collect_all.py
+	uv run python crossref_packages.py --top 500
+	uv run python verify_packages.py --limit 500
+	uv run python generate_ccl.py --min-sources 1 --write
 
 # Format code with Ruff
 format:
