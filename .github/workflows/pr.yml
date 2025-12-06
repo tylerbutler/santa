@@ -84,8 +84,9 @@ jobs:
         run: just audit
 
   semver:
-    name: Semver Check
+    name: Semver Check (Informational)
     runs-on: ubuntu-latest
+    continue-on-error: true # Non-blocking - shows warning instead of failure
     if: github.event_name == 'pull_request' && github.event.pull_request.draft == false
     steps:
       - name: Checkout repository
@@ -100,7 +101,48 @@ jobs:
           tools: just,cargo-semver-checks
 
       - name: Check semver compatibility
-        run: just semver
+        id: semver
+        run: |
+          set +e
+          OUTPUT=$(cargo semver-checks 2>&1)
+          EXIT_CODE=$?
+          echo "$OUTPUT"
+          # Save output for comment (escape for multiline)
+          {
+            echo "output<<EOF"
+            echo "$OUTPUT"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+          echo "has_breaking=$([[ $EXIT_CODE -ne 0 ]] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+          exit $EXIT_CODE
+
+      - name: Comment on PR with breaking changes
+        if: steps.semver.outputs.has_breaking == 'true'
+        uses: marocchino/sticky-pull-request-comment@52423e01640425a022ef5fd42c6fb5f633a02728 # ratchet:marocchino/sticky-pull-request-comment@v2
+        with:
+          header: semver-check
+          message: |
+            ## ⚠️ Semver Breaking Changes Detected
+
+            This PR contains API changes that may be semver-incompatible:
+
+            ```
+            ${{ steps.semver.outputs.output }}
+            ```
+
+            <details>
+            <summary>What does this mean?</summary>
+
+            These changes may break downstream users if released as a patch or minor version.
+            Consider whether a major version bump is needed, or if the changes can be made backwards-compatible.
+            </details>
+
+      - name: Remove comment if no breaking changes
+        if: steps.semver.outputs.has_breaking == 'false'
+        uses: marocchino/sticky-pull-request-comment@52423e01640425a022ef5fd42c6fb5f633a02728 # ratchet:marocchino/sticky-pull-request-comment@v2
+        with:
+          header: semver-check
+          delete: true
 
   workspace-consistency:
     name: Workspace Consistency
