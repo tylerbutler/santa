@@ -539,13 +539,573 @@ impl<'a> ser::SerializeStructVariant for MapSerializer<'a> {
     }
 }
 
+/// Comprehensive serde validation tests for the CCL serializer.
+///
+/// These tests verify that the serializer correctly handles all Serde data types
+/// by testing actual serialization to CCL strings and round-trip validation.
+/// Mirrors the structure of `de::serde_validation_tests` for consistency.
 #[cfg(test)]
-mod tests {
+mod serde_validation_tests {
     use super::*;
-    use serde::Serialize;
+    use crate::printer::PrinterConfig;
+    use serde::{Deserialize, Serialize};
+    use std::collections::HashMap;
+
+    // ===========================================
+    // Primitive Types - Signed Integers
+    // ===========================================
 
     #[test]
-    fn test_serialize_simple_struct() {
+    fn test_i8() {
+        #[derive(Serialize)]
+        struct S {
+            value: i8,
+        }
+        let s = S { value: -128 };
+        let ccl = to_string(&s).unwrap();
+        assert!(ccl.contains("value = -128"));
+    }
+
+    #[test]
+    fn test_i8_positive() {
+        #[derive(Serialize)]
+        struct S {
+            value: i8,
+        }
+        let s = S { value: 127 };
+        let ccl = to_string(&s).unwrap();
+        assert!(ccl.contains("value = 127"));
+    }
+
+    #[test]
+    fn test_i16() {
+        #[derive(Serialize)]
+        struct S {
+            value: i16,
+        }
+        let s = S { value: -32768 };
+        let ccl = to_string(&s).unwrap();
+        assert!(ccl.contains("value = -32768"));
+    }
+
+    #[test]
+    fn test_i32() {
+        #[derive(Serialize)]
+        struct S {
+            value: i32,
+        }
+        let s = S { value: -2147483648 };
+        let ccl = to_string(&s).unwrap();
+        assert!(ccl.contains("value = -2147483648"));
+    }
+
+    #[test]
+    fn test_i64() {
+        #[derive(Serialize)]
+        struct S {
+            value: i64,
+        }
+        let s = S {
+            value: -9223372036854775808,
+        };
+        let ccl = to_string(&s).unwrap();
+        assert!(ccl.contains("value = -9223372036854775808"));
+    }
+
+    // ===========================================
+    // Primitive Types - Unsigned Integers
+    // ===========================================
+
+    #[test]
+    fn test_u8() {
+        #[derive(Serialize)]
+        struct S {
+            value: u8,
+        }
+        let s = S { value: 255 };
+        let ccl = to_string(&s).unwrap();
+        assert!(ccl.contains("value = 255"));
+    }
+
+    #[test]
+    fn test_u16() {
+        #[derive(Serialize)]
+        struct S {
+            value: u16,
+        }
+        let s = S { value: 65535 };
+        let ccl = to_string(&s).unwrap();
+        assert!(ccl.contains("value = 65535"));
+    }
+
+    #[test]
+    fn test_u32() {
+        #[derive(Serialize)]
+        struct S {
+            value: u32,
+        }
+        let s = S { value: 4294967295 };
+        let ccl = to_string(&s).unwrap();
+        assert!(ccl.contains("value = 4294967295"));
+    }
+
+    #[test]
+    fn test_u64() {
+        #[derive(Serialize)]
+        struct S {
+            value: u64,
+        }
+        let s = S {
+            value: 18446744073709551615,
+        };
+        let ccl = to_string(&s).unwrap();
+        assert!(ccl.contains("value = 18446744073709551615"));
+    }
+
+    // ===========================================
+    // Primitive Types - Floating Point
+    // ===========================================
+
+    #[test]
+    fn test_f32() {
+        #[derive(Serialize)]
+        struct S {
+            value: f32,
+        }
+        let s = S { value: 3.14 };
+        let ccl = to_string(&s).unwrap();
+        assert!(ccl.contains("value = 3.14"));
+    }
+
+    #[test]
+    fn test_f64() {
+        #[derive(Serialize)]
+        struct S {
+            value: f64,
+        }
+        let s = S {
+            value: 3.141592653589793,
+        };
+        let ccl = to_string(&s).unwrap();
+        assert!(ccl.contains("value = 3.141592653589793"));
+    }
+
+    #[test]
+    fn test_f32_negative() {
+        #[derive(Serialize)]
+        struct S {
+            value: f32,
+        }
+        let s = S { value: -2.5 };
+        let ccl = to_string(&s).unwrap();
+        assert!(ccl.contains("value = -2.5"));
+    }
+
+    // ===========================================
+    // Primitive Types - Boolean
+    // ===========================================
+
+    #[test]
+    fn test_bool_true() {
+        #[derive(Serialize)]
+        struct S {
+            value: bool,
+        }
+        let s = S { value: true };
+        let ccl = to_string(&s).unwrap();
+        assert!(ccl.contains("value = true"));
+    }
+
+    #[test]
+    fn test_bool_false() {
+        #[derive(Serialize)]
+        struct S {
+            value: bool,
+        }
+        let s = S { value: false };
+        let ccl = to_string(&s).unwrap();
+        assert!(ccl.contains("value = false"));
+    }
+
+    // ===========================================
+    // Primitive Types - Char and String
+    // ===========================================
+
+    #[test]
+    fn test_char() {
+        #[derive(Serialize)]
+        struct S {
+            value: char,
+        }
+        let s = S { value: 'X' };
+        let ccl = to_string(&s).unwrap();
+        assert!(ccl.contains("value = X"));
+    }
+
+    #[test]
+    fn test_char_unicode() {
+        #[derive(Serialize)]
+        struct S {
+            value: char,
+        }
+        let s = S { value: '日' };
+        let ccl = to_string(&s).unwrap();
+        assert!(ccl.contains("value = 日"));
+    }
+
+    #[test]
+    fn test_string() {
+        #[derive(Serialize)]
+        struct S {
+            value: String,
+        }
+        let s = S {
+            value: "hello world".to_string(),
+        };
+        let ccl = to_string(&s).unwrap();
+        assert!(ccl.contains("value = hello world"));
+    }
+
+    #[test]
+    fn test_str_ref() {
+        #[derive(Serialize)]
+        struct S<'a> {
+            value: &'a str,
+        }
+        let s = S { value: "borrowed" };
+        let ccl = to_string(&s).unwrap();
+        assert!(ccl.contains("value = borrowed"));
+    }
+
+    // ===========================================
+    // Primitive Types - Bytes
+    // ===========================================
+
+    #[test]
+    fn test_bytes() {
+        // Test bytes serialization via serde_bytes or manual
+        #[derive(Serialize)]
+        struct S {
+            #[serde(serialize_with = "serialize_bytes")]
+            data: Vec<u8>,
+        }
+
+        fn serialize_bytes<S: serde::Serializer>(
+            bytes: &[u8],
+            serializer: S,
+        ) -> std::result::Result<S::Ok, S::Error> {
+            serializer.serialize_bytes(bytes)
+        }
+
+        let s = S {
+            data: vec![72, 101, 108, 108, 111], // "Hello"
+        };
+        let ccl = to_string(&s).unwrap();
+        assert!(ccl.contains("data = Hello"));
+    }
+
+    // ===========================================
+    // Option Types
+    // ===========================================
+
+    #[test]
+    fn test_option_some_string() {
+        #[derive(Serialize)]
+        struct S {
+            value: Option<String>,
+        }
+        let s = S {
+            value: Some("present".to_string()),
+        };
+        let ccl = to_string(&s).unwrap();
+        assert!(ccl.contains("value = present"));
+    }
+
+    #[test]
+    fn test_option_none() {
+        #[derive(Serialize)]
+        struct S {
+            name: String,
+            value: Option<String>,
+        }
+        let s = S {
+            name: "test".to_string(),
+            value: None,
+        };
+        let ccl = to_string(&s).unwrap();
+        assert!(ccl.contains("name = test"));
+        assert!(!ccl.contains("value"));
+    }
+
+    #[test]
+    fn test_option_some_number() {
+        #[derive(Serialize)]
+        struct S {
+            port: Option<u16>,
+        }
+        let s = S { port: Some(8080) };
+        let ccl = to_string(&s).unwrap();
+        assert!(ccl.contains("port = 8080"));
+    }
+
+    #[test]
+    fn test_option_some_bool() {
+        #[derive(Serialize)]
+        struct S {
+            enabled: Option<bool>,
+        }
+        let s = S {
+            enabled: Some(true),
+        };
+        let ccl = to_string(&s).unwrap();
+        assert!(ccl.contains("enabled = true"));
+    }
+
+    // ===========================================
+    // Unit Types
+    // ===========================================
+
+    #[test]
+    fn test_unit() {
+        // Unit type serializes to nothing
+        let ccl = to_string(&()).unwrap();
+        assert!(ccl.is_empty() || ccl.trim().is_empty());
+    }
+
+    #[test]
+    fn test_unit_struct() {
+        #[derive(Serialize)]
+        struct Unit;
+
+        let ccl = to_string(&Unit).unwrap();
+        // Unit struct should serialize to empty or minimal output
+        assert!(ccl.is_empty() || ccl.trim().is_empty());
+    }
+
+    // ===========================================
+    // Newtype Structs
+    // ===========================================
+
+    #[test]
+    fn test_newtype_struct() {
+        #[derive(Serialize)]
+        struct Wrapper(String);
+
+        #[derive(Serialize)]
+        struct S {
+            wrapped: Wrapper,
+        }
+
+        let s = S {
+            wrapped: Wrapper("inner value".to_string()),
+        };
+        let ccl = to_string(&s).unwrap();
+        assert!(ccl.contains("wrapped = inner value"));
+    }
+
+    #[test]
+    fn test_newtype_struct_number() {
+        #[derive(Serialize)]
+        struct Port(u16);
+
+        #[derive(Serialize)]
+        struct S {
+            port: Port,
+        }
+
+        let s = S { port: Port(8080) };
+        let ccl = to_string(&s).unwrap();
+        assert!(ccl.contains("port = 8080"));
+    }
+
+    // ===========================================
+    // Tuple Types
+    // ===========================================
+
+    #[test]
+    fn test_tuple() {
+        #[derive(Serialize)]
+        struct S {
+            point: (i32, i32),
+        }
+
+        let s = S { point: (10, 20) };
+        let ccl = to_string(&s).unwrap();
+        // Tuples serialize as lists
+        assert!(ccl.contains("point ="));
+        assert!(ccl.contains("10"));
+        assert!(ccl.contains("20"));
+    }
+
+    #[test]
+    fn test_tuple_struct() {
+        #[derive(Serialize)]
+        struct Point(i32, i32);
+
+        #[derive(Serialize)]
+        struct S {
+            location: Point,
+        }
+
+        let s = S {
+            location: Point(100, 200),
+        };
+        let ccl = to_string(&s).unwrap();
+        assert!(ccl.contains("location ="));
+        assert!(ccl.contains("100"));
+        assert!(ccl.contains("200"));
+    }
+
+    #[test]
+    fn test_tuple_three_elements() {
+        #[derive(Serialize)]
+        struct S {
+            rgb: (u8, u8, u8),
+        }
+
+        let s = S { rgb: (255, 128, 0) };
+        let ccl = to_string(&s).unwrap();
+        assert!(ccl.contains("rgb ="));
+        assert!(ccl.contains("255"));
+        assert!(ccl.contains("128"));
+        assert!(ccl.contains("0"));
+    }
+
+    // ===========================================
+    // Sequence Types (Vec)
+    // ===========================================
+
+    #[test]
+    fn test_vec_strings() {
+        #[derive(Serialize)]
+        struct S {
+            items: Vec<String>,
+        }
+
+        let s = S {
+            items: vec![
+                "apple".to_string(),
+                "banana".to_string(),
+                "cherry".to_string(),
+            ],
+        };
+        let ccl = to_string(&s).unwrap();
+        assert!(ccl.contains("items ="));
+        assert!(ccl.contains("apple"));
+        assert!(ccl.contains("banana"));
+        assert!(ccl.contains("cherry"));
+    }
+
+    #[test]
+    fn test_vec_numbers() {
+        #[derive(Serialize)]
+        struct S {
+            values: Vec<i32>,
+        }
+
+        let s = S {
+            values: vec![1, 2, 3, 4, 5],
+        };
+        let ccl = to_string(&s).unwrap();
+        assert!(ccl.contains("values ="));
+        for n in 1..=5 {
+            assert!(ccl.contains(&n.to_string()));
+        }
+    }
+
+    #[test]
+    fn test_vec_empty() {
+        #[derive(Serialize)]
+        struct S {
+            name: String,
+            items: Vec<String>,
+        }
+
+        let s = S {
+            name: "test".to_string(),
+            items: vec![],
+        };
+        let ccl = to_string(&s).unwrap();
+        assert!(ccl.contains("name = test"));
+        // Empty vec might not appear or appear as empty
+    }
+
+    #[test]
+    fn test_vec_single_item() {
+        #[derive(Serialize)]
+        struct S {
+            items: Vec<String>,
+        }
+
+        let s = S {
+            items: vec!["only".to_string()],
+        };
+        let ccl = to_string(&s).unwrap();
+        assert!(ccl.contains("only"));
+    }
+
+    // ===========================================
+    // Map Types (HashMap)
+    // ===========================================
+
+    #[test]
+    fn test_hashmap_string_string() {
+        let mut map: HashMap<String, String> = HashMap::new();
+        map.insert("HOME".to_string(), "/home/user".to_string());
+        map.insert("PATH".to_string(), "/usr/bin".to_string());
+
+        let ccl = to_string(&map).unwrap();
+        assert!(ccl.contains("HOME = /home/user"));
+        assert!(ccl.contains("PATH = /usr/bin"));
+    }
+
+    #[test]
+    fn test_hashmap_nested_in_struct() {
+        #[derive(Serialize)]
+        struct S {
+            env: HashMap<String, String>,
+        }
+
+        let mut env = HashMap::new();
+        env.insert("KEY".to_string(), "value".to_string());
+
+        let s = S { env };
+        let ccl = to_string(&s).unwrap();
+        assert!(ccl.contains("env ="));
+        assert!(ccl.contains("KEY = value"));
+    }
+
+    #[test]
+    fn test_hashmap_empty() {
+        let map: HashMap<String, String> = HashMap::new();
+        let ccl = to_string(&map).unwrap();
+        // Empty map should produce empty or minimal output
+        assert!(ccl.is_empty() || ccl.trim().is_empty());
+    }
+
+    #[test]
+    fn test_hashmap_with_struct_values() {
+        #[derive(Serialize)]
+        struct Inner {
+            value: i32,
+        }
+
+        let mut map: HashMap<String, Inner> = HashMap::new();
+        map.insert("first".to_string(), Inner { value: 1 });
+        map.insert("second".to_string(), Inner { value: 2 });
+
+        let ccl = to_string(&map).unwrap();
+        assert!(ccl.contains("first ="));
+        assert!(ccl.contains("second ="));
+        assert!(ccl.contains("value = 1") || ccl.contains("value = 2"));
+    }
+
+    // ===========================================
+    // Struct Types
+    // ===========================================
+
+    #[test]
+    fn test_simple_struct() {
         #[derive(Serialize)]
         struct Config {
             name: String,
@@ -563,28 +1123,7 @@ mod tests {
     }
 
     #[test]
-    fn test_serialize_with_numbers() {
-        #[derive(Serialize)]
-        struct Config {
-            port: u16,
-            timeout: u32,
-            enabled: bool,
-        }
-
-        let config = Config {
-            port: 8080,
-            timeout: 3000,
-            enabled: true,
-        };
-
-        let ccl = to_string(&config).unwrap();
-        assert!(ccl.contains("port = 8080"));
-        assert!(ccl.contains("timeout = 3000"));
-        assert!(ccl.contains("enabled = true"));
-    }
-
-    #[test]
-    fn test_serialize_nested_struct() {
+    fn test_nested_struct() {
         #[derive(Serialize)]
         struct Database {
             host: String,
@@ -613,113 +1152,7 @@ mod tests {
     }
 
     #[test]
-    fn test_serialize_option_some() {
-        #[derive(Serialize)]
-        struct Config {
-            name: String,
-            description: Option<String>,
-        }
-
-        let config = Config {
-            name: "MyApp".to_string(),
-            description: Some("A great app".to_string()),
-        };
-
-        let ccl = to_string(&config).unwrap();
-        assert!(ccl.contains("name = MyApp"));
-        assert!(ccl.contains("description = A great app"));
-    }
-
-    #[test]
-    fn test_serialize_option_none() {
-        #[derive(Serialize)]
-        struct Config {
-            name: String,
-            description: Option<String>,
-        }
-
-        let config = Config {
-            name: "MyApp".to_string(),
-            description: None,
-        };
-
-        let ccl = to_string(&config).unwrap();
-        assert!(ccl.contains("name = MyApp"));
-        assert!(!ccl.contains("description"));
-    }
-
-    #[test]
-    fn test_serialize_enum() {
-        #[derive(Serialize)]
-        enum Status {
-            Active,
-            Inactive,
-        }
-
-        #[derive(Serialize)]
-        struct Config {
-            status: Status,
-        }
-
-        let config = Config {
-            status: Status::Active,
-        };
-
-        let ccl = to_string(&config).unwrap();
-        assert!(ccl.contains("status = Active"));
-    }
-
-    #[test]
-    fn test_serialize_vec() {
-        #[derive(Serialize)]
-        struct Config {
-            tags: Vec<String>,
-        }
-
-        let config = Config {
-            tags: vec!["rust".to_string(), "ccl".to_string(), "parser".to_string()],
-        };
-
-        let ccl = to_string(&config).unwrap();
-        assert!(ccl.contains("tags ="));
-        assert!(ccl.contains("rust"));
-        assert!(ccl.contains("ccl"));
-        assert!(ccl.contains("parser"));
-    }
-
-    #[test]
-    fn test_serialize_hashmap() {
-        use std::collections::HashMap;
-
-        let mut env: HashMap<String, String> = HashMap::new();
-        env.insert("HOME".to_string(), "/home/user".to_string());
-        env.insert("PATH".to_string(), "/usr/bin".to_string());
-
-        let ccl = to_string(&env).unwrap();
-        assert!(ccl.contains("HOME = /home/user"));
-        assert!(ccl.contains("PATH = /usr/bin"));
-    }
-
-    #[test]
-    fn test_serialize_floats() {
-        #[derive(Serialize)]
-        struct Config {
-            ratio: f64,
-            scale: f32,
-        }
-
-        let config = Config {
-            ratio: 3.14159,
-            scale: 2.5,
-        };
-
-        let ccl = to_string(&config).unwrap();
-        assert!(ccl.contains("ratio = 3.14159"));
-        assert!(ccl.contains("scale = 2.5"));
-    }
-
-    #[test]
-    fn test_serialize_deeply_nested() {
+    fn test_deeply_nested_struct() {
         #[derive(Serialize)]
         struct Level3 {
             value: String,
@@ -750,9 +1183,237 @@ mod tests {
     }
 
     #[test]
-    fn test_roundtrip_simple() {
-        use serde::Deserialize;
+    fn test_struct_with_multiple_fields() {
+        #[derive(Serialize)]
+        struct Config {
+            name: String,
+            port: u16,
+            enabled: bool,
+            timeout: f64,
+        }
 
+        let config = Config {
+            name: "server".to_string(),
+            port: 8080,
+            enabled: true,
+            timeout: 30.5,
+        };
+
+        let ccl = to_string(&config).unwrap();
+        assert!(ccl.contains("name = server"));
+        assert!(ccl.contains("port = 8080"));
+        assert!(ccl.contains("enabled = true"));
+        assert!(ccl.contains("timeout = 30.5"));
+    }
+
+    // ===========================================
+    // Enum Types
+    // ===========================================
+
+    #[test]
+    fn test_unit_variant() {
+        #[derive(Serialize)]
+        enum Status {
+            Active,
+            Inactive,
+            Pending,
+        }
+
+        #[derive(Serialize)]
+        struct S {
+            status: Status,
+        }
+
+        let s = S {
+            status: Status::Active,
+        };
+        let ccl = to_string(&s).unwrap();
+        assert!(ccl.contains("status = Active"));
+
+        let s2 = S {
+            status: Status::Inactive,
+        };
+        let ccl2 = to_string(&s2).unwrap();
+        assert!(ccl2.contains("status = Inactive"));
+    }
+
+    #[test]
+    fn test_newtype_variant() {
+        #[derive(Serialize)]
+        enum Value {
+            Text(String),
+            Number(i32),
+        }
+
+        #[derive(Serialize)]
+        struct S {
+            data: Value,
+        }
+
+        let s = S {
+            data: Value::Text("hello".to_string()),
+        };
+        let ccl = to_string(&s).unwrap();
+        assert!(ccl.contains("Text = hello") || ccl.contains("hello"));
+    }
+
+    #[test]
+    fn test_tuple_variant() {
+        #[derive(Serialize)]
+        enum Point {
+            TwoD(i32, i32),
+            ThreeD(i32, i32, i32),
+        }
+
+        #[derive(Serialize)]
+        struct S {
+            point: Point,
+        }
+
+        let s = S {
+            point: Point::TwoD(10, 20),
+        };
+        let ccl = to_string(&s).unwrap();
+        assert!(ccl.contains("10"));
+        assert!(ccl.contains("20"));
+    }
+
+    #[test]
+    fn test_struct_variant() {
+        #[derive(Serialize)]
+        enum Message {
+            Request { id: u32, method: String },
+            Response { id: u32, result: String },
+        }
+
+        #[derive(Serialize)]
+        struct S {
+            msg: Message,
+        }
+
+        let s = S {
+            msg: Message::Request {
+                id: 1,
+                method: "GET".to_string(),
+            },
+        };
+        let ccl = to_string(&s).unwrap();
+        assert!(ccl.contains("id = 1") || ccl.contains("1"));
+        assert!(ccl.contains("method = GET") || ccl.contains("GET"));
+    }
+
+    // ===========================================
+    // Serde Attributes
+    // ===========================================
+
+    #[test]
+    fn test_rename_field() {
+        #[derive(Serialize)]
+        struct S {
+            #[serde(rename = "custom_name")]
+            original: String,
+        }
+
+        let s = S {
+            original: "value".to_string(),
+        };
+        let ccl = to_string(&s).unwrap();
+        assert!(ccl.contains("custom_name = value"));
+        assert!(!ccl.contains("original"));
+    }
+
+    #[test]
+    fn test_skip_field() {
+        #[derive(Serialize)]
+        struct S {
+            visible: String,
+            #[serde(skip)]
+            hidden: String,
+        }
+
+        let s = S {
+            visible: "shown".to_string(),
+            hidden: "secret".to_string(),
+        };
+        let ccl = to_string(&s).unwrap();
+        assert!(ccl.contains("visible = shown"));
+        assert!(!ccl.contains("hidden"));
+        assert!(!ccl.contains("secret"));
+    }
+
+    #[test]
+    fn test_skip_serializing_if() {
+        #[derive(Serialize)]
+        struct S {
+            name: String,
+            #[serde(skip_serializing_if = "Option::is_none")]
+            optional: Option<String>,
+        }
+
+        let s = S {
+            name: "test".to_string(),
+            optional: None,
+        };
+        let ccl = to_string(&s).unwrap();
+        assert!(ccl.contains("name = test"));
+        assert!(!ccl.contains("optional"));
+    }
+
+    #[test]
+    fn test_flatten() {
+        #[derive(Serialize)]
+        struct Inner {
+            inner_field: String,
+        }
+
+        #[derive(Serialize)]
+        struct Outer {
+            outer_field: String,
+            #[serde(flatten)]
+            inner: Inner,
+        }
+
+        let s = Outer {
+            outer_field: "outer".to_string(),
+            inner: Inner {
+                inner_field: "inner".to_string(),
+            },
+        };
+        let ccl = to_string(&s).unwrap();
+        assert!(ccl.contains("outer_field = outer"));
+        assert!(ccl.contains("inner_field = inner"));
+    }
+
+    // ===========================================
+    // Custom Printer Configuration
+    // ===========================================
+
+    #[test]
+    fn test_custom_printer_config() {
+        #[derive(Serialize)]
+        struct S {
+            name: String,
+        }
+
+        let s = S {
+            name: "test".to_string(),
+        };
+
+        let config = PrinterConfig {
+            indent_size: 4, // 4 spaces instead of default 2
+            ..Default::default()
+        };
+
+        let ccl = to_string_with_config(&s, config).unwrap();
+        assert!(ccl.contains("name = test"));
+    }
+
+    // ===========================================
+    // Round-Trip Tests
+    // ===========================================
+
+    #[test]
+    fn test_roundtrip_simple() {
         #[derive(Serialize, Deserialize, Debug, PartialEq)]
         struct Config {
             name: String,
@@ -774,8 +1435,6 @@ mod tests {
 
     #[test]
     fn test_roundtrip_nested() {
-        use serde::Deserialize;
-
         #[derive(Serialize, Deserialize, Debug, PartialEq)]
         struct Database {
             host: String,
@@ -800,5 +1459,192 @@ mod tests {
         let parsed: Config = crate::from_str(&ccl).unwrap();
 
         assert_eq!(original, parsed);
+    }
+
+    #[test]
+    fn test_roundtrip_with_option() {
+        #[derive(Serialize, Deserialize, Debug, PartialEq)]
+        struct Config {
+            name: String,
+            #[serde(default)]
+            description: Option<String>,
+        }
+
+        let original = Config {
+            name: "App".to_string(),
+            description: Some("A description".to_string()),
+        };
+
+        let ccl = to_string(&original).unwrap();
+        let parsed: Config = crate::from_str(&ccl).unwrap();
+
+        assert_eq!(original, parsed);
+    }
+
+    #[test]
+    fn test_roundtrip_floats() {
+        #[derive(Serialize, Deserialize, Debug, PartialEq)]
+        struct Config {
+            ratio: f64,
+        }
+
+        let original = Config { ratio: 3.14159 };
+
+        let ccl = to_string(&original).unwrap();
+        let parsed: Config = crate::from_str(&ccl).unwrap();
+
+        assert!((original.ratio - parsed.ratio).abs() < 1e-10);
+    }
+
+    #[test]
+    fn test_roundtrip_all_integer_types() {
+        #[derive(Serialize, Deserialize, Debug, PartialEq)]
+        struct AllInts {
+            a: i8,
+            b: i16,
+            c: i32,
+            d: i64,
+            e: u8,
+            f: u16,
+            g: u32,
+            h: u64,
+        }
+
+        let original = AllInts {
+            a: -1,
+            b: -2,
+            c: -3,
+            d: -4,
+            e: 1,
+            f: 2,
+            g: 3,
+            h: 4,
+        };
+
+        let ccl = to_string(&original).unwrap();
+        let parsed: AllInts = crate::from_str(&ccl).unwrap();
+
+        assert_eq!(original, parsed);
+    }
+
+    // ===========================================
+    // Edge Cases
+    // ===========================================
+
+    #[test]
+    fn test_empty_string() {
+        #[derive(Serialize)]
+        struct S {
+            value: String,
+        }
+
+        let s = S {
+            value: String::new(),
+        };
+        let ccl = to_string(&s).unwrap();
+        assert!(ccl.contains("value ="));
+    }
+
+    #[test]
+    fn test_string_with_spaces() {
+        #[derive(Serialize)]
+        struct S {
+            value: String,
+        }
+
+        let s = S {
+            value: "hello world with spaces".to_string(),
+        };
+        let ccl = to_string(&s).unwrap();
+        assert!(ccl.contains("value = hello world with spaces"));
+    }
+
+    #[test]
+    fn test_unicode_content() {
+        #[derive(Serialize)]
+        struct S {
+            value: String,
+        }
+
+        let s = S {
+            value: "日本語テスト".to_string(),
+        };
+        let ccl = to_string(&s).unwrap();
+        assert!(ccl.contains("value = 日本語テスト"));
+    }
+
+    #[test]
+    fn test_emoji_content() {
+        #[derive(Serialize)]
+        struct S {
+            value: String,
+        }
+
+        let s = S {
+            value: "🎉🚀✨".to_string(),
+        };
+        let ccl = to_string(&s).unwrap();
+        assert!(ccl.contains("🎉🚀✨"));
+    }
+
+    #[test]
+    fn test_zero_values() {
+        #[derive(Serialize)]
+        struct S {
+            int_zero: i32,
+            float_zero: f64,
+        }
+
+        let s = S {
+            int_zero: 0,
+            float_zero: 0.0,
+        };
+        let ccl = to_string(&s).unwrap();
+        assert!(ccl.contains("int_zero = 0"));
+        assert!(ccl.contains("float_zero = 0"));
+    }
+
+    #[test]
+    fn test_negative_numbers() {
+        #[derive(Serialize)]
+        struct S {
+            negative_int: i32,
+            negative_float: f64,
+        }
+
+        let s = S {
+            negative_int: -42,
+            negative_float: -3.14,
+        };
+        let ccl = to_string(&s).unwrap();
+        assert!(ccl.contains("negative_int = -42"));
+        assert!(ccl.contains("negative_float = -3.14"));
+    }
+
+    // ===========================================
+    // Serializer Internal Tests
+    // ===========================================
+
+    #[test]
+    fn test_serializer_default() {
+        let ser = Serializer::default();
+        assert!(ser.current_key.is_none());
+        assert_eq!(ser.stack.len(), 1);
+    }
+
+    #[test]
+    fn test_ser_error_display() {
+        let err = SerError::custom("test error message");
+        assert_eq!(format!("{}", err), "test error message");
+    }
+
+    #[test]
+    fn test_ser_error_into_ccl_error() {
+        let ser_err = SerError::custom("serialization failed");
+        let ccl_err: crate::Error = ser_err.into();
+        match ccl_err {
+            crate::Error::ValueError(msg) => assert_eq!(msg, "serialization failed"),
+            _ => panic!("Expected ValueError"),
+        }
     }
 }
