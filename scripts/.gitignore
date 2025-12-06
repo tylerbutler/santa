@@ -4,5 +4,7 @@ __pycache__/
 *$py.class
 .venv/
 
-# Collected data (generated output)
+# Collected and generated data (output files)
 data/raw/*.json
+data/crossref_results.json
+data/verified_packages.json

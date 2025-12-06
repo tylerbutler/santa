@@ -35,6 +35,25 @@ collect-fast:
 collect-list:
 	uv run python collect_all.py --list
 
+# Cross-reference collected packages and score them
+crossref top="150":
+	uv run python crossref_packages.py --top {{top}}
+
+# Verify package availability in package managers
+verify limit="100":
+	uv run python verify_packages.py --limit {{limit}}
+
+# Generate CCL output from verified packages
+generate-ccl min_sources="2":
+	uv run python generate_ccl.py --min-sources {{min_sources}}
+
+# Full pipeline: collect -> crossref -> verify -> generate
+pipeline:
+	uv run python collect_all.py --skip scoop flathub
+	uv run python crossref_packages.py --top 150
+	uv run python verify_packages.py --limit 100
+	uv run python generate_ccl.py --min-sources 2
+
 # Format code with Ruff
 format:
 	ruff format .
