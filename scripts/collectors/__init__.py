@@ -5,7 +5,8 @@ from collectors.homebrew import HomebrewCollector
 from collectors.toolleeo import ToolleeoCollector
 from collectors.modern_unix import ModernUnixCollector
 from collectors.scoop import ScoopCollector
-from collectors.flathub import FlathubCollector
+from collectors.aur import AURCollector
+from collectors.arch import ArchCollector
 from collectors.awesome_cli_apps import AwesomeCliAppsCollector
 
 __all__ = [
@@ -14,6 +15,7 @@ __all__ = [
     "ToolleeoCollector",
     "ModernUnixCollector",
     "ScoopCollector",
-    "FlathubCollector",
+    "AURCollector",
+    "ArchCollector",
     "AwesomeCliAppsCollector",
 ]

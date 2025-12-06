@@ -19,7 +19,8 @@ from collectors.homebrew import HomebrewCollector
 from collectors.toolleeo import ToolleeoCollector
 from collectors.modern_unix import ModernUnixCollector
 from collectors.scoop import ScoopCollector
-from collectors.flathub import FlathubCollector
+from collectors.aur import AURCollector
+from collectors.arch import ArchCollector
 from collectors.awesome_cli_apps import AwesomeCliAppsCollector
 
 
@@ -28,7 +29,8 @@ COLLECTORS = {
     "toolleeo": ToolleeoCollector,
     "modern_unix": ModernUnixCollector,
     "scoop": ScoopCollector,
-    "flathub": FlathubCollector,
+    "aur": AURCollector,
+    "arch": ArchCollector,
     "awesome_cli_apps": AwesomeCliAppsCollector,
 }
 
@@ -42,7 +44,7 @@ Examples:
     %(prog)s                              # Run all collectors
     %(prog)s --sources homebrew toolleeo  # Run specific collectors
     %(prog)s --homebrew-limit 200         # Limit Homebrew to 200 packages
-    %(prog)s --skip scoop flathub         # Skip slow collectors
+    %(prog)s --skip scoop                  # Skip slow collectors
         """,
     )
     parser.add_argument(
@@ -64,6 +66,12 @@ Examples:
         type=int,
         default=500,
         help="Limit for Homebrew packages (default: 500)",
+    )
+    parser.add_argument(
+        "--arch-limit",
+        type=int,
+        default=200,
+        help="Limit for Arch packages (default: 200)",
     )
     parser.add_argument(
         "--limit",
@@ -110,6 +118,8 @@ Examples:
         # Determine limit for this collector
         if source_name == "homebrew":
             limit = args.homebrew_limit
+        elif source_name == "arch":
+            limit = args.arch_limit
         else:
             limit = args.limit
 

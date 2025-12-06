@@ -1,27 +1,35 @@
-"""Scoop package collector from GitHub bucket."""
+"""Scoop package collector from GitHub bucket.
 
+Uses shallow git clone for fast local access to all manifests.
+"""
+
+import json
+import shutil
+import subprocess
 from datetime import date
+from pathlib import Path
 from typing import Optional
 
-from collectors.base import BaseCollector, RateLimiter, get_github_headers
+from collectors.base import BaseCollector
 from models import Package
 
 
 class ScoopCollector(BaseCollector):
-    """Collect packages from Scoop main bucket on GitHub."""
+    """Collect packages from Scoop main bucket using local git clone."""
 
     source_name = "scoop"
 
-    # GitHub API endpoint for main bucket contents
-    BUCKET_API = "https://api.github.com/repos/ScoopInstaller/Main/contents/bucket"
+    # Scoop main bucket repository
+    BUCKET_REPO = "https://github.com/ScoopInstaller/Main.git"
 
-    def __init__(self):
-        super().__init__()
-        # Rate limiter: 60/hr unauthenticated, 5000/hr with token
-        self.rate_limiter = RateLimiter(requests_per_hour=50)
+    # Local cache directory for cloned repo
+    CACHE_DIR = Path(__file__).parent.parent / "data" / ".cache" / "scoop-main"
 
     def collect(self, limit: Optional[int] = None) -> list[Package]:
         """Collect packages from Scoop main bucket.
+
+        Uses a shallow git clone for fast access to all manifests.
+        The clone is cached and updated on subsequent runs.
 
         Args:
             limit: Optional limit on number of packages.
@@ -29,87 +37,102 @@ class ScoopCollector(BaseCollector):
         Returns:
             List of Package objects.
         """
-        print(f"Fetching Scoop bucket contents from GitHub...")
+        bucket_dir = self._ensure_bucket()
+        if not bucket_dir:
+            return []
 
-        headers = get_github_headers()
+        manifest_dir = bucket_dir / "bucket"
+        if not manifest_dir.exists():
+            self.errors.append(f"Bucket directory not found: {manifest_dir}")
+            return []
+
+        print(f"Reading Scoop manifests from {manifest_dir}...")
+
         packages = []
-        page = 1
+        manifest_files = sorted(manifest_dir.glob("*.json"))
 
-        while True:
-            self.rate_limiter.wait()
+        for manifest_path in manifest_files:
+            pkg_name = manifest_path.stem
 
-            try:
-                response = self.session.get(
-                    self.BUCKET_API,
-                    params={"per_page": 100, "page": page},
-                    headers=headers,
-                    timeout=30,
+            manifest = self._parse_manifest(manifest_path)
+
+            packages.append(
+                Package(
+                    name=pkg_name.lower(),
+                    display_name=pkg_name,
+                    source=self.source_name,
+                    source_id=pkg_name,
+                    description=manifest.get("description") if manifest else None,
+                    homepage=manifest.get("homepage") if manifest else None,
+                    collected_at=date.today(),
                 )
-                response.raise_for_status()
-                files = response.json()
-            except Exception as e:
-                self.errors.append(f"Failed to fetch bucket page {page}: {e}")
-                break
+            )
 
-            if not files:
-                break
-
-            for file_info in files:
-                filename = file_info.get("name", "")
-                if not filename.endswith(".json"):
-                    continue
-
-                # Extract package name from filename (e.g., "git.json" -> "git")
-                pkg_name = filename[:-5]
-
-                # Fetch individual manifest for description
-                manifest = self._fetch_manifest(file_info.get("download_url", ""))
-
-                packages.append(
-                    Package(
-                        name=pkg_name.lower(),
-                        display_name=pkg_name,
-                        source=self.source_name,
-                        source_id=pkg_name,
-                        description=manifest.get("description") if manifest else None,
-                        homepage=manifest.get("homepage") if manifest else None,
-                        collected_at=date.today(),
-                    )
-                )
-
-                if limit and len(packages) >= limit:
-                    print(f"Collected {len(packages)} packages from Scoop (limit reached)")
-                    return packages
-
-            print(f"  Page {page}: {len(files)} files, {len(packages)} packages total")
-            page += 1
-
-            # Safety limit to avoid runaway pagination
-            if page > 50:
-                self.errors.append("Exceeded max pages (50)")
-                break
+            if limit and len(packages) >= limit:
+                print(f"Collected {len(packages)} packages from Scoop (limit reached)")
+                return packages
 
         print(f"Collected {len(packages)} packages from Scoop")
         return packages
 
-    def _fetch_manifest(self, download_url: str) -> Optional[dict]:
-        """Fetch and parse a Scoop manifest JSON.
+    def _ensure_bucket(self) -> Optional[Path]:
+        """Ensure the Scoop bucket is cloned and up-to-date.
+
+        Uses shallow clone with depth=1 for speed.
+
+        Returns:
+            Path to cloned bucket directory, or None on error.
+        """
+        self.CACHE_DIR.parent.mkdir(parents=True, exist_ok=True)
+
+        if self.CACHE_DIR.exists():
+            # Update existing clone
+            print("Updating Scoop bucket cache...")
+            try:
+                subprocess.run(
+                    ["git", "pull", "--depth=1", "--ff-only"],
+                    cwd=self.CACHE_DIR,
+                    check=True,
+                    capture_output=True,
+                    timeout=120,
+                )
+                return self.CACHE_DIR
+            except subprocess.CalledProcessError as e:
+                # Pull failed, try fresh clone
+                print(f"Pull failed, re-cloning: {e.stderr.decode()[:100]}")
+                shutil.rmtree(self.CACHE_DIR, ignore_errors=True)
+            except subprocess.TimeoutExpired:
+                self.errors.append("Git pull timed out")
+                shutil.rmtree(self.CACHE_DIR, ignore_errors=True)
+
+        # Fresh shallow clone
+        print("Cloning Scoop main bucket (shallow)...")
+        try:
+            subprocess.run(
+                ["git", "clone", "--depth=1", self.BUCKET_REPO, str(self.CACHE_DIR)],
+                check=True,
+                capture_output=True,
+                timeout=180,
+            )
+            return self.CACHE_DIR
+        except subprocess.CalledProcessError as e:
+            self.errors.append(f"Failed to clone Scoop bucket: {e.stderr.decode()[:200]}")
+            return None
+        except subprocess.TimeoutExpired:
+            self.errors.append("Git clone timed out")
+            return None
+
+    def _parse_manifest(self, path: Path) -> Optional[dict]:
+        """Parse a Scoop manifest JSON file.
 
         Args:
-            download_url: URL to the raw manifest file.
+            path: Path to the manifest file.
 
         Returns:
             Parsed manifest dict or None on error.
         """
-        if not download_url:
-            return None
-
-        self.rate_limiter.wait()
-
         try:
-            response = self.session.get(download_url, timeout=10)
-            response.raise_for_status()
-            return response.json()
-        except Exception:
-            # Don't log every failed manifest fetch
+            with open(path, encoding="utf-8") as f:
+                return json.load(f)
+        except (json.JSONDecodeError, OSError):
             return None

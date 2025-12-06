@@ -27,9 +27,9 @@ collect-all:
 collect *sources:
 	uv run python collect_all.py --sources {{sources}}
 
-# Collect from all sources except slow ones (scoop, flathub)
+# Collect from all sources (all are fast now with caching)
 collect-fast:
-	uv run python collect_all.py --skip scoop flathub
+	uv run python collect_all.py
 
 # List available collectors
 collect-list:
@@ -49,7 +49,7 @@ generate-ccl min_sources="2":
 
 # Full pipeline: collect -> crossref -> verify -> generate
 pipeline:
-	uv run python collect_all.py --skip scoop flathub
+	uv run python collect_all.py
 	uv run python crossref_packages.py --top 150
 	uv run python verify_packages.py --limit 100
 	uv run python generate_ccl.py --min-sources 1

@@ -41,7 +41,8 @@ just generate-ccl     # Generate CCL output
 | **Toolleeo** | CSV | Categories | 1,900+ curated CLI tools |
 | **Modern Unix** | Markdown | Curated | ~30 modern CLI replacements |
 | **Scoop** | GitHub | Manifests | Windows package manager |
-| **Flathub** | API | Stats | Mostly GUI, few CLI apps |
+| **AUR** | Metadata dump | Popularity & votes | Arch User Repository (102k+ packages) |
+| **Arch** | pkgstats API | Install counts | Official Arch repos (30k+ packages) |
 | **Awesome CLI Apps** | Markdown | Curated | 1,000+ tools |
 
 ## Scripts
@@ -57,8 +58,8 @@ uv run python collect_all.py
 # Collect from specific sources
 uv run python collect_all.py --sources homebrew toolleeo
 
-# Skip slow sources
-uv run python collect_all.py --skip scoop flathub
+# Collect from specific sources only
+uv run python collect_all.py --sources homebrew toolleeo aur
 
 # List available collectors
 uv run python collect_all.py --list
@@ -161,7 +162,8 @@ Individual collector implementations:
 | `toolleeo.py` | Toolleeo | GitHub raw CSV |
 | `modern_unix.py` | Modern Unix | GitHub README parsing |
 | `scoop.py` | Scoop | GitHub API (manifests) |
-| `flathub.py` | Flathub | `flathub.org/api/v2` |
+| `aur.py` | AUR | `aur.archlinux.org/packages-meta-v1.json.gz` |
+| `arch.py` | Arch | `pkgstats.archlinux.de/api/packages` |
 | `awesome_cli_apps.py` | Awesome CLI Apps | GitHub README parsing |
 
 ## Justfile Commands
@@ -169,7 +171,7 @@ Individual collector implementations:
 ```bash
 just sync          # Install dependencies
 just collect-all   # Collect from all sources
-just collect-fast  # Skip slow sources (scoop, flathub)
+just collect-fast  # Collect quickly (all sources are fast now)
 just collect homebrew toolleeo  # Collect specific sources
 just crossref      # Cross-reference (default: top 150)
 just crossref 200  # Cross-reference top 200
@@ -191,7 +193,8 @@ scripts/
 │   │   ├── toolleeo.json
 │   │   ├── modern_unix.json
 │   │   ├── scoop.json
-│   │   ├── flathub.json
+│   │   ├── aur.json
+│   │   ├── arch.json
 │   │   └── awesome_cli_apps.json
 │   ├── crossref_packages.json  # Cross-referenced & scored
 │   └── verified_packages.json  # Verified availability
@@ -207,7 +210,8 @@ scripts/
 ## Rate Limiting
 
 - **GitHub API**: 60 req/hr unauthenticated, 5000/hr with `GITHUB_TOKEN`
-- **Flathub API**: 600 req/hr (built-in rate limiter)
+- **AUR**: No rate limit (single metadata download)
+- **Arch pkgstats**: 120 req/hr (built-in rate limiter)
 - **Homebrew API**: No explicit limit (cached analytics)
 
 ## CCL Format Reference
