@@ -277,4 +277,3 @@ pub trait Package {
         None
     }
 }
-
