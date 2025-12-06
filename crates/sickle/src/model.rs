@@ -150,12 +150,16 @@ impl CclObject {
     /// This flattens the Vec structure, returning only the first value per key.
     /// Use `iter_all()` to get all key-value pairs including duplicates.
     pub fn iter(&self) -> impl Iterator<Item = (&String, &CclObject)> {
-        self.0.iter().filter_map(|(k, vec)| vec.first().map(|v| (k, v)))
+        self.0
+            .iter()
+            .filter_map(|(k, vec)| vec.first().map(|v| (k, v)))
     }
 
     /// Get an iterator over all key-value pairs including duplicate keys
     pub fn iter_all(&self) -> impl Iterator<Item = (&String, &CclObject)> {
-        self.0.iter().flat_map(|(k, vec)| vec.iter().map(move |v| (k, v)))
+        self.0
+            .iter()
+            .flat_map(|(k, vec)| vec.iter().map(move |v| (k, v)))
     }
 
     /// Get the concrete IndexMap iterator for internal use (Serde)
@@ -208,7 +212,6 @@ impl CclObject {
     pub fn empty() -> Self {
         CclObject(IndexMap::new())
     }
-
 
     /// Create a CclObject representing a list using bare list syntax
     ///
@@ -464,12 +467,7 @@ impl CclObject {
                     // Filter out comment keys from each child
                     return children
                         .iter()
-                        .flat_map(|child| {
-                            child
-                                .keys()
-                                .filter(|k| !k.starts_with('/'))
-                                .cloned()
-                        })
+                        .flat_map(|child| child.keys().filter(|k| !k.starts_with('/')).cloned())
                         .collect();
                 }
             }
@@ -666,18 +664,29 @@ mod tests {
     fn test_compose_overlapping_keys() {
         // Composing objects with same key should merge values
         let mut obj_a = CclObject::new();
-        obj_a.inner_mut().insert("config".to_string(), vec![{
-            let mut inner = CclObject::new();
-            inner.inner_mut().insert("host".to_string(), vec![CclObject::from_string("localhost")]);
-            inner
-        }]);
+        obj_a.inner_mut().insert(
+            "config".to_string(),
+            vec![{
+                let mut inner = CclObject::new();
+                inner.inner_mut().insert(
+                    "host".to_string(),
+                    vec![CclObject::from_string("localhost")],
+                );
+                inner
+            }],
+        );
 
         let mut obj_b = CclObject::new();
-        obj_b.inner_mut().insert("config".to_string(), vec![{
-            let mut inner = CclObject::new();
-            inner.inner_mut().insert("port".to_string(), vec![CclObject::from_string("8080")]);
-            inner
-        }]);
+        obj_b.inner_mut().insert(
+            "config".to_string(),
+            vec![{
+                let mut inner = CclObject::new();
+                inner
+                    .inner_mut()
+                    .insert("port".to_string(), vec![CclObject::from_string("8080")]);
+                inner
+            }],
+        );
 
         let composed = obj_a.compose(&obj_b);
         let config = composed.get("config").unwrap();
@@ -688,7 +697,8 @@ mod tests {
     #[test]
     fn test_compose_left_identity() {
         let mut obj = CclObject::new();
-        obj.inner_mut().insert("key".to_string(), vec![CclObject::from_string("value")]);
+        obj.inner_mut()
+            .insert("key".to_string(), vec![CclObject::from_string("value")]);
 
         assert!(CclObject::identity_left(&obj));
     }
@@ -696,7 +706,8 @@ mod tests {
     #[test]
     fn test_compose_right_identity() {
         let mut obj = CclObject::new();
-        obj.inner_mut().insert("key".to_string(), vec![CclObject::from_string("value")]);
+        obj.inner_mut()
+            .insert("key".to_string(), vec![CclObject::from_string("value")]);
 
         assert!(CclObject::identity_right(&obj));
     }
@@ -704,13 +715,16 @@ mod tests {
     #[test]
     fn test_compose_associativity() {
         let mut a = CclObject::new();
-        a.inner_mut().insert("a".to_string(), vec![CclObject::from_string("1")]);
+        a.inner_mut()
+            .insert("a".to_string(), vec![CclObject::from_string("1")]);
 
         let mut b = CclObject::new();
-        b.inner_mut().insert("b".to_string(), vec![CclObject::from_string("2")]);
+        b.inner_mut()
+            .insert("b".to_string(), vec![CclObject::from_string("2")]);
 
         let mut c = CclObject::new();
-        c.inner_mut().insert("c".to_string(), vec![CclObject::from_string("3")]);
+        c.inner_mut()
+            .insert("c".to_string(), vec![CclObject::from_string("3")]);
 
         assert!(CclObject::compose_associative(&a, &b, &c));
     }
@@ -719,25 +733,41 @@ mod tests {
     fn test_compose_nested_associativity() {
         // Test associativity with overlapping nested keys
         let mut a = CclObject::new();
-        a.inner_mut().insert("config".to_string(), vec![{
-            let mut inner = CclObject::new();
-            inner.inner_mut().insert("host".to_string(), vec![CclObject::from_string("localhost")]);
-            inner
-        }]);
+        a.inner_mut().insert(
+            "config".to_string(),
+            vec![{
+                let mut inner = CclObject::new();
+                inner.inner_mut().insert(
+                    "host".to_string(),
+                    vec![CclObject::from_string("localhost")],
+                );
+                inner
+            }],
+        );
 
         let mut b = CclObject::new();
-        b.inner_mut().insert("config".to_string(), vec![{
-            let mut inner = CclObject::new();
-            inner.inner_mut().insert("port".to_string(), vec![CclObject::from_string("8080")]);
-            inner
-        }]);
+        b.inner_mut().insert(
+            "config".to_string(),
+            vec![{
+                let mut inner = CclObject::new();
+                inner
+                    .inner_mut()
+                    .insert("port".to_string(), vec![CclObject::from_string("8080")]);
+                inner
+            }],
+        );
 
         let mut c = CclObject::new();
-        c.inner_mut().insert("db".to_string(), vec![{
-            let mut inner = CclObject::new();
-            inner.inner_mut().insert("name".to_string(), vec![CclObject::from_string("test")]);
-            inner
-        }]);
+        c.inner_mut().insert(
+            "db".to_string(),
+            vec![{
+                let mut inner = CclObject::new();
+                inner
+                    .inner_mut()
+                    .insert("name".to_string(), vec![CclObject::from_string("test")]);
+                inner
+            }],
+        );
 
         assert!(CclObject::compose_associative(&a, &b, &c));
     }

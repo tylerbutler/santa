@@ -536,7 +536,9 @@ impl<'de, 'a> MapAccess<'de> for MapDeserializer<'a> {
             if vec.len() > 1 {
                 // Multiple values for this key - compose them into a single object
                 // that can be deserialized as a sequence
-                let composed = vec.iter().fold(CclObject::new(), |acc, obj| acc.compose(obj));
+                let composed = vec
+                    .iter()
+                    .fold(CclObject::new(), |acc, obj| acc.compose(obj));
                 let mut de = Deserializer { model: composed };
                 return seed.deserialize(&mut de);
             }

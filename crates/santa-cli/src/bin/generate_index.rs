@@ -126,7 +126,13 @@ fn parse_source_file(path: &Path) -> Result<BTreeMap<String, ParsedPackage>> {
             (config, desc)
         };
 
-        packages.insert(key.clone(), ParsedPackage { config, description });
+        packages.insert(
+            key.clone(),
+            ParsedPackage {
+                config,
+                description,
+            },
+        );
     }
 
     Ok(packages)
@@ -137,9 +143,12 @@ fn generate_index(sources_dir: &Path) -> Result<String> {
     let mut index = sickle::CclObject::new();
 
     // Read all source files
-    for entry in fs::read_dir(sources_dir)
-        .with_context(|| format!("Failed to read sources directory: {}", sources_dir.display()))?
-    {
+    for entry in fs::read_dir(sources_dir).with_context(|| {
+        format!(
+            "Failed to read sources directory: {}",
+            sources_dir.display()
+        )
+    })? {
         let entry = entry?;
         let path = entry.path();
 
@@ -169,11 +178,23 @@ fn generate_index(sources_dir: &Path) -> Result<String> {
 
     // Add header comments (comment keys with empty values)
     // With Vec-based internal structure, we wrap single values in vec![]
-    map.insert("/= Generated package index".to_string(), vec![sickle::CclObject::empty()]);
-    map.insert("/= DO NOT EDIT - Generated from data/sources/*.ccl".to_string(), vec![sickle::CclObject::empty()]);
-    map.insert("/= Run: just generate-index to regenerate".to_string(), vec![sickle::CclObject::empty()]);
+    map.insert(
+        "/= Generated package index".to_string(),
+        vec![sickle::CclObject::empty()],
+    );
+    map.insert(
+        "/= DO NOT EDIT - Generated from data/sources/*.ccl".to_string(),
+        vec![sickle::CclObject::empty()],
+    );
+    map.insert(
+        "/= Run: just generate-index to regenerate".to_string(),
+        vec![sickle::CclObject::empty()],
+    );
     map.insert("".to_string(), vec![sickle::CclObject::empty()]); // Blank line
-    map.insert("/= Packages with simple format (no source-specific overrides)".to_string(), vec![sickle::CclObject::empty()]);
+    map.insert(
+        "/= Packages with simple format (no source-specific overrides)".to_string(),
+        vec![sickle::CclObject::empty()],
+    );
 
     // Separate simple and complex packages
     let mut simple_packages = Vec::new();
@@ -191,13 +212,20 @@ fn generate_index(sources_dir: &Path) -> Result<String> {
     for package_name in simple_packages {
         let data = &all_packages[package_name];
         let sources: Vec<String> = data.sources.keys().cloned().collect();
-        map.insert(package_name.clone(), vec![sickle::CclObject::from_list(sources)]);
+        map.insert(
+            package_name.clone(),
+            vec![sickle::CclObject::from_list(sources)],
+        );
     }
 
     // Add complex packages section header
     if !complex_packages.is_empty() {
         map.insert("".to_string(), vec![sickle::CclObject::empty()]); // Blank line
-        map.insert("/= Packages with complex format (have source-specific overrides or descriptions)".to_string(), vec![sickle::CclObject::empty()]);
+        map.insert(
+            "/= Packages with complex format (have source-specific overrides or descriptions)"
+                .to_string(),
+            vec![sickle::CclObject::empty()],
+        );
 
         for package_name in complex_packages {
             let data = &all_packages[package_name];
@@ -206,7 +234,10 @@ fn generate_index(sources_dir: &Path) -> Result<String> {
 
             // Add description first if present
             if let Some(desc) = &data.description {
-                package_map.insert("_description".to_string(), vec![sickle::CclObject::from_string(desc)]);
+                package_map.insert(
+                    "_description".to_string(),
+                    vec![sickle::CclObject::from_string(desc)],
+                );
             }
 
             // Collect sources with no config and sources with config
@@ -224,13 +255,15 @@ fn generate_index(sources_dir: &Path) -> Result<String> {
             for (source, config) in override_sources {
                 match config {
                     PackageConfig::NameOverride(name) => {
-                        package_map.insert(source.clone(), vec![sickle::CclObject::from_string(name)]);
+                        package_map
+                            .insert(source.clone(), vec![sickle::CclObject::from_string(name)]);
                     }
                     PackageConfig::Complex(config_map) => {
                         let mut nested = sickle::CclObject::new();
                         let nested_map = nested.inner_mut();
                         for (key, value) in config_map {
-                            nested_map.insert(key.clone(), vec![sickle::CclObject::from_string(value)]);
+                            nested_map
+                                .insert(key.clone(), vec![sickle::CclObject::from_string(value)]);
                         }
                         package_map.insert(source.clone(), vec![nested]);
                     }
@@ -240,7 +273,10 @@ fn generate_index(sources_dir: &Path) -> Result<String> {
 
             // Add _sources list if there are simple sources
             if !simple_sources.is_empty() {
-                package_map.insert("_sources".to_string(), vec![sickle::CclObject::from_list(simple_sources)]);
+                package_map.insert(
+                    "_sources".to_string(),
+                    vec![sickle::CclObject::from_list(simple_sources)],
+                );
             }
 
             map.insert(package_name.clone(), vec![package_obj]);

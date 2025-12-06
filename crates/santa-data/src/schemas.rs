@@ -303,7 +303,10 @@ bat =
         let def = packages.get("bat").unwrap();
 
         // Should have description
-        assert_eq!(def.get_description(), Some("A cat clone with syntax highlighting."));
+        assert_eq!(
+            def.get_description(),
+            Some("A cat clone with syntax highlighting.")
+        );
 
         // Should still have sources
         assert!(def.is_available_in("brew"));

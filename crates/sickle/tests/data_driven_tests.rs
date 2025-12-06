@@ -28,7 +28,9 @@ fn validate_vec_against_json(
     test_name: &str,
     path: &str,
 ) {
-    let expected_array = expected.as_array().expect("expected value should be an array");
+    let expected_array = expected
+        .as_array()
+        .expect("expected value should be an array");
 
     assert_eq!(
         values.len(),
