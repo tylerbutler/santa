@@ -94,8 +94,8 @@ notify = "6.1"
 # Shell command escaping to prevent injection attacks
 shell-escape = "0.1"
 
-# Template engine for script generation (Jinja2/Django-style)
-tera = "1.19"
+# Template engine for script generation (Jinja2-compatible, minimal deps)
+minijinja = "2"
 
 # Date/time handling for script metadata
 chrono = { version = "0.4", features = ["serde"] }
@@ -103,8 +103,8 @@ chrono = { version = "0.4", features = ["serde"] }
 # Structured error types with derive macros
 thiserror = "1.0"
 
-# HTTP client for fetching remote sources
-ureq = "2.10"
+# HTTP client for fetching remote sources (lightweight, minimal deps)
+minreq = { version = "2.12", features = ["https-rustls"] }
 
 [dev-dependencies]
 # Parameterized testing framework with fixtures
