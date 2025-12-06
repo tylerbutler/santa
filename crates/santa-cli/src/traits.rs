@@ -1,5 +1,4 @@
 use crate::errors::Result;
-use serde::Serialize;
 use std::path::Path;
 
 /// Core trait for package managers providing unified interface across different platforms.
@@ -279,30 +278,3 @@ pub trait Package {
     }
 }
 
-/// Trait for types that can be exported to various formats (YAML, JSON, etc.)
-pub trait Exportable {
-    /// Export to YAML format (default implementation)
-    fn export(&self) -> String
-    where
-        Self: Serialize,
-    {
-        serde_yaml::to_string(&self).unwrap_or_else(|_| "# Export failed".to_string())
-    }
-
-    /// Export to minimal format (same as export by default)
-    fn export_min(&self) -> String
-    where
-        Self: Serialize,
-    {
-        self.export()
-    }
-
-    /// Export to JSON format
-    fn export_json(&self) -> String
-    where
-        Self: Serialize,
-    {
-        serde_json::to_string_pretty(&self)
-            .unwrap_or_else(|_| r#"{"error": "Export failed"}"#.to_string())
-    }
-}
