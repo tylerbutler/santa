@@ -3,11 +3,32 @@ act =
   = brew
   = scoop
 
+actionlint =
+  = brew
+  = scoop
+
+age =
+  = brew
+
+allure =
+  = brew
+  = scoop
+
 ansible =
+  = brew
+
+ansible-lint =
   = brew
 
 aom =
   = brew
+
+apache-arrow =
+  = brew
+
+apktool =
+  = brew
+  = scoop
 
 argocd =
   = brew
@@ -30,6 +51,9 @@ atuin =
 auto-install =
   = npm
 
+autoconf =
+  = brew
+
 automake =
   = brew
 
@@ -44,6 +68,9 @@ bat =
   = nix
   = pacman
   = scoop
+
+bats-core =
+  = brew
 
 blindspot =
   = cargo
@@ -81,6 +108,13 @@ chezmoi =
 
 choose =
   = brew
+
+clang-format =
+  = brew
+
+cloc =
+  = brew
+  = scoop
 
 cloudflared =
   = brew
@@ -124,6 +158,10 @@ curlie =
   = brew
   = scoop
 
+d2 =
+  = brew
+  = scoop
+
 delta =
   = nix
   = scoop
@@ -149,6 +187,10 @@ docker =
   = brew
   = nix
   = pacman
+  = scoop
+
+docker-buildx =
+  = brew
   = scoop
 
 docker-compose =
@@ -178,6 +220,10 @@ emacs =
   = brew
 
 emplace =
+  = scoop
+
+erlang =
+  = brew
   = scoop
 
 exiftool =
@@ -243,6 +289,9 @@ gcc =
   = pacman
   = scoop
 
+gdal =
+  = brew
+
 gdk-pixbuf =
   = brew
 
@@ -276,6 +325,13 @@ git =
   = pacman
   = scoop
 
+git-filter-repo =
+  = brew
+  = scoop
+
+git-gui =
+  = brew
+
 git-lfs =
   = brew
   = scoop
@@ -300,6 +356,12 @@ glances =
 glib =
   = brew
 
+gmp =
+  = brew
+
+gnu-sed =
+  = brew
+
 gnu-tar =
   = brew
 
@@ -308,6 +370,10 @@ gnupg =
   = brew
   = nix
   = pacman
+  = scoop
+
+gnuplot =
+  = brew
   = scoop
 
 gnutls =
@@ -323,6 +389,9 @@ gobject-introspection =
 golangci-lint =
   = brew
   = scoop
+
+gpgme =
+  = brew
 
 gping =
   = brew
@@ -346,14 +415,23 @@ grex =
   = pacman
   = scoop
 
+grpc =
+  = brew
+
 grpcurl =
   = brew
   = scoop
+
+gstreamer =
+  = brew
 
 gsudo =
   = scoop
 
 gtop =
+  = brew
+
+guile =
   = brew
 
 harfbuzz =
@@ -376,6 +454,9 @@ htop =
   = brew
   = nix
   = pacman
+
+httpd =
+  = brew
 
 httpie =
   = brew
@@ -403,6 +484,17 @@ imagemagick =
   = pacman
   = scoop
 
+iperf3 =
+  = brew
+  = scoop
+
+jo =
+  = brew
+  = scoop
+
+jpeg =
+  = brew
+
 jpeg-xl =
   = brew
 
@@ -419,11 +511,27 @@ just =
   = brew
   = scoop
 
+k3d =
+  = brew
+  = scoop
+
+k6 =
+  = brew
+  = scoop
+
 k9s =
   = brew
   = scoop
 
+kind =
+  = brew
+  = scoop
+
 kubeconform =
+  = brew
+  = scoop
+
+kubectx =
   = brew
   = scoop
 
@@ -439,11 +547,20 @@ lazygit =
 lcov =
   = brew
 
+leptonica =
+  = brew
+
+libass =
+  = brew
+
 libavif =
   = brew
   = scoop
 
 libffi =
+  = brew
+
+libfido2 =
   = brew
 
 libheif =
@@ -461,12 +578,24 @@ libpq =
 librsvg =
   = brew
 
+libtiff =
+  = brew
+
 libtool =
+  = brew
+
+libusb =
   = brew
 
 libxml2 =
   = brew
   = scoop
+
+lima =
+  = brew
+
+little-cms2 =
+  = brew
 
 llama.cpp =
   = brew
@@ -480,6 +609,20 @@ lsd =
   = pacman
   = scoop
 
+lua =
+  = brew
+  = scoop
+
+make =
+  = apt
+  = brew
+  = pacman
+  = scoop
+
+mariadb =
+  = brew
+  = scoop
+
 mas =
   = brew
 
@@ -491,11 +634,18 @@ mcfly =
   = brew
   = scoop
 
+meson =
+  = brew
+  = scoop
+
 micro =
   = brew
   = nix
   = pacman
   = scoop
+
+midnight-commander =
+  = brew
 
 minikube =
   = brew
@@ -520,14 +670,26 @@ mosh =
 mpv =
   = brew
 
+mysql =
+  = brew
+  = scoop
+
 mysql-client =
   = brew
+
+nano =
+  = brew
+  = scoop
 
 ncdu =
   = apt
   = brew
   = nix
   = pacman
+
+neofetch =
+  = brew
+  = scoop
 
 neovim =
   = apt
@@ -537,6 +699,9 @@ neovim =
   = scoop
 
 netpbm =
+  = brew
+
+nghttp2 =
   = brew
 
 nginx =
@@ -565,7 +730,13 @@ npkill =
 npm-check-updates =
   = npm
 
+nss =
+  = brew
+
 numpy =
+  = brew
+
+nushell =
   = brew
 
 nvm =
@@ -579,11 +750,32 @@ ollama =
   = brew
   = scoop
 
+open-mpi =
+  = brew
+
+openblas =
+  = brew
+
 opencv =
   = brew
   = scoop
 
 openjdk =
+  = brew
+
+openjpeg =
+  = brew
+
+openssh =
+  = brew
+  = nix
+  = pacman
+  = scoop
+
+openvino =
+  = brew
+
+p7zip =
   = brew
 
 pandoc =
@@ -597,6 +789,9 @@ pango =
   = brew
 
 parallel =
+  = brew
+
+pipenv =
   = brew
 
 pipx =
@@ -622,6 +817,12 @@ poppler =
   = brew
   = scoop
 
+portaudio =
+  = brew
+
+postgresql =
+  = scoop
+
 pre-commit =
   = brew
 
@@ -640,10 +841,16 @@ pueue =
   = pacman
   = scoop
 
+pv =
+  = brew
+
 pyenv =
   = brew
   = pacman
   = scoop
+
+pyenv-virtualenv =
+  = brew
 
 python =
   = apt
@@ -659,12 +866,18 @@ qemu =
   = brew
   = scoop
 
+qt =
+  = brew
+
 rbenv =
   = brew
 
 rclone =
   = brew
   = scoop
+
+readline =
+  = brew
 
 redis =
   = brew
@@ -718,6 +931,10 @@ shellcheck =
   = brew
   = scoop
 
+sonar-scanner =
+  = brew
+  = scoop
+
 sops =
   = brew
   = scoop
@@ -728,15 +945,28 @@ sort-package-json =
 sourcekitten =
   = brew
 
+sourcery =
+  = brew
+
 sqlite =
   = brew
   = scoop
+
+sshuttle =
+  = brew
 
 starship =
   = brew
   = nix
   = pacman
   = scoop
+
+stern =
+  = brew
+  = scoop
+
+subversion =
+  = brew
 
 swiftformat =
   = brew
@@ -770,6 +1000,10 @@ terraform =
   = brew
   = scoop
 
+terraform-docs =
+  = brew
+  = scoop
+
 terragrunt =
   = brew
   = scoop
@@ -782,6 +1016,10 @@ tfenv =
   = brew
 
 tflint =
+  = brew
+  = scoop
+
+tfsec =
   = brew
   = scoop
 
@@ -827,6 +1065,14 @@ trivy =
   = scoop
 
 unbound =
+  = brew
+  = scoop
+
+unzip =
+  = brew
+  = scoop
+
+uutils-coreutils =
   = brew
   = scoop
 
@@ -879,6 +1125,9 @@ when-cli =
 
 which =
   = scoop
+
+wireshark =
+  = brew
 
 xcbeautify =
   = brew
@@ -938,6 +1187,16 @@ zsh =
   = nix
   = pacman
 
+zsh-autosuggestions =
+  = brew
+
+zsh-syntax-highlighting =
+  = brew
+
+zstd =
+  = brew
+  = scoop
+
 /= Packages with complex format (have source-specific overrides)
 
 @fluidframework/build-tools =
@@ -987,6 +1246,11 @@ mc =
     = nix
     = pacman
     = scoop
+
+node =
+  scoop = nodejs
+  _sources =
+    = brew
 
 oh-my-posh =
   brew =
