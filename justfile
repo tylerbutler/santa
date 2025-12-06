@@ -49,6 +49,12 @@ build-release *ARGS='':
     @echo "🔨 Building santa (release)..."
     cargo build --release {{ARGS}}
 
+# Generate package index from source files
+generate-index:
+    @echo "📋 Generating package index from source files..."
+    cargo run --bin generate-index
+    @echo "✅ Package index generated at crates/santa-cli/data/known_packages.ccl"
+
 # Build for CI with specific target
 ci-build TARGET='x86_64-unknown-linux-gnu' *ARGS='':
     @echo "🔨 Building for CI target: {{TARGET}}"
