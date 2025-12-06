@@ -7,6 +7,8 @@
 
 export RUST_BACKTRACE := "1"
 
+set windows-shell := ["powershell.exe", "-NoLogo", "-Command"]
+
 # Common aliases for faster development
 alias b := build
 alias br := build-release
@@ -43,11 +45,13 @@ build *ARGS='':
     @echo "🔨 Building santa (debug)..."
     cargo build {{ARGS}}
     @just markdown-help
+    @just bloat
 
 # Build the project in release mode
 build-release *ARGS='':
     @echo "🔨 Building santa (release)..."
     cargo build --release {{ARGS}}
+    @just bloat
 
 # Build for CI with specific target
 ci-build TARGET='x86_64-unknown-linux-gnu' *ARGS='':
@@ -428,6 +432,21 @@ ci-windows:
     @echo "🪟 Running Windows CI simulation..."
     cargo test --target x86_64-pc-windows-gnu
     cargo build --release --target x86_64-pc-windows-gnu
+
+# Binary Size Analysis Commands
+# =============================
+
+# Run cargo-bloat and save crate breakdown to metrics/bloat.txt
+bloat:
+    just _bloat-{{os_family()}}
+
+[unix]
+_bloat-unix:
+    cargo bloat --release -p santa --crates -n 30 | tee metrics/bloat.txt
+
+[windows]
+_bloat-windows:
+    cargo bloat --release -p santa --crates -n 30 | Tee-Object -FilePath metrics/bloat.txt
 
 # Maintenance Commands
 # ===================
