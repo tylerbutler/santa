@@ -3,216 +3,176 @@ act =
   = brew
   = scoop
 
+ansible =
+  = brew
+
+aom =
+  = brew
+
 aria2 =
   = brew
-  = scoop
   = pacman
+  = scoop
+
+asdf =
+  = brew
 
 atuin =
   = brew
-  = scoop
-  = pacman
   = nix
+  = pacman
+  = scoop
+
+auto-install =
+  = npm
+
+automake =
+  = brew
+
+awscli =
+  = brew
+
+bash =
+  = brew
 
 bat =
   = brew
-  = scoop
-  = pacman
   = nix
+  = pacman
+  = scoop
+
+blindspot =
+  = cargo
+
+boost =
+  = brew
+  = scoop
+
+broot =
+  = brew
+  = scoop
+
+cairo =
+  = brew
+
+cargo-update =
+  = cargo
+
+ccache =
+  = brew
+  = scoop
 
 chezmoi =
   = brew
-  = scoop
-  = pacman
   = nix
+  = pacman
+  = scoop
 
-direnv =
+cmake =
+  = apt
+  = brew
+  = nix
+  = pacman
+  = scoop
+
+cocoapods =
+  = brew
+
+composer =
   = brew
   = scoop
-  = pacman
+
+coreutils =
+  = brew
+  = scoop
+
+curl =
+  = apt
+  = brew
   = nix
+  = pacman
+  = scoop
+
+curlie =
+  = brew
+  = scoop
 
 difftastic =
   = brew
-  = scoop
-  = pacman
   = nix
+  = pacman
+  = scoop
+
+direnv =
+  = brew
+  = nix
+  = pacman
+  = scoop
+
+docker =
+  = apt
+  = brew
+  = nix
+  = pacman
+  = scoop
+
+docker-compose =
+  = apt
+  = brew
+  = nix
+  = pacman
+  = scoop
+
+duf =
+  = brew
+  = scoop
 
 dust =
   = brew
-  = scoop
   = pacman
+  = scoop
+
+emacs =
+  = brew
+
+emplace =
+  = scoop
 
 eza =
   = brew
-  = pacman
   = nix
+  = pacman
+
+fastfetch =
+  = brew
+  = scoop
 
 fd =
   = brew
-  = scoop
+  = nix
   = pacman
-  = nix
-
-fzf =
-  = brew
-  = scoop
-  = pacman
-  = nix
-
-ghq =
-  = brew
-  = scoop
-  = nix
-
-gitui =
-  = brew
-  = scoop
-  = pacman
-  = nix
-
-grex =
-  = brew
-  = scoop
-  = pacman
-  = nix
-
-hub =
-  = brew
-  = scoop
-  = pacman
-  = nix
-
-jq =
-  = brew
-  = scoop
-  = pacman
-  = nix
-
-lsd =
-  = brew
-  = scoop
-  = pacman
-  = nix
-
-micro =
-  = brew
-  = scoop
-  = pacman
-  = nix
-
-nnn =
-  = brew
-  = pacman
-  = nix
-
-pueue =
-  = brew
-  = scoop
-  = pacman
-  = nix
-
-procs =
-  = brew
-  = scoop
-  = pacman
-  = nix
-
-pyenv =
-  = brew
-  = scoop
-  = pacman
-
-python =
-  = brew
-  = scoop
-  = apt
-  = pacman
-  = nix
-
-rustup =
-  = brew
-  = scoop
-  = pacman
-  = nix
-
-sd =
-  = brew
-  = scoop
-  = pacman
-  = nix
-
-tealdeer =
-  = brew
-  = scoop
-  = pacman
-  = nix
-
-topgrade =
-  = brew
-  = scoop
-  = pacman
-  = nix
-
-thefuck =
-  = brew
-  = apt
-  = nix
-
-tmux =
-  = brew
-  = apt
-  = pacman
-  = nix
-
-viu =
-  = brew
-  = pacman
-  = nix
-
-when-cli =
-  = cargo
-
-zellij =
-  = brew
-  = pacman
-  = nix
-
-zoxide =
-  = brew
-  = scoop
-  = pacman
-  = nix
-
-emplace =
   = scoop
 
 findutils =
   = scoop
 
-gsudo =
-  = scoop
-
-ln =
-  = scoop
-
-nircmd =
-  = scoop
-
-nvs =
-  = scoop
-
-tre-command =
-  = brew
-  = scoop
-
-wget =
-  = brew
-  = scoop
-  = pacman
+fish =
   = apt
+  = brew
+  = nix
+  = pacman
 
-which =
+fzf =
+  = brew
+  = nix
+  = pacman
+  = scoop
+
+gcc =
+  = apt
+  = brew
+  = nix
+  = pacman
   = scoop
 
 generate =
@@ -221,8 +181,205 @@ generate =
 generate-license =
   = npm
 
-auto-install =
-  = npm
+gettext =
+  = brew
+  = scoop
+
+gh =
+  = brew
+  = scoop
+
+ghq =
+  = brew
+  = nix
+  = scoop
+
+git =
+  = apt
+  = brew
+  = nix
+  = pacman
+  = scoop
+
+git-lfs =
+  = brew
+  = scoop
+
+gitui =
+  = brew
+  = nix
+  = pacman
+  = scoop
+
+glances =
+  = brew
+
+glib =
+  = brew
+
+gnu-tar =
+  = brew
+
+gnupg =
+  = apt
+  = brew
+  = nix
+  = pacman
+  = scoop
+
+gnutls =
+  = brew
+  = scoop
+
+gradle =
+  = brew
+  = scoop
+
+graphviz =
+  = brew
+  = scoop
+
+grex =
+  = brew
+  = nix
+  = pacman
+  = scoop
+
+gsudo =
+  = scoop
+
+harfbuzz =
+  = brew
+  = scoop
+
+hello =
+  = brew
+
+helm =
+  = brew
+  = scoop
+
+htop =
+  = apt
+  = brew
+  = nix
+  = pacman
+
+httpie =
+  = brew
+
+hub =
+  = brew
+  = nix
+  = pacman
+  = scoop
+
+hugo =
+  = brew
+  = scoop
+
+imagemagick =
+  = apt
+  = brew
+  = nix
+  = pacman
+  = scoop
+
+jpeg-xl =
+  = brew
+
+jq =
+  = brew
+  = nix
+  = pacman
+  = scoop
+
+just =
+  = brew
+  = scoop
+
+k9s =
+  = brew
+  = scoop
+
+kubeconform =
+  = brew
+  = scoop
+
+lazygit =
+  = brew
+  = nix
+  = pacman
+
+libheif =
+  = brew
+
+libpq =
+  = brew
+
+librsvg =
+  = brew
+
+ln =
+  = scoop
+
+lsd =
+  = brew
+  = nix
+  = pacman
+  = scoop
+
+maven =
+  = brew
+  = scoop
+
+micro =
+  = brew
+  = nix
+  = pacman
+  = scoop
+
+mint =
+  = brew
+
+mise =
+  = brew
+  = scoop
+
+mkcert =
+  = brew
+
+mpv =
+  = brew
+
+ncdu =
+  = apt
+  = brew
+  = nix
+  = pacman
+
+neovim =
+  = apt
+  = brew
+  = nix
+  = pacman
+  = scoop
+
+ninja =
+  = brew
+  = scoop
+
+nircmd =
+  = scoop
+
+nmap =
+  = brew
+  = scoop
+
+nnn =
+  = brew
+  = nix
+  = pacman
 
 npkill =
   = npm
@@ -230,50 +387,283 @@ npkill =
 npm-check-updates =
   = npm
 
+nvm =
+  = brew
+  = scoop
+
+nvs =
+  = scoop
+
+ollama =
+  = brew
+  = scoop
+
+pandoc =
+  = apt
+  = brew
+  = nix
+  = pacman
+  = scoop
+
+pango =
+  = brew
+
+pipx =
+  = brew
+  = scoop
+
+pkgconf =
+  = brew
+
+pnpm =
+  = brew
+  = scoop
+
+podman =
+  = brew
+  = scoop
+
+poppler =
+  = brew
+  = scoop
+
+procs =
+  = brew
+  = nix
+  = pacman
+  = scoop
+
+protobuf =
+  = brew
+
+pueue =
+  = brew
+  = nix
+  = pacman
+  = scoop
+
+pyenv =
+  = brew
+  = pacman
+  = scoop
+
+python =
+  = apt
+  = brew
+  = nix
+  = pacman
+  = scoop
+
+qemu =
+  = brew
+  = scoop
+
+rbenv =
+  = brew
+
+rclone =
+  = brew
+  = scoop
+
+redis =
+  = brew
+  = scoop
+
 rimraf =
   = npm
+
+ruby =
+  = brew
+  = scoop
+
+ruby-build =
+  = brew
+
+rust =
+  = brew
+  = pacman
+  = scoop
+
+rustup =
+  = brew
+  = nix
+  = pacman
+  = scoop
+
+sd =
+  = brew
+  = nix
+  = pacman
+  = scoop
+
+sops =
+  = brew
+  = scoop
 
 sort-package-json =
   = npm
 
+starship =
+  = brew
+  = nix
+  = pacman
+  = scoop
+
+swiftlint =
+  = brew
+
+tealdeer =
+  = brew
+  = nix
+  = pacman
+  = scoop
+
+telnet =
+  = brew
+  = scoop
+
+terragrunt =
+  = brew
+  = scoop
+
+tesseract =
+  = brew
+  = scoop
+
+thefuck =
+  = apt
+  = brew
+  = nix
+
 tiged =
   = npm
+
+tldr =
+  = brew
+  = scoop
+
+tmux =
+  = apt
+  = brew
+  = nix
+  = pacman
+
+topgrade =
+  = brew
+  = nix
+  = pacman
+  = scoop
+
+tre-command =
+  = brew
+  = scoop
+
+tree =
+  = apt
+  = brew
+  = nix
+  = pacman
+
+unbound =
+  = brew
+  = scoop
+
+uv =
+  = brew
+  = scoop
+
+vim =
+  = apt
+  = brew
+  = nix
+  = pacman
+  = scoop
+
+viu =
+  = brew
+  = nix
+  = pacman
 
 vsts-npm-auth =
   = npm
 
+watchman =
+  = brew
+  = scoop
+
+webp =
+  = brew
+
+wget =
+  = apt
+  = brew
+  = pacman
+  = scoop
+
+when-cli =
+  = cargo
+
+which =
+  = scoop
+
+xcbeautify =
+  = brew
+
+xz =
+  = brew
+  = scoop
+
 yarn =
   = npm
 
-blindspot =
-  = cargo
+yazi =
+  = brew
+  = scoop
 
-cargo-update =
-  = cargo
+yq =
+  = brew
+  = scoop
+
+yt-dlp =
+  = brew
+  = scoop
+
+zellij =
+  = brew
+  = nix
+  = pacman
+
+zoxide =
+  = brew
+  = nix
+  = pacman
+  = scoop
+
+zsh =
+  = apt
+  = brew
+  = nix
+  = pacman
 
 /= Packages with complex format (have source-specific overrides)
+
+@fluidframework/build-tools =
+  npm =
+    install_suffix = @latest
 
 bottom =
   nix = bottom-rs
   _sources =
     = brew
-    = scoop
     = pacman
+    = scoop
 
 fnm =
   aur = fnm-bin
   _sources =
     = brew
-    = scoop
     = nix
-
-github-cli =
-  brew = gh
-  _sources =
     = scoop
-    = apt
-    = pacman
-    = nix
 
 git-delta =
   scoop = delta
@@ -281,35 +671,39 @@ git-delta =
     = brew
     = pacman
 
+github-cli =
+  brew = gh
+  _sources =
+    = apt
+    = nix
+    = pacman
+    = scoop
+
 go =
   brew = golang
   _sources =
-    = scoop
     = apt
-    = pacman
     = nix
+    = pacman
+    = scoop
 
 mc =
   brew = midnight-commander
   _sources =
-    = scoop
     = apt
-    = pacman
     = nix
+    = pacman
+    = scoop
 
 oh-my-posh =
-  aur = oh-my-posh-git
   brew =
     pre = brew tap jandedobbeleer/oh-my-posh
+  aur = oh-my-posh-git
   scoop = https://github.com/JanDeDobbeleer/oh-my-posh/releases/latest/download/oh-my-posh.json
 
 ripgrep =
   brew = rg
   _sources =
-    = scoop
-    = pacman
     = nix
-
-@fluidframework/build-tools =
-  npm =
-    install_suffix = @latest
+    = pacman
+    = scoop
