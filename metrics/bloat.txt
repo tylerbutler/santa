@@ -1,7 +1,7 @@
   File  .text    Size  Crate
  48.3%  98.5% 5.16MiB  *
   7.1%  14.4%  772KiB  tera
-  4.5%   9.3%  497KiB  rustls
+  4.5%   9.2%  495KiB  rustls
   4.4%   9.0%  481KiB  regex_automata
   3.7%   7.5%  405KiB  clap_builder
   2.4%   4.8%  259KiB  ?
@@ -11,7 +11,7 @@
   1.8%   3.7%  197KiB  aho_corasick
   1.7%   3.5%  190KiB  tokio
   1.4%   2.9%  158KiB  santa
-  1.2%   2.4%  131KiB  ureq
+  1.2%   2.5%  133KiB  ureq
   1.1%   2.3%  122KiB  tracing_subscriber
   1.0%   2.1%  110KiB  alloc
   0.9%   1.9%  103KiB  ring
@@ -78,6 +78,7 @@
   0.0%   0.0% 1358  B  shell_escape
   0.0%   0.0% 1272  B  slug
   0.0%   0.0% 1257  B  humansize
+  0.0%   0.0% 1089  B  matchers
   0.0%   0.0%  882  B  simd_adler32
   0.0%   0.0%  840  B  unicode_width
   0.0%   0.0%  743  B  unicode_width
@@ -86,7 +87,6 @@
   0.0%   0.0%  659  B  dirs_sys
   0.0%   0.0%  538  B  icu_properties
   0.0%   0.0%  516  B  serde
-  0.0%   0.0%  485  B  matchers
   0.0%   0.0%  423  B  tracing
   0.0%   0.0%  328  B  log
   0.0%   0.0%  304  B  utf8_iter
