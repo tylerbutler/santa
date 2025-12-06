@@ -84,7 +84,7 @@ jobs:
         run: just audit
 
   semver:
-    name: Semver Check
+    name: Semver Check (Informational)
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request' && github.event.pull_request.draft == false
     steps:
@@ -99,8 +99,59 @@ jobs:
         with:
           tools: just,cargo-semver-checks
 
+      - name: Get merge base
+        id: merge-base
+        run: |
+          # Find the merge base between this PR and main
+          MERGE_BASE=$(git merge-base origin/main HEAD)
+          echo "sha=$MERGE_BASE" >> "$GITHUB_OUTPUT"
+          echo "Comparing against merge base: $MERGE_BASE"
+
       - name: Check semver compatibility
-        run: just semver
+        id: semver
+        run: |
+          set +e
+          # Compare against the merge base with main, not the last published version
+          OUTPUT=$(cargo semver-checks --baseline-rev ${{ steps.merge-base.outputs.sha }} 2>&1)
+          EXIT_CODE=$?
+          echo "$OUTPUT"
+          # Save output for comment (escape for multiline)
+          {
+            echo "output<<EOF"
+            echo "$OUTPUT"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+          echo "has_breaking=$([[ $EXIT_CODE -ne 0 ]] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+          # Always exit 0 - this is informational only, breaking changes are reported via PR comment
+          exit 0
+
+      - name: Comment on PR with breaking changes
+        if: steps.semver.outputs.has_breaking == 'true'
+        uses: marocchino/sticky-pull-request-comment@52423e01640425a022ef5fd42c6fb5f633a02728 # ratchet:marocchino/sticky-pull-request-comment@v2
+        with:
+          header: semver-check
+          message: |
+            ## ⚠️ Semver Breaking Changes Detected
+
+            This PR introduces API changes that may be semver-incompatible (compared to main branch):
+
+            ```
+            ${{ steps.semver.outputs.output }}
+            ```
+
+            <details>
+            <summary>What does this mean?</summary>
+
+            These changes may break downstream users if released as a patch or minor version.
+            Consider whether a major version bump is needed, or if the changes can be made backwards-compatible.
+            </details>
+
+      - name: Remove comment if no breaking changes
+        if: steps.semver.outputs.has_breaking == 'false'
+        uses: marocchino/sticky-pull-request-comment@52423e01640425a022ef5fd42c6fb5f633a02728 # ratchet:marocchino/sticky-pull-request-comment@v2
+        with:
+          header: semver-check
+          delete: true
 
   workspace-consistency:
     name: Workspace Consistency
