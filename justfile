@@ -45,13 +45,11 @@ build *ARGS='':
     @echo "🔨 Building santa (debug)..."
     cargo build {{ARGS}}
     @just markdown-help
-    @just bloat
 
 # Build the project in release mode
 build-release *ARGS='':
     @echo "🔨 Building santa (release)..."
     cargo build --release {{ARGS}}
-    @just bloat
 
 # Build for CI with specific target
 ci-build TARGET='x86_64-unknown-linux-gnu' *ARGS='':
@@ -441,6 +439,22 @@ ci-windows:
 bloat:
     cargo bloated -p santa --output crates | tee metrics/bloat.txt
     cargo bloated --lib -p sickle --all-features --output crates | tee metrics/bloat-sickle.txt
+
+# Record release binary size to metrics/binary-size.txt
+[linux]
+record-size:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    BINARY="target/release/santa"
+    if [ ! -f "$BINARY" ]; then
+        echo "Release binary not found. Run 'just build-release' first."
+        exit 1
+    fi
+    SIZE=$(stat --format="%s" "$BINARY")
+    HUMAN=$(numfmt --to=iec --suffix=B "$SIZE")
+    DATE=$(date +%Y-%m-%d)
+    echo "$DATE santa $SIZE $HUMAN" >> metrics/binary-size.txt
+    echo "Recorded: $DATE santa $SIZE ($HUMAN)"
 
 # Maintenance Commands
 # ===================
