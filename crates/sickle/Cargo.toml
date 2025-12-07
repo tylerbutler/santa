@@ -12,22 +12,42 @@ keywords = ["ccl", "config", "parser", "categorical", "configuration"]
 categories = ["config", "parser-implementations"]
 readme = "README.md"
 
+[lib]
+crate-type = ["rlib", "dylib"]
+
 [features]
-# Default features - insertion-order list iteration (proposed CCL spec behavior)
-default = ["serde", "list_coercion_disabled"]
+# Default features - includes only essential functionality
+# Users opt-in to additional features as needed
+default = []
 
-# Core parsing features
-serde = ["dep:serde", "dep:serde_derive"]
+# Core parsing - parse CCL to flat key-value entries
+parse = []
+
+# Hierarchy building - build hierarchical CclObject from entries (includes parse)
+hierarchy = ["parse"]
+
+# Serde deserialization: CCL string -> Rust types (includes hierarchy)
+serde-deserialize = ["hierarchy", "dep:serde", "dep:serde_derive"]
+
+# CCL printer - serialize CclObject back to canonical CCL text (includes hierarchy)
+printer = ["hierarchy"]
+
+# Serde serialization: Rust types -> CCL string (includes printer)
+serde-serialize = ["printer", "dep:serde", "dep:serde_derive"]
+
+# Both serde serialization and deserialization
+serde = ["serde-deserialize", "serde-serialize"]
+
+# String interning for memory efficiency with large configs
 intern = ["dep:string-interner"]
-
-# List behavior modes (mutually exclusive)
-list_coercion_disabled = []  # get_list() only works with bare lists (empty keys), matches reference implementation
-list_coercion_enabled = []   # get_list() coerces duplicate keys into lists (non-reference behavior)
 
 # Reference implementation compatibility (opt-in for compatibility testing)
 # Note: Reverses duplicate-key list order to match reference implementation
 # Most users should NOT enable this - use insertion-order behavior (default)
 reference_compliant = []
+
+# All features enabled
+full = ["serde", "printer", "intern"]
 
 # Advanced parsing features (future)
 # section-headers = []      # Support == Section == style headers
@@ -47,7 +67,13 @@ string-interner = { version = "0.17", optional = true }
 
 [dev-dependencies]
 # Testing framework
+serde.workspace = true
 serde_json.workspace = true
+
+# Enable all features for tests
+[dev-dependencies.sickle]
+path = "."
+features = ["full"]
 
 [[example]]
 name = "basic_parsing"

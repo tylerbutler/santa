@@ -17,6 +17,7 @@ pub struct SourceName(pub String);
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Display, From, Into, Serialize, Deserialize)]
 pub struct CommandName(pub String);
 
+#[non_exhaustive]
 #[derive(Serialize_enum_str, Deserialize_enum_str, Debug, Clone, Eq, PartialEq, Hash)]
 #[serde(rename_all = "camelCase")]
 pub enum KnownSources {
@@ -33,6 +34,7 @@ pub enum KnownSources {
     Unknown(String),
 }
 
+#[non_exhaustive]
 #[derive(Serialize, Deserialize, Debug, Clone, Eq, PartialEq, Hash)]
 #[serde(rename_all = "camelCase")]
 pub enum OS {
@@ -41,13 +43,17 @@ pub enum OS {
     Windows,
 }
 
+#[non_exhaustive]
 #[derive(Serialize, Deserialize, Debug, Clone, Eq, PartialEq, Hash)]
 #[serde(rename_all = "camelCase")]
 pub enum Arch {
     X64,
+    X86,
     Aarch64,
+    Arm,
 }
 
+#[non_exhaustive]
 #[derive(Serialize, Deserialize, Debug, Clone, Eq, PartialEq, Hash)]
 #[serde(rename_all = "camelCase")]
 pub enum Distro {

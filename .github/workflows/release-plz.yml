@@ -10,34 +10,160 @@ on:
       - main
 
 jobs:
-  release-plz:
-    name: Release-plz ${{ matrix.command }}
+  release-plz-release:
+    name: Release-plz release
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        include:
-          - command: release
-            concurrency-group: release-plz-release
-          - command: release-pr
-            concurrency-group: release-plz-${{ github.ref }}
-
     concurrency:
-      group: ${{ matrix.concurrency-group }}
+      group: release-plz-release
       cancel-in-progress: false
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # ratchet:actions/checkout@v5
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # ratchet:actions/checkout@v5
         with:
           fetch-depth: 0
           persist-credentials: false
 
       - uses: ./.github/actions/setup-rust
 
-      - name: Run release-plz
-        uses: release-plz/action@d529f731ae3e89610ada96eda34e5c6ba3b12214 # ratchet:release-plz/action@v0.5
+      - name: Run release-plz release
+        uses: release-plz/action@1efcf74dfcd6e500990dad806e286899ae384064 # ratchet:release-plz/action@v0.5
         with:
-          command: ${{ matrix.command }}
+          command: release
         env:
           GITHUB_TOKEN: ${{ secrets.RELEASE_PLZ_TOKEN }}
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+
+  release-plz-pr:
+    name: Release-plz PR
+    runs-on: ubuntu-latest
+    concurrency:
+      group: release-plz-${{ github.ref }}
+      cancel-in-progress: false
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # ratchet:actions/checkout@v5
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.RELEASE_PLZ_TOKEN }}
+
+      - uses: ./.github/actions/setup-rust
+
+      - name: Run release-plz release-pr
+        id: release-plz
+        uses: release-plz/action@1efcf74dfcd6e500990dad806e286899ae384064 # ratchet:release-plz/action@v0.5
+        with:
+          command: release-pr
+        env:
+          GITHUB_TOKEN: ${{ secrets.RELEASE_PLZ_TOKEN }}
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+
+      - name: Install git-cliff
+        if: steps.release-plz.outputs.prs_created == 'true'
+        uses: taiki-e/install-action@3575e532701a5fc614b0c842e4119af4cc5fd16d # ratchet:taiki-e/install-action@v2
+        with:
+          tool: git-cliff
+
+      - name: Generate changelogs with git-cliff
+        if: steps.release-plz.outputs.prs_created == 'true'
+        run: |
+          # Checkout the PR branch
+          git fetch origin ${{ fromJson(steps.release-plz.outputs.pr).head_branch }}
+          git checkout ${{ fromJson(steps.release-plz.outputs.pr).head_branch }}
+
+          # Generate changelog for each crate using its specific config
+          git cliff --config crates/sickle/cliff.toml \
+            --include-path "crates/sickle/**" \
+            --output crates/sickle/CHANGELOG.md
+
+          git cliff --config crates/santa-data/cliff.toml \
+            --include-path "crates/santa-data/**" \
+            --output crates/santa-data/CHANGELOG.md
+
+          git cliff --config crates/santa-cli/cliff.toml \
+            --include-path "crates/santa-cli/**" \
+            --output crates/santa-cli/CHANGELOG.md
+
+      - name: Install cargo-bloated
+        if: steps.release-plz.outputs.prs_created == 'true'
+        uses: taiki-e/install-action@3575e532701a5fc614b0c842e4119af4cc5fd16d # ratchet:taiki-e/install-action@v2
+        with:
+          tool: cargo-bloated
+
+      - uses: ./.github/actions/install-tools
+        if: steps.release-plz.outputs.prs_created == 'true'
+        with:
+          tools: just
+
+      - name: Record binary size metrics
+        id: binary-size
+        if: steps.release-plz.outputs.prs_created == 'true'
+        run: |
+          # Get previous size from metrics file
+          PREV_SIZE=$(tail -1 metrics/binary-size.txt | grep -v '^#' | awk '{print $3}' || echo "0")
+
+          cargo build --release
+          SIZE=$(stat --format="%s" target/release/santa)
+          HUMAN=$(numfmt --to=iec --suffix=B "$SIZE")
+          DATE=$(date +%Y-%m-%d)
+          echo "$DATE santa $SIZE $HUMAN" >> metrics/binary-size.txt
+          echo "Recorded binary size: $SIZE ($HUMAN)"
+
+          # Generate bloat reports
+          just bloat
+
+          # Calculate diff
+          if [ "$PREV_SIZE" != "0" ] && [ -n "$PREV_SIZE" ]; then
+            DIFF=$((SIZE - PREV_SIZE))
+            DIFF_HUMAN=$(numfmt --to=iec --suffix=B -- "$DIFF" | sed 's/^-/-/')
+            PREV_HUMAN=$(numfmt --to=iec --suffix=B "$PREV_SIZE")
+            if [ "$DIFF" -gt 0 ]; then
+              DIFF_HUMAN="+$DIFF_HUMAN"
+            fi
+            PERCENT=$(awk "BEGIN {printf \"%.1f\", ($DIFF / $PREV_SIZE) * 100}")
+            if [ "$DIFF" -gt 0 ]; then
+              PERCENT="+$PERCENT"
+            fi
+            echo "size=$HUMAN" >> "$GITHUB_OUTPUT"
+            echo "prev_size=$PREV_HUMAN" >> "$GITHUB_OUTPUT"
+            echo "diff=$DIFF_HUMAN" >> "$GITHUB_OUTPUT"
+            echo "diff_bytes=$DIFF" >> "$GITHUB_OUTPUT"
+            echo "percent=$PERCENT%" >> "$GITHUB_OUTPUT"
+            echo "changed=$( [ "$DIFF" -ne 0 ] && echo true || echo false )" >> "$GITHUB_OUTPUT"
+          else
+            echo "size=$HUMAN" >> "$GITHUB_OUTPUT"
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Commit changelog and metrics updates
+        if: steps.release-plz.outputs.prs_created == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Stage all release PR updates
+          git add crates/*/CHANGELOG.md metrics/
+
+          # Check if there are changes to commit
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "chore: update changelogs and binary size metrics"
+            git push origin ${{ fromJson(steps.release-plz.outputs.pr).head_branch }}
+          fi
+
+      - name: Comment on PR with binary size change
+        if: steps.release-plz.outputs.prs_created == 'true' && steps.binary-size.outputs.changed == 'true'
+        uses: marocchino/sticky-pull-request-comment@52423e01640425a022ef5fd42c6fb5f633a02728 # ratchet:marocchino/sticky-pull-request-comment@v2
+        with:
+          header: binary-size
+          number: ${{ fromJson(steps.release-plz.outputs.pr).number }}
+          message: |
+            ## 📦 Binary Size
+
+            | Metric | Value |
+            |--------|-------|
+            | Current | ${{ steps.binary-size.outputs.size }} |
+            | Previous | ${{ steps.binary-size.outputs.prev_size }} |
+            | Change | ${{ steps.binary-size.outputs.diff }} (${{ steps.binary-size.outputs.percent }}) |

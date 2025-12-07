@@ -50,31 +50,52 @@
 //!
 //! ## Cargo Features
 //!
-//! - `serde` (default): Serde serialization/deserialization support
+//! By default, sickle includes only the core types (`CclObject`, `Entry`, `Error`).
+//! Enable features to add functionality:
+//!
+//! - `parse`: Core parsing (`parse`, `parse_indented`) - returns flat key-value entries
+//! - `hierarchy`: Build hierarchical model (`build_hierarchy`, `load`) - includes `parse`
+//! - `printer`: CCL printer for serializing back to canonical CCL text - includes `hierarchy`
+//! - `serde-deserialize`: Serde deserialization (`from_str`) - includes `hierarchy`
+//! - `serde-serialize`: Serde serialization (`to_string`) - includes `printer`
+//! - `serde`: Both serialization and deserialization
 //! - `intern`: String interning for memory efficiency with large configs
+//! - `full`: Enable all features
 //!
 //! ### Future Features (Planned)
 //!
 //! - `section-headers`: Support `== Section ==` style headers
-//! - `duplicate-key-lists`: Auto-create lists from duplicate keys
 //! - `typed-access`: Convenience methods like `get_string()`, `get_int()`
 //! - `list-indexing`: Advanced list operations and indexing
 
 pub mod error;
 pub mod model;
+
+#[cfg(feature = "parse")]
 mod parser;
 
-#[cfg(feature = "serde")]
+#[cfg(feature = "printer")]
+pub mod printer;
+
+#[cfg(feature = "serde-deserialize")]
 pub mod de;
 
+#[cfg(feature = "serde-serialize")]
+pub mod ser;
+
 pub use error::{Error, Result};
-pub use model::{Entry, Model};
+pub use model::{CclObject, Entry};
+
+#[cfg(feature = "printer")]
+pub use printer::{CclPrinter, PrinterConfig};
 
 /// Parse a CCL string into a flat list of entries
 ///
 /// This is the first step of CCL processing, returning key-value pairs
 /// without building the hierarchical structure. Use `build_hierarchy()` to
 /// construct the hierarchical model from these entries.
+///
+/// Requires the `parse` feature.
 ///
 /// # Examples
 ///
@@ -91,6 +112,7 @@ pub use model::{Entry, Model};
 /// assert_eq!(entries[0].key, "name");
 /// assert_eq!(entries[0].value, "MyApp");
 /// ```
+#[cfg(feature = "parse")]
 pub fn parse(input: &str) -> Result<Vec<Entry>> {
     let map = parser::parse_to_map(input)?;
 
@@ -110,6 +132,8 @@ pub fn parse(input: &str) -> Result<Vec<Entry>> {
 /// This is the second step of CCL processing, taking the entries from `parse()`
 /// and constructing a hierarchical structure with proper nesting and type inference.
 ///
+/// Requires the `hierarchy` feature.
+///
 /// # Examples
 ///
 /// ```rust
@@ -124,7 +148,8 @@ pub fn parse(input: &str) -> Result<Vec<Entry>> {
 /// let model = build_hierarchy(&entries).unwrap();
 /// assert_eq!(model.get_string("name").unwrap(), "MyApp");
 /// ```
-pub fn build_hierarchy(entries: &[Entry]) -> Result<Model> {
+#[cfg(feature = "hierarchy")]
+pub fn build_hierarchy(entries: &[Entry]) -> Result<CclObject> {
     // Group entries by key (preserving order with IndexMap)
     let mut map: indexmap::IndexMap<String, Vec<String>> = indexmap::IndexMap::new();
 
@@ -139,6 +164,7 @@ pub fn build_hierarchy(entries: &[Entry]) -> Result<Model> {
 
 /// Check if a string looks like a valid CCL key
 /// Valid keys: alphanumeric, underscores, dots, hyphens (not leading), slashes for comments
+#[cfg(feature = "hierarchy")]
 fn is_valid_ccl_key(key: &str) -> bool {
     if key.is_empty() {
         return true; // Empty keys are valid (for lists)
@@ -166,12 +192,22 @@ fn is_valid_ccl_key(key: &str) -> bool {
 /// - `key =` (empty value) becomes `{"key": {"": {}}}`
 /// - Multiple values become multiple nested keys
 /// - Nested CCL is recursively parsed
-fn build_model(map: indexmap::IndexMap<String, Vec<String>>) -> Result<Model> {
+#[cfg(feature = "hierarchy")]
+fn build_model(map: indexmap::IndexMap<String, Vec<String>>) -> Result<CclObject> {
     let mut result = indexmap::IndexMap::new();
 
     for (key, values) in map {
-        // Tests with specific ordering requirements should use array_order_* behaviors.
-        let values = values;
+        // Reference implementation iterates hash tables in reverse insertion order
+        // Reverse ONLY for non-empty duplicate keys
+        // Empty keys (bare list items) maintain insertion order
+        #[cfg(feature = "reference_compliant")]
+        let values = {
+            let mut v = values;
+            if v.len() > 1 && !key.is_empty() {
+                v.reverse();
+            }
+            v
+        };
 
         // Build the nested map for this key
         let mut nested = indexmap::IndexMap::new();
@@ -194,28 +230,28 @@ fn build_model(map: indexmap::IndexMap<String, Vec<String>>) -> Result<Model> {
                                 }
                             } else {
                                 // Keys don't look like valid CCL, treat as string value
-                                nested.insert(value.clone(), Model::new());
+                                nested.insert(value.clone(), CclObject::new());
                             }
                         } else {
                             // Empty parsed result, treat as string value
-                            nested.insert(value.clone(), Model::new());
+                            nested.insert(value.clone(), CclObject::new());
                         }
                     }
                     Err(_) => {
                         // Failed to parse, treat as string value
-                        nested.insert(value.clone(), Model::new());
+                        nested.insert(value.clone(), CclObject::new());
                     }
                 }
             } else {
                 // Plain string value - becomes a key with empty map
-                nested.insert(value, Model::new());
+                nested.insert(value, CclObject::new());
             }
         }
 
-        result.insert(key, Model::from_map(nested));
+        result.insert(key, CclObject::from_map(nested));
     }
 
-    Ok(Model::from_map(result))
+    Ok(CclObject::from_map(result))
 }
 
 /// Parse a CCL value string with automatic prefix detection
@@ -227,6 +263,8 @@ fn build_model(map: indexmap::IndexMap<String, Vec<String>>) -> Result<Model> {
 /// This is used for parsing nested CCL values where the entire block may be
 /// indented in the parent context.
 ///
+/// Requires the `parse` feature.
+///
 /// # Examples
 ///
 /// ```rust
@@ -236,6 +274,7 @@ fn build_model(map: indexmap::IndexMap<String, Vec<String>>) -> Result<Model> {
 /// let entries = parse_indented(nested).unwrap();
 /// assert_eq!(entries.len(), 3);
 /// ```
+#[cfg(feature = "parse")]
 pub fn parse_indented(input: &str) -> Result<Vec<Entry>> {
     // Find the minimum indentation level (common prefix)
     let min_indent = input
@@ -272,17 +311,44 @@ pub fn parse_indented(input: &str) -> Result<Vec<Entry>> {
         })
         .count();
 
-    // If there are multiple entries at min_indent level, parse using the standard parser
-    // which handles multiline continuations properly.
+    // If there are multiple entries at min_indent level, parse flat
     // Otherwise, parse as single entry with raw nested content
     if entries_at_min_indent > 1 {
-        parse(&dedented)
+        parse_flat_entries(&dedented)
     } else {
         parse_single_entry_with_raw_value(&dedented)
     }
 }
 
+/// Parse all key=value pairs from input as flat entries, ignoring indentation hierarchy
+#[cfg(feature = "parse")]
+fn parse_flat_entries(input: &str) -> Result<Vec<Entry>> {
+    let mut entries = Vec::new();
+
+    for line in input.lines() {
+        let trimmed = line.trim();
+
+        // Skip empty lines
+        if trimmed.is_empty() {
+            continue;
+        }
+
+        // Extract key=value pairs or treat lines without '=' as keys with empty values
+        if let Some(eq_pos) = trimmed.find('=') {
+            let key = trimmed[..eq_pos].trim().to_string();
+            let value = trimmed[eq_pos + 1..].trim().to_string();
+            entries.push(Entry::new(key, value));
+        } else {
+            // Line without '=' is a key with empty value
+            entries.push(Entry::new(trimmed.to_string(), String::new()));
+        }
+    }
+
+    Ok(entries)
+}
+
 /// Parse input as a single entry, preserving the raw value including indentation
+#[cfg(feature = "parse")]
 fn parse_single_entry_with_raw_value(input: &str) -> Result<Vec<Entry>> {
     // Find the first line with '='
     let mut lines = input.lines();
@@ -322,6 +388,8 @@ fn parse_single_entry_with_raw_value(input: &str) -> Result<Vec<Entry>> {
 /// This is a convenience function that combines `parse()` and `build_hierarchy()`.
 /// Equivalent to: `build_hierarchy(&parse(input)?)`
 ///
+/// Requires the `hierarchy` feature.
+///
 /// # Examples
 ///
 /// ```rust
@@ -335,13 +403,17 @@ fn parse_single_entry_with_raw_value(input: &str) -> Result<Vec<Entry>> {
 /// let model = load(ccl).unwrap();
 /// assert_eq!(model.get_string("name").unwrap(), "MyApp");
 /// ```
-pub fn load(input: &str) -> Result<Model> {
+#[cfg(feature = "hierarchy")]
+pub fn load(input: &str) -> Result<CclObject> {
     let entries = parse(input)?;
     build_hierarchy(&entries)
 }
 
-#[cfg(feature = "serde")]
+#[cfg(feature = "serde-deserialize")]
 pub use de::from_str;
+
+#[cfg(feature = "serde-serialize")]
+pub use ser::to_string;
 
 // Unit tests removed - all functionality is covered by data-driven tests in:
 // - api_core_ccl_parsing.json (basic parsing, multiline values, equals in values)

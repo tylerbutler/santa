@@ -35,7 +35,7 @@
 //! - **Unified Interface**: Common API for different package managers
 //! - **Async Operations**: Non-blocking package operations using tokio
 //! - **Caching**: Intelligent caching of package lists and metadata
-//! - **Configuration**: Flexible YAML-based configuration system
+//! - **Configuration**: Flexible CCL-based configuration system
 //! - **Security**: Input sanitization and shell escape protection
 //! - **Hot Reload**: Configuration changes without restart
 //!
@@ -84,16 +84,30 @@ pub mod commands;
 pub mod completions;
 pub mod configuration;
 pub mod data;
+pub mod data_layers;
 pub mod errors;
-pub mod migration;
 pub mod plugins;
 pub mod script_generator;
+pub mod source_layers;
 pub mod sources;
 pub mod traits;
 
 // Re-export commonly used types
 pub use configuration::SantaConfig;
 pub use data::{KnownSources, PackageData, SantaData};
+pub use data_layers::{DataLayerManager, DataOrigin, LayeredPackage, LayeredSource};
 pub use errors::{Result, SantaError};
 pub use script_generator::{ExecutionMode, ScriptFormat, ScriptGenerator};
 pub use sources::{PackageCache, PackageSource};
+
+// Backwards compatibility - deprecated, use data_layers instead
+#[deprecated(
+    since = "0.2.0",
+    note = "Use DataLayerManager from data_layers module instead"
+)]
+pub use source_layers::SourceLayerManager;
+#[deprecated(
+    since = "0.2.0",
+    note = "Use DataOrigin from data_layers module instead"
+)]
+pub use source_layers::SourceOrigin;

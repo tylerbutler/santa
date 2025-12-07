@@ -7,11 +7,14 @@
 
 export RUST_BACKTRACE := "1"
 
+set windows-shell := ["powershell.exe", "-NoLogo", "-Command"]
+
 # Common aliases for faster development
 alias b := build
 alias br := build-release
 alias r := release
 alias t := test
+alias ta := test-all
 alias tf := test-fast
 alias l := lint
 alias f := fix
@@ -41,6 +44,7 @@ setup:
 build *ARGS='':
     @echo "🔨 Building santa (debug)..."
     cargo build {{ARGS}}
+    @just markdown-help
 
 # Build the project in release mode
 build-release *ARGS='':
@@ -89,6 +93,11 @@ test-integration:
     @echo "🧪 Running integration tests..."
     cargo test --test '*'
 
+# Run tests with all features enabled
+test-all *ARGS='':
+    @echo "🧪 Running tests with all features..."
+    cargo test --all-features {{ARGS}}
+
 # Run tests with coverage reporting (uses nextest for speed)
 test-coverage:
     @echo "🧪 Running tests with coverage (nextest + llvm-cov)..."
@@ -97,6 +106,15 @@ test-coverage:
     @echo "📊 Coverage reports generated:"
     @echo "  - LCOV: coverage/lcov.info"
     @echo "  - HTML: coverage/html/index.html"
+
+# Run sickle data-driven tests with coverage
+test-coverage-sickle:
+    @echo "🧪 Running sickle data-driven tests with coverage..."
+    cargo llvm-cov nextest -p sickle --all-features \
+      --lcov --output-path coverage/sickle-lcov.info \
+      -E 'binary(data_driven_tests)'
+    cargo llvm-cov report --html --output-dir coverage/sickle-html
+    @echo "📊 Sickle coverage: coverage/sickle-html/index.html"
 
 # Run tests in watch mode
 test-watch:
@@ -185,6 +203,11 @@ audit:
     cargo audit
     cargo deny check
 
+# Check for semver-incompatible changes
+semver:
+    @echo "🔍 Checking semver compatibility..."
+    cargo semver-checks
+
 # Check for supply chain vulnerabilities
 supply-chain:
     @echo "🔗 Checking supply chain security..."
@@ -192,6 +215,13 @@ supply-chain:
 
 # Documentation Commands
 # ======================
+
+# Generate CLI help in markdown format
+markdown-help:
+    @echo "📖 Generating CLI markdown help..."
+    @mkdir -p docs
+    cargo run -p santa --quiet -- --markdown-help > docs/cli-reference.md
+    @echo "✅ Generated docs/cli-reference.md"
 
 # Generate and open documentation
 docs:
@@ -400,6 +430,32 @@ ci-windows:
     @echo "🪟 Running Windows CI simulation..."
     cargo test --target x86_64-pc-windows-gnu
     cargo build --release --target x86_64-pc-windows-gnu
+
+# Binary Size Analysis Commands
+# =============================
+
+# Run cargo-bloated on santa and sickle, save to metrics/ (Linux only)
+[linux]
+bloat:
+    cargo bloated -p santa --output crates | tee metrics/bloat.txt
+    cargo bloated --lib -p sickle --all-features --output crates | tee metrics/bloat-sickle.txt
+
+# Record release binary size to metrics/binary-size.txt
+[linux]
+record-size:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    BINARY="target/release/santa"
+    if [ ! -f "$BINARY" ]; then
+        echo "Release binary not found. Run 'just build-release' first."
+        exit 1
+    fi
+    VERSION=$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[] | select(.name == "santa") | .version')
+    SIZE=$(stat --format="%s" "$BINARY")
+    HUMAN=$(numfmt --to=iec --suffix=B "$SIZE")
+    DATE=$(date +%Y-%m-%d)
+    echo "$DATE v$VERSION $SIZE $HUMAN" >> metrics/binary-size.txt
+    echo "Recorded: $DATE v$VERSION $SIZE ($HUMAN)"
 
 # Maintenance Commands
 # ===================

@@ -7,6 +7,28 @@ use std::str::FromStr;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
+/// Options for list access operations
+///
+/// Controls how `get_list()` interprets the CCL data structure.
+#[derive(Debug, Clone, Copy, Default)]
+pub struct ListOptions {
+    /// When true, duplicate keys are coerced into lists and scalar literals are filtered.
+    /// When false (default), only bare list syntax (empty keys) produces lists.
+    pub coerce: bool,
+}
+
+impl ListOptions {
+    /// Create default options (coerce = false)
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    /// Create options with coercion enabled
+    pub fn with_coerce() -> Self {
+        Self { coerce: true }
+    }
+}
+
 /// Check if a string is a scalar literal (number or boolean)
 ///
 /// CCL distinguishes between string values and scalar literals:
@@ -14,11 +36,7 @@ use serde::{Deserialize, Serialize};
 /// - Booleans: true/false/yes/no
 ///
 /// This helper is used to filter out scalar literals from string lists
-/// when `list_coercion_enabled` feature is active.
-#[cfg(all(
-    feature = "list_coercion_enabled",
-    not(feature = "list_coercion_disabled")
-))]
+/// when coercion is enabled.
 fn is_scalar_literal(s: &str) -> bool {
     // Check if it's parseable as an integer
     if s.parse::<i64>().is_ok() {
@@ -69,22 +87,23 @@ impl Entry {
 /// - Uses IndexMap to preserve insertion order
 #[derive(Debug, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-pub struct Model(IndexMap<String, Model>);
+pub struct CclObject(IndexMap<String, CclObject>);
 
-impl Model {
+impl CclObject {
     /// Create a new empty model
     pub fn new() -> Self {
-        Model(IndexMap::new())
+        CclObject(IndexMap::new())
     }
 
     /// Create a Model from an IndexMap
     /// This is internal-only for crate operations
-    pub(crate) fn from_map(map: IndexMap<String, Model>) -> Self {
-        Model(map)
+    #[cfg(feature = "hierarchy")]
+    pub(crate) fn from_map(map: IndexMap<String, CclObject>) -> Self {
+        CclObject(map)
     }
 
     /// Get a value by key, returning an error if the key doesn't exist
-    pub fn get(&self, key: &str) -> Result<&Model> {
+    pub fn get(&self, key: &str) -> Result<&CclObject> {
         self.0
             .get(key)
             .ok_or_else(|| Error::MissingKey(key.to_string()))
@@ -96,17 +115,18 @@ impl Model {
     }
 
     /// Get an iterator over the values in this model
-    pub fn values(&self) -> impl Iterator<Item = &Model> {
+    pub fn values(&self) -> impl Iterator<Item = &CclObject> {
         self.0.values()
     }
 
     /// Get an iterator over key-value pairs in this model
-    pub fn iter(&self) -> impl Iterator<Item = (&String, &Model)> {
+    pub fn iter(&self) -> impl Iterator<Item = (&String, &CclObject)> {
         self.0.iter()
     }
 
     /// Get the concrete IndexMap iterator for internal use (Serde)
-    pub(crate) fn iter_map(&self) -> indexmap::map::Iter<'_, String, Model> {
+    #[cfg(feature = "serde-deserialize")]
+    pub(crate) fn iter_map(&self) -> indexmap::map::Iter<'_, String, CclObject> {
         self.0.iter()
     }
 
@@ -187,84 +207,95 @@ impl Model {
 
     /// Extract a list of string values from the model (no key lookup)
     ///
-    /// Lists in CCL can be created in two ways:
-    ///
-    /// 1. **Bare list syntax** with empty keys:
+    /// In CCL, lists are represented using **bare list syntax** with empty keys:
     /// ```text
     /// servers =
     ///   = web1
     ///   = web2
     /// ```
     ///
-    /// 2. **Duplicate keys** (proposed_behavior):
-    /// ```text
-    /// servers = web1
-    /// servers = web2
-    /// ```
+    /// Behavior varies by `options.coerce`:
     ///
-    /// Behavior varies by feature flag:
+    /// **With `coerce = false` (default, reference-compliant)**:
+    /// - Returns values ONLY when all keys are empty strings `""`
+    /// - Duplicate keys with values are NOT lists: `servers = web1` → `[]`
+    /// - Bare lists work: Access via `get("servers")?.as_list_with_options(...)` → `["web1", "web2"]`
+    /// - Matches OCaml reference implementation
     ///
-    /// **With `list_coercion_disabled` (default)**:
-    /// - Duplicate keys with values ARE lists (proposed_behavior)
-    /// - Single values are NOT coerced to lists: `item = single` → `[]`
-    /// - Bare lists work normally
-    ///
-    /// **With `list_coercion_enabled`**:
-    /// - Same as above, plus single values coerced to lists
-    #[cfg(feature = "list_coercion_disabled")]
-    pub(crate) fn as_list(&self) -> Vec<String> {
-        // Reference-compliant behavior: Only bare list syntax creates lists
-        // Duplicate keys with values are NOT treated as lists
-        //
-        // Bare list syntax: key with empty value containing list items
-        // Example: servers = { "": { "web1": {}, "web2": {} } }
-        // Should return ["web1", "web2"]
+    /// **With `coerce = true`**:
+    /// - Duplicate keys create lists: `servers = web1` → `["web1", "web2"]`
+    /// - Still filters scalar literals (numbers/booleans)
+    /// - Single values coerced to lists
+    pub(crate) fn as_list_with_options(&self, options: ListOptions) -> Vec<String> {
+        if options.coerce {
+            // Coercion mode: duplicate keys create lists, but filter scalars
+            self.keys()
+                .filter(|k| !is_scalar_literal(k))
+                .cloned()
+                .collect()
+        } else {
+            // Reference-compliant mode: only bare list syntax works
+            // Filter out comment keys (starting with '/') when checking for bare lists
+            let non_comment_keys: Vec<&String> =
+                self.keys().filter(|k| !k.starts_with('/')).collect();
 
-        // Filter out comment keys (starting with '/')
-        let non_comment_keys: Vec<&String> = self.keys().filter(|k| !k.starts_with('/')).collect();
-
-        // Check for bare list syntax: single empty-key child containing the list items
-        if non_comment_keys.len() == 1 && non_comment_keys[0].is_empty() {
-            if let Ok(child) = self.get("") {
-                if child.is_empty() {
-                    // Empty child = empty value, not a list
-                    return Vec::new();
+            // Handle bare list syntax: single empty-key child containing the list items
+            // Example: servers = { "": { "web1": {}, "web2": {} } }
+            // Should return ["web1", "web2"]
+            // Also handles: { "": {...}, "/": {...comment...} } - ignores comments
+            if non_comment_keys.len() == 1 && non_comment_keys[0].is_empty() {
+                if let Ok(child) = self.get("") {
+                    // Found empty-key child - return its keys as the list
+                    // Also filter out comment keys from the child
+                    return child
+                        .keys()
+                        .filter(|k| !k.starts_with('/'))
+                        .cloned()
+                        .collect();
                 }
-                // Non-empty child = return its keys as the list (bare list items)
-                return child
-                    .keys()
-                    .filter(|k| !k.starts_with('/'))
-                    .cloned()
-                    .collect();
+            }
+
+            // Empty or single non-empty key = not a list
+            if non_comment_keys.len() <= 1 {
+                return Vec::new();
+            }
+
+            // Multiple non-comment keys: ONLY return values if ALL are empty strings
+            // This means we're in a bare list structure with multiple empty keys
+            let all_keys_empty = non_comment_keys.iter().all(|k| k.is_empty());
+            if all_keys_empty {
+                // For bare lists, the VALUES (nested keys) are the list items
+                // But since keys are empty, we need to look at the nested structure
+                // For now, return empty as bare lists need special handling
+                Vec::new()
+            } else {
+                // Non-empty keys = not a list in reference mode
+                Vec::new()
             }
         }
-
-        // All other cases (single value, multiple duplicate keys) = not a list
-        // In reference_compliant with list_coercion_disabled, only bare list syntax works
-        Vec::new()
     }
 
-    /// Extract a list of string values from the model (no key lookup)
-    #[cfg(all(
-        feature = "list_coercion_enabled",
-        not(feature = "list_coercion_disabled")
-    ))]
-    pub(crate) fn as_list(&self) -> Vec<String> {
-        // Coercion mode: duplicate keys create lists, but filter scalars
-        self.keys()
-            .filter(|k| !is_scalar_literal(k))
-            .cloned()
-            .collect()
-    }
-
-    /// Get a list of string values by key
+    /// Get a list of string values by key (reference-compliant behavior)
     ///
-    /// Looks up the key and extracts its list representation.
-    /// Filters out scalar literals (numbers and booleans).
+    /// Only bare list syntax produces lists. Duplicate keys with values are NOT
+    /// treated as lists.
     ///
     /// For typed access to lists of scalars, use `get_list_typed::<T>()` instead.
+    /// For coercion behavior, use `get_list_coerced()`.
     pub fn get_list(&self, key: &str) -> Result<Vec<String>> {
-        Ok(self.get(key)?.as_list())
+        Ok(self.get(key)?.as_list_with_options(ListOptions::new()))
+    }
+
+    /// Get a list of string values by key (with coercion)
+    ///
+    /// Duplicate keys are coerced into lists, and scalar literals are filtered.
+    ///
+    /// For typed access to lists of scalars, use `get_list_typed::<T>()` instead.
+    /// For reference-compliant behavior, use `get_list()`.
+    pub fn get_list_coerced(&self, key: &str) -> Result<Vec<String>> {
+        Ok(self
+            .get(key)?
+            .as_list_with_options(ListOptions::with_coerce()))
     }
 
     /// Get a typed list of values by key
@@ -275,7 +306,7 @@ impl Model {
     /// # Examples
     ///
     /// ```
-    /// # use sickle::{Model, parse, build_hierarchy};
+    /// # use sickle::{CclObject, parse, build_hierarchy};
     /// # use sickle::error::Result;
     /// # fn example() -> Result<()> {
     /// // Numbers list
@@ -329,90 +360,48 @@ impl Model {
     ///
     /// Creates the representation `{string: {}}`
     /// This is internal-only for Serde support
+    #[cfg(feature = "serde-deserialize")]
     pub(crate) fn from_string(s: impl Into<String>) -> Self {
         let mut map = IndexMap::new();
-        map.insert(s.into(), Model::new());
-        Model(map)
+        map.insert(s.into(), CclObject::new());
+        CclObject(map)
     }
 
     /// Extract the inner IndexMap, consuming the Model
     /// This is internal-only for crate operations
-    pub(crate) fn into_inner(self) -> IndexMap<String, Model> {
+    #[cfg(feature = "hierarchy")]
+    pub(crate) fn into_inner(self) -> IndexMap<String, CclObject> {
         self.0
     }
 
-    /// Format the model as a canonical CCL string
-    ///
-    /// This produces a deterministic, normalized representation of the CCL data.
-    /// The format preserves insertion order and uses consistent spacing.
-    ///
-    /// # Format Rules (proposed_behavior variant)
-    /// - Simple key-value pairs: `key = value`
-    /// - Empty values: `key =`
-    /// - Multiple entries separated by newlines
-    /// - No trailing newline
-    /// - Preserves insertion order
-    /// - Trims trailing whitespace from values
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use sickle::{parse, build_hierarchy};
-    /// let entries = parse("name = Alice\nage = 42").unwrap();
-    /// let model = build_hierarchy(&entries).unwrap();
-    /// assert_eq!(model.canonical_format(), "name = Alice\nage = 42");
-    /// ```
-    pub fn canonical_format(&self) -> String {
-        self.format_entries(0)
+    /// Insert a string value at the given key
+    /// Creates the CCL representation: `{key: {value: {}}}`
+    #[cfg(feature = "serde-serialize")]
+    pub(crate) fn insert_string(&mut self, key: &str, value: String) {
+        let mut inner = IndexMap::new();
+        inner.insert(value, CclObject::new());
+        self.0.insert(key.to_string(), CclObject(inner));
     }
 
-    /// Internal helper to format entries at a given indentation level
-    fn format_entries(&self, indent: usize) -> String {
-        let indent_str = "  ".repeat(indent);
-        let mut lines = Vec::new();
-
-        for (key, value) in self.iter() {
-            if value.is_empty() {
-                // Leaf node: key with no children = empty value
-                if key.is_empty() {
-                    lines.push(format!("{}=", indent_str));
-                } else {
-                    lines.push(format!("{}{} =", indent_str, key));
-                }
-            } else if value.len() == 1 {
-                // Check if this is a string value (single key with empty child)
-                let (child_key, child_value) = value.iter().next().unwrap();
-                if child_value.is_empty() {
-                    // String value: "key = value"
-                    let trimmed_value = child_key.trim_end();
-                    if trimmed_value.is_empty() {
-                        lines.push(format!("{}{} =", indent_str, key));
-                    } else {
-                        lines.push(format!("{}{} = {}", indent_str, key, trimmed_value));
-                    }
-                } else {
-                    // Nested structure with one child
-                    lines.push(format!("{}{} =", indent_str, key));
-                    let nested = value.format_entries(indent + 1);
-                    if !nested.is_empty() {
-                        lines.push(nested);
-                    }
-                }
-            } else {
-                // Multiple children = nested structure or list
-                lines.push(format!("{}{} =", indent_str, key));
-                let nested = value.format_entries(indent + 1);
-                if !nested.is_empty() {
-                    lines.push(nested);
-                }
-            }
+    /// Insert a list of string values at the given key
+    /// Creates the CCL representation: `{key: {item1: {}, item2: {}, ...}}`
+    #[cfg(feature = "serde-serialize")]
+    pub(crate) fn insert_list(&mut self, key: &str, values: Vec<String>) {
+        let mut inner = IndexMap::new();
+        for value in values {
+            inner.insert(value, CclObject::new());
         }
+        self.0.insert(key.to_string(), CclObject(inner));
+    }
 
-        lines.join("\n")
+    /// Insert a nested object at the given key
+    #[cfg(feature = "serde-serialize")]
+    pub(crate) fn insert_object(&mut self, key: &str, obj: CclObject) {
+        self.0.insert(key.to_string(), obj);
     }
 }
 
-impl Default for Model {
+impl Default for CclObject {
     fn default() -> Self {
         Self::new()
     }
@@ -424,17 +413,17 @@ mod tests {
 
     #[test]
     fn test_empty_model() {
-        let model = Model::new();
+        let model = CclObject::new();
         assert!(model.is_empty());
     }
 
     #[test]
     fn test_map_navigation() {
         let mut inner = IndexMap::new();
-        inner.insert("name".to_string(), Model::new());
-        inner.insert("version".to_string(), Model::new());
+        inner.insert("name".to_string(), CclObject::new());
+        inner.insert("version".to_string(), CclObject::new());
 
-        let model = Model(inner);
+        let model = CclObject(inner);
         assert!(model.get("name").is_ok());
         assert!(model.get("version").is_ok());
         assert!(model.get("nonexistent").is_err());

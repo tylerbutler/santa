@@ -2,17 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "tests": [
     {
-      "behaviors": [
-        "list_coercion_disabled"
-      ],
-      "conflicts": {
-        "behaviors": [
-          "list_coercion_enabled"
-        ],
-        "variants": [
-          "proposed_behavior"
-        ]
-      },
+      "behaviors": [],
       "expected": {
         "count": 1,
         "entries": [
@@ -35,17 +25,7 @@
       ]
     },
     {
-      "behaviors": [
-        "list_coercion_disabled"
-      ],
-      "conflicts": {
-        "behaviors": [
-          "list_coercion_enabled"
-        ],
-        "variants": [
-          "proposed_behavior"
-        ]
-      },
+      "behaviors": [],
       "expected": {
         "count": 1,
         "object": {
@@ -71,14 +51,6 @@
       "behaviors": [
         "list_coercion_disabled"
       ],
-      "conflicts": {
-        "behaviors": [
-          "list_coercion_enabled"
-        ],
-        "variants": [
-          "proposed_behavior"
-        ]
-      },
       "expected": {
         "count": 0
       },
@@ -95,15 +67,7 @@
       ]
     },
     {
-      "behaviors": [
-        "list_coercion_disabled",
-        "array_order_lexicographic"
-      ],
-      "conflicts": {
-        "behaviors": [
-          "list_coercion_enabled"
-        ]
-      },
+      "behaviors": [],
       "expected": {
         "count": 3,
         "entries": [
@@ -133,14 +97,8 @@
     },
     {
       "behaviors": [
-        "list_coercion_disabled",
         "array_order_lexicographic"
       ],
-      "conflicts": {
-        "behaviors": [
-          "list_coercion_enabled"
-        ]
-      },
       "expected": {
         "count": 1,
         "object": {
@@ -169,11 +127,6 @@
         "list_coercion_disabled",
         "array_order_lexicographic"
       ],
-      "conflicts": {
-        "behaviors": [
-          "list_coercion_enabled"
-        ]
-      },
       "expected": {
         "count": 0
       },
@@ -188,17 +141,7 @@
       "variants": []
     },
     {
-      "behaviors": [
-        "list_coercion_disabled"
-      ],
-      "conflicts": {
-        "behaviors": [
-          "list_coercion_enabled"
-        ],
-        "variants": [
-          "proposed_behavior"
-        ]
-      },
+      "behaviors": [],
       "expected": {
         "count": 1,
         "entries": [
@@ -221,17 +164,7 @@
       ]
     },
     {
-      "behaviors": [
-        "list_coercion_disabled"
-      ],
-      "conflicts": {
-        "behaviors": [
-          "list_coercion_enabled"
-        ],
-        "variants": [
-          "proposed_behavior"
-        ]
-      },
+      "behaviors": [],
       "expected": {
         "count": 1,
         "object": {
@@ -264,14 +197,6 @@
       "behaviors": [
         "list_coercion_disabled"
       ],
-      "conflicts": {
-        "behaviors": [
-          "list_coercion_enabled"
-        ],
-        "variants": [
-          "proposed_behavior"
-        ]
-      },
       "expected": {
         "count": 0
       },
@@ -289,11 +214,6 @@
     },
     {
       "behaviors": [],
-      "conflicts": {
-        "variants": [
-          "proposed_behavior"
-        ]
-      },
       "expected": {
         "count": 1,
         "entries": [
@@ -317,11 +237,6 @@
     },
     {
       "behaviors": [],
-      "conflicts": {
-        "variants": [
-          "proposed_behavior"
-        ]
-      },
       "expected": {
         "count": 1,
         "object": {
@@ -345,11 +260,6 @@
         "empty_list"
       ],
       "behaviors": [],
-      "conflicts": {
-        "variants": [
-          "proposed_behavior"
-        ]
-      },
       "expected": {
         "count": 0
       },
@@ -366,15 +276,7 @@
       ]
     },
     {
-      "behaviors": [
-        "list_coercion_disabled",
-        "array_order_lexicographic"
-      ],
-      "conflicts": {
-        "behaviors": [
-          "list_coercion_enabled"
-        ]
-      },
+      "behaviors": [],
       "expected": {
         "count": 4,
         "entries": [
@@ -408,14 +310,8 @@
     },
     {
       "behaviors": [
-        "list_coercion_disabled",
         "array_order_lexicographic"
       ],
-      "conflicts": {
-        "behaviors": [
-          "list_coercion_enabled"
-        ]
-      },
       "expected": {
         "count": 1,
         "object": {
@@ -445,11 +341,6 @@
         "list_coercion_disabled",
         "array_order_lexicographic"
       ],
-      "conflicts": {
-        "behaviors": [
-          "list_coercion_enabled"
-        ]
-      },
       "expected": {
         "count": 0
       },
@@ -464,15 +355,7 @@
       "variants": []
     },
     {
-      "behaviors": [
-        "list_coercion_disabled",
-        "array_order_lexicographic"
-      ],
-      "conflicts": {
-        "behaviors": [
-          "list_coercion_enabled"
-        ]
-      },
+      "behaviors": [],
       "expected": {
         "count": 4,
         "entries": [
@@ -506,14 +389,8 @@
     },
     {
       "behaviors": [
-        "list_coercion_disabled",
         "array_order_lexicographic"
       ],
-      "conflicts": {
-        "behaviors": [
-          "list_coercion_enabled"
-        ]
-      },
       "expected": {
         "count": 1,
         "object": {
@@ -543,11 +420,6 @@
         "list_coercion_disabled",
         "array_order_lexicographic"
       ],
-      "conflicts": {
-        "behaviors": [
-          "list_coercion_enabled"
-        ]
-      },
       "expected": {
         "count": 0
       },
@@ -562,15 +434,7 @@
       "variants": []
     },
     {
-      "behaviors": [
-        "list_coercion_disabled",
-        "array_order_lexicographic"
-      ],
-      "conflicts": {
-        "behaviors": [
-          "list_coercion_enabled"
-        ]
-      },
+      "behaviors": [],
       "expected": {
         "count": 4,
         "entries": [
@@ -606,14 +470,8 @@
     },
     {
       "behaviors": [
-        "list_coercion_disabled",
         "array_order_lexicographic"
       ],
-      "conflicts": {
-        "behaviors": [
-          "list_coercion_enabled"
-        ]
-      },
       "expected": {
         "count": 1,
         "object": {
@@ -643,11 +501,6 @@
         "list_coercion_disabled",
         "array_order_lexicographic"
       ],
-      "conflicts": {
-        "behaviors": [
-          "list_coercion_enabled"
-        ]
-      },
       "expected": {
         "count": 0
       },
@@ -664,15 +517,7 @@
       "variants": []
     },
     {
-      "behaviors": [
-        "list_coercion_disabled",
-        "array_order_lexicographic"
-      ],
-      "conflicts": {
-        "behaviors": [
-          "list_coercion_enabled"
-        ]
-      },
+      "behaviors": [],
       "expected": {
         "count": 1,
         "entries": [
@@ -694,14 +539,8 @@
     },
     {
       "behaviors": [
-        "list_coercion_disabled",
         "array_order_lexicographic"
       ],
-      "conflicts": {
-        "behaviors": [
-          "list_coercion_enabled"
-        ]
-      },
       "expected": {
         "count": 1,
         "object": {
@@ -739,11 +578,6 @@
         "list_coercion_disabled",
         "array_order_lexicographic"
       ],
-      "conflicts": {
-        "behaviors": [
-          "list_coercion_enabled"
-        ]
-      },
       "expected": {
         "count": 0
       },
@@ -758,15 +592,7 @@
       "variants": []
     },
     {
-      "behaviors": [
-        "list_coercion_disabled",
-        "array_order_lexicographic"
-      ],
-      "conflicts": {
-        "behaviors": [
-          "list_coercion_enabled"
-        ]
-      },
+      "behaviors": [],
       "expected": {
         "count": 4,
         "entries": [
@@ -802,14 +628,8 @@
     },
     {
       "behaviors": [
-        "list_coercion_disabled",
         "array_order_lexicographic"
       ],
-      "conflicts": {
-        "behaviors": [
-          "list_coercion_enabled"
-        ]
-      },
       "expected": {
         "count": 1,
         "object": {
@@ -841,11 +661,6 @@
         "list_coercion_disabled",
         "array_order_lexicographic"
       ],
-      "conflicts": {
-        "behaviors": [
-          "list_coercion_enabled"
-        ]
-      },
       "expected": {
         "count": 0
       },
@@ -862,15 +677,7 @@
       "variants": []
     },
     {
-      "behaviors": [
-        "list_coercion_disabled",
-        "array_order_lexicographic"
-      ],
-      "conflicts": {
-        "behaviors": [
-          "list_coercion_enabled"
-        ]
-      },
+      "behaviors": [],
       "expected": {
         "count": 3,
         "entries": [
@@ -900,14 +707,8 @@
     },
     {
       "behaviors": [
-        "list_coercion_disabled",
         "array_order_lexicographic"
       ],
-      "conflicts": {
-        "behaviors": [
-          "list_coercion_enabled"
-        ]
-      },
       "expected": {
         "count": 1,
         "object": {
@@ -936,11 +737,6 @@
         "list_coercion_disabled",
         "array_order_lexicographic"
       ],
-      "conflicts": {
-        "behaviors": [
-          "list_coercion_enabled"
-        ]
-      },
       "expected": {
         "count": 0
       },
@@ -956,14 +752,8 @@
     },
     {
       "behaviors": [
-        "list_coercion_disabled",
         "array_order_lexicographic"
       ],
-      "conflicts": {
-        "behaviors": [
-          "list_coercion_enabled"
-        ]
-      },
       "expected": {
         "count": 1,
         "object": {
@@ -1006,11 +796,6 @@
         "list_coercion_disabled",
         "array_order_lexicographic"
       ],
-      "conflicts": {
-        "behaviors": [
-          "list_coercion_enabled"
-        ]
-      },
       "expected": {
         "count": 0
       },
@@ -1025,17 +810,7 @@
       "variants": []
     },
     {
-      "behaviors": [
-        "list_coercion_disabled"
-      ],
-      "conflicts": {
-        "behaviors": [
-          "list_coercion_enabled"
-        ],
-        "variants": [
-          "proposed_behavior"
-        ]
-      },
+      "behaviors": [],
       "expected": {
         "count": 1,
         "entries": [
@@ -1058,17 +833,7 @@
       ]
     },
     {
-      "behaviors": [
-        "list_coercion_disabled"
-      ],
-      "conflicts": {
-        "behaviors": [
-          "list_coercion_enabled"
-        ],
-        "variants": [
-          "proposed_behavior"
-        ]
-      },
+      "behaviors": [],
       "expected": {
         "count": 1,
         "object": {
@@ -1094,14 +859,6 @@
       "behaviors": [
         "list_coercion_disabled"
       ],
-      "conflicts": {
-        "behaviors": [
-          "list_coercion_enabled"
-        ],
-        "variants": [
-          "proposed_behavior"
-        ]
-      },
       "expected": {
         "count": 0
       },
@@ -1119,11 +876,6 @@
     },
     {
       "behaviors": [],
-      "conflicts": {
-        "variants": [
-          "proposed_behavior"
-        ]
-      },
       "expected": {
         "count": 1,
         "entries": [
@@ -1147,11 +899,6 @@
     },
     {
       "behaviors": [],
-      "conflicts": {
-        "variants": [
-          "proposed_behavior"
-        ]
-      },
       "expected": {
         "count": 1,
         "object": {
@@ -1172,11 +919,6 @@
     },
     {
       "behaviors": [],
-      "conflicts": {
-        "variants": [
-          "proposed_behavior"
-        ]
-      },
       "expected": {
         "count": 1,
         "value": "empty_key =\n"
@@ -1197,14 +939,6 @@
       "behaviors": [
         "tabs_preserve"
       ],
-      "conflicts": {
-        "behaviors": [
-          "tabs_to_spaces"
-        ],
-        "variants": [
-          "proposed_behavior"
-        ]
-      },
       "expected": {
         "count": 1,
         "value": "value_with_tabs =\n  text\t\twith\ttabs =\n"
@@ -1223,11 +957,6 @@
     },
     {
       "behaviors": [],
-      "conflicts": {
-        "variants": [
-          "proposed_behavior"
-        ]
-      },
       "expected": {
         "count": 1,
         "value": "emo =\n  🌟✨ =\nunicode =\n  你好世界 =\n"
@@ -1250,14 +979,6 @@
       "behaviors": [
         "crlf_preserve_literal"
       ],
-      "conflicts": {
-        "behaviors": [
-          "crlf_normalize_to_lf"
-        ],
-        "variants": [
-          "proposed_behavior"
-        ]
-      },
       "expected": {
         "count": 2,
         "entries": [
@@ -1287,14 +1008,6 @@
       "behaviors": [
         "crlf_preserve_literal"
       ],
-      "conflicts": {
-        "behaviors": [
-          "crlf_normalize_to_lf"
-        ],
-        "variants": [
-          "proposed_behavior"
-        ]
-      },
       "expected": {
         "count": 1,
         "value": "key1 =\n  value1\r =\nkey2 =\n  value2\r =\n"
@@ -1312,17 +1025,7 @@
       ]
     },
     {
-      "behaviors": [
-        "strict_spacing"
-      ],
-      "conflicts": {
-        "behaviors": [
-          "loose_spacing"
-        ],
-        "variants": [
-          "proposed_behavior"
-        ]
-      },
+      "behaviors": [],
       "expected": {
         "count": 1,
         "value": "key1 =\n  value1 =\nkey2 =\n  value2 =\nkey3 =\n  value3 =\n"
@@ -1341,11 +1044,6 @@
     },
     {
       "behaviors": [],
-      "conflicts": {
-        "variants": [
-          "proposed_behavior"
-        ]
-      },
       "expected": {
         "count": 1,
         "value": "a =\n  first =\nm =\n  middle =\nz =\n  last =\n"

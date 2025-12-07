@@ -81,6 +81,115 @@ fn populated_cache() -> PackageCache {
 mod status_command_tests {
     use super::*;
 
+    /// Test that cache.check correctly resolves source-specific package name overrides.
+    ///
+    /// This tests the scenario where a package has a different name in a specific source.
+    /// For example: `github-cli` is installed as `gh` in brew.
+    ///
+    /// The config references `github-cli`, but brew reports the installed package as `gh`.
+    /// The check method should resolve `github-cli` → `gh` and find it in the cache.
+    #[rstest]
+    #[test]
+    fn test_check_resolves_source_specific_name() {
+        // Create a cache that contains the source-specific name "gh"
+        let cache = PackageCache::new();
+        cache.insert_for_test("brew".to_string(), vec!["gh".to_string()]);
+
+        let source = PackageSource::new_for_test(
+            KnownSources::Brew,
+            "🍺",
+            "brew",
+            "brew install",
+            "brew list",
+            None,
+            None,
+        );
+
+        // Create package data where "github-cli" has brew-specific name "gh"
+        let mut packages = PackageDataList::new();
+        let mut github_cli_sources = HashMap::new();
+        github_cli_sources.insert(KnownSources::Brew, Some(PackageData::new("gh")));
+        packages.insert("github-cli".to_string(), github_cli_sources);
+
+        let data = SantaData {
+            sources: vec![source.clone()],
+            packages,
+        };
+
+        // check() should resolve "github-cli" -> "gh" and find it
+        let is_installed = cache.check(&source, "github-cli", &data);
+        assert!(
+            is_installed,
+            "github-cli should be recognized as installed when 'gh' is in cache"
+        );
+    }
+
+    /// Test that check falls back to config name when no override exists
+    #[rstest]
+    #[test]
+    fn test_check_uses_config_name_when_no_override() {
+        let cache = PackageCache::new();
+        cache.insert_for_test("brew".to_string(), vec!["git".to_string()]);
+
+        let source = PackageSource::new_for_test(
+            KnownSources::Brew,
+            "🍺",
+            "brew",
+            "brew install",
+            "brew list",
+            None,
+            None,
+        );
+
+        // Create package data where "git" has NO name override (Option is None)
+        let mut packages = PackageDataList::new();
+        let mut git_sources = HashMap::new();
+        git_sources.insert(KnownSources::Brew, None);
+        packages.insert("git".to_string(), git_sources);
+
+        let data = SantaData {
+            sources: vec![source.clone()],
+            packages,
+        };
+
+        // Should find "git" in cache since there's no override
+        let is_installed = cache.check(&source, "git", &data);
+        assert!(
+            is_installed,
+            "git should be found when no name override exists"
+        );
+    }
+
+    /// Test that check handles packages not in data gracefully
+    #[rstest]
+    #[test]
+    fn test_check_unknown_package_fallback() {
+        let cache = PackageCache::new();
+        cache.insert_for_test("brew".to_string(), vec!["unknown-pkg".to_string()]);
+
+        let source = PackageSource::new_for_test(
+            KnownSources::Brew,
+            "🍺",
+            "brew",
+            "brew install",
+            "brew list",
+            None,
+            None,
+        );
+
+        let data = SantaData {
+            sources: vec![source.clone()],
+            packages: PackageDataList::new(), // Empty - no package definitions
+        };
+
+        // Should fall back to checking the config name directly
+        let is_installed = cache.check(&source, "unknown-pkg", &data);
+        assert!(
+            is_installed,
+            "unknown packages should fall back to direct name check"
+        );
+    }
+
     #[rstest]
     #[tokio::test]
     async fn test_status_command_basic_execution(
@@ -313,16 +422,36 @@ mod install_command_tests {
             None,
         );
 
+        // Create minimal data for the check method
+        let mut packages = PackageDataList::new();
+        let mut git_sources = HashMap::new();
+        git_sources.insert(KnownSources::Brew, Some(PackageData::new("git")));
+        packages.insert("git".to_string(), git_sources);
+        let mut vim_sources = HashMap::new();
+        vim_sources.insert(KnownSources::Brew, Some(PackageData::new("vim")));
+        packages.insert("vim".to_string(), vim_sources);
+        let mut curl_sources = HashMap::new();
+        curl_sources.insert(KnownSources::Brew, Some(PackageData::new("curl")));
+        packages.insert("curl".to_string(), curl_sources);
+
+        let data = SantaData {
+            sources: vec![source.clone()],
+            packages,
+        };
+
         // Test that cache.check correctly identifies installed packages
-        assert!(cache.check(&source, "git"), "git should be in cache");
-        assert!(cache.check(&source, "vim"), "vim should be in cache");
-        assert!(!cache.check(&source, "curl"), "curl should not be in cache");
+        assert!(cache.check(&source, "git", &data), "git should be in cache");
+        assert!(cache.check(&source, "vim", &data), "vim should be in cache");
+        assert!(
+            !cache.check(&source, "curl", &data),
+            "curl should not be in cache"
+        );
 
         // The actual filtering logic would be:
-        let packages = ["git", "curl", "vim"];
-        let to_install: Vec<&str> = packages
+        let pkg_list = ["git", "curl", "vim"];
+        let to_install: Vec<&str> = pkg_list
             .iter()
-            .filter(|p| !cache.check(&source, p))
+            .filter(|p| !cache.check(&source, p, &data))
             .copied()
             .collect();
 

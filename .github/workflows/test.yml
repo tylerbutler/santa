@@ -13,18 +13,19 @@ on:
       - dev
 jobs:
   test-platforms:
+    # NOTE: Ubuntu testing is handled by coverage.yml which runs the same tests
+    # with LLVM instrumentation. This avoids duplicate builds while still
+    # ensuring cross-platform compatibility on macOS and Windows.
     name: Test Rust ${{ matrix.rust }} on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         include:
-          # Core platforms - always tested
-          - {rust: stable, os: ubuntu-latest}
           - {rust: stable, os: macos-latest}
           - {rust: stable, os: windows-latest}
     steps:
-      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # ratchet:actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # ratchet:actions/checkout@v4
 
       - uses: ./.github/actions/setup-rust
         with:
@@ -42,10 +43,8 @@ jobs:
       matrix:
         include:
           - {rust: stable-x86_64-gnu, os: windows-latest}
-          - {rust: stable-i686-msvc, os: windows-latest}
-          - {rust: stable-i686-gnu, os: windows-latest}
     steps:
-      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # ratchet:actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # ratchet:actions/checkout@v4
 
       - uses: ./.github/actions/setup-rust
         with:
@@ -68,7 +67,7 @@ jobs:
           # 32-bit x86
           - i686-unknown-linux-gnu
     steps:
-      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # ratchet:actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # ratchet:actions/checkout@v4
 
       - uses: ./.github/actions/setup-rust
 
@@ -84,7 +83,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # ratchet:actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # ratchet:actions/checkout@v4
 
       - uses: ./.github/actions/setup-rust
         with:

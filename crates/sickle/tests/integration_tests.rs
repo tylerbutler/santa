@@ -1,11 +1,9 @@
 //! Integration tests for the sickle CCL parser
 
-mod test_helpers;
-
 use sickle::load;
 
 /// Test helper to extract string value from Model using public API
-fn model_as_str(model: &sickle::Model) -> Result<&str, String> {
+fn model_as_str(model: &sickle::CclObject) -> Result<&str, String> {
     if model.len() == 1 {
         let (key, value) = model.iter().next().unwrap();
         if value.is_empty() {
@@ -16,7 +14,7 @@ fn model_as_str(model: &sickle::Model) -> Result<&str, String> {
 }
 
 /// Test helper to check if Model is a map using public API
-fn model_is_map(model: &sickle::Model) -> bool {
+fn model_is_map(model: &sickle::CclObject) -> bool {
     !model.is_empty() && model.values().any(|v| !v.is_empty())
 }
 

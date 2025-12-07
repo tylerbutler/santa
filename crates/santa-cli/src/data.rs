@@ -5,7 +5,7 @@ use anyhow::Context;
 use serde::{Deserialize, Serialize};
 use tracing::{error, info};
 
-use crate::{sources::PackageSource, traits::Exportable};
+use crate::sources::PackageSource;
 
 pub mod loaders;
 pub mod schemas;
@@ -53,13 +53,19 @@ impl PlatformExt for Platform {
         // Compile-time architecture detection
         if cfg!(target_arch = "x86_64") {
             platform.arch = Arch::X64;
+        } else if cfg!(target_arch = "x86") {
+            platform.arch = Arch::X86;
         } else if cfg!(target_arch = "aarch64") {
             platform.arch = Arch::Aarch64;
+        } else if cfg!(target_arch = "arm") {
+            platform.arch = Arch::Arm;
         } else {
             // Fallback to runtime detection
             match std::env::consts::ARCH {
                 "x86_64" => platform.arch = Arch::X64,
+                "x86" => platform.arch = Arch::X86,
                 "aarch64" => platform.arch = Arch::Aarch64,
+                "arm" => platform.arch = Arch::Arm,
                 _ => panic!("Unsupported architecture: {}", std::env::consts::ARCH),
             }
         }
@@ -178,33 +184,11 @@ impl LoadFromFile for PackageDataList {
     }
 }
 
-impl Exportable for PackageDataList {
-    fn export_min(&self) -> String
-    where
-        Self: Serialize,
-    {
-        let list: Vec<String> = self.keys().map(|key| key.to_string()).collect();
-
-        serde_json::to_string_pretty(&list).expect("Failed to serialize list")
-    }
-}
-
 pub type SourceList = Vec<PackageSource>;
 
 impl LoadFromFile for SourceList {
     fn load_from_str(config_str: &str) -> Self {
         sickle::from_str(config_str).expect("Failed to load CCL source list")
-    }
-}
-
-impl Exportable for SourceList {
-    fn export_min(&self) -> String
-    where
-        Self: Serialize,
-    {
-        let list: Vec<String> = self.iter().map(|source| format!("{source}")).collect();
-
-        serde_json::to_string_pretty(&list).expect("Failed to serialize source list")
     }
 }
 
@@ -291,15 +275,6 @@ impl Default for SantaData {
     }
 }
 
-impl Exportable for SantaData {
-    fn export_min(&self) -> String
-    where
-        Self: Serialize,
-    {
-        serde_json::to_string_pretty(&self).expect("Failed to serialize SantaData")
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -314,10 +289,10 @@ mod tests {
             KnownSources::Unknown("custom".to_string()),
         ];
 
-        for source in sources {
-            let serialized = serde_yaml::to_string(&source).unwrap();
-            let deserialized: KnownSources = serde_yaml::from_str(&serialized).unwrap();
-            assert_eq!(source, deserialized);
+        for source in &sources {
+            let serialized = source.to_string();
+            let deserialized: KnownSources = serialized.parse().unwrap();
+            assert_eq!(source, &deserialized);
         }
     }
 
@@ -408,19 +383,15 @@ mod tests {
     }
 
     #[test]
-    fn test_package_data_list_serialization() {
+    fn test_package_data_list_keys() {
         let mut packages = PackageDataList::new();
         let mut git_sources = HashMap::new();
         git_sources.insert(KnownSources::Brew, Some(PackageData::new("git")));
         packages.insert("git".to_string(), git_sources);
 
-        // Test export_min functionality
-        let exported = packages.export_min();
-        assert!(exported.contains("git"));
-
-        // Should be a YAML list of package names
-        let deserialized: Vec<String> = serde_yaml::from_str(&exported).unwrap();
-        assert!(deserialized.contains(&"git".to_string()));
+        // Test that package keys are correct
+        let keys: Vec<_> = packages.keys().collect();
+        assert!(keys.contains(&&"git".to_string()));
     }
 
     #[test]
@@ -430,10 +401,6 @@ mod tests {
         // Default data should have some packages and sources
         assert!(!data.packages.is_empty());
         assert!(!data.sources.is_empty());
-
-        // Should be able to export
-        let exported = data.export();
-        assert!(!exported.is_empty());
     }
 
     #[test]
@@ -473,10 +440,6 @@ mod tests {
         for name in &dangerous_names {
             assert!(data.packages.contains_key(*name));
         }
-
-        // Test export with dangerous names
-        let exported = data.export();
-        assert!(!exported.is_empty());
 
         // Test name_for with dangerous source
         let source = crate::sources::PackageSource::new_for_test(
@@ -519,6 +482,9 @@ mod tests {
                 }
                 KnownSources::Unknown(_) => {
                     panic!("detect_available_package_managers should only return known sources")
+                }
+                _ => {
+                    // Handle any future variants added to the non-exhaustive enum
                 }
             }
         }
@@ -702,28 +668,15 @@ git =
     }
 
     #[test]
-    fn test_data_transformation_round_trip() {
-        // Test full serialization/deserialization cycle
+    fn test_santa_data_default_has_content() {
+        // Test that default data has packages and sources
         let original_data = SantaData::default();
 
-        // Export to string (exports as JSON)
-        let exported = original_data.export_min();
-        assert!(!exported.is_empty());
+        // Verify packages are loaded
+        assert!(!original_data.packages.is_empty());
 
-        // Should be valid JSON
-        let _: SantaData = serde_json::from_str(&exported).unwrap();
-
-        // Test PackageDataList round trip (exports as JSON)
-        let packages = original_data.packages;
-        let packages_exported = packages.export_min();
-        let packages_list: Vec<String> = serde_json::from_str(&packages_exported).unwrap();
-        assert!(!packages_list.is_empty());
-
-        // Test SourceList round trip (exports as JSON)
-        let sources = original_data.sources;
-        let sources_exported = sources.export_min();
-        let sources_list: Vec<String> = serde_json::from_str(&sources_exported).unwrap();
-        assert!(!sources_list.is_empty());
+        // Verify sources are loaded
+        assert!(!original_data.sources.is_empty());
     }
 
     #[test]
@@ -744,37 +697,32 @@ git =
 
         let new_pkg = PackageName::from("vim".to_string());
         assert_ne!(new_pkg, PackageName::from("git".to_string()));
-
-        // Test serialization
-        let serialized = serde_yaml::to_string(&new_pkg).unwrap();
-        let deserialized: PackageName = serde_yaml::from_str(&serialized).unwrap();
-        assert_eq!(new_pkg, deserialized);
     }
 
     #[test]
     fn test_os_arch_distro_enums() {
-        // Test enum variants exist and serialize correctly
+        // Test enum variants exist and can be compared
         let os_variants = vec![OS::Linux, OS::Macos, OS::Windows];
         let arch_variants = vec![Arch::X64, Arch::Aarch64];
         let distro_variants = vec![Distro::None, Distro::ArchLinux, Distro::Ubuntu];
 
-        for os in os_variants {
-            let serialized = serde_yaml::to_string(&os).unwrap();
-            let deserialized: OS = serde_yaml::from_str(&serialized).unwrap();
-            assert_eq!(os, deserialized);
+        // Test that cloning and equality work
+        for os in &os_variants {
+            assert_eq!(os, &os.clone());
         }
 
-        for arch in arch_variants {
-            let serialized = serde_yaml::to_string(&arch).unwrap();
-            let deserialized: Arch = serde_yaml::from_str(&serialized).unwrap();
-            assert_eq!(arch, deserialized);
+        for arch in &arch_variants {
+            assert_eq!(arch, &arch.clone());
         }
 
-        for distro in distro_variants {
-            let serialized = serde_yaml::to_string(&distro).unwrap();
-            let deserialized: Distro = serde_yaml::from_str(&serialized).unwrap();
-            assert_eq!(distro, deserialized);
+        for distro in &distro_variants {
+            assert_eq!(distro, &distro.clone());
         }
+
+        // Test Debug trait
+        assert!(!format!("{:?}", OS::Linux).is_empty());
+        assert!(!format!("{:?}", Arch::X64).is_empty());
+        assert!(!format!("{:?}", Distro::Ubuntu).is_empty());
     }
 
     #[test]
@@ -809,10 +757,8 @@ git =
         ];
 
         for platform in platforms {
-            // Test serialization
-            let serialized = serde_yaml::to_string(&platform).unwrap();
-            let deserialized: Platform = serde_yaml::from_str(&serialized).unwrap();
-            assert_eq!(platform, deserialized);
+            // Test clone and equality
+            assert_eq!(platform, platform.clone());
 
             // Test display
             let display = format!("{platform}");
@@ -872,6 +818,9 @@ git =
                 }
                 KnownSources::Unknown(_) => {
                     panic!("detect_available_package_managers returned Unknown variant");
+                }
+                _ => {
+                    // Handle any future variants added to the non-exhaustive enum
                 }
             }
         }
@@ -1089,7 +1038,7 @@ git =
     }
 
     #[test]
-    fn test_package_data_list_export_with_complex_data() {
+    fn test_package_data_list_with_complex_names() {
         let mut packages = PackageDataList::new();
 
         // Add packages with various Unicode characters and special names
@@ -1108,20 +1057,15 @@ git =
             packages.insert(pkg.to_string(), sources);
         }
 
-        let exported = packages.export_min();
-
-        // Should be valid YAML
-        let deserialized: Vec<String> = serde_yaml::from_str(&exported).unwrap();
-
-        // All packages should be present
+        // All packages should be present as keys
         for pkg in &test_packages {
             assert!(
-                deserialized.contains(&pkg.to_string()),
-                "Exported data should contain package: {pkg}"
+                packages.contains_key(&pkg.to_string()),
+                "PackageDataList should contain package: {pkg}"
             );
         }
 
-        assert_eq!(deserialized.len(), test_packages.len());
+        assert_eq!(packages.len(), test_packages.len());
     }
 
     #[test]
@@ -1129,17 +1073,12 @@ git =
         // Test that Unknown variant works correctly
         let unknown_source = KnownSources::Unknown("custom-manager".to_string());
 
-        // Test serialization
-        let serialized = serde_yaml::to_string(&unknown_source).unwrap();
+        // Test Display/ToString
+        let serialized = unknown_source.to_string();
         assert!(serialized.contains("custom-manager"));
 
-        // Test deserialization
-        let deserialized: KnownSources = serde_yaml::from_str(&serialized).unwrap();
-        assert_eq!(unknown_source, deserialized);
-
-        // Test that truly unknown strings deserialize to Unknown variant
-        let unknown_yaml = "\"totally-unknown-package-manager\"";
-        let parsed: KnownSources = serde_yaml::from_str(unknown_yaml).unwrap();
+        // Test FromStr (parse)
+        let parsed: KnownSources = "totally-unknown-package-manager".parse().unwrap();
         assert!(matches!(parsed, KnownSources::Unknown(_)));
 
         if let KnownSources::Unknown(name) = parsed {

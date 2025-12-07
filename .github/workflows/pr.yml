@@ -1,30 +1,64 @@
 name: PR Validation
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
   pull_request:
     branches: [main]
+    types: [opened, synchronize, reopened, ready_for_review, converted_to_draft]
 
 jobs:
-  checks:
-    name: PR Checks
+  format:
+    name: Format Check
     runs-on: ubuntu-latest
+    if: github.event_name == 'push' || github.event.pull_request.draft == false
     steps:
       - name: Checkout repository
-        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # ratchet:actions/checkout@v4
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # ratchet:actions/checkout@v5
 
       - uses: ./.github/actions/setup-rust
         with:
-          components: "clippy,rustfmt"
+          components: rustfmt
 
       - uses: ./.github/actions/install-tools
         with:
-          tools: "just,cargo-udeps,cargo-audit,cargo-deny"
+          tools: just
 
       - name: Check formatting
         run: just format --check
 
-      - name: Clippy check (lint)
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' || github.event.pull_request.draft == false
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # ratchet:actions/checkout@v5
+
+      - uses: ./.github/actions/setup-rust
+        with:
+          components: clippy
+
+      - uses: ./.github/actions/install-tools
+        with:
+          tools: just
+
+      - name: Clippy check
         run: just lint
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' && github.event.pull_request.draft == false
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # ratchet:actions/checkout@v5
+
+      - uses: ./.github/actions/setup-rust
+
+      - uses: ./.github/actions/install-tools
+        with:
+          tools: just
 
       - name: Debug build
         run: just build
@@ -32,15 +66,109 @@ jobs:
       - name: Verify package
         run: just verify-package
 
+      - name: Check for unexpected changes
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "::error::Unexpected changes detected after build:"
+            git status --short
+            git diff
+            exit 1
+          fi
+
+  audit:
+    name: Security Audit
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' || github.event.pull_request.draft == false
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # ratchet:actions/checkout@v5
+
+      - uses: ./.github/actions/setup-rust
+
+      - uses: ./.github/actions/install-tools
+        with:
+          tools: just,cargo-audit,cargo-deny
+
       - name: Security audit
         run: just audit
 
-  workspace-consistency:
-    name: Workspace Consistency Checks
+  semver:
+    name: Semver Check (Informational)
     runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' && github.event.pull_request.draft == false
     steps:
       - name: Checkout repository
-        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # ratchet:actions/checkout@v4
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # ratchet:actions/checkout@v5
+        with:
+          fetch-depth: 0 # Required for cargo-semver-checks
+
+      - uses: ./.github/actions/setup-rust
+
+      - uses: ./.github/actions/install-tools
+        with:
+          tools: just,cargo-semver-checks
+
+      - name: Get merge base
+        id: merge-base
+        run: |
+          # Find the merge base between this PR and main
+          MERGE_BASE=$(git merge-base origin/main HEAD)
+          echo "sha=$MERGE_BASE" >> "$GITHUB_OUTPUT"
+          echo "Comparing against merge base: $MERGE_BASE"
+
+      - name: Check semver compatibility
+        id: semver
+        run: |
+          set +e
+          # Compare against the merge base with main, not the last published version
+          OUTPUT=$(cargo semver-checks --baseline-rev ${{ steps.merge-base.outputs.sha }} --color never 2>&1)
+          EXIT_CODE=$?
+          echo "$OUTPUT"
+          # Save output for comment (escape for multiline)
+          {
+            echo "output<<EOF"
+            echo "$OUTPUT"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+          echo "has_breaking=$([[ $EXIT_CODE -ne 0 ]] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+          # Always exit 0 - this is informational only, breaking changes are reported via PR comment
+          exit 0
+
+      - name: Comment on PR with breaking changes
+        if: steps.semver.outputs.has_breaking == 'true'
+        uses: marocchino/sticky-pull-request-comment@52423e01640425a022ef5fd42c6fb5f633a02728 # ratchet:marocchino/sticky-pull-request-comment@v2
+        with:
+          header: semver-check
+          message: |
+            ## ⚠️ Semver Breaking Changes Detected
+
+            This PR introduces API changes that may be semver-incompatible (compared to main branch):
+
+            ```
+            ${{ steps.semver.outputs.output }}
+            ```
+
+            <details>
+            <summary>What does this mean?</summary>
+
+            These changes may break downstream users if released as a patch or minor version.
+            Consider whether a major version bump is needed, or if the changes can be made backwards-compatible.
+            </details>
+
+      - name: Remove comment if no breaking changes
+        if: steps.semver.outputs.has_breaking == 'false'
+        uses: marocchino/sticky-pull-request-comment@52423e01640425a022ef5fd42c6fb5f633a02728 # ratchet:marocchino/sticky-pull-request-comment@v2
+        with:
+          header: semver-check
+          delete: true
+
+  workspace-consistency:
+    name: Workspace Consistency
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' || github.event.pull_request.draft == false
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # ratchet:actions/checkout@v5
 
       - uses: ./.github/actions/setup-rust
 
@@ -48,15 +176,6 @@ jobs:
         run: |
           echo "Checking for duplicate dependencies across workspace..."
           cargo tree --duplicates --workspace || echo "No duplicates found"
-
-      - name: Test package isolation
-        run: |
-          echo "Testing santa-cli in isolation..."
-          cargo test -p santa --no-fail-fast
-          echo "Testing santa-data in isolation..."
-          cargo test -p santa-data --no-fail-fast
-          echo "Testing sickle in isolation..."
-          cargo test -p sickle --no-fail-fast
 
       - name: Verify dependency tree
         run: |
@@ -66,3 +185,22 @@ jobs:
           cargo tree --edges normal --invert sickle
           echo "Analyzing santa-cli dependencies..."
           cargo tree -p santa --depth 3
+
+  package-isolation:
+    name: Package Isolation
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # ratchet:actions/checkout@v5
+
+      - uses: ./.github/actions/setup-rust
+
+      - name: Test packages in isolation
+        run: |
+          echo "Testing santa-cli in isolation..."
+          cargo test -p santa --no-fail-fast
+          echo "Testing santa-data in isolation..."
+          cargo test -p santa-data --no-fail-fast
+          echo "Testing sickle in isolation..."
+          cargo test -p sickle --no-fail-fast
