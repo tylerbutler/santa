@@ -20,7 +20,9 @@
       "functions": [
         "parse"
       ],
-      "input": "name = Alice\nage = 42",
+      "inputs": [
+        "name = Alice\nage = 42"
+      ],
       "name": "basic_key_value_pairs_parse",
       "source_test": "basic_key_value_pairs",
       "validation": "parse",
@@ -45,7 +47,9 @@
       "functions": [
         "parse"
       ],
-      "input": "msg = k=v pairs work fine\npath = /bin/app=prod",
+      "inputs": [
+        "msg = k=v pairs work fine\npath = /bin/app=prod"
+      ],
       "name": "equals_in_values_parse",
       "source_test": "equals_in_values",
       "validation": "parse",
@@ -72,7 +76,9 @@
       "functions": [
         "parse"
       ],
-      "input": "  key   =    value with spaces   \nother = normal",
+      "inputs": [
+        "  key   =    value with spaces   \nother = normal"
+      ],
       "name": "whitespace_trimming_parse",
       "source_test": "whitespace_trimming",
       "validation": "parse",
@@ -99,7 +105,9 @@
       "functions": [
         "parse"
       ],
-      "input": "description = First line\n  Second line\n  Third line\ndone = yes",
+      "inputs": [
+        "description = First line\n  Second line\n  Third line\ndone = yes"
+      ],
       "name": "multiline_values_parse",
       "source_test": "multiline_values",
       "validation": "parse",
@@ -126,7 +134,9 @@
       "functions": [
         "parse"
       ],
-      "input": "empty =\nother = value",
+      "inputs": [
+        "empty =\nother = value"
+      ],
       "name": "empty_values_parse",
       "source_test": "empty_values",
       "validation": "parse",
@@ -147,7 +157,9 @@
       "functions": [
         "parse"
       ],
-      "input": "database =\n  host = localhost\n  port = 5432",
+      "inputs": [
+        "database =\n  host = localhost\n  port = 5432"
+      ],
       "name": "nested_structure_parsing_parse",
       "source_test": "nested_structure_parsing",
       "validation": "parse",
@@ -174,7 +186,9 @@
       "functions": [
         "parse"
       ],
-      "input": "emoji = 😀😃😄\n配置 = config",
+      "inputs": [
+        "emoji = 😀😃😄\n配置 = config"
+      ],
       "name": "unicode_parsing_parse",
       "source_test": "unicode_parsing",
       "validation": "parse",
@@ -189,7 +203,9 @@
       "functions": [
         "parse"
       ],
-      "input": "",
+      "inputs": [
+        ""
+      ],
       "name": "empty_input_parse",
       "source_test": "empty_input",
       "validation": "parse",
