@@ -35,7 +35,7 @@
 //! - **Unified Interface**: Common API for different package managers
 //! - **Async Operations**: Non-blocking package operations using tokio
 //! - **Caching**: Intelligent caching of package lists and metadata
-//! - **Configuration**: Flexible YAML-based configuration system
+//! - **Configuration**: Flexible CCL-based configuration system
 //! - **Security**: Input sanitization and shell escape protection
 //! - **Hot Reload**: Configuration changes without restart
 //!
@@ -86,7 +86,6 @@ pub mod configuration;
 pub mod data;
 pub mod data_layers;
 pub mod errors;
-pub mod migration;
 pub mod plugins;
 pub mod script_generator;
 pub mod source_layers;
