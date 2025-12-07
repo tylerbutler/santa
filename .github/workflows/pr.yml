@@ -121,7 +121,7 @@ jobs:
         run: |
           set +e
           # Compare against the merge base with main, not the last published version
-          OUTPUT=$(cargo semver-checks --baseline-rev ${{ steps.merge-base.outputs.sha }} 2>&1)
+          OUTPUT=$(cargo semver-checks --baseline-rev ${{ steps.merge-base.outputs.sha }} --color never 2>&1)
           EXIT_CODE=$?
           echo "$OUTPUT"
           # Save output for comment (escape for multiline)
