@@ -31,8 +31,8 @@ fn test_config_builtin_only() {
     cmd.args(["config", "--builtin-only"]);
     cmd.assert()
         .success()
-        .stdout(predicate::str::contains("name: brew"))
-        .stdout(predicate::str::contains("emoji: 🍺"));
+        .stdout(predicate::str::contains("name: Brew"))
+        .stdout(predicate::str::contains("emoji: \"🍺\""));
 }
 
 #[test]
@@ -171,7 +171,7 @@ fn test_config_output_format() {
     cmd.args(["config", "--builtin-only"]);
     cmd.assert()
         .success()
-        .stdout(predicate::str::contains("name: brew"))
+        .stdout(predicate::str::contains("name: Brew"))
         .stdout(predicate::str::contains("emoji:"))
         .stdout(predicate::str::contains("install_command:"));
 }

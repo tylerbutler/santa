@@ -4,11 +4,8 @@ pub mod watcher;
 use crate::data::PlatformExt;
 use crate::errors::{Result, SantaError};
 use crate::sources::PackageSource;
-// use crate::traits::Configurable; // Not needed - can't implement for foreign type
 use std::collections::HashMap;
 use std::path::Path;
-
-use crate::migration::ConfigMigrator;
 
 use tracing::{trace, warn};
 
@@ -64,7 +61,7 @@ pub trait SantaConfigExt {
     where
         Self: Sized;
 
-    /// Export configuration to YAML format
+    /// Export configuration to string format (Debug)
     fn export(&self) -> String;
 }
 
@@ -233,7 +230,7 @@ impl SantaConfigExt for SantaConfig {
     }
 
     fn export(&self) -> String {
-        serde_yaml::to_string(self).unwrap_or_else(|e| format!("# Export failed: {}", e))
+        format!("{:#?}", self)
     }
 }
 
@@ -245,15 +242,9 @@ impl SantaConfigExt for SantaConfig {
 pub struct SantaConfigLoader;
 
 impl SantaConfigLoader {
-    /// Load configuration from a file with migration support
+    /// Load configuration from a CCL file
     pub fn load_config(path: &Path) -> Result<SantaConfig> {
-        // Use migration system to transparently handle YAML→CCL conversion
-        let migrator = ConfigMigrator::new();
-        let actual_path = migrator
-            .resolve_config_path(path)
-            .map_err(SantaError::Config)?;
-
-        let contents = std::fs::read_to_string(&actual_path).map_err(SantaError::Io)?;
+        let contents = std::fs::read_to_string(path).map_err(SantaError::Io)?;
 
         let config: SantaConfig =
             sickle::from_str(&contents).map_err(|e| SantaError::Config(anyhow::Error::from(e)))?;

@@ -41,7 +41,6 @@ use crate::data::SantaData;
 use crate::data::SourceList;
 use crate::errors::{Result, SantaError};
 use crate::script_generator::{ExecutionMode, ScriptFormat};
-use crate::traits::Exportable;
 use crate::{configuration::SantaConfig, sources::PackageCache};
 use futures::future::try_join_all;
 use std::sync::Arc;
@@ -296,9 +295,9 @@ pub fn config_command(
     if !builtin {
         println!("{}", config.export());
     } else if packages {
-        println!("{}", data.export());
+        println!("{:#?}", data);
     } else {
-        println!("{}", data.sources.export())
+        println!("{:#?}", data.sources)
     }
     Ok(())
 }

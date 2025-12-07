@@ -269,12 +269,12 @@ ripgrep =
 
     #[test]
     fn test_source_definition() {
-        let yaml = r#"
-emoji: 🍺
-install: brew install {package}
-check: brew leaves --installed-on-request
+        let ccl = r#"
+emoji = 🍺
+install = brew install {package}
+check = brew leaves --installed-on-request
 "#;
-        let def: SourceDefinition = serde_yaml::from_str(yaml).unwrap();
+        let def: SourceDefinition = sickle::from_str(ccl).unwrap();
 
         assert_eq!(def.emoji, "🍺");
         assert!(def.install.contains("{package}"));
