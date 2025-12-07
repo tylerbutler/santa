@@ -1,18 +1,24 @@
 [tools]
 just = "latest"
 
+# Install cargo-binstall first via ubi (fast, pre-built binary)
+# Then cargo: backend will automatically use cargo-binstall if available
+"ubi:cargo-bins/cargo-binstall" = "1"  # Latest 1.x
+
 # Cargo development tools
+# cargo: backend auto-detects cargo-binstall and uses pre-built binaries when available
+# This is faster than compiling from source while maintaining mise.toml simplicity
+
 # Pre-1.0 tools: pinned to minor version (patch updates only)
-"cargo:cargo-nextest" = "0.9"        # Latest 0.9.x (patch only)
-"cargo:cargo-llvm-cov" = "0.6"       # Latest 0.6.x (patch only)
-"cargo:cargo-audit" = "0.22"         # Latest 0.22.x (patch only)
-"cargo:cargo-deny" = "0.18"          # Latest 0.18.x (patch only)
-"cargo:cargo-semver-checks" = "0.45" # Latest 0.45.x (patch only)
-"cargo:cargo-outdated" = "0.17"      # Latest 0.17.x (patch only)
-"cargo:cargo-udeps" = "0.1"          # Latest 0.1.x (patch only)
-"cargo:cargo-dist" = "0.30"          # Latest 0.30.x (patch only)
-"cargo:cargo-bloated" = "0.1"        # Latest 0.1.x (patch only)
+"cargo:cargo-nextest" = "0.9"        # GitHub releases (via cargo-binstall)
+"cargo:cargo-llvm-cov" = "0.6"       # GitHub releases (via cargo-binstall)
+"cargo:cargo-audit" = "0.22"         # QuickInstall (via cargo-binstall)
+"cargo:cargo-deny" = "0.18"          # GitHub releases (via cargo-binstall)
+"cargo:cargo-semver-checks" = "0.45" # GitHub releases (via cargo-binstall)
+"cargo:cargo-outdated" = "0.17"      # GitHub releases (via cargo-binstall)
+"cargo:cargo-udeps" = "0.1"          # GitHub releases (via cargo-binstall)
+"cargo:cargo-dist" = "0.30"          # GitHub releases (via cargo-binstall)
+"cargo:cargo-bloated" = "0.1"        # Source compile (no pre-built binaries)
 
 # Stable tools (1.0+): pinned to major version (minor + patch updates)
-"cargo:cargo-binstall" = "1"         # Latest 1.x
-"cargo:cargo-watch" = "8"            # Latest 8.x
+"cargo:cargo-watch" = "8"            # GitHub releases (via cargo-binstall)
