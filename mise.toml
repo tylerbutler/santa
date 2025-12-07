@@ -1,2 +1,18 @@
 [tools]
 just = "latest"
+
+# Cargo development tools
+# Pre-1.0 tools: pinned to minor version (patch updates only)
+"cargo:cargo-nextest" = "0.9"        # Latest 0.9.x (patch only)
+"cargo:cargo-llvm-cov" = "0.6"       # Latest 0.6.x (patch only)
+"cargo:cargo-audit" = "0.22"         # Latest 0.22.x (patch only)
+"cargo:cargo-deny" = "0.18"          # Latest 0.18.x (patch only)
+"cargo:cargo-semver-checks" = "0.45" # Latest 0.45.x (patch only)
+"cargo:cargo-outdated" = "0.17"      # Latest 0.17.x (patch only)
+"cargo:cargo-udeps" = "0.1"          # Latest 0.1.x (patch only)
+"cargo:cargo-dist" = "0.30"          # Latest 0.30.x (patch only)
+"cargo:cargo-bloated" = "0.1"        # Latest 0.1.x (patch only)
+
+# Stable tools (1.0+): pinned to major version (minor + patch updates)
+"cargo:cargo-binstall" = "1"         # Latest 1.x
+"cargo:cargo-watch" = "8"            # Latest 8.x

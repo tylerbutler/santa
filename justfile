@@ -27,18 +27,15 @@ default:
 # Development Commands
 # ===================
 
-# Install all development dependencies
+# Install all development dependencies via mise
 setup:
     @echo "🔧 Setting up development environment..."
-    cargo install cargo-udeps --locked || echo "cargo-udeps already installed"
-    cargo install cargo-nextest --locked || echo "cargo-nextest already installed"
-    cargo install cargo-llvm-cov --locked || echo "cargo-llvm-cov already installed"
-    cargo install cargo-audit --locked || echo "cargo-audit already installed"
-    cargo install cargo-deny --locked || echo "cargo-deny already installed"
-    cargo install cargo-watch --locked || echo "cargo-watch already installed"
-    cargo install cargo-outdated --locked || echo "cargo-outdated already installed"
-    cargo install cargo-dist --locked || echo "cargo-dist already installed"
+    @command -v mise >/dev/null 2>&1 || { echo "❌ mise not found. Install from https://mise.jdx.dev"; exit 1; }
+    mise install
     @echo "✅ Development setup complete!"
+    @echo ""
+    @echo "Installed tools:"
+    @mise list --current
 
 # Build the project in debug mode
 build *ARGS='':
@@ -233,10 +230,10 @@ docs-full:
     @echo "📚 Generating full documentation..."
     cargo doc --open
 
-# Check documentation for errors
+# Check documentation for errors (used in CI)
 docs-check:
     @echo "📚 Checking documentation..."
-    cargo doc --no-deps
+    RUSTDOCFLAGS="-D warnings" cargo doc --no-deps --document-private-items --workspace
 
 # Release Commands
 # ===============

@@ -1,16 +1,18 @@
-name: 'Install Cargo Tools'
-description: 'Install common development tools used across workflows'
+name: 'Install Tools via mise'
+description: 'Install tools using mise for consistent versions'
 
 inputs:
   tools:
-    description: 'Comma-separated list of tools to install'
-    required: true
-    default: 'just'
+    description: 'Comma-separated list of tools to install (deprecated - uses mise.toml instead)'
+    required: false
+    default: ''
 
 runs:
   using: composite
   steps:
-    - name: Install Tools
-      uses: taiki-e/install-action@0be4756f42223b67aa4b7df5effad59010cbf4b9 # ratchet:taiki-e/install-action@v2
+    - name: Install mise
+      uses: jdx/mise-action@f8dfbcc150159126838e44b882bf34bd98fd90f3 # ratchet:jdx/mise-action@v2
       with:
-        tool: ${{ inputs.tools }}
+        install: true
+        cache: true
+        experimental: true
