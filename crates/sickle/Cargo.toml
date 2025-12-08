@@ -56,14 +56,14 @@ full = ["serde", "printer", "intern"]
 
 [dependencies]
 # Data structures - IndexMap for insertion-order preservation
-indexmap = { version = "2.0", features = ["serde"] }
+indexmap = { version = "2.12.1", features = ["serde"] }
 
 # Optional: Serde support for deserialization
 serde = { workspace = true, optional = true }
-serde_derive = { version = "1.0", optional = true }
+serde_derive = { version = "1.0.228", optional = true }
 
 # Optional: String interning for memory efficiency
-string-interner = { version = "0.17", optional = true }
+string-interner = { version = "0.19.0", optional = true }
 
 [dev-dependencies]
 # Testing framework
