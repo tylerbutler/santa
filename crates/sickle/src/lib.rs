@@ -319,7 +319,10 @@ pub fn parse_indented_with_options(input: &str, options: &ParserOptions) -> Resu
 
 /// Internal implementation of parse_indented_with_options
 #[cfg(feature = "parse")]
-fn parse_indented_with_options_internal(input: &str, options: &ParserOptions) -> Result<Vec<Entry>> {
+fn parse_indented_with_options_internal(
+    input: &str,
+    options: &ParserOptions,
+) -> Result<Vec<Entry>> {
     // Find the minimum indentation level (common prefix)
     let min_indent = input
         .lines()
