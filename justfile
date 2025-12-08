@@ -9,36 +9,41 @@ export RUST_BACKTRACE := "1"
 
 set windows-shell := ["powershell.exe", "-NoLogo", "-Command"]
 
-# Common aliases for faster development
+# ===================
+# Aliases
+# ===================
+
 alias b := build
 alias br := build-release
-alias r := release
 alias t := test
 alias ta := test-all
 alias tf := test-fast
 alias l := lint
 alias f := fix
 alias c := check-quick
+alias pr := ci
 
 # Default recipe - shows available commands
 default:
     @just --list
 
-# Development Commands
+# ===================
+# Development Setup
 # ===================
 
-# Install all development dependencies
+# Install all development dependencies via mise
 setup:
     @echo "🔧 Setting up development environment..."
-    cargo install cargo-udeps --locked || echo "cargo-udeps already installed"
-    cargo install cargo-nextest --locked || echo "cargo-nextest already installed"
-    cargo install cargo-llvm-cov --locked || echo "cargo-llvm-cov already installed"
-    cargo install cargo-audit --locked || echo "cargo-audit already installed"
-    cargo install cargo-deny --locked || echo "cargo-deny already installed"
-    cargo install cargo-watch --locked || echo "cargo-watch already installed"
-    cargo install cargo-outdated --locked || echo "cargo-outdated already installed"
-    cargo install cargo-dist --locked || echo "cargo-dist already installed"
+    @command -v mise >/dev/null 2>&1 || { echo "❌ mise not found. Install from https://mise.jdx.dev"; exit 1; }
+    mise install
     @echo "✅ Development setup complete!"
+    @echo ""
+    @echo "Installed tools:"
+    @mise list --current
+
+# ===================
+# Build Commands
+# ===================
 
 # Build the project in debug mode
 build *ARGS='':
@@ -51,27 +56,9 @@ build-release *ARGS='':
     @echo "🔨 Building santa (release)..."
     cargo build --release {{ARGS}}
 
-# Build for CI with specific target
-ci-build TARGET='x86_64-unknown-linux-gnu' *ARGS='':
-    @echo "🔨 Building for CI target: {{TARGET}}"
-    cargo build --locked --release --target {{TARGET}} {{ARGS}}
-
-# Cross-compile build (requires cross)
-cbuild target='x86_64-unknown-linux-gnu' *ARGS='':
-    @echo "🔨 Cross-building for: {{target}}"
-    cross build --locked --release --target {{target}} {{ARGS}}
-
-# Build for all supported targets
-build-all:
-    @echo "🔨 Building for all targets..."
-    cargo build --target x86_64-unknown-linux-gnu
-    cargo build --target aarch64-unknown-linux-gnu
-    cargo build --target x86_64-apple-darwin
-    cargo build --target aarch64-apple-darwin
-    cargo build --target x86_64-pc-windows-gnu
-
+# ===================
 # Testing Commands
-# ================
+# ===================
 
 # Run all tests with cargo test
 test *ARGS='':
@@ -83,20 +70,15 @@ test-fast *ARGS='':
     @echo "🧪 Running tests with nextest..."
     cargo nextest run {{ARGS}}
 
-# Run only unit tests
-test-unit:
-    @echo "🧪 Running unit tests..."
-    cargo test --lib
-
-# Run only integration tests
-test-integration:
-    @echo "🧪 Running integration tests..."
-    cargo test --test '*'
-
 # Run tests with all features enabled
 test-all *ARGS='':
     @echo "🧪 Running tests with all features..."
     cargo test --all-features {{ARGS}}
+
+# Run tests in watch mode
+test-watch:
+    @echo "🧪 Running tests in watch mode..."
+    cargo watch -x test
 
 # Run tests with coverage reporting (uses nextest for speed)
 test-coverage:
@@ -116,10 +98,9 @@ test-coverage-sickle:
     cargo llvm-cov report --html --output-dir coverage/sickle-html
     @echo "📊 Sickle coverage: coverage/sickle-html/index.html"
 
-# Run tests in watch mode
-test-watch:
-    @echo "🧪 Running tests in watch mode..."
-    cargo watch -x test
+# ===================
+# CCL/Sickle Commands
+# ===================
 
 # Download CCL test data from ccl-test-data repository
 download-ccl-tests:
@@ -142,31 +123,9 @@ test-ccl:
 sickle-capabilities:
     @python3 crates/sickle/scripts/generate_capabilities.py
 
-# Benchmarking Commands
-# ====================
-
-# Run all benchmarks
-bench:
-    @echo "🚀 Running benchmarks..."
-    cargo bench
-
-# Run specific benchmark with detailed output
-bench-subprocess:
-    @echo "🚀 Running subprocess performance benchmarks..."
-    cargo bench --bench subprocess_performance
-
-# Run benchmarks and save baseline for comparison
-bench-baseline name="main":
-    @echo "🚀 Running benchmarks and saving baseline: {{name}}"
-    cargo bench -- --save-baseline {{name}}
-
-# Compare benchmarks against saved baseline  
-bench-compare baseline="main":
-    @echo "🚀 Comparing benchmarks against baseline: {{baseline}}"
-    cargo bench -- --baseline {{baseline}}
-
-# Code Quality Commands
-# ====================
+# ===================
+# Code Quality
+# ===================
 
 # Run linting with clippy
 lint *ARGS='':
@@ -178,13 +137,6 @@ format *ARGS='':
     @echo "🎨 Formatting code..."
     cargo fmt --all -- {{ARGS}}
 
-# Run all linting and formatting checks
-check-style:
-    @echo "🔍 Running code quality checks..."
-    cargo fmt -- --check
-    cargo clippy -- -A clippy::needless_return -D warnings
-    cargo check
-
 # Auto-fix formatting and simple lint issues
 fix:
     @echo "🔧 Auto-fixing code issues..."
@@ -192,8 +144,15 @@ fix:
     cargo clippy --fix --allow-dirty --allow-staged
     cargo fix --allow-dirty --allow-staged
 
+# Quick development check for faster iteration
+check-quick:
+    @echo "⚡ Running quick checks..."
+    cargo check
+    cargo test --lib
+    @echo "✅ Quick checks passed!"
+
 # Check for unused dependencies (requires nightly)
-deps:
+unused-deps:
     @echo "🔍 Checking for unused dependencies..."
     cargo +nightly udeps
 
@@ -208,13 +167,9 @@ semver:
     @echo "🔍 Checking semver compatibility..."
     cargo semver-checks
 
-# Check for supply chain vulnerabilities
-supply-chain:
-    @echo "🔗 Checking supply chain security..."
-    cargo deny check bans licenses sources
-
-# Documentation Commands
-# ======================
+# ===================
+# Documentation
+# ===================
 
 # Generate CLI help in markdown format
 markdown-help:
@@ -228,211 +183,33 @@ docs:
     @echo "📚 Generating documentation..."
     cargo doc --open --no-deps
 
-# Generate documentation for all dependencies
-docs-full:
-    @echo "📚 Generating full documentation..."
-    cargo doc --open
-
-# Check documentation for errors
+# Check documentation for errors (used in CI)
 docs-check:
     @echo "📚 Checking documentation..."
-    cargo doc --no-deps
+    RUSTDOCFLAGS="-D warnings" cargo doc --no-deps --document-private-items --workspace
 
-# Release Commands
-# ===============
-
-# Standard release build
-release:
-    @echo "🚀 Building release..."
-    cargo build --release
-
-# Verify that packages can be built for crates.io publishing
-verify-package:
-    @echo "📦 Verifying crate packaging..."
-    cargo package --workspace --no-verify --quiet
-    @echo "✅ Package verification complete!"
-
-# Perform pre-release checks
-pre-release:
-    @echo "🚀 Running pre-release checks..."
-    just check-style
-    just test
-    just audit
-    just build-release
-    just verify-package
-    just dist-plan
-    @echo "✅ Pre-release checks complete!"
-
-# Build release binaries for all platforms
-release-build:
-    @echo "🚀 Building release binaries..."
-    cargo build --release --target x86_64-unknown-linux-gnu
-    cargo build --release --target aarch64-unknown-linux-gnu
-    cargo build --release --target x86_64-apple-darwin
-    cargo build --release --target aarch64-apple-darwin
-    cargo build --release --target x86_64-pc-windows-gnu
-
-# Package release artifacts
-package:
-    @echo "📦 Packaging release artifacts..."
-    mkdir -p dist/
-    cp target/release/santa dist/santa-linux-x64 2>/dev/null || echo "Linux x64 binary not found"
-    cp target/release/santa dist/santa-linux-arm64 2>/dev/null || echo "Linux ARM64 binary not found"
-    [ -f dist/santa-linux-x64 ] && tar -czf dist/santa-linux-x64.tar.gz -C dist santa-linux-x64
-    [ -f dist/santa-linux-arm64 ] && tar -czf dist/santa-linux-arm64.tar.gz -C dist santa-linux-arm64
-
-# cargo-dist Commands
+# ===================
+# Benchmarking
 # ===================
 
-# Test local cargo-dist build
-dist-build:
-    @echo "🚀 Building with cargo-dist..."
-    ~/.cargo/bin/dist build
+# Run all benchmarks
+bench:
+    @echo "🚀 Running benchmarks..."
+    cargo bench
 
-# Preview what cargo-dist will release
-dist-plan:
-    @echo "📋 Planning release with cargo-dist..."
-    ~/.cargo/bin/dist plan
+# Run benchmarks and save baseline
+bench-baseline:
+    @echo "🚀 Running benchmarks and saving baseline: main"
+    cargo bench -- --save-baseline main
 
-# Re-run cargo-dist initialization
-dist-init:
-    @echo "🔧 Running cargo-dist init..."
-    ~/.cargo/bin/dist init
+# Compare benchmarks against saved baseline
+bench-compare:
+    @echo "🚀 Comparing benchmarks against baseline: main"
+    cargo bench -- --baseline main
 
-# Development Workflow Commands
-# ============================
-
-# Full development check - run before committing
-check-all:
-    @echo "🔍 Running complete development checks..."
-    just check-style
-    just test
-    just deps
-    just audit
-    @echo "✅ All checks passed!"
-
-# Quick development check for faster iteration
-check-quick:
-    @echo "⚡ Running quick checks..."
-    cargo check
-    cargo test --lib
-    @echo "✅ Quick checks passed!"
-
-# Clean build artifacts
-clean:
-    @echo "🧹 Cleaning build artifacts..."
-    cargo clean
-    rm -rf coverage/
-    rm -rf dist/
-
-# Install santa locally for testing
-install-local:
-    @echo "📦 Installing santa locally..."
-    cargo install --path . --force
-
-# Utility Commands
-# ===============
-
-# Show project statistics
-stats:
-    @echo "📊 Project Statistics:"
-    @echo "Lines of code:"
-    @find src -name "*.rs" -exec wc -l {} + | tail -1
-    @echo ""
-    @echo "Dependencies:"
-    @cargo tree --depth 1
-
-# Show current version
-version:
-    @cargo metadata --no-deps --format-version 1 | jq -r '.packages[0].version' 2>/dev/null || grep '^version' Cargo.toml | head -1
-
-# Show help for shell completions
-completions:
-    @echo "🐚 Shell Completions Setup:"
-    @echo ""
-    @echo "Bash:"
-    @echo "  santa completions bash >> ~/.bashrc"
-    @echo "  # or system-wide:"
-    @echo "  santa completions bash | sudo tee /etc/bash_completion.d/santa"
-    @echo ""
-    @echo "Zsh:"
-    @echo "  santa completions zsh >> ~/.zshrc"  
-    @echo "  # or to completions directory:"
-    @echo "  santa completions zsh > ~/.local/share/zsh/site-functions/_santa"
-    @echo ""
-    @echo "Fish:"
-    @echo "  santa completions fish >> ~/.config/fish/config.fish"
-    @echo "  # or to completions directory:"
-    @echo "  santa completions fish > ~/.config/fish/completions/santa.fish"
-
-# Environment variable help
-env-help:
-    @echo "🌍 Environment Variables:"
-    @echo ""
-    @echo "Configuration:"
-    @echo "  SANTA_LOG_LEVEL         Set log level (trace, debug, info, warn, error)"
-    @echo "  SANTA_CONFIG_PATH       Override path to configuration file"
-    @echo "  SANTA_SOURCES           Override package sources (comma-separated: brew,cargo,apt)"
-    @echo "  SANTA_PACKAGES          Override package list (comma-separated)"
-    @echo "  SANTA_BUILTIN_ONLY      Use builtin configuration only (true/false)"
-    @echo "  SANTA_VERBOSE           Set verbose logging level (0-3)"
-    @echo "  SANTA_DATA_DIR          Override data directory path"
-    @echo ""
-    @echo "Performance:"
-    @echo "  SANTA_CACHE_TTL_SECONDS Set package cache TTL in seconds"
-    @echo "  SANTA_CACHE_SIZE        Set maximum cache size (number of entries)"
-    @echo ""
-    @echo "Advanced:"
-    @echo "  SANTA_HOT_RELOAD        Enable configuration hot-reloading (true/false)"
-
-# Development server with hot reload
-dev:
-    @echo "🔄 Starting development server with hot reload..."
-    cargo watch -x 'run -- --help'
-
-# Demo the application with example usage
-demo:
-    @echo "🎬 Santa Demo:"
-    @echo ""
-    @echo "1. Show help:"
-    cargo run -- --help
-    @echo ""
-    @echo "2. Show status (builtin mode):"
-    cargo run -- --builtin-only status
-    @echo ""
-    @echo "3. Show config (builtin mode):"
-    cargo run -- --builtin-only config
-
-# CI/CD Commands (matches GitHub Actions)
-# =====================================
-
-# Run the same checks as CI
-ci:
-    @echo "🤖 Running CI checks locally..."
-    just check-style
-    just test
-    just build-release
-    just audit
-    @echo "✅ CI checks complete!"
-
-# Platform-specific CI simulation
-ci-linux:
-    @echo "🐧 Running Linux CI simulation..."
-    cargo test --target x86_64-unknown-linux-gnu
-    cargo build --release --target x86_64-unknown-linux-gnu
-
-ci-macos:
-    @echo "🍎 Running macOS CI simulation..."
-    cargo test --target x86_64-apple-darwin
-    cargo build --release --target x86_64-apple-darwin
-
-ci-windows:
-    @echo "🪟 Running Windows CI simulation..."
-    cargo test --target x86_64-pc-windows-gnu
-    cargo build --release --target x86_64-pc-windows-gnu
-
-# Binary Size Analysis Commands
-# =============================
+# ===================
+# Binary Size Analysis (Linux only)
+# ===================
 
 # Run cargo-bloated on santa and sickle, save to metrics/ (Linux only)
 [linux]
@@ -457,22 +234,35 @@ record-size:
     echo "$DATE v$VERSION $SIZE $HUMAN" >> metrics/binary-size.txt
     echo "Recorded: $DATE v$VERSION $SIZE ($HUMAN)"
 
-# Maintenance Commands
+# ===================
+# Utilities
 # ===================
 
-# Update all dependencies
-update-deps:
-    @echo "📦 Updating dependencies..."
-    cargo update
-    @echo "✅ Dependencies updated! Run 'just test' to verify."
+# Clean build artifacts
+clean:
+    @echo "🧹 Cleaning build artifacts..."
+    cargo clean
+    rm -rf coverage/
+    rm -rf dist/
 
-# Check for outdated dependencies
-check-outdated:
-    @echo "📦 Checking for outdated dependencies..."
-    cargo outdated || echo "Install cargo-outdated with: cargo install cargo-outdated"
+# Install santa locally for testing
+install-local:
+    @echo "📦 Installing santa locally..."
+    cargo install --path . --force
 
-# Generate security advisory report
-security-report:
-    @echo "🔒 Generating security report..."
-    cargo audit --output json > security-report.json
-    @echo "📄 Security report saved to security-report.json"
+# Verify that packages can be built for crates.io publishing
+verify-package:
+    @echo "📦 Verifying crate packaging..."
+    cargo package --workspace --no-verify --quiet
+    @echo "✅ Package verification complete!"
+
+# Run comprehensive CI checks locally (matches PR workflow)
+ci:
+    @echo "🤖 Running CI checks locally..."
+    just format --check
+    just lint
+    just test
+    just audit
+    just build-release
+    just verify-package
+    @echo "✅ CI checks complete!"
