@@ -10,7 +10,9 @@
       "functions": [
         "parse"
       ],
-      "input": "key",
+      "inputs": [
+        "key"
+      ],
       "name": "just_key_error_parse",
       "source_test": "just_key_error",
       "validation": "parse",
@@ -27,7 +29,9 @@
       "functions": [
         "parse"
       ],
-      "input": "   ",
+      "inputs": [
+        "   "
+      ],
       "name": "whitespace_only_error_parse",
       "source_test": "whitespace_only_error",
       "validation": "parse",
@@ -44,7 +48,9 @@
       "functions": [
         "parse"
       ],
-      "input": "   ",
+      "inputs": [
+        "   "
+      ],
       "name": "whitespace_only_error_ocaml_reference_parse",
       "source_test": "whitespace_only_error_ocaml_reference",
       "validation": "parse",
@@ -59,7 +65,9 @@
       "functions": [
         "parse"
       ],
-      "input": "val",
+      "inputs": [
+        "val"
+      ],
       "name": "just_string_error_parse",
       "source_test": "just_string_error",
       "validation": "parse",
@@ -76,7 +84,9 @@
       "functions": [
         "parse"
       ],
-      "input": "val\n  next",
+      "inputs": [
+        "val\n  next"
+      ],
       "name": "multiline_plain_error_parse",
       "source_test": "multiline_plain_error",
       "validation": "parse",
@@ -93,7 +103,9 @@
       "functions": [
         "parse"
       ],
-      "input": "\nval\n  next",
+      "inputs": [
+        "\nval\n  next"
+      ],
       "name": "multiline_plain_nested_error_parse",
       "source_test": "multiline_plain_nested_error",
       "validation": "parse",

@@ -169,8 +169,9 @@ impl SkipReason {
 pub struct TestCase {
     /// Name of the test
     pub name: String,
-    /// The CCL input string to parse
-    pub input: String,
+    /// The CCL input strings to parse (new format uses array)
+    #[serde(default, alias = "input")]
+    pub inputs: Vec<String>,
     /// Type of validation (e.g., "parse", "get_string", "get_int", etc.)
     pub validation: String,
     /// Expected output
@@ -193,6 +194,13 @@ pub struct TestCase {
     /// Source test name
     #[serde(default)]
     pub source_test: String,
+}
+
+impl TestCase {
+    /// Get the primary input string (first in the inputs array)
+    pub fn input(&self) -> &str {
+        self.inputs.first().map(|s| s.as_str()).unwrap_or("")
+    }
 }
 
 /// Expected output from parsing
@@ -643,7 +651,7 @@ mod tests {
             // Verify structure of first test
             if let Some(first_test) = suite.tests.first() {
                 assert!(!first_test.name.is_empty());
-                assert!(!first_test.input.is_empty());
+                assert!(!first_test.input().is_empty());
                 assert_eq!(first_test.validation, "parse");
             }
         }

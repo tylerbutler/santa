@@ -21,7 +21,9 @@
       "functions": [
         "parse"
       ],
-      "input": "key = value",
+      "inputs": [
+        "key = value"
+      ],
       "name": "spacing_strict_standard_format_parse",
       "source_test": "spacing_strict_standard_format",
       "validation": "parse",
@@ -31,6 +33,11 @@
       "behaviors": [
         "loose_spacing"
       ],
+      "conflicts": {
+        "behaviors": [
+          "strict_spacing"
+        ]
+      },
       "expected": {
         "count": 1,
         "entries": [
@@ -46,7 +53,9 @@
       "functions": [
         "parse"
       ],
-      "input": "key=value",
+      "inputs": [
+        "key=value"
+      ],
       "name": "spacing_loose_no_spaces_parse",
       "source_test": "spacing_loose_no_spaces",
       "validation": "parse",
@@ -56,6 +65,11 @@
       "behaviors": [
         "loose_spacing"
       ],
+      "conflicts": {
+        "behaviors": [
+          "strict_spacing"
+        ]
+      },
       "expected": {
         "count": 1,
         "entries": [
@@ -71,7 +85,9 @@
       "functions": [
         "parse"
       ],
-      "input": "key =value",
+      "inputs": [
+        "key =value"
+      ],
       "name": "spacing_loose_left_space_only_parse",
       "source_test": "spacing_loose_left_space_only",
       "validation": "parse",
@@ -81,6 +97,11 @@
       "behaviors": [
         "loose_spacing"
       ],
+      "conflicts": {
+        "behaviors": [
+          "strict_spacing"
+        ]
+      },
       "expected": {
         "count": 1,
         "entries": [
@@ -96,7 +117,9 @@
       "functions": [
         "parse"
       ],
-      "input": "key= value",
+      "inputs": [
+        "key= value"
+      ],
       "name": "spacing_loose_right_space_only_parse",
       "source_test": "spacing_loose_right_space_only",
       "validation": "parse",
@@ -106,6 +129,11 @@
       "behaviors": [
         "loose_spacing"
       ],
+      "conflicts": {
+        "behaviors": [
+          "strict_spacing"
+        ]
+      },
       "expected": {
         "count": 1,
         "entries": [
@@ -121,7 +149,9 @@
       "functions": [
         "parse"
       ],
-      "input": "key  =  value",
+      "inputs": [
+        "key  =  value"
+      ],
       "name": "spacing_loose_multiple_spaces_parse",
       "source_test": "spacing_loose_multiple_spaces",
       "validation": "parse",
@@ -131,6 +161,11 @@
       "behaviors": [
         "loose_spacing"
       ],
+      "conflicts": {
+        "behaviors": [
+          "strict_spacing"
+        ]
+      },
       "expected": {
         "count": 1,
         "entries": [
@@ -146,7 +181,9 @@
       "functions": [
         "parse"
       ],
-      "input": "key\t=\tvalue",
+      "inputs": [
+        "key\t=\tvalue"
+      ],
       "name": "spacing_loose_tabs_around_equals_parse",
       "source_test": "spacing_loose_tabs_around_equals",
       "validation": "parse",
@@ -156,6 +193,11 @@
       "behaviors": [
         "loose_spacing"
       ],
+      "conflicts": {
+        "behaviors": [
+          "strict_spacing"
+        ]
+      },
       "expected": {
         "count": 1,
         "entries": [
@@ -171,7 +213,9 @@
       "functions": [
         "parse"
       ],
-      "input": "key \t = \t value",
+      "inputs": [
+        "key \t = \t value"
+      ],
       "name": "spacing_loose_mixed_whitespace_parse",
       "source_test": "spacing_loose_mixed_whitespace",
       "validation": "parse",
@@ -181,6 +225,11 @@
       "behaviors": [
         "loose_spacing"
       ],
+      "conflicts": {
+        "behaviors": [
+          "strict_spacing"
+        ]
+      },
       "expected": {
         "count": 4,
         "entries": [
@@ -208,7 +257,9 @@
       "functions": [
         "parse"
       ],
-      "input": "key1=val1\nkey2 = val2\nkey3  =  val3\nkey4\t=\tval4",
+      "inputs": [
+        "key1=val1\nkey2 = val2\nkey3  =  val3\nkey4\t=\tval4"
+      ],
       "name": "spacing_loose_multiline_various_parse",
       "source_test": "spacing_loose_multiline_various",
       "validation": "parse",
@@ -231,7 +282,9 @@
       "functions": [
         "build_hierarchy"
       ],
-      "input": "key1=val1\nkey2 = val2\nkey3  =  val3\nkey4\t=\tval4",
+      "inputs": [
+        "key1=val1\nkey2 = val2\nkey3  =  val3\nkey4\t=\tval4"
+      ],
       "name": "spacing_loose_multiline_various_build_hierarchy",
       "source_test": "spacing_loose_multiline_various",
       "validation": "build_hierarchy",
@@ -241,6 +294,11 @@
       "behaviors": [
         "loose_spacing"
       ],
+      "conflicts": {
+        "behaviors": [
+          "strict_spacing"
+        ]
+      },
       "expected": {
         "count": 2,
         "entries": [
@@ -260,7 +318,9 @@
       "functions": [
         "parse"
       ],
-      "input": "key1=val1\nkey2  =  val2",
+      "inputs": [
+        "key1=val1\nkey2  =  val2"
+      ],
       "name": "spacing_canonical_format_normalizes_loose_parse",
       "source_test": "spacing_canonical_format_normalizes_loose",
       "validation": "parse",
@@ -278,7 +338,9 @@
       "functions": [
         "canonical_format"
       ],
-      "input": "key1=val1\nkey2  =  val2",
+      "inputs": [
+        "key1=val1\nkey2  =  val2"
+      ],
       "name": "spacing_canonical_format_normalizes_loose_canonical_format",
       "source_test": "spacing_canonical_format_normalizes_loose",
       "validation": "canonical_format",
@@ -288,6 +350,11 @@
       "behaviors": [
         "tabs_preserve"
       ],
+      "conflicts": {
+        "behaviors": [
+          "tabs_to_spaces"
+        ]
+      },
       "expected": {
         "count": 1,
         "entries": [
@@ -303,14 +370,23 @@
       "functions": [
         "parse"
       ],
-      "input": "key = \tvalue\twith\ttabs",
+      "inputs": [
+        "key = \tvalue\twith\ttabs"
+      ],
       "name": "tabs_preserve_in_value_parse",
       "source_test": "tabs_preserve_in_value",
       "validation": "parse",
       "variants": []
     },
     {
-      "behaviors": [],
+      "behaviors": [
+        "tabs_preserve"
+      ],
+      "conflicts": {
+        "behaviors": [
+          "tabs_to_spaces"
+        ]
+      },
       "expected": {
         "count": 1,
         "object": {
@@ -323,7 +399,9 @@
       "functions": [
         "build_hierarchy"
       ],
-      "input": "key = \tvalue\twith\ttabs",
+      "inputs": [
+        "key = \tvalue\twith\ttabs"
+      ],
       "name": "tabs_preserve_in_value_build_hierarchy",
       "source_test": "tabs_preserve_in_value",
       "validation": "build_hierarchy",
@@ -344,7 +422,9 @@
       "functions": [
         "get_string"
       ],
-      "input": "key = \tvalue\twith\ttabs",
+      "inputs": [
+        "key = \tvalue\twith\ttabs"
+      ],
       "name": "tabs_preserve_in_value_get_string",
       "source_test": "tabs_preserve_in_value",
       "validation": "get_string",
@@ -354,6 +434,11 @@
       "behaviors": [
         "tabs_preserve"
       ],
+      "conflicts": {
+        "behaviors": [
+          "tabs_to_spaces"
+        ]
+      },
       "expected": {
         "count": 1,
         "entries": [
@@ -369,7 +454,9 @@
       "functions": [
         "parse"
       ],
-      "input": "key = \tindented",
+      "inputs": [
+        "key = \tindented"
+      ],
       "name": "tabs_preserve_leading_tab_parse",
       "source_test": "tabs_preserve_leading_tab",
       "validation": "parse",
@@ -390,7 +477,9 @@
       "functions": [
         "get_string"
       ],
-      "input": "key = \tindented",
+      "inputs": [
+        "key = \tindented"
+      ],
       "name": "tabs_preserve_leading_tab_get_string",
       "source_test": "tabs_preserve_leading_tab",
       "validation": "get_string",
@@ -400,6 +489,11 @@
       "behaviors": [
         "tabs_to_spaces"
       ],
+      "conflicts": {
+        "behaviors": [
+          "tabs_preserve"
+        ]
+      },
       "expected": {
         "count": 1,
         "entries": [
@@ -415,14 +509,23 @@
       "functions": [
         "parse"
       ],
-      "input": "key = \tvalue\twith\ttabs",
+      "inputs": [
+        "key = \tvalue\twith\ttabs"
+      ],
       "name": "tabs_to_spaces_in_value_parse",
       "source_test": "tabs_to_spaces_in_value",
       "validation": "parse",
       "variants": []
     },
     {
-      "behaviors": [],
+      "behaviors": [
+        "tabs_to_spaces"
+      ],
+      "conflicts": {
+        "behaviors": [
+          "tabs_preserve"
+        ]
+      },
       "expected": {
         "count": 1,
         "object": {
@@ -435,7 +538,9 @@
       "functions": [
         "build_hierarchy"
       ],
-      "input": "key = \tvalue\twith\ttabs",
+      "inputs": [
+        "key = \tvalue\twith\ttabs"
+      ],
       "name": "tabs_to_spaces_in_value_build_hierarchy",
       "source_test": "tabs_to_spaces_in_value",
       "validation": "build_hierarchy",
@@ -456,7 +561,9 @@
       "functions": [
         "get_string"
       ],
-      "input": "key = \tvalue\twith\ttabs",
+      "inputs": [
+        "key = \tvalue\twith\ttabs"
+      ],
       "name": "tabs_to_spaces_in_value_get_string",
       "source_test": "tabs_to_spaces_in_value",
       "validation": "get_string",
@@ -466,6 +573,11 @@
       "behaviors": [
         "tabs_to_spaces"
       ],
+      "conflicts": {
+        "behaviors": [
+          "tabs_preserve"
+        ]
+      },
       "expected": {
         "count": 1,
         "entries": [
@@ -481,7 +593,9 @@
       "functions": [
         "parse"
       ],
-      "input": "key = \tindented",
+      "inputs": [
+        "key = \tindented"
+      ],
       "name": "tabs_to_spaces_leading_tab_parse",
       "source_test": "tabs_to_spaces_leading_tab",
       "validation": "parse",
@@ -502,7 +616,9 @@
       "functions": [
         "get_string"
       ],
-      "input": "key = \tindented",
+      "inputs": [
+        "key = \tindented"
+      ],
       "name": "tabs_to_spaces_leading_tab_get_string",
       "source_test": "tabs_to_spaces_leading_tab",
       "validation": "get_string",
@@ -512,6 +628,11 @@
       "behaviors": [
         "tabs_to_spaces"
       ],
+      "conflicts": {
+        "behaviors": [
+          "tabs_preserve"
+        ]
+      },
       "expected": {
         "count": 1,
         "entries": [
@@ -527,7 +648,9 @@
       "functions": [
         "parse"
       ],
-      "input": "key = \t\t\tthree_tabs",
+      "inputs": [
+        "key = \t\t\tthree_tabs"
+      ],
       "name": "tabs_to_spaces_multiple_tabs_parse",
       "source_test": "tabs_to_spaces_multiple_tabs",
       "validation": "parse",
@@ -537,6 +660,11 @@
       "behaviors": [
         "tabs_preserve"
       ],
+      "conflicts": {
+        "behaviors": [
+          "tabs_to_spaces"
+        ]
+      },
       "expected": {
         "count": 1,
         "entries": [
@@ -553,7 +681,9 @@
       "functions": [
         "parse"
       ],
-      "input": "section =\n\t\tindented_with_tabs\n\t\tanother_line",
+      "inputs": [
+        "section =\n\t\tindented_with_tabs\n\t\tanother_line"
+      ],
       "name": "tabs_preserve_multiline_parse",
       "source_test": "tabs_preserve_multiline",
       "validation": "parse",
@@ -563,6 +693,11 @@
       "behaviors": [
         "tabs_to_spaces"
       ],
+      "conflicts": {
+        "behaviors": [
+          "tabs_preserve"
+        ]
+      },
       "expected": {
         "count": 1,
         "entries": [
@@ -579,7 +714,9 @@
       "functions": [
         "parse"
       ],
-      "input": "section =\n\t\tindented_with_tabs\n\t\tanother_line",
+      "inputs": [
+        "section =\n\t\tindented_with_tabs\n\t\tanother_line"
+      ],
       "name": "tabs_to_spaces_multiline_parse",
       "source_test": "tabs_to_spaces_multiline",
       "validation": "parse",
@@ -589,6 +726,11 @@
       "behaviors": [
         "tabs_preserve"
       ],
+      "conflicts": {
+        "behaviors": [
+          "tabs_to_spaces"
+        ]
+      },
       "expected": {
         "count": 1,
         "value": "key = \tvalue"
@@ -599,7 +741,9 @@
       "functions": [
         "canonical_format"
       ],
-      "input": "key = \tvalue",
+      "inputs": [
+        "key = \tvalue"
+      ],
       "name": "tabs_canonical_format_preserve_canonical_format",
       "source_test": "tabs_canonical_format_preserve",
       "validation": "canonical_format",
@@ -609,6 +753,11 @@
       "behaviors": [
         "tabs_to_spaces"
       ],
+      "conflicts": {
+        "behaviors": [
+          "tabs_preserve"
+        ]
+      },
       "expected": {
         "count": 1,
         "value": "key =   value"
@@ -619,7 +768,9 @@
       "functions": [
         "canonical_format"
       ],
-      "input": "key = \tvalue",
+      "inputs": [
+        "key = \tvalue"
+      ],
       "name": "tabs_canonical_format_to_spaces_canonical_format",
       "source_test": "tabs_canonical_format_to_spaces",
       "validation": "canonical_format",
@@ -630,6 +781,12 @@
         "loose_spacing",
         "tabs_preserve"
       ],
+      "conflicts": {
+        "behaviors": [
+          "strict_spacing",
+          "tabs_to_spaces"
+        ]
+      },
       "expected": {
         "count": 1,
         "entries": [
@@ -645,7 +802,9 @@
       "functions": [
         "parse"
       ],
-      "input": "key\t=\t\tvalue\twith\ttabs",
+      "inputs": [
+        "key\t=\t\tvalue\twith\ttabs"
+      ],
       "name": "spacing_and_tabs_combined_loose_preserve_parse",
       "source_test": "spacing_and_tabs_combined_loose_preserve",
       "validation": "parse",
@@ -656,6 +815,12 @@
         "loose_spacing",
         "tabs_to_spaces"
       ],
+      "conflicts": {
+        "behaviors": [
+          "strict_spacing",
+          "tabs_preserve"
+        ]
+      },
       "expected": {
         "count": 1,
         "entries": [
@@ -671,7 +836,9 @@
       "functions": [
         "parse"
       ],
-      "input": "key\t=\t\tvalue\twith\ttabs",
+      "inputs": [
+        "key\t=\t\tvalue\twith\ttabs"
+      ],
       "name": "spacing_and_tabs_combined_loose_to_spaces_parse",
       "source_test": "spacing_and_tabs_combined_loose_to_spaces",
       "validation": "parse",
