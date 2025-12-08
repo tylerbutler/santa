@@ -5,6 +5,7 @@
 //! 2. Build hierarchy through recursive processing
 
 use crate::error::Result;
+use crate::options::ParserOptions;
 use indexmap::IndexMap;
 
 /// A parsed CCL entry (key-value pair)
@@ -139,13 +140,47 @@ fn trim_spaces(s: &str) -> &str {
     trim_spaces_end(trim_spaces_start(s))
 }
 
+/// Trim whitespace from value based on options
+/// - Strict spacing: trim only spaces (preserve tabs)
+/// - Loose spacing: trim all whitespace
+fn trim_value(s: &str, options: &ParserOptions) -> String {
+    if options.is_strict_spacing() {
+        // Strict: trim only spaces, preserve tabs
+        trim_spaces(s).to_string()
+    } else {
+        // Loose: trim all whitespace
+        s.trim().to_string()
+    }
+}
+
+/// Process tabs in a value based on options
+fn process_tabs(s: &str, options: &ParserOptions) -> String {
+    if options.preserve_tabs() {
+        s.to_string()
+    } else {
+        s.replace('\t', " ")
+    }
+}
+
+/// Process CRLF line endings based on options
+fn process_crlf(s: &str, options: &ParserOptions) -> String {
+    if options.preserve_crlf() {
+        s.to_string()
+    } else {
+        s.replace("\r\n", "\n")
+    }
+}
+
 /// Parse CCL text into a flat list of entries
 ///
 /// This respects indentation - lines at the base level start new entries,
 /// lines indented further become part of the current entry's value
-fn parse_entries(input: &str) -> Vec<Entry> {
+fn parse_entries(input: &str, options: &ParserOptions) -> Vec<Entry> {
+    // Pre-process input based on options
+    let input = process_crlf(input, options);
+
     // First normalize multiline keys
-    let normalized = normalize_multiline_keys(input);
+    let normalized = normalize_multiline_keys(&input);
 
     let mut entries = Vec::new();
     let mut current_key: Option<(String, usize)> = None;
@@ -176,7 +211,7 @@ fn parse_entries(input: &str) -> Vec<Entry> {
         if indent <= base && trimmed.contains('=') {
             // Save previous entry if exists
             if let Some((key, key_indent)) = current_key.take() {
-                let value = value_lines.join("\n").trim_end().to_string();
+                let value = finalize_value(&value_lines.join("\n"), options);
                 entries.push(Entry {
                     key,
                     value,
@@ -189,9 +224,9 @@ fn parse_entries(input: &str) -> Vec<Entry> {
             if let Some(eq_pos) = trimmed.find('=') {
                 // Trim all whitespace from key (spaces and tabs)
                 let key = trimmed[..eq_pos].trim().to_string();
-                // Trim only spaces from value start, preserve tabs for tabs_preserve behavior
+                // Trim value based on spacing options
                 let value_raw = &trimmed[eq_pos + 1..];
-                let value = trim_spaces(value_raw).to_string();
+                let value = trim_value(value_raw, options);
 
                 current_key = Some((key, indent));
                 if value.is_empty() {
@@ -207,12 +242,12 @@ fn parse_entries(input: &str) -> Vec<Entry> {
             // Only treat as continuation if indented MORE than the key line
             if indent > key_indent {
                 // This line is indented relative to the key - it's part of the current value
-                // Preserve the full line for nested structures
+                // Preserve the full line for nested structures (tabs processed later)
                 value_lines.push(line.to_string());
             } else {
                 // Not indented more than key - save current entry and start new one
                 let (key, key_indent_final) = current_key.take().unwrap();
-                let value = value_lines.join("\n").trim_end().to_string();
+                let value = finalize_value(&value_lines.join("\n"), options);
                 entries.push(Entry {
                     key,
                     value,
@@ -228,7 +263,7 @@ fn parse_entries(input: &str) -> Vec<Entry> {
 
     // Don't forget the last entry
     if let Some((key, key_indent)) = current_key {
-        let value = value_lines.join("\n").trim_end().to_string();
+        let value = finalize_value(&value_lines.join("\n"), options);
         entries.push(Entry {
             key,
             value,
@@ -237,6 +272,12 @@ fn parse_entries(input: &str) -> Vec<Entry> {
     }
 
     entries
+}
+
+/// Finalize a value by trimming trailing whitespace and processing tabs
+fn finalize_value(value: &str, options: &ParserOptions) -> String {
+    let trimmed = value.trim_end().to_string();
+    process_tabs(&trimmed, options)
 }
 
 /// Remove common leading whitespace from all lines while preserving relative indentation
@@ -277,8 +318,11 @@ fn dedent(s: &str) -> String {
 }
 
 /// Build hierarchical structure from flat entries
-pub(crate) fn parse_to_map(input: &str) -> Result<IndexMap<String, Vec<String>>> {
-    let entries = parse_entries(input);
+pub(crate) fn parse_to_map(
+    input: &str,
+    options: &ParserOptions,
+) -> Result<IndexMap<String, Vec<String>>> {
+    let entries = parse_entries(input, options);
     let mut result: IndexMap<String, Vec<String>> = IndexMap::new();
 
     for entry in entries {
