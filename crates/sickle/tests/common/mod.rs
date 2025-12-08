@@ -67,7 +67,7 @@ impl ListCoercionBehavior {
 }
 
 /// Type-safe representation of mutually exclusive spacing behaviors
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum SpacingBehavior {
     /// Strict spacing rules
     Strict,
@@ -86,7 +86,7 @@ impl SpacingBehavior {
 }
 
 /// Type-safe representation of mutually exclusive tab handling behaviors
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum TabBehavior {
     /// Preserve tabs as-is
     Preserve,
@@ -264,10 +264,12 @@ pub struct ImplementationConfig {
     pub boolean_behavior: BooleanBehavior,
     /// Type-safe CRLF handling behavior choice
     pub crlf_behavior: CRLFBehavior,
-    /// Type-safe spacing behavior choice
-    pub spacing_behavior: SpacingBehavior,
-    /// Type-safe tab handling behavior choice
-    pub tab_behavior: TabBehavior,
+    /// Supported spacing behaviors (runtime-configurable via ParserOptions)
+    /// When both are present, the test runner selects based on test behaviors
+    pub supported_spacing_behaviors: HashSet<SpacingBehavior>,
+    /// Supported tab behaviors (runtime-configurable via ParserOptions)
+    /// When both are present, the test runner selects based on test behaviors
+    pub supported_tab_behaviors: HashSet<TabBehavior>,
     /// Type-safe array ordering behavior choice
     pub array_order_behavior: ArrayOrderBehavior,
     /// Supported variants (e.g., "reference_compliant", excluding "proposed_behavior")
@@ -275,6 +277,33 @@ pub struct ImplementationConfig {
     /// Supported list coercion behaviors (runtime-configurable via ListOptions)
     /// When both are present, the test runner will use the appropriate option based on the test
     pub supported_list_coercion_behaviors: HashSet<ListCoercionBehavior>,
+}
+
+// Legacy aliases for backwards compatibility with display code
+impl ImplementationConfig {
+    /// Get the default spacing behavior for display purposes
+    pub fn spacing_behavior(&self) -> SpacingBehavior {
+        if self
+            .supported_spacing_behaviors
+            .contains(&SpacingBehavior::Strict)
+        {
+            SpacingBehavior::Strict
+        } else {
+            SpacingBehavior::Loose
+        }
+    }
+
+    /// Get the default tab behavior for display purposes
+    pub fn tab_behavior(&self) -> TabBehavior {
+        if self
+            .supported_tab_behaviors
+            .contains(&TabBehavior::Preserve)
+        {
+            TabBehavior::Preserve
+        } else {
+            TabBehavior::ToSpaces
+        }
+    }
 }
 
 impl ImplementationConfig {
@@ -338,8 +367,14 @@ impl ImplementationConfig {
             // Type-safe behavior choices (impossible to have conflicts)
             boolean_behavior: BooleanBehavior::Strict,
             crlf_behavior: CRLFBehavior::PreserveLiteral,
-            spacing_behavior: SpacingBehavior::Strict,
-            tab_behavior: TabBehavior::Preserve,
+            // Spacing is runtime-configurable via ParserOptions - we support both
+            supported_spacing_behaviors: [SpacingBehavior::Strict, SpacingBehavior::Loose]
+                .into_iter()
+                .collect(),
+            // Tab handling is runtime-configurable via ParserOptions - we support both
+            supported_tab_behaviors: [TabBehavior::Preserve, TabBehavior::ToSpaces]
+                .into_iter()
+                .collect(),
             array_order_behavior: ArrayOrderBehavior::Insertion,
             // The reference_compliant variant is supported when the feature is enabled.
             // When enabled, tests expecting insertion order (variants: []) are skipped,
@@ -367,8 +402,6 @@ impl ImplementationConfig {
         let mut behaviors: HashSet<String> = [
             self.boolean_behavior.as_str(),
             self.crlf_behavior.as_str(),
-            self.spacing_behavior.as_str(),
-            self.tab_behavior.as_str(),
             self.array_order_behavior.as_str(),
         ]
         .iter()
@@ -379,6 +412,12 @@ impl ImplementationConfig {
         for b in &self.supported_list_coercion_behaviors {
             behaviors.insert(b.as_str().to_string());
         }
+        for b in &self.supported_spacing_behaviors {
+            behaviors.insert(b.as_str().to_string());
+        }
+        for b in &self.supported_tab_behaviors {
+            behaviors.insert(b.as_str().to_string());
+        }
 
         behaviors
     }
@@ -386,6 +425,8 @@ impl ImplementationConfig {
     /// Check if a behavior is supported
     ///
     /// This checks against our type-safe behavior configuration.
+    /// For runtime-configurable behaviors (spacing, tabs, list coercion),
+    /// returns true if the behavior is in the supported set.
     pub fn supports_behavior(&self, behavior: &str) -> bool {
         match behavior {
             "boolean_strict" => self.boolean_behavior == BooleanBehavior::Strict,
@@ -398,10 +439,20 @@ impl ImplementationConfig {
             "list_coercion_disabled" => self
                 .supported_list_coercion_behaviors
                 .contains(&ListCoercionBehavior::Disabled),
-            "strict_spacing" => self.spacing_behavior == SpacingBehavior::Strict,
-            "loose_spacing" => self.spacing_behavior == SpacingBehavior::Loose,
-            "tabs_preserve" => self.tab_behavior == TabBehavior::Preserve,
-            "tabs_to_spaces" => self.tab_behavior == TabBehavior::ToSpaces,
+            // Spacing is runtime-configurable
+            "strict_spacing" => self
+                .supported_spacing_behaviors
+                .contains(&SpacingBehavior::Strict),
+            "loose_spacing" => self
+                .supported_spacing_behaviors
+                .contains(&SpacingBehavior::Loose),
+            // Tab handling is runtime-configurable
+            "tabs_preserve" => self
+                .supported_tab_behaviors
+                .contains(&TabBehavior::Preserve),
+            "tabs_to_spaces" => self
+                .supported_tab_behaviors
+                .contains(&TabBehavior::ToSpaces),
             "array_order_insertion" => self.array_order_behavior == ArrayOrderBehavior::Insertion,
             "array_order_lexicographic" => {
                 self.array_order_behavior == ArrayOrderBehavior::Lexicographic

@@ -2,8 +2,36 @@
 
 mod common;
 
-use common::{load_all_test_suites, ImplementationConfig, TestSuite};
-use sickle::{build_hierarchy, load, parse, parse_indented, CclPrinter};
+use common::{load_all_test_suites, ImplementationConfig, TestCase, TestSuite};
+use sickle::options::{CrlfBehavior, ParserOptions, SpacingBehavior, TabBehavior};
+use sickle::{
+    build_hierarchy, load_with_options, parse_indented_with_options, parse_with_options, CclPrinter,
+};
+
+/// Build ParserOptions from test case behaviors
+fn options_from_test(test: &TestCase) -> ParserOptions {
+    let mut options = ParserOptions::new();
+
+    // Check for spacing behavior
+    if test.behaviors.contains(&"loose_spacing".to_string()) {
+        options = options.with_spacing(SpacingBehavior::Loose);
+    }
+    // strict_spacing is the default, no need to set explicitly
+
+    // Check for tab behavior
+    if test.behaviors.contains(&"tabs_to_spaces".to_string()) {
+        options = options.with_tabs(TabBehavior::ToSpaces);
+    }
+    // tabs_preserve is the default, no need to set explicitly
+
+    // Check for CRLF behavior
+    if test.behaviors.contains(&"crlf_normalize_to_lf".to_string()) {
+        options = options.with_crlf(CrlfBehavior::NormalizeToLf);
+    }
+    // crlf_preserve is the default, no need to set explicitly
+
+    options
+}
 use std::path::Path;
 
 /// Helper to navigate nested paths in a Model (e.g., ["config", "database", "port"])
@@ -167,8 +195,9 @@ fn test_parsing_suite_basic_tests() {
 
     for test in parse_tests {
         let test_result = std::panic::catch_unwind(|| {
-            // Parse and build hierarchy
-            let result = load(test.input());
+            // Parse and build hierarchy with options from test behaviors
+            let options = options_from_test(test);
+            let result = load_with_options(test.input(), &options);
 
             // Check that parse succeeds or fails appropriately
             if test.expected.error.is_some() {
@@ -243,7 +272,8 @@ fn test_comments_suite() {
 
     for test in comment_tests {
         let test_result = std::panic::catch_unwind(|| {
-            let result = load(test.input());
+            let options = options_from_test(test);
+            let result = load_with_options(test.input(), &options);
 
             if test.expected.error.is_some() {
                 assert!(
@@ -307,8 +337,9 @@ fn test_typed_access_suite_strings() {
 
     for test in string_tests {
         let test_result = std::panic::catch_unwind(|| {
-            // Parse the input
-            let model = load(test.input()).unwrap_or_else(|e| {
+            // Parse the input with options from test behaviors
+            let options = options_from_test(test);
+            let model = load_with_options(test.input(), &options).unwrap_or_else(|e| {
                 panic!("Test '{}' failed to parse: {}", test.name, e);
             });
 
@@ -383,8 +414,9 @@ fn test_filter_function() {
 
     for test in &filter_tests {
         let test_result = std::panic::catch_unwind(|| {
-            // Parse the input
-            let model = load(test.input()).unwrap_or_else(|e| {
+            // Parse the input with options from test behaviors
+            let options = options_from_test(test);
+            let model = load_with_options(test.input(), &options).unwrap_or_else(|e| {
                 panic!("Test '{}' failed to parse: {}", test.name, e);
             });
 
@@ -471,8 +503,24 @@ fn test_all_ccl_suites_comprehensive() {
             .collect::<Vec<_>>()
             .join(", ")
     );
-    println!("      Spacing: {}", config.spacing_behavior.as_str());
-    println!("      Tabs: {}", config.tab_behavior.as_str());
+    println!(
+        "      Spacing: {} (runtime configurable)",
+        config
+            .supported_spacing_behaviors
+            .iter()
+            .map(|b| b.as_str())
+            .collect::<Vec<_>>()
+            .join(", ")
+    );
+    println!(
+        "      Tabs: {} (runtime configurable)",
+        config
+            .supported_tab_behaviors
+            .iter()
+            .map(|b| b.as_str())
+            .collect::<Vec<_>>()
+            .join(", ")
+    );
     println!(
         "      Array Order: {}\n",
         config.array_order_behavior.as_str()
@@ -638,14 +686,17 @@ fn test_all_ccl_suites_comprehensive() {
             panic_messages.lock().unwrap().clear();
 
             let test_result = std::panic::catch_unwind(|| {
-                // Parse the input based on validation type
+                // Build options from test behaviors
+                let options = options_from_test(test);
+
+                // Parse the input based on validation type, using behavior-aware options
                 let (entries, model_result) =
                     if test.validation == "parse_dedented" || test.validation == "parse_indented" {
-                        let e = parse_indented(test.input());
+                        let e = parse_indented_with_options(test.input(), &options);
                         let m = e.as_ref().ok().map(|entries| build_hierarchy(entries));
                         (e, m)
                     } else {
-                        let e = parse(test.input());
+                        let e = parse_with_options(test.input(), &options);
                         let m = e.as_ref().ok().map(|entries| build_hierarchy(entries));
                         (e, m)
                     };
@@ -1046,7 +1097,7 @@ fn test_all_ccl_suites_comprehensive() {
                     }
                     "canonical_format" => {
                         // Parse input and convert to canonical format
-                        let model = load(test.input()).unwrap_or_else(|e| {
+                        let model = load_with_options(test.input(), &options).unwrap_or_else(|e| {
                             panic!("Test '{}' failed to load: {}", test.name, e);
                         });
 

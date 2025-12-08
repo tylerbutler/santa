@@ -70,6 +70,7 @@
 
 pub mod error;
 pub mod model;
+pub mod options;
 
 #[cfg(feature = "parse")]
 mod parser;
@@ -85,6 +86,10 @@ pub mod ser;
 
 pub use error::{Error, Result};
 pub use model::{CclObject, Entry};
+
+// Re-export options types for crate-internal use
+// ParserOptions is pub(crate) for now until API stabilizes
+pub use options::{CrlfBehavior, ParserOptions, SpacingBehavior, TabBehavior};
 
 #[cfg(feature = "printer")]
 pub use printer::{CclPrinter, PrinterConfig};
@@ -114,9 +119,30 @@ pub use printer::{CclPrinter, PrinterConfig};
 /// ```
 #[cfg(feature = "parse")]
 pub fn parse(input: &str) -> Result<Vec<Entry>> {
-    let map = parser::parse_to_map(input)?;
+    parse_with_options_internal(input, &ParserOptions::default())
+}
 
-    // Convert BTreeMap<String, Vec<String>> to Vec<Entry>
+/// Parse a CCL string into a flat list of entries with custom options
+///
+/// This allows configuring parsing behavior such as:
+/// - Spacing around `=` (strict vs loose)
+/// - Tab handling (preserve vs convert to spaces)
+/// - CRLF handling (preserve vs normalize to LF)
+///
+/// Requires the `parse` and `unstable` features.
+///
+/// **Note**: This API is unstable and may change. Use [`parse`] for stable API.
+#[cfg(all(feature = "parse", feature = "unstable"))]
+pub fn parse_with_options(input: &str, options: &ParserOptions) -> Result<Vec<Entry>> {
+    parse_with_options_internal(input, options)
+}
+
+/// Internal implementation of parse_with_options
+#[cfg(feature = "parse")]
+fn parse_with_options_internal(input: &str, options: &ParserOptions) -> Result<Vec<Entry>> {
+    let map = parser::parse_to_map(input, options)?;
+
+    // Convert IndexMap<String, Vec<String>> to Vec<Entry>
     let mut entries = Vec::new();
     for (key, values) in map {
         for value in values {
@@ -276,6 +302,24 @@ fn build_model(map: indexmap::IndexMap<String, Vec<String>>) -> Result<CclObject
 /// ```
 #[cfg(feature = "parse")]
 pub fn parse_indented(input: &str) -> Result<Vec<Entry>> {
+    parse_indented_with_options_internal(input, &ParserOptions::default())
+}
+
+/// Parse a CCL value string with automatic prefix detection and custom options
+///
+/// Like [`parse_indented`], but allows configuring parsing behavior.
+///
+/// Requires the `parse` and `unstable` features.
+///
+/// **Note**: This API is unstable and may change. Use [`parse_indented`] for stable API.
+#[cfg(all(feature = "parse", feature = "unstable"))]
+pub fn parse_indented_with_options(input: &str, options: &ParserOptions) -> Result<Vec<Entry>> {
+    parse_indented_with_options_internal(input, options)
+}
+
+/// Internal implementation of parse_indented_with_options
+#[cfg(feature = "parse")]
+fn parse_indented_with_options_internal(input: &str, options: &ParserOptions) -> Result<Vec<Entry>> {
     // Find the minimum indentation level (common prefix)
     let min_indent = input
         .lines()
@@ -284,18 +328,39 @@ pub fn parse_indented(input: &str) -> Result<Vec<Entry>> {
         .min()
         .unwrap_or(0);
 
-    // Remove the common prefix from all lines and expand tabs to spaces
+    // Remove the common prefix from all lines
+    // Tab handling depends on options
     let dedented = input
         .lines()
         .map(|line| {
-            // First expand tabs to spaces (treat each tab as 1 space for character-level dedenting)
-            let expanded = line.replace('\t', " ");
-            if expanded.trim().is_empty() {
-                expanded
-            } else if expanded.len() > min_indent {
-                expanded[min_indent..].to_string()
+            // Expand tabs based on options (for dedenting calculation)
+            let for_dedent = if options.preserve_tabs() {
+                // For character-level dedenting, treat tabs as single char
+                line.replace('\t', " ")
             } else {
-                expanded.trim_start().to_string()
+                line.replace('\t', " ")
+            };
+            if for_dedent.trim().is_empty() {
+                if options.preserve_tabs() {
+                    line.to_string()
+                } else {
+                    for_dedent
+                }
+            } else if for_dedent.len() > min_indent {
+                if options.preserve_tabs() {
+                    // Preserve original line but remove min_indent chars
+                    if line.len() > min_indent {
+                        line[min_indent..].to_string()
+                    } else {
+                        line.trim_start().to_string()
+                    }
+                } else {
+                    for_dedent[min_indent..].to_string()
+                }
+            } else if options.preserve_tabs() {
+                line.trim_start().to_string()
+            } else {
+                for_dedent.trim_start().to_string()
             }
         })
         .collect::<Vec<_>>()
@@ -314,15 +379,15 @@ pub fn parse_indented(input: &str) -> Result<Vec<Entry>> {
     // If there are multiple entries at min_indent level, parse flat
     // Otherwise, parse as single entry with raw nested content
     if entries_at_min_indent > 1 {
-        parse_flat_entries(&dedented)
+        parse_flat_entries(&dedented, options)
     } else {
-        parse_single_entry_with_raw_value(&dedented)
+        parse_single_entry_with_raw_value(&dedented, options)
     }
 }
 
 /// Parse all key=value pairs from input as flat entries, ignoring indentation hierarchy
 #[cfg(feature = "parse")]
-fn parse_flat_entries(input: &str) -> Result<Vec<Entry>> {
+fn parse_flat_entries(input: &str, options: &ParserOptions) -> Result<Vec<Entry>> {
     let mut entries = Vec::new();
 
     for line in input.lines() {
@@ -336,7 +401,18 @@ fn parse_flat_entries(input: &str) -> Result<Vec<Entry>> {
         // Extract key=value pairs or treat lines without '=' as keys with empty values
         if let Some(eq_pos) = trimmed.find('=') {
             let key = trimmed[..eq_pos].trim().to_string();
-            let value = trimmed[eq_pos + 1..].trim().to_string();
+            let value_raw = &trimmed[eq_pos + 1..];
+            // Use options-aware trimming
+            let value = if options.is_strict_spacing() {
+                // Strict: trim only spaces
+                value_raw
+                    .trim_start_matches(' ')
+                    .trim_end_matches(' ')
+                    .to_string()
+            } else {
+                // Loose: trim all whitespace
+                value_raw.trim().to_string()
+            };
             entries.push(Entry::new(key, value));
         } else {
             // Line without '=' is a key with empty value
@@ -349,7 +425,7 @@ fn parse_flat_entries(input: &str) -> Result<Vec<Entry>> {
 
 /// Parse input as a single entry, preserving the raw value including indentation
 #[cfg(feature = "parse")]
-fn parse_single_entry_with_raw_value(input: &str) -> Result<Vec<Entry>> {
+fn parse_single_entry_with_raw_value(input: &str, options: &ParserOptions) -> Result<Vec<Entry>> {
     // Find the first line with '='
     let mut lines = input.lines();
     let first_line = lines.next().unwrap_or("");
@@ -362,12 +438,18 @@ fn parse_single_entry_with_raw_value(input: &str) -> Result<Vec<Entry>> {
         let remaining_lines: Vec<&str> = lines.collect();
         let value = if !remaining_lines.is_empty() {
             // Combine first line value with remaining lines
-            if first_value.trim().is_empty() {
+            let joined = if first_value.trim().is_empty() {
                 // First line has no value after '=', so value is just the remaining lines
                 "\n".to_string() + &remaining_lines.join("\n")
             } else {
                 // First line has a value, append remaining lines
                 first_value + "\n" + &remaining_lines.join("\n")
+            };
+            // Process tabs based on options
+            if options.preserve_tabs() {
+                joined
+            } else {
+                joined.replace('\t', " ")
             }
         } else {
             first_value
@@ -383,7 +465,7 @@ fn parse_single_entry_with_raw_value(input: &str) -> Result<Vec<Entry>> {
     }
 }
 
-/// Load and parse a CCL document into a hierarchical Model
+/// Load and parse a CCL document into a hierarchical Model using default options
 ///
 /// This is a convenience function that combines `parse()` and `build_hierarchy()`.
 /// Equivalent to: `build_hierarchy(&parse(input)?)`
@@ -405,7 +487,25 @@ fn parse_single_entry_with_raw_value(input: &str) -> Result<Vec<Entry>> {
 /// ```
 #[cfg(feature = "hierarchy")]
 pub fn load(input: &str) -> Result<CclObject> {
-    let entries = parse(input)?;
+    load_with_options_internal(input, &ParserOptions::default())
+}
+
+/// Load and parse a CCL document with custom options
+///
+/// This is a convenience function that combines `parse_with_options()` and `build_hierarchy()`.
+///
+/// Requires the `hierarchy` and `unstable` features.
+///
+/// **Note**: This API is unstable and may change. Use [`load`] for stable API.
+#[cfg(all(feature = "hierarchy", feature = "unstable"))]
+pub fn load_with_options(input: &str, options: &ParserOptions) -> Result<CclObject> {
+    load_with_options_internal(input, options)
+}
+
+/// Internal implementation of load_with_options
+#[cfg(feature = "hierarchy")]
+fn load_with_options_internal(input: &str, options: &ParserOptions) -> Result<CclObject> {
+    let entries = parse_with_options_internal(input, options)?;
     build_hierarchy(&entries)
 }
 
