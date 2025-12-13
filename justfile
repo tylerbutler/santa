@@ -134,6 +134,13 @@ docs:
 release:
     cargo build --release
 
+# Verify packages can be packaged (validates metadata and structure)
+# Uses --no-verify because path deps may not be published to crates.io yet
+verify-package:
+    cargo package --no-verify -p sickle
+    cargo package --no-verify -p santa-data
+    cargo package --no-verify -p santa
+
 # Development Workflow Commands
 # ============================
 

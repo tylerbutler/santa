@@ -82,12 +82,13 @@ fn test_status_all_with_builtin() {
 }
 
 #[test]
-fn test_add_command_not_implemented() {
+fn test_add_command_validates_packages() {
+    // The add command now validates packages against the database
     let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("santa"));
-    cmd.args(["add", "git", "brew", "--builtin-only"]);
+    cmd.args(["add", "nonexistent_package", "--builtin-only"]);
     cmd.assert()
         .failure()
-        .stderr(predicate::str::contains("Add command not yet implemented"));
+        .stderr(predicate::str::contains("not found in database"));
 }
 
 #[test]
@@ -153,15 +154,16 @@ fn test_security_command_injection_protection() {
     ];
 
     for dangerous_arg in dangerous_args {
-        // Test with add command (which should fail safely)
+        // Test with add command - dangerous arguments should fail safely
+        // by failing validation rather than being executed
         let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("santa"));
         cmd.args(["add", dangerous_arg, "--builtin-only"]);
         cmd.assert()
             .failure()
-            .stderr(predicate::str::contains("Add command not yet implemented"));
+            .stderr(predicate::str::contains("not found in database"));
 
-        // The dangerous argument should be captured in the error message but not executed
-        // This documents current behavior - arguments are handled safely by clap
+        // The dangerous argument is safely rejected during validation
+        // rather than being executed - this is the correct behavior
     }
 }
 
