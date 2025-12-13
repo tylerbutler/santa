@@ -198,7 +198,16 @@ mod status_command_tests {
         empty_cache: PackageCache,
     ) {
         // Test that status_command executes without error
-        let result = status_command(&mut basic_config, &test_data, empty_cache, &false).await;
+        let result = status_command(
+            &mut basic_config,
+            &test_data,
+            empty_cache,
+            &false,
+            &false,
+            &false,
+            None,
+        )
+        .await;
         assert!(result.is_ok(), "status_command should execute successfully");
     }
 
@@ -217,7 +226,16 @@ mod status_command_tests {
             log_level: 0,
         };
 
-        let result = status_command(&mut config, &test_data, empty_cache, &false).await;
+        let result = status_command(
+            &mut config,
+            &test_data,
+            empty_cache,
+            &false,
+            &false,
+            &false,
+            None,
+        )
+        .await;
         assert!(
             result.is_ok(),
             "status_command should handle disabled sources gracefully"
@@ -232,7 +250,16 @@ mod status_command_tests {
         empty_cache: PackageCache,
     ) {
         // Test with all=true flag
-        let result = status_command(&mut basic_config, &test_data, empty_cache, &true).await;
+        let result = status_command(
+            &mut basic_config,
+            &test_data,
+            empty_cache,
+            &true,
+            &false,
+            &false,
+            None,
+        )
+        .await;
         assert!(
             result.is_ok(),
             "status_command should handle all flag correctly"
@@ -254,7 +281,16 @@ mod status_command_tests {
             log_level: 0,
         };
 
-        let result = status_command(&mut config, &test_data, empty_cache, &false).await;
+        let result = status_command(
+            &mut config,
+            &test_data,
+            empty_cache,
+            &false,
+            &false,
+            &false,
+            None,
+        )
+        .await;
         assert!(
             result.is_ok(),
             "status_command should filter to enabled sources only"
@@ -509,8 +545,16 @@ mod integration_tests {
         let mut config_clone = basic_config.clone();
 
         // First run status
-        let status_result =
-            status_command(&mut config_clone, &test_data, empty_cache, &false).await;
+        let status_result = status_command(
+            &mut config_clone,
+            &test_data,
+            empty_cache,
+            &false,
+            &false,
+            &false,
+            None,
+        )
+        .await;
         assert!(status_result.is_ok(), "status_command should succeed");
 
         // Then run config
@@ -537,11 +581,17 @@ mod integration_tests {
 
         // All commands should handle minimal data gracefully
         assert!(config_command(&minimal_config, &minimal_data, false, false).is_ok());
-        assert!(
-            status_command(&mut config_clone, &minimal_data, cache_clone1, &false)
-                .await
-                .is_ok()
-        );
+        assert!(status_command(
+            &mut config_clone,
+            &minimal_data,
+            cache_clone1,
+            &false,
+            &false,
+            &false,
+            None
+        )
+        .await
+        .is_ok());
 
         // For install command, ensure no packages to avoid terminal interaction
         config_clone.packages = vec![];
