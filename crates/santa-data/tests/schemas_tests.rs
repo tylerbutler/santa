@@ -36,10 +36,8 @@ fn test_package_definition_simple_no_source_config() {
 
 #[test]
 fn test_package_definition_complex_get_sources() {
-    let mut complex = ComplexPackageDefinition {
-        sources: Some(vec!["brew".to_string(), "scoop".to_string()]),
-        ..Default::default()
-    };
+    let mut complex =
+        ComplexPackageDefinition::with_sources(vec!["brew".to_string(), "scoop".to_string()]);
     complex.source_configs.insert(
         "pacman".to_string(),
         SourceSpecificConfig::Name("custom-name".to_string()),
@@ -69,10 +67,7 @@ fn test_package_definition_complex_get_source_config() {
 
 #[test]
 fn test_package_definition_complex_is_available_in() {
-    let complex = ComplexPackageDefinition {
-        sources: Some(vec!["brew".to_string()]),
-        ..Default::default()
-    };
+    let complex = ComplexPackageDefinition::with_sources(vec!["brew".to_string()]);
 
     let def = PackageDefinition::Complex(complex);
 
@@ -92,20 +87,16 @@ fn test_complex_package_definition_default() {
 
 #[test]
 fn test_complex_package_definition_with_platforms() {
-    let def = ComplexPackageDefinition {
-        platforms: Some(vec!["macos".to_string(), "linux".to_string()]),
-        ..Default::default()
-    };
+    let mut def = ComplexPackageDefinition::default();
+    def.set_platforms(vec!["macos".to_string(), "linux".to_string()]);
 
     assert_eq!(def.platforms.as_ref().unwrap().len(), 2);
 }
 
 #[test]
 fn test_complex_package_definition_with_aliases() {
-    let def = ComplexPackageDefinition {
-        aliases: Some(vec!["rg".to_string(), "ripgrep".to_string()]),
-        ..Default::default()
-    };
+    let mut def = ComplexPackageDefinition::default();
+    def.set_aliases(vec!["rg".to_string(), "ripgrep".to_string()]);
 
     assert_eq!(def.aliases.as_ref().unwrap().len(), 2);
 }
@@ -129,10 +120,7 @@ fn test_complex_package_definition_get_sources_from_configs_only() {
 
 #[test]
 fn test_complex_package_definition_is_available_in_from_sources() {
-    let def = ComplexPackageDefinition {
-        sources: Some(vec!["brew".to_string(), "scoop".to_string()]),
-        ..Default::default()
-    };
+    let def = ComplexPackageDefinition::with_sources(vec!["brew".to_string(), "scoop".to_string()]);
 
     assert!(def.is_available_in("brew"));
     assert!(def.is_available_in("scoop"));

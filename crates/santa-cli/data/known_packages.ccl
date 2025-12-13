@@ -1,315 +1,256 @@
+/= Generated package index
+/= DO NOT EDIT - Generated from data/sources/*.ccl
+/= Run: just generate-index to regenerate
+
 /= Packages with simple format (no source-specific overrides)
 act =
-  = brew
-  = scoop
-
+   = brew
+   = scoop
 aria2 =
-  = brew
-  = scoop
-  = pacman
-
+   = brew
+   = pacman
+   = scoop
 atuin =
-  = brew
-  = scoop
-  = pacman
-  = nix
-
-bat =
-  = brew
-  = scoop
-  = pacman
-  = nix
-
-chezmoi =
-  = brew
-  = scoop
-  = pacman
-  = nix
-
-direnv =
-  = brew
-  = scoop
-  = pacman
-  = nix
-
-difftastic =
-  = brew
-  = scoop
-  = pacman
-  = nix
-
-dust =
-  = brew
-  = scoop
-  = pacman
-
-eza =
-  = brew
-  = pacman
-  = nix
-
-fd =
-  = brew
-  = scoop
-  = pacman
-  = nix
-
-fzf =
-  = brew
-  = scoop
-  = pacman
-  = nix
-
-ghq =
-  = brew
-  = scoop
-  = nix
-
-gitui =
-  = brew
-  = scoop
-  = pacman
-  = nix
-
-grex =
-  = brew
-  = scoop
-  = pacman
-  = nix
-
-hub =
-  = brew
-  = scoop
-  = pacman
-  = nix
-
-jq =
-  = brew
-  = scoop
-  = pacman
-  = nix
-
-lsd =
-  = brew
-  = scoop
-  = pacman
-  = nix
-
-micro =
-  = brew
-  = scoop
-  = pacman
-  = nix
-
-nnn =
-  = brew
-  = pacman
-  = nix
-
-pueue =
-  = brew
-  = scoop
-  = pacman
-  = nix
-
-procs =
-  = brew
-  = scoop
-  = pacman
-  = nix
-
-pyenv =
-  = brew
-  = scoop
-  = pacman
-
-python =
-  = brew
-  = scoop
-  = apt
-  = pacman
-  = nix
-
-rustup =
-  = brew
-  = scoop
-  = pacman
-  = nix
-
-sd =
-  = brew
-  = scoop
-  = pacman
-  = nix
-
-tealdeer =
-  = brew
-  = scoop
-  = pacman
-  = nix
-
-topgrade =
-  = brew
-  = scoop
-  = pacman
-  = nix
-
-thefuck =
-  = brew
-  = apt
-  = nix
-
-tmux =
-  = brew
-  = apt
-  = pacman
-  = nix
-
-viu =
-  = brew
-  = pacman
-  = nix
-
-when-cli =
-  = cargo
-
-zellij =
-  = brew
-  = pacman
-  = nix
-
-zoxide =
-  = brew
-  = scoop
-  = pacman
-  = nix
-
-emplace =
-  = scoop
-
-findutils =
-  = scoop
-
-gsudo =
-  = scoop
-
-ln =
-  = scoop
-
-nircmd =
-  = scoop
-
-nvs =
-  = scoop
-
-tre-command =
-  = brew
-  = scoop
-
-wget =
-  = brew
-  = scoop
-  = pacman
-  = apt
-
-which =
-  = scoop
-
-generate =
-  = npm
-
-generate-license =
-  = npm
-
+   = brew
+   = nix
+   = pacman
+   = scoop
 auto-install =
-  = npm
-
-npkill =
-  = npm
-
-npm-check-updates =
-  = npm
-
-rimraf =
-  = npm
-
-sort-package-json =
-  = npm
-
-tiged =
-  = npm
-
-vsts-npm-auth =
-  = npm
-
-yarn =
-  = npm
-
+   = npm
+bat =
+   = brew
+   = nix
+   = pacman
+   = scoop
 blindspot =
-  = cargo
-
+   = cargo
 cargo-update =
-  = cargo
-
-/= Packages with complex format (have source-specific overrides)
-
+   = cargo
+chezmoi =
+   = brew
+   = nix
+   = pacman
+   = scoop
+difftastic =
+   = brew
+   = nix
+   = pacman
+   = scoop
+direnv =
+   = brew
+   = nix
+   = pacman
+   = scoop
+dust =
+   = brew
+   = pacman
+   = scoop
+emplace =
+   = scoop
+eza =
+   = brew
+   = nix
+   = pacman
+fd =
+   = brew
+   = nix
+   = pacman
+   = scoop
+findutils =
+   = scoop
+fzf =
+   = brew
+   = nix
+   = pacman
+   = scoop
+generate =
+   = npm
+generate-license =
+   = npm
+ghq =
+   = brew
+   = nix
+   = scoop
+gitui =
+   = brew
+   = nix
+   = pacman
+   = scoop
+grex =
+   = brew
+   = nix
+   = pacman
+   = scoop
+gsudo =
+   = scoop
+hub =
+   = brew
+   = nix
+   = pacman
+   = scoop
+jq =
+   = brew
+   = nix
+   = pacman
+   = scoop
+ln =
+   = scoop
+lsd =
+   = brew
+   = nix
+   = pacman
+   = scoop
+micro =
+   = brew
+   = nix
+   = pacman
+   = scoop
+nircmd =
+   = scoop
+nnn =
+   = brew
+   = nix
+   = pacman
+npkill =
+   = npm
+npm-check-updates =
+   = npm
+nvs =
+   = scoop
+procs =
+   = brew
+   = nix
+   = pacman
+   = scoop
+pueue =
+   = brew
+   = nix
+   = pacman
+   = scoop
+pyenv =
+   = brew
+   = pacman
+   = scoop
+python =
+   = apt
+   = brew
+   = nix
+   = pacman
+   = scoop
+rimraf =
+   = npm
+rustup =
+   = brew
+   = nix
+   = pacman
+   = scoop
+sd =
+   = brew
+   = nix
+   = pacman
+   = scoop
+sort-package-json =
+   = npm
+tealdeer =
+   = brew
+   = nix
+   = pacman
+   = scoop
+thefuck =
+   = apt
+   = brew
+   = nix
+tiged =
+   = npm
+tmux =
+   = apt
+   = brew
+   = nix
+   = pacman
+topgrade =
+   = brew
+   = nix
+   = pacman
+   = scoop
+tre-command =
+   = brew
+   = scoop
+viu =
+   = brew
+   = nix
+   = pacman
+vsts-npm-auth =
+   = npm
+wget =
+   = apt
+   = brew
+   = pacman
+   = scoop
+when-cli =
+   = cargo
+which =
+   = scoop
+yarn =
+   = npm
+zellij =
+   = brew
+   = nix
+   = pacman
+zoxide =
+   = brew
+   = nix
+   = pacman
+   = scoop
+/= Packages with complex format (have source-specific overrides or descriptions)
+@fluidframework/build-tools =
+  npm =
+    install_suffix = @latest
 bottom =
   nix = bottom-rs
   _sources =
-    = brew
-    = scoop
-    = pacman
-
+     = brew
+     = pacman
+     = scoop
 fnm =
   aur = fnm-bin
+  scoop = fnm-bin
   _sources =
-    = brew
-    = scoop
-    = nix
-
-github-cli =
-  brew = gh
-  _sources =
-    = scoop
-    = apt
-    = pacman
-    = nix
-
+     = brew
+     = nix
 git-delta =
   scoop = delta
   _sources =
-    = brew
-    = pacman
-
+     = brew
+     = pacman
+github-cli =
+  brew = gh
+  _sources =
+     = apt
+     = nix
+     = pacman
+     = scoop
 go =
   brew = golang
   _sources =
-    = scoop
-    = apt
-    = pacman
-    = nix
-
+     = apt
+     = nix
+     = pacman
+     = scoop
 mc =
   brew = midnight-commander
   _sources =
-    = scoop
-    = apt
-    = pacman
-    = nix
-
+     = apt
+     = nix
+     = pacman
+     = scoop
 oh-my-posh =
   aur = oh-my-posh-git
   brew =
     pre = brew tap jandedobbeleer/oh-my-posh
   scoop = https://github.com/JanDeDobbeleer/oh-my-posh/releases/latest/download/oh-my-posh.json
-
 ripgrep =
   brew = rg
   _sources =
-    = scoop
-    = pacman
-    = nix
-
-@fluidframework/build-tools =
-  npm =
-    install_suffix = @latest
+     = nix
+     = pacman
+     = scoop
