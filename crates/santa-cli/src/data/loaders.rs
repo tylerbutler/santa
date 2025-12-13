@@ -338,12 +338,10 @@ npm =
         let mut schema_packages = HashMap::new();
         schema_packages.insert(
             "bat".to_string(),
-            PackageDefinition::Complex(ComplexPackageDefinition {
-                sources: Some(vec!["brew".to_string(), "scoop".to_string()]),
-                platforms: None,
-                aliases: None,
-                source_configs: HashMap::new(),
-            }),
+            PackageDefinition::Complex(ComplexPackageDefinition::with_sources(vec![
+                "brew".to_string(),
+                "scoop".to_string(),
+            ])),
         );
 
         let legacy = convert_to_legacy_packages(schema_packages);
@@ -498,14 +496,11 @@ customPkgManager =
             SourceSpecificConfig::Name("another-command".to_string()),
         );
 
+        let mut complex = ComplexPackageDefinition::with_sources(vec!["brew".to_string()]);
+        complex.source_configs = source_configs;
         schema_packages.insert(
             "oh-my-posh".to_string(),
-            PackageDefinition::Complex(ComplexPackageDefinition {
-                sources: Some(vec!["brew".to_string()]),
-                platforms: None,
-                aliases: None,
-                source_configs,
-            }),
+            PackageDefinition::Complex(complex),
         );
 
         let legacy = convert_to_legacy_packages(schema_packages);

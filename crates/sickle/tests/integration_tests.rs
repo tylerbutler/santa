@@ -108,10 +108,14 @@ other = data
 
     // Comments ARE valid entries with key "/" per CCL spec
     assert!(model.get("/").is_ok());
-    // Comments are stored as keys in the IndexMap (list representation)
-    let comments_model = model.get("/").unwrap();
-    let comment_keys: Vec<&String> = comments_model.keys().collect();
-    assert_eq!(comment_keys.len(), 3);
+    // With Vec structure, multiple comments are stored as separate entries in the Vec
+    // Each entry is a CclObject with the comment text as its single key
+    let all_comments = model.get_all("/").unwrap();
+    assert_eq!(all_comments.len(), 3, "expected 3 comments");
+    let comment_keys: Vec<String> = all_comments
+        .iter()
+        .map(|c| c.keys().next().unwrap().clone())
+        .collect();
     assert_eq!(comment_keys[0], "This is a comment");
     assert_eq!(comment_keys[1], "Comments are valid entries in CCL");
     assert_eq!(comment_keys[2], "Another comment in the middle");
