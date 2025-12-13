@@ -19,89 +19,83 @@ bench = []
 
 [dependencies]
 # Error handling with context and chaining
-anyhow = "1.0.99"
+anyhow = "1.0.100"
 
 # Command-line argument parsing with derive macros and colors
-clap = { version = "4.5", features = ["color", "derive", "cargo", "wrap_help"] }
+clap = { version = "4.5.53", features = ["color", "derive", "cargo", "wrap_help"] }
+
+# Markdown documentation generation for CLI
+clap-markdown = "0.1.5"
 
 # Shell completion generation for CLI commands
-clap_complete = "4.5"
+clap_complete = "4.5.61"
 
 # Terminal color output for user-friendly messages
-colored = "2"
+colored = "3.0.0"
 
 # Configuration file loading and management
-config = "0.14"
+config = { version = "0.15.19", default-features = false, features = ["toml"] }
 
 # Interactive CLI prompts and user input
-dialoguer = "0.11.0"
+dialoguer = "0.12.0"
 
 # Cross-platform directory path resolution
-directories = "4.0"
+directories = "6.0.0"
 
 # Serialization framework with derive macros
-serde = { version = "1.0.219", features = ["derive"] }
+serde = { version = "1.0.228", features = ["derive"] }
 
 # String-based enum serialization for configuration
-serde-enum-str = "0.2.5"
-
-# JSON serialization for data exchange
-serde_json = "1.0"
+serde-enum-str = "0.4.0"
 
 # CCL configuration parser with serde support
 sickle = { version = "0.1.0", path = "../sickle", features = ["serde"] }
-santa-data = { version = "0.1.4", path = "../santa-data" }
-
-# YAML parser for migration from legacy configs
-serde_yaml = "0.9"
+santa-data = { version = "0.2.0", path = "../santa-data" }
 
 # Structured logging and tracing
-tracing = "0.1"
+tracing = "0.1.43"
 
 # Tracing subscriber with environment-based filtering
-tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+tracing-subscriber = { version = "0.3.22", features = ["env-filter"] }
 
 # ASCII table formatting for command output
 tabular = "0.2.0"
 
 # Async runtime with process execution and synchronization primitives
-tokio = { version = "1.47", features = ["process", "rt-multi-thread", "macros", "time", "sync"] }
+tokio = { version = "1.47.2", features = ["process", "rt-multi-thread", "macros", "time", "sync"] }
 
 # Async utilities and combinators
-futures = "0.3"
+futures = "0.3.31"
 
 # High-performance caching with TTL and LRU eviction
-moka = { version = "0.12", features = ["sync", "logging"] }
+moka = { version = "0.12.11", features = ["sync", "logging"] }
 
 # Builder pattern code generation
-derive_builder = "0.12"
+derive_builder = "0.20.2"
 
 # Cross-platform executable discovery
-which = "4.4"
-
-# Additional derive macros for common traits
-derive_more = "0.99"
+which = "8.0.0"
 
 # Data validation with derive macros
 validator = { version = "0.20", features = ["derive"] }
 
 # File system change notifications for hot-reloading
-notify = "6.1"
+notify = "8.2.0"
 
 # Shell command escaping to prevent injection attacks
-shell-escape = "0.1"
+shell-escape = "0.1.5"
 
-# Template engine for script generation (Jinja2/Django-style)
-tera = "1.19"
-
-# PowerShell script execution and management (Windows support)
-powershell_script = "1.1"
+# Template engine for script generation (Jinja2-compatible, minimal deps)
+minijinja = "2.13.0"
 
 # Date/time handling for script metadata
-chrono = { version = "0.4", features = ["serde"] }
+chrono = { version = "0.4.42", features = ["serde"] }
 
 # Structured error types with derive macros
-thiserror = "1.0"
+thiserror = "2.0.17"
+
+# HTTP client for fetching remote sources (lightweight, minimal deps)
+minreq = { version = "2.14.1", features = ["https-rustls"] }
 
 [dev-dependencies]
 # Parameterized testing framework with fixtures

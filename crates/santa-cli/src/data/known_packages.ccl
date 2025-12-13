@@ -1,4 +1,4 @@
-// Packages with simple format (no source-specific overrides)
+/= Packages with simple format (no source-specific overrides)
 act =
   = brew
   = scoop
@@ -251,7 +251,7 @@ blindspot =
 cargo-update =
   = cargo
 
-// Packages with complex format (have source-specific overrides)
+/= Packages with complex format (have source-specific overrides)
 
 bottom =
   nix = bottom-rs

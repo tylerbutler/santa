@@ -1,0 +1,407 @@
+# Sickle CCL Capabilities
+
+> **Auto-generated** from test data - DO NOT EDIT
+> 
+> Run `just sickle-capabilities` to regenerate
+
+This documentation is extracted from the comprehensive test suite in `tests/test_data/*.json`.
+The test files are the source of truth for all supported features and behaviors.
+
+## Overview
+
+- **Functions**: 11 distinct functions tested
+- **Behaviors**: 8 distinct behaviors tested
+- **Total test cases**: 345
+
+## Functions
+
+Core Model API methods and operations covered by the test suite:
+
+| Function | Test Cases | Description |
+|----------|------------|-------------|
+| `build_hierarchy` | 73 | Validation type: `build_hierarchy` |
+| `canonical_format` | 14 | Validation type: `canonical_format` |
+| `filter` | 3 | Validation type: `filter` |
+| `get_bool` | 12 | Validation type: `get_bool` |
+| `get_float` | 6 | Validation type: `get_float` |
+| `get_int` | 11 | Validation type: `get_int` |
+| `get_list` | 38 | Validation type: `get_list` |
+| `get_string` | 7 | Validation type: `get_string` |
+| `parse` | 159 | Validation type: `parse` |
+| `parse_indented` | 10 | Validation type: `parse_indented` |
+| `round_trip` | 12 | Validation type: `round_trip` |
+
+### Function Examples
+
+#### `build_hierarchy`
+
+**Test coverage**: 73 test cases
+
+**Example usage from tests**:
+
+- **basic_list_from_duplicates_build_hierarchy** (`api_list_access.json`)
+  ```ccl
+  servers = web1
+servers = web2
+servers = web3
+  ```
+- **large_list_build_hierarchy** (`api_list_access.json`)
+  ```ccl
+  items = item01
+items = item02
+items = item03
+items = item04
+items = item05
+items = item06
+items = it...
+  ```
+
+#### `canonical_format`
+
+**Test coverage**: 14 test cases
+
+**Example usage from tests**:
+
+- **canonical_format_empty_values_canonical_format** (`api_proposed_behavior.json`)
+  ```ccl
+  empty_key =
+  ```
+- **canonical_format_tab_preservation_canonical_format** (`api_proposed_behavior.json`)
+  ```ccl
+  value_with_tabs = text		with	tabs	
+  ```
+
+#### `filter`
+
+**Test coverage**: 3 test cases
+
+**Example usage from tests**:
+
+- **comment_extension_filter** (`api_comments.json`)
+  ```ccl
+  /= This is an environment section
+port = 8080
+serve = index.html
+/= Database section
+mode = in-memor...
+  ```
+- **comment_syntax_slash_equals_filter** (`api_comments.json`)
+  ```ccl
+  /= this is a comment
+  ```
+
+#### `get_bool`
+
+**Test coverage**: 12 test cases
+
+**Example usage from tests**:
+
+- **parse_boolean_true_get_bool** (`api_typed_access.json`)
+  ```ccl
+  enabled = true
+  ```
+- **parse_boolean_yes_get_bool** (`api_typed_access.json`)
+  ```ccl
+  active = yes
+  ```
+
+#### `get_float`
+
+**Test coverage**: 6 test cases
+
+**Example usage from tests**:
+
+- **parse_basic_float_get_float** (`api_typed_access.json`)
+  ```ccl
+  temperature = 98.6
+  ```
+- **parse_zero_values_get_float** (`api_typed_access.json`)
+  ```ccl
+  count = 0
+distance = 0.0
+disabled = no
+  ```
+
+#### `get_int`
+
+**Test coverage**: 11 test cases
+
+**Example usage from tests**:
+
+- **parse_basic_integer_get_int** (`api_typed_access.json`)
+  ```ccl
+  port = 8080
+  ```
+- **parse_negative_integer_get_int** (`api_typed_access.json`)
+  ```ccl
+  offset = -42
+  ```
+
+#### `get_list`
+
+**Test coverage**: 38 test cases
+
+**Example usage from tests**:
+
+- **basic_list_from_duplicates_get_list** (`api_list_access.json`)
+  ```ccl
+  servers = web1
+servers = web2
+servers = web3
+  ```
+- **large_list_get_list** (`api_list_access.json`)
+  ```ccl
+  items = item01
+items = item02
+items = item03
+items = item04
+items = item05
+items = item06
+items = it...
+  ```
+
+#### `get_string`
+
+**Test coverage**: 7 test cases
+
+**Example usage from tests**:
+
+- **parse_string_fallback_get_string** (`api_typed_access.json`)
+  ```ccl
+  name = Alice
+  ```
+- **parse_mixed_types_get_string** (`api_typed_access.json`)
+  ```ccl
+  host = localhost
+port = 8080
+ssl = true
+timeout = 30.5
+debug = off
+  ```
+
+#### `parse`
+
+**Test coverage**: 159 test cases
+
+**Example usage from tests**:
+
+- **basic_list_from_duplicates_parse** (`api_list_access.json`)
+  ```ccl
+  servers = web1
+servers = web2
+servers = web3
+  ```
+- **large_list_parse** (`api_list_access.json`)
+  ```ccl
+  items = item01
+items = item02
+items = item03
+items = item04
+items = item05
+items = item06
+items = it...
+  ```
+
+#### `parse_indented`
+
+**Test coverage**: 10 test cases
+
+**Example usage from tests**:
+
+- **multiline_section_header_value_parse_indented** (`api_proposed_behavior.json`)
+  ```ccl
+  == Section Header =
+  This continues the header
+key = value
+  ```
+- **unindented_multiline_becomes_continuation_parse_indented** (`api_proposed_behavior.json`)
+  ```ccl
+  == Section Header =
+This continues the header
+key = value
+  ```
+
+#### `round_trip`
+
+**Test coverage**: 12 test cases
+
+**Example usage from tests**:
+
+- **round_trip_property_basic_round_trip** (`property_algebraic.json`)
+  ```ccl
+  key = value
+another = test
+  ```
+- **round_trip_property_nested_round_trip** (`property_algebraic.json`)
+  ```ccl
+  config =
+  host = localhost
+  port = 8080
+  db =
+    name = mydb
+    user = admin
+  ```
+
+## Behaviors
+
+Parser behaviors and configuration options tested by the suite:
+
+| Behavior | Test Cases |
+|----------|------------|
+| `boolean_lenient` | 24 |
+| `boolean_strict` | 27 |
+| `crlf_normalize_to_lf` | 4 |
+| `crlf_preserve_literal` | 4 |
+| `list_coercion_disabled` | 14 |
+| `list_coercion_enabled` | 24 |
+| `strict_spacing` | 3 |
+| `tabs_preserve` | 7 |
+
+### Behavior Examples
+
+#### `boolean_lenient`
+
+**Test coverage**: 24 test cases
+
+**Example usage from tests**:
+
+- **parse_boolean_true_parse** (`api_typed_access.json`)
+  ```ccl
+  enabled = true
+  ```
+- **parse_boolean_true_build_hierarchy** (`api_typed_access.json`)
+  ```ccl
+  enabled = true
+  ```
+
+#### `boolean_strict`
+
+**Test coverage**: 27 test cases
+
+**Example usage from tests**:
+
+- **parse_boolean_true_parse** (`api_typed_access.json`)
+  ```ccl
+  enabled = true
+  ```
+- **parse_boolean_true_build_hierarchy** (`api_typed_access.json`)
+  ```ccl
+  enabled = true
+  ```
+
+#### `crlf_normalize_to_lf`
+
+**Test coverage**: 4 test cases
+
+**Example usage from tests**:
+
+- **crlf_normalize_to_lf_proposed_parse** (`api_proposed_behavior.json`)
+  ```ccl
+  key1 = value1
+key2 = value2
+
+  ```
+- **crlf_normalize_to_lf_proposed_canonical_format** (`api_proposed_behavior.json`)
+  ```ccl
+  key1 = value1
+key2 = value2
+
+  ```
+
+#### `crlf_preserve_literal`
+
+**Test coverage**: 4 test cases
+
+**Example usage from tests**:
+
+- **canonical_format_line_endings_proposed_parse** (`api_proposed_behavior.json`)
+  ```ccl
+  key1 = value1
+key2 = value2
+
+  ```
+- **canonical_format_line_endings_proposed_canonical_format** (`api_proposed_behavior.json`)
+  ```ccl
+  key1 = value1
+key2 = value2
+
+  ```
+
+#### `list_coercion_disabled`
+
+**Test coverage**: 14 test cases
+
+**Example usage from tests**:
+
+- **single_item_as_list_reference_parse** (`api_reference_compliant.json`)
+  ```ccl
+  item = single
+  ```
+- **single_item_as_list_reference_build_hierarchy** (`api_reference_compliant.json`)
+  ```ccl
+  item = single
+  ```
+
+#### `list_coercion_enabled`
+
+**Test coverage**: 24 test cases
+
+**Example usage from tests**:
+
+- **basic_list_from_duplicates_parse** (`api_list_access.json`)
+  ```ccl
+  servers = web1
+servers = web2
+servers = web3
+  ```
+- **basic_list_from_duplicates_build_hierarchy** (`api_list_access.json`)
+  ```ccl
+  servers = web1
+servers = web2
+servers = web3
+  ```
+
+#### `strict_spacing`
+
+**Test coverage**: 3 test cases
+
+**Example usage from tests**:
+
+- **canonical_format_consistent_spacing_parse** (`api_proposed_behavior.json`)
+  ```ccl
+  key1=value1
+key2  =  value2
+key3	=	value3
+  ```
+- **canonical_format_consistent_spacing_canonical_format** (`api_proposed_behavior.json`)
+  ```ccl
+  key1=value1
+key2  =  value2
+key3	=	value3
+  ```
+
+#### `tabs_preserve`
+
+**Test coverage**: 7 test cases
+
+**Example usage from tests**:
+
+- **canonical_format_tab_preservation_parse** (`api_proposed_behavior.json`)
+  ```ccl
+  value_with_tabs = text		with	tabs	
+  ```
+- **canonical_format_tab_preservation_canonical_format** (`api_proposed_behavior.json`)
+  ```ccl
+  value_with_tabs = text		with	tabs	
+  ```
+
+## Running Tests
+
+To run the comprehensive test suite:
+
+```bash
+just test-ccl
+```
+
+This runs all test cases from the JSON test data files and provides detailed
+pass/fail statistics per function and behavior.

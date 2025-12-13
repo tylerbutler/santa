@@ -68,18 +68,45 @@ pub fn convert_to_legacy_packages(
         let sources = package_def.get_sources();
 
         for source_name in sources {
-            // Parse source name to KnownSources enum
-            // This uses serde's parsing which will map known sources to their variants
-            // and unknown sources to KnownSources::Unknown(String)
-            let known_source: KnownSources =
-                match serde_json::from_value(serde_json::Value::String(source_name.to_string())) {
-                    Ok(ks) => ks,
-                    Err(_) => {
-                        // If parsing fails, it's likely not a source but a config field
-                        // (like 'pre', 'post', 'install_suffix', etc.)
-                        continue;
+            // WORKAROUND: sickle parser bug - single-element arrays like "= cargo" are parsed
+            // as source_configs with empty string key: {"": "cargo"} instead of Simple(["cargo"])
+            // Skip empty source names which are actually the keys, and get the value from source_config
+            if source_name.is_empty() {
+                // Get the actual source name from the source config value
+                if let Some(source_config) = package_def.get_source_config(source_name) {
+                    match source_config {
+                        super::schemas::SourceSpecificConfig::Name(actual_source_name) => {
+                            // Recursively process the actual source name
+                            let known_source: KnownSources = match actual_source_name.parse() {
+                                Ok(ks) => ks,
+                                Err(_) => continue,
+                            };
+
+                            source_map.insert(known_source, None);
+                        }
+                        super::schemas::SourceSpecificConfig::Complex(_config) => {
+                            // Handle complex config with empty key
+                            warn!(
+                                "Package '{}' has complex config with empty source key - skipping",
+                                package_name
+                            );
+                        }
                     }
-                };
+                }
+                continue;
+            }
+
+            // Parse source name to KnownSources enum
+            // This uses FromStr parsing which will map known sources to their variants
+            // and unknown sources to KnownSources::Unknown(String)
+            let known_source: KnownSources = match source_name.parse() {
+                Ok(ks) => ks,
+                Err(_) => {
+                    // If parsing fails, it's likely not a source but a config field
+                    // (like 'pre', 'post', 'install_suffix', etc.)
+                    continue;
+                }
+            };
 
             // Create PackageData based on source configuration
             let package_data = if let Some(source_config) =
@@ -122,16 +149,15 @@ pub fn convert_to_legacy_sources(schema_sources: SourcesDefinition) -> SourceLis
     let mut legacy_sources = SourceList::new();
 
     for (source_name, source_def) in schema_sources {
-        // Parse source name to KnownSources enum using serde
+        // Parse source name to KnownSources enum using FromStr
         // This automatically handles both known and unknown sources
-        let known_source: KnownSources =
-            match serde_json::from_value(serde_json::Value::String(source_name.clone())) {
-                Ok(ks) => ks,
-                Err(_) => {
-                    warn!("Failed to parse source '{}', skipping", source_name);
-                    continue;
-                }
-            };
+        let known_source: KnownSources = match source_name.parse() {
+            Ok(ks) => ks,
+            Err(_) => {
+                warn!("Failed to parse source '{}', skipping", source_name);
+                continue;
+            }
+        };
 
         // Create PackageSource from schema using new_for_test (TODO: create proper constructor)
         let package_source = PackageSource::new_for_test(
@@ -157,83 +183,17 @@ mod tests {
     use tempfile::NamedTempFile;
 
     #[test]
-    fn test_debug_ccl_parsing() {
-        println!("\n=== DEBUGGING SERDE_CCL PARSING ===\n");
-
-        // Test 1: What does serde_ccl return for a raw array?
+    fn test_ccl_vec_parsing() {
+        // Test that CCL arrays parse correctly to Vec<String>
         let array_ccl = r#"
   = brew
   = scoop
 "#;
-        println!("--- Test 1: Raw array ---");
-        println!("Input CCL:\n{}", array_ccl);
-
         let vec_result: Result<Vec<String>, _> = sickle::from_str(array_ccl);
-        println!("Vec<String> result: {:?}\n", vec_result);
-
-        let json_value: Result<serde_json::Value, _> = sickle::from_str(array_ccl);
-        println!("serde_json::Value result: {:?}\n", json_value);
-
-        // Test 2: What about in a HashMap context?
-        let full_simple = r#"
-test_pkg =
-  = brew
-  = scoop
-"#;
-        println!("--- Test 2: HashMap with simple array ---");
-        println!("Input CCL:\n{}", full_simple);
-
-        // Parse as generic Value to see structure
-        let json_result: Result<serde_json::Value, _> = sickle::from_str(full_simple);
-        println!("As serde_json::Value: {:#?}\n", json_result);
-
-        // Parse as HashMap<String, Value>
-        let hash_value: Result<HashMap<String, serde_json::Value>, _> =
-            sickle::from_str(full_simple);
-        println!("As HashMap<String, Value>: {:#?}\n", hash_value);
-
-        // What type does the value have?
-        if let Ok(ref map) = hash_value {
-            if let Some(value) = map.get("test_pkg") {
-                println!("Value type for 'test_pkg': ");
-                println!("  is_string: {}", value.is_string());
-                println!("  is_array: {}", value.is_array());
-                println!("  is_object: {}", value.is_object());
-                println!("  is_null: {}", value.is_null());
-                println!("  is_boolean: {}", value.is_boolean());
-                println!("  is_number: {}", value.is_number());
-                println!("  actual value: {:#?}\n", value);
-            }
-        }
-
-        // Test 3: Compare with complex format
-        let full_complex = r#"
-test_pkg =
-  _sources =
-    = brew
-    = scoop
-"#;
-        println!("--- Test 3: HashMap with complex format ---");
-        println!("Input CCL:\n{}", full_complex);
-
-        let complex_json: Result<serde_json::Value, _> = sickle::from_str(full_complex);
-        println!("As serde_json::Value: {:#?}\n", complex_json);
-
-        let complex_hash: Result<HashMap<String, serde_json::Value>, _> =
-            sickle::from_str(full_complex);
-        println!("As HashMap<String, Value>: {:#?}\n", complex_hash);
-
-        if let Ok(ref map) = complex_hash {
-            if let Some(value) = map.get("test_pkg") {
-                println!("Value type for 'test_pkg': ");
-                println!("  is_string: {}", value.is_string());
-                println!("  is_array: {}", value.is_array());
-                println!("  is_object: {}", value.is_object());
-                println!("  actual value: {:#?}\n", value);
-            }
-        }
-
-        println!("=== END DEBUGGING ===\n");
+        assert!(vec_result.is_ok());
+        let vec = vec_result.unwrap();
+        assert!(vec.contains(&"brew".to_string()));
+        assert!(vec.contains(&"scoop".to_string()));
     }
 
     #[test]

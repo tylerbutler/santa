@@ -1,5 +1,5 @@
 use anyhow::{bail, Context};
-use clap::{ArgAction, Command, Parser, Subcommand, ValueEnum};
+use clap::{ArgAction, Command, CommandFactory, Parser, Subcommand, ValueEnum};
 use clap_complete::{generate, Shell};
 use santa::completions::EnhancedCompletions;
 use santa::configuration::{SantaConfig, SantaConfigExt};
@@ -12,6 +12,7 @@ use directories::BaseDirs;
 use std::path::Path;
 
 use santa::commands;
+use santa::data_layers::DataLayerManager;
 use santa::script_generator::{ExecutionMode, ScriptFormat};
 use santa::sources::PackageCache;
 
@@ -26,7 +27,7 @@ static DEFAULT_CONFIG_FILE_PATH: &str = ".config/santa/config.ccl";
 // #[clap(global_setting(AppSettings::PropagateVersion))]
 struct Cli {
     #[clap(subcommand)]
-    command: Commands,
+    command: Option<Commands>,
 
     /// Load ONLY the default config
     #[clap(short, long, global = true)]
@@ -47,6 +48,10 @@ struct Cli {
     /// Output directory for generated scripts
     #[clap(long, global = true)]
     output_dir: Option<std::path::PathBuf>,
+
+    /// Print help in markdown format (for documentation generation)
+    #[clap(long, hide = true)]
+    markdown_help: bool,
 }
 
 #[derive(Subcommand)]
@@ -77,6 +82,29 @@ enum Commands {
         /// Shell to generate completions for
         shell: Shell,
     },
+    /// Manage package sources
+    #[clap(subcommand)]
+    Sources(SourcesCommands),
+}
+
+/// Subcommands for managing package sources
+#[derive(Subcommand)]
+enum SourcesCommands {
+    /// Download the latest source definitions from GitHub
+    Update,
+    /// List all available sources (from all layers)
+    List {
+        /// Show only sources from a specific origin (bundled, downloaded, custom)
+        #[clap(long)]
+        origin: Option<String>,
+    },
+    /// Show details about a specific source
+    Show {
+        /// Name of the source to show
+        name: String,
+    },
+    /// Remove downloaded sources (revert to bundled only)
+    Clear,
 }
 
 /// Script format options for CLI
@@ -161,11 +189,229 @@ fn build_cli() -> Command {
         )
 }
 
+/// Handle the sources subcommand
+async fn handle_sources_command(
+    cmd: &SourcesCommands,
+    config: &SantaConfig,
+) -> Result<(), anyhow::Error> {
+    use colored::Colorize;
+    use santa::data_layers::DataOrigin;
+
+    let manager = DataLayerManager::with_default_config_dir()?;
+
+    match cmd {
+        SourcesCommands::Update => {
+            use std::io::Write;
+            println!("Fetching latest data from GitHub...");
+
+            // Update sources
+            print!("  Updating sources... ");
+            std::io::stdout().flush()?;
+            let sources_count = manager.update_sources()?;
+            println!("{} ({} sources)", "✓".green(), sources_count);
+
+            // Update packages
+            print!("  Updating packages... ");
+            std::io::stdout().flush()?;
+            let packages_count = manager.update_packages()?;
+            println!("{} ({} packages)", "✓".green(), packages_count);
+
+            println!("{}", "\nData updated successfully!".green());
+
+            // Show summary
+            let merged_sources = manager.merge_sources(None)?;
+            let sources_summary = manager.sources_summary(&merged_sources);
+            let merged_packages = manager.merge_packages(None)?;
+            let packages_summary = manager.packages_summary(&merged_packages);
+
+            println!(
+                "\nSources: {} total ({} bundled, {} downloaded)",
+                merged_sources.len(),
+                sources_summary.get(&DataOrigin::Bundled).unwrap_or(&0),
+                sources_summary.get(&DataOrigin::Downloaded).unwrap_or(&0)
+            );
+            println!(
+                "Packages: {} total ({} bundled, {} downloaded)",
+                merged_packages.len(),
+                packages_summary.get(&DataOrigin::Bundled).unwrap_or(&0),
+                packages_summary.get(&DataOrigin::Downloaded).unwrap_or(&0)
+            );
+            println!(
+                "\nData location: {}",
+                manager.config_dir().display().to_string().dimmed()
+            );
+        }
+        SourcesCommands::List { origin } => {
+            // Convert user custom sources from config to SourcesDefinition format
+            let user_custom = config.custom_sources.as_ref().map(|sources| {
+                sources
+                    .iter()
+                    .map(|s| {
+                        (
+                            s.name.to_string(),
+                            santa::data::schemas::SourceDefinition {
+                                emoji: s.emoji.clone(),
+                                install: s.install_command.clone(),
+                                check: s.check_command.clone(),
+                                prefix: s.prepend_to_package_name.clone(),
+                                overrides: None, // TODO: convert overrides
+                            },
+                        )
+                    })
+                    .collect::<std::collections::HashMap<_, _>>()
+            });
+
+            let merged = manager.merge_sources(user_custom.as_ref())?;
+
+            // Filter by origin if specified
+            let filtered: Vec<_> = if let Some(origin_filter) = origin {
+                let target_origin = match origin_filter.to_lowercase().as_str() {
+                    "bundled" => DataOrigin::Bundled,
+                    "downloaded" => DataOrigin::Downloaded,
+                    "custom" | "user" => DataOrigin::UserCustom,
+                    _ => {
+                        eprintln!(
+                            "Unknown origin '{}'. Valid options: bundled, downloaded, custom",
+                            origin_filter
+                        );
+                        return Ok(());
+                    }
+                };
+                merged
+                    .into_iter()
+                    .filter(|s| s.origin == target_origin)
+                    .collect()
+            } else {
+                merged
+            };
+
+            if filtered.is_empty() {
+                println!("No sources found.");
+                return Ok(());
+            }
+
+            println!(
+                "{:<15} {:<8} {:<12} {}",
+                "NAME".bold(),
+                "EMOJI".bold(),
+                "ORIGIN".bold(),
+                "INSTALL COMMAND".bold()
+            );
+            println!("{}", "-".repeat(70));
+
+            for source in &filtered {
+                let origin_str = match source.origin {
+                    DataOrigin::Bundled => "bundled".dimmed(),
+                    DataOrigin::Downloaded => "downloaded".cyan(),
+                    DataOrigin::UserCustom => "custom".yellow(),
+                };
+                // Truncate install command for display
+                let install_display = if source.definition.install.len() > 35 {
+                    format!("{}...", &source.definition.install[..32])
+                } else {
+                    source.definition.install.clone()
+                };
+                println!(
+                    "{:<15} {:<8} {:<12} {}",
+                    source.name, source.definition.emoji, origin_str, install_display
+                );
+            }
+
+            println!("\nTotal: {} sources", filtered.len());
+            println!(
+                "Data location: {}",
+                manager.config_dir().display().to_string().dimmed()
+            );
+        }
+        SourcesCommands::Show { name } => {
+            // Convert user custom sources from config
+            let user_custom = config.custom_sources.as_ref().map(|sources| {
+                sources
+                    .iter()
+                    .map(|s| {
+                        (
+                            s.name.to_string(),
+                            santa::data::schemas::SourceDefinition {
+                                emoji: s.emoji.clone(),
+                                install: s.install_command.clone(),
+                                check: s.check_command.clone(),
+                                prefix: s.prepend_to_package_name.clone(),
+                                overrides: None,
+                            },
+                        )
+                    })
+                    .collect::<std::collections::HashMap<_, _>>()
+            });
+
+            let merged = manager.merge_sources(user_custom.as_ref())?;
+
+            if let Some(source) = merged.iter().find(|s| s.name == *name) {
+                println!("{}: {}", "Name".bold(), source.name);
+                println!("{}: {}", "Emoji".bold(), source.definition.emoji);
+                println!("{}: {}", "Origin".bold(), source.origin);
+                println!("{}: {}", "Install".bold(), source.definition.install);
+                println!("{}: {}", "Check".bold(), source.definition.check);
+                if let Some(prefix) = &source.definition.prefix {
+                    println!("{}: {}", "Prefix".bold(), prefix);
+                }
+                if let Some(overrides) = &source.definition.overrides {
+                    println!("{}:", "Platform Overrides".bold());
+                    for (platform, override_def) in overrides {
+                        println!("  {}:", platform);
+                        if let Some(install) = &override_def.install {
+                            println!("    install: {}", install);
+                        }
+                        if let Some(check) = &override_def.check {
+                            println!("    check: {}", check);
+                        }
+                    }
+                }
+            } else {
+                eprintln!("Source '{}' not found.", name);
+            }
+        }
+        SourcesCommands::Clear => {
+            let had_sources = manager.has_downloaded_sources();
+            let had_packages = manager.has_downloaded_packages();
+
+            if had_sources || had_packages {
+                manager.clear_all()?;
+                if had_sources {
+                    println!("{}", "Downloaded sources removed.".green());
+                }
+                if had_packages {
+                    println!("{}", "Downloaded packages removed.".green());
+                }
+                println!("Santa will now use bundled data only.");
+            } else {
+                println!("No downloaded data to remove.");
+            }
+        }
+    }
+
+    Ok(())
+}
+
 pub async fn run() -> Result<(), anyhow::Error> {
     let cli = Cli::parse();
 
+    // Handle markdown help generation (for documentation)
+    if cli.markdown_help {
+        clap_markdown::print_help_markdown::<Cli>();
+        return Ok(());
+    }
+
+    // Show help when no command is provided
+    let command = match cli.command {
+        Some(cmd) => cmd,
+        None => {
+            Cli::command().print_help()?;
+            return Ok(());
+        }
+    };
+
     // Handle shell completions with enhanced suggestions
-    if let Commands::Completions { shell } = &cli.command {
+    if let Commands::Completions { shell } = &command {
         let mut cmd = build_cli();
 
         // Try to load config and data for enhanced completions
@@ -237,8 +483,8 @@ pub async fn run() -> Result<(), anyhow::Error> {
     };
     config.log_level = cli.verbose;
 
-    // let mut data = data; // re-declare variable to make it mutable
-    // data.update_from_config(&config);
+    // Validate config against available package data (emits warnings for issues)
+    config.validate_with_data(&data)?;
 
     let cache: PackageCache = PackageCache::new();
 
@@ -254,7 +500,7 @@ pub async fn run() -> Result<(), anyhow::Error> {
         .output_dir
         .unwrap_or_else(|| std::env::current_dir().expect("Failed to get current directory"));
 
-    match &cli.command {
+    match &command {
         Commands::Status { all } => {
             debug!("santa status");
             crate::commands::status_command(&mut config, &data, cache, all).await?;
@@ -283,6 +529,9 @@ pub async fn run() -> Result<(), anyhow::Error> {
         Commands::Completions { shell: _ } => {
             // This is handled earlier in the function
             unreachable!("Completions should be handled before this point");
+        }
+        Commands::Sources(sources_cmd) => {
+            handle_sources_command(sources_cmd, &config).await?;
         }
     }
 

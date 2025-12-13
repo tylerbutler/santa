@@ -1,6 +1,22 @@
 //! Integration tests for the sickle CCL parser
 
-use sickle::parse;
+use sickle::load;
+
+/// Test helper to extract string value from Model using public API
+fn model_as_str(model: &sickle::CclObject) -> Result<&str, String> {
+    if model.len() == 1 {
+        let (key, value) = model.iter().next().unwrap();
+        if value.is_empty() {
+            return Ok(key.as_str());
+        }
+    }
+    Err("not a singleton string".to_string())
+}
+
+/// Test helper to check if Model is a map using public API
+fn model_is_map(model: &sickle::CclObject) -> bool {
+    !model.is_empty() && model.values().any(|v| !v.is_empty())
+}
 
 #[test]
 fn test_complete_config_file() {
@@ -33,22 +49,26 @@ package_managers =
   = cargo
 "#;
 
-    let model = parse(ccl).expect("should parse successfully");
+    let model = load(ccl).expect("should load successfully");
 
     // Test simple values
     assert_eq!(
-        model.get("name").unwrap().as_str().unwrap(),
+        model_as_str(model.get("name").unwrap()).unwrap(),
         "Santa Package Manager"
     );
-    assert_eq!(model.get("version").unwrap().as_str().unwrap(), "0.1.0");
+    assert_eq!(
+        model_as_str(model.get("version").unwrap()).unwrap(),
+        "0.1.0"
+    );
 
     // Test nested map navigation - database should be parsed as a map
     let db = model.get("database").expect("database should exist");
-    assert!(db.is_map(), "database should be a parsed map");
+    assert!(model_is_map(db), "database should be a parsed map");
 
     // Verify nested values
-    assert_eq!(db.get("host").unwrap().as_str().unwrap(), "localhost");
-    let port: u16 = db.get("port").unwrap().parse_value().unwrap();
+    assert_eq!(model_as_str(db.get("host").unwrap()).unwrap(), "localhost");
+    let port_str = model_as_str(db.get("port").unwrap()).unwrap();
+    let port: u16 = port_str.parse().unwrap();
     assert_eq!(port, 5432);
 }
 
@@ -61,30 +81,44 @@ description = This is a very long description
   about the configuration file
 "#;
 
-    let model = parse(ccl).expect("should parse");
-    let desc = model.get("description").unwrap().as_str().unwrap();
+    let model = load(ccl).expect("should load");
+    let desc = model_as_str(model.get("description").unwrap()).unwrap();
 
     assert!(desc.contains("long description"));
     assert!(desc.contains("multiple lines"));
     assert!(desc.contains("configuration file"));
 }
 
+/// Test that comments are preserved in the model
+///
+/// Note: When `reference_compliant` feature is enabled, duplicate keys are reversed
+/// to match the OCaml reference implementation. This test expects insertion order.
 #[test]
-fn test_comments_are_ignored() {
+#[cfg_attr(feature = "reference_compliant", ignore)]
+fn test_comments_are_preserved() {
     let ccl = r#"
 /= This is a comment
-/= Comments should be completely ignored
+/= Comments are valid entries in CCL
 name = value
 /= Another comment in the middle
 other = data
 "#;
 
-    let model = parse(ccl).expect("should parse");
+    let model = load(ccl).expect("should load");
 
-    // Comments should not appear as keys
-    assert!(model.get("/").is_err());
-    assert_eq!(model.get("name").unwrap().as_str().unwrap(), "value");
-    assert_eq!(model.get("other").unwrap().as_str().unwrap(), "data");
+    // Comments ARE valid entries with key "/" per CCL spec
+    assert!(model.get("/").is_ok());
+    // Comments are stored as keys in the IndexMap (list representation)
+    let comments_model = model.get("/").unwrap();
+    let comment_keys: Vec<&String> = comments_model.keys().collect();
+    assert_eq!(comment_keys.len(), 3);
+    assert_eq!(comment_keys[0], "This is a comment");
+    assert_eq!(comment_keys[1], "Comments are valid entries in CCL");
+    assert_eq!(comment_keys[2], "Another comment in the middle");
+
+    // Other keys work as expected
+    assert_eq!(model_as_str(model.get("name").unwrap()).unwrap(), "value");
+    assert_eq!(model_as_str(model.get("other").unwrap()).unwrap(), "data");
 }
 
 #[test]
@@ -95,14 +129,17 @@ another =
 non_empty = value
 "#;
 
-    let model = parse(ccl).expect("should parse");
+    let model = load(ccl).expect("should load");
 
     assert_eq!(
-        model.get("key_with_empty_value").unwrap().as_str().unwrap(),
+        model_as_str(model.get("key_with_empty_value").unwrap()).unwrap(),
         ""
     );
-    assert_eq!(model.get("another").unwrap().as_str().unwrap(), "");
-    assert_eq!(model.get("non_empty").unwrap().as_str().unwrap(), "value");
+    assert_eq!(model_as_str(model.get("another").unwrap()).unwrap(), "");
+    assert_eq!(
+        model_as_str(model.get("non_empty").unwrap()).unwrap(),
+        "value"
+    );
 }
 
 #[test]
@@ -114,52 +151,24 @@ path = /usr/local/bin
 command = echo "Hello World"
 "#;
 
-    let model = parse(ccl).expect("should parse");
+    let model = load(ccl).expect("should load");
 
     assert_eq!(
-        model.get("url").unwrap().as_str().unwrap(),
+        model_as_str(model.get("url").unwrap()).unwrap(),
         "https://github.com/user/repo"
     );
     assert_eq!(
-        model.get("email").unwrap().as_str().unwrap(),
+        model_as_str(model.get("email").unwrap()).unwrap(),
         "user@example.com"
     );
     assert_eq!(
-        model.get("path").unwrap().as_str().unwrap(),
+        model_as_str(model.get("path").unwrap()).unwrap(),
         "/usr/local/bin"
     );
     assert_eq!(
-        model.get("command").unwrap().as_str().unwrap(),
+        model_as_str(model.get("command").unwrap()).unwrap(),
         "echo \"Hello World\""
     );
-}
-
-#[test]
-fn test_model_merging() {
-    let config1 = parse(
-        r#"
-name = App1
-version = 1.0.0
-"#,
-    )
-    .unwrap();
-
-    let config2 = parse(
-        r#"
-author = Tyler
-license = MIT
-"#,
-    )
-    .unwrap();
-
-    let merged = config1.merge(config2);
-    let map = merged.as_map().unwrap();
-
-    assert_eq!(map.len(), 4);
-    assert!(map.contains_key("name"));
-    assert!(map.contains_key("version"));
-    assert!(map.contains_key("author"));
-    assert!(map.contains_key("license"));
 }
 
 #[test]
@@ -172,22 +181,22 @@ bool_true = true
 bool_false = false
 "#;
 
-    let model = parse(ccl).expect("should parse");
+    let model = load(ccl).expect("should load");
 
-    // String
-    assert_eq!(model.get("string_val").unwrap().as_str().unwrap(), "hello");
+    // String - use public get_string API
+    assert_eq!(model.get_string("string_val").unwrap(), "hello");
 
-    // Integer
-    let int: i32 = model.get("int_val").unwrap().parse_value().unwrap();
+    // Integer - use public get_int API
+    let int = model.get_int("int_val").unwrap();
     assert_eq!(int, 42);
 
-    // Float
-    let float: f64 = model.get("float_val").unwrap().parse_value().unwrap();
+    // Float - use public get_float API
+    let float = model.get_float("float_val").unwrap();
     assert!((float - std::f64::consts::PI).abs() < 0.01);
 
-    // Booleans
-    let bool_t: bool = model.get("bool_true").unwrap().parse_value().unwrap();
-    let bool_f: bool = model.get("bool_false").unwrap().parse_value().unwrap();
+    // Booleans - use public get_bool API
+    let bool_t = model.get_bool("bool_true").unwrap();
+    let bool_f = model.get_bool("bool_false").unwrap();
     assert!(bool_t);
     assert!(!bool_f);
 }

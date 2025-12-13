@@ -1,0 +1,36 @@
+# git-cliff config for santa-data
+# Auto-generated - edit generate-cliff-configs.py instead
+
+[changelog]
+header = """# Changelog
+
+All notable changes to this project will be documented in this file.
+"""
+body = """
+{% for group, commits in commits | group_by(attribute="group") %}
+### {{ group | upper_first }}
+{% for commit in commits %}
+- {{ commit.message | upper_first }}
+{% endfor %}
+{% endfor %}
+"""
+trim = true
+
+[git]
+conventional_commits = true
+filter_unconventional = true
+commit_parsers = [
+    { message = "^feat\\(santa-data\\)", group = "Features" },
+    { message = "^fix\\(santa-data\\)", group = "Bug Fixes" },
+    { message = "^docs\\(santa-data\\)", group = "Documentation" },
+    { message = "^refactor\\(santa-data\\)", group = "Refactoring" },
+    { message = "^perf\\(santa-data\\)", group = "Performance" },
+    { message = "^test\\(santa-data\\)", group = "Testing" },
+    { message = "^feat:", group = "Features" },
+    { message = "^fix:", group = "Bug Fixes" },
+    { message = "^docs:", group = "Documentation" },
+    { message = "^refactor:", group = "Refactoring" },
+    { message = "^perf:", group = "Performance" },
+    { message = "^test:", group = "Testing" },
+    { message = ".*", skip = true },
+]
