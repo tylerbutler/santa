@@ -564,6 +564,20 @@ pub async fn run() -> Result<(), anyhow::Error> {
             if packages.is_empty() {
                 bail!("No packages specified. Usage: santa add <package1> [package2 ...]");
             }
+            // Validate packages exist in database first (before config operations)
+            for pkg in packages.iter() {
+                if !data.packages.contains_key(pkg) {
+                    bail!("Package '{}' not found in database", pkg);
+                }
+            }
+            // In builtin-only mode, we can only validate packages exist
+            if cli.builtin_only {
+                for pkg in packages.iter() {
+                    println!("Package '{}' exists in database", pkg);
+                }
+                println!("\nNote: --builtin-only mode - packages not added to config file");
+                return Ok(());
+            }
             let config_path = cli
                 .config
                 .as_deref()
