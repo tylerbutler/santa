@@ -58,7 +58,7 @@ packages = ["git", "curl"]
     .unwrap();
 
     let mut cmd = Command::cargo_bin("santa").unwrap();
-    cmd.env("SANTA_CONFIG", config_file.path());
+    cmd.env("SANTA_CONFIG_PATH", config_file.path());
     cmd.arg("status");
 
     // Should process custom config successfully

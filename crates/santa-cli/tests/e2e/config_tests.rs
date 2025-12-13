@@ -52,7 +52,7 @@ packages = ["rust-analyzer", "ripgrep"]
     .unwrap();
 
     let mut cmd = Command::cargo_bin("santa").unwrap();
-    cmd.env("SANTA_CONFIG", config_file.path());
+    cmd.env("SANTA_CONFIG_PATH", config_file.path());
     cmd.arg("config");
 
     // Should display custom configuration
@@ -69,7 +69,7 @@ fn config_command_with_invalid_config_file() {
     writeln!(config_file, "invalid ccl syntax @@@").unwrap();
 
     let mut cmd = Command::cargo_bin("santa").unwrap();
-    cmd.env("SANTA_CONFIG", config_file.path());
+    cmd.env("SANTA_CONFIG_PATH", config_file.path());
     cmd.arg("config");
 
     // Should handle invalid config gracefully (may succeed with default or fail)

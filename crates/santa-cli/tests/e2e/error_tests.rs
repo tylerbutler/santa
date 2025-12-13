@@ -43,7 +43,7 @@ fn invalid_flag_combination_handled() {
 #[test]
 fn nonexistent_config_file_handled() {
     let mut cmd = Command::cargo_bin("santa").unwrap();
-    cmd.env("SANTA_CONFIG", "/nonexistent/path/to/config.ccl");
+    cmd.env("SANTA_CONFIG_PATH", "/nonexistent/path/to/config.ccl");
     cmd.args(["status", "--builtin-only"]);
 
     // Should handle missing config file gracefully
@@ -59,7 +59,7 @@ fn malformed_config_file_shows_error() {
     writeln!(config_file, "completely invalid syntax @@@ {{{{ ]]]]]").unwrap();
 
     let mut cmd = Command::cargo_bin("santa").unwrap();
-    cmd.env("SANTA_CONFIG", config_file.path());
+    cmd.env("SANTA_CONFIG_PATH", config_file.path());
     cmd.arg("config");
 
     // Should handle malformed config (may use default or show error)
@@ -75,7 +75,7 @@ fn empty_config_file_handled() {
     writeln!(config_file, "").unwrap();
 
     let mut cmd = Command::cargo_bin("santa").unwrap();
-    cmd.env("SANTA_CONFIG", config_file.path());
+    cmd.env("SANTA_CONFIG_PATH", config_file.path());
     cmd.args(["status"]);
 
     // Should handle empty config gracefully
@@ -131,7 +131,7 @@ packages = ["git; rm -rf /"]
     .unwrap();
 
     let mut cmd = Command::cargo_bin("santa").unwrap();
-    cmd.env("SANTA_CONFIG", config_file.path());
+    cmd.env("SANTA_CONFIG_PATH", config_file.path());
     cmd.arg("status");
 
     // Should process without executing the dangerous command
