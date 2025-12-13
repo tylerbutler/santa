@@ -574,7 +574,10 @@ pub async fn run() -> Result<(), anyhow::Error> {
                 .join(config_path);
             crate::commands::add_command(&config_path, packages.clone(), &data).await?;
         }
-        Commands::Remove { packages, uninstall } => {
+        Commands::Remove {
+            packages,
+            uninstall,
+        } => {
             if packages.is_empty() {
                 bail!("No packages specified. Usage: santa remove <package1> [package2 ...]");
             }

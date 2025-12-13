@@ -117,9 +117,9 @@ pub async fn status_command(
 
     // Apply source filter if provided
     if let Some(source_name) = source_filter {
-        sources.retain(|s| s.name() == source_name);
+        sources.retain(|s| s.name_str() == source_name);
         if sources.is_empty() {
-            return Err(SantaError::Configuration(format!(
+            return Err(SantaError::Config(anyhow::anyhow!(
                 "Source '{}' not found or not enabled",
                 source_name
             )));
@@ -233,7 +233,10 @@ pub async fn status_command(
 
                 // Determine if we should show installed packages in table
                 let include_installed = *all || *installed;
-                let table = format!("{}", source.table(&filtered_pkgs, &cache, data, include_installed));
+                let table = format!(
+                    "{}",
+                    source.table(&filtered_pkgs, &cache, data, include_installed)
+                );
 
                 #[cfg(debug_assertions)]
                 debug!(
@@ -489,7 +492,7 @@ pub async fn add_command(
     // Validate packages exist in database
     for pkg in &package_names {
         if !data.packages.contains_key(pkg) {
-            return Err(SantaError::Configuration(format!(
+            return Err(SantaError::Config(anyhow::anyhow!(
                 "Package '{}' not found in database",
                 pkg
             )));
@@ -507,9 +510,8 @@ pub async fn add_command(
     }
 
     // Save config back to CCL format
-    let ccl_content = sickle::to_string(&config).map_err(|e| {
-        SantaError::Configuration(format!("Failed to serialize config: {}", e))
-    })?;
+    let ccl_content = sickle::to_string(&config)
+        .map_err(|e| SantaError::Config(anyhow::anyhow!("Failed to serialize config: {}", e)))?;
     std::fs::write(config_path, ccl_content).map_err(SantaError::Io)?;
 
     println!("\nConfiguration updated: {}", config_path.display());
@@ -555,9 +557,8 @@ pub async fn remove_command(
     }
 
     // Save config back to CCL format
-    let ccl_content = sickle::to_string(&config).map_err(|e| {
-        SantaError::Configuration(format!("Failed to serialize config: {}", e))
-    })?;
+    let ccl_content = sickle::to_string(&config)
+        .map_err(|e| SantaError::Config(anyhow::anyhow!("Failed to serialize config: {}", e)))?;
     std::fs::write(config_path, ccl_content).map_err(SantaError::Io)?;
 
     println!("\nRemoved {} package(s) from configuration", removed_count);
