@@ -157,3 +157,4 @@ proptest! {
         prop_assert!(source.install_command().contains(&expected_cmd));
     }
 }
+
