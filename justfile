@@ -219,11 +219,11 @@ ci:
 # Binary Size Analysis Commands
 # =============================
 
-# Run cargo-bloat on santa and sickle, save to metrics/ (Linux only)
+# Run cargo-bloated on santa and sickle, save to metrics/ (Linux only)
 [linux]
 bloat:
-    cargo bloat -p santa --crates | tee metrics/bloat.txt
-    cargo bloat --lib -p sickle --all-features --crates | tee metrics/bloat-sickle.txt
+    cargo bloated -p santa --output crates | tee metrics/bloat.txt
+    cargo bloated --lib -p sickle --all-features --output crates | tee metrics/bloat-sickle.txt
 
 # Record release binary size to metrics/binary-size.txt
 [linux]
