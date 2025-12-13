@@ -3,6 +3,11 @@
   "tests": [
     {
       "behaviors": [],
+      "conflicts": {
+        "variants": [
+          "proposed_behavior"
+        ]
+      },
       "expected": {
         "count": 1,
         "entries": [
@@ -16,7 +21,9 @@
       "functions": [
         "parse"
       ],
-      "input": "item = single",
+      "inputs": [
+        "item = single"
+      ],
       "name": "single_item_as_list_reference_parse",
       "source_test": "single_item_as_list_reference",
       "validation": "parse",
@@ -26,6 +33,11 @@
     },
     {
       "behaviors": [],
+      "conflicts": {
+        "variants": [
+          "proposed_behavior"
+        ]
+      },
       "expected": {
         "count": 1,
         "object": {
@@ -36,7 +48,9 @@
       "functions": [
         "build_hierarchy"
       ],
-      "input": "item = single",
+      "inputs": [
+        "item = single"
+      ],
       "name": "single_item_as_list_reference_build_hierarchy",
       "source_test": "single_item_as_list_reference",
       "validation": "build_hierarchy",
@@ -51,6 +65,14 @@
       "behaviors": [
         "list_coercion_disabled"
       ],
+      "conflicts": {
+        "behaviors": [
+          "list_coercion_enabled"
+        ],
+        "variants": [
+          "proposed_behavior"
+        ]
+      },
       "expected": {
         "count": 0
       },
@@ -58,7 +80,9 @@
       "functions": [
         "get_list"
       ],
-      "input": "item = single",
+      "inputs": [
+        "item = single"
+      ],
       "name": "single_item_as_list_reference_get_list",
       "source_test": "single_item_as_list_reference",
       "validation": "get_list",
@@ -89,7 +113,9 @@
       "functions": [
         "parse"
       ],
-      "input": "ports = 80\nports = 443\nhost = localhost",
+      "inputs": [
+        "ports = 80\nports = 443\nhost = localhost"
+      ],
       "name": "mixed_duplicate_single_keys_reference_parse",
       "source_test": "mixed_duplicate_single_keys_reference",
       "validation": "parse",
@@ -113,7 +139,9 @@
       "functions": [
         "build_hierarchy"
       ],
-      "input": "ports = 80\nports = 443\nhost = localhost",
+      "inputs": [
+        "ports = 80\nports = 443\nhost = localhost"
+      ],
       "name": "mixed_duplicate_single_keys_reference_build_hierarchy",
       "source_test": "mixed_duplicate_single_keys_reference",
       "validation": "build_hierarchy",
@@ -127,6 +155,11 @@
         "list_coercion_disabled",
         "array_order_lexicographic"
       ],
+      "conflicts": {
+        "behaviors": [
+          "list_coercion_enabled"
+        ]
+      },
       "expected": {
         "count": 0
       },
@@ -134,7 +167,9 @@
       "functions": [
         "get_list"
       ],
-      "input": "ports = 80\nports = 443\nhost = localhost",
+      "inputs": [
+        "ports = 80\nports = 443\nhost = localhost"
+      ],
       "name": "mixed_duplicate_single_keys_reference_get_list",
       "source_test": "mixed_duplicate_single_keys_reference",
       "validation": "get_list",
@@ -142,6 +177,11 @@
     },
     {
       "behaviors": [],
+      "conflicts": {
+        "variants": [
+          "proposed_behavior"
+        ]
+      },
       "expected": {
         "count": 1,
         "entries": [
@@ -155,7 +195,9 @@
       "functions": [
         "parse"
       ],
-      "input": "database =\n  hosts = primary\n  hosts = secondary\n  port = 5432",
+      "inputs": [
+        "database =\n  hosts = primary\n  hosts = secondary\n  port = 5432"
+      ],
       "name": "nested_list_access_reference_parse",
       "source_test": "nested_list_access_reference",
       "validation": "parse",
@@ -165,6 +207,11 @@
     },
     {
       "behaviors": [],
+      "conflicts": {
+        "variants": [
+          "proposed_behavior"
+        ]
+      },
       "expected": {
         "count": 1,
         "object": {
@@ -181,7 +228,9 @@
       "functions": [
         "build_hierarchy"
       ],
-      "input": "database =\n  hosts = primary\n  hosts = secondary\n  port = 5432",
+      "inputs": [
+        "database =\n  hosts = primary\n  hosts = secondary\n  port = 5432"
+      ],
       "name": "nested_list_access_reference_build_hierarchy",
       "source_test": "nested_list_access_reference",
       "validation": "build_hierarchy",
@@ -197,6 +246,14 @@
       "behaviors": [
         "list_coercion_disabled"
       ],
+      "conflicts": {
+        "behaviors": [
+          "list_coercion_enabled"
+        ],
+        "variants": [
+          "proposed_behavior"
+        ]
+      },
       "expected": {
         "count": 0
       },
@@ -204,7 +261,9 @@
       "functions": [
         "get_list"
       ],
-      "input": "database =\n  hosts = primary\n  hosts = secondary\n  port = 5432",
+      "inputs": [
+        "database =\n  hosts = primary\n  hosts = secondary\n  port = 5432"
+      ],
       "name": "nested_list_access_reference_get_list",
       "source_test": "nested_list_access_reference",
       "validation": "get_list",
@@ -214,6 +273,11 @@
     },
     {
       "behaviors": [],
+      "conflicts": {
+        "variants": [
+          "proposed_behavior"
+        ]
+      },
       "expected": {
         "count": 1,
         "entries": [
@@ -227,7 +291,9 @@
       "functions": [
         "parse"
       ],
-      "input": "empty_list =",
+      "inputs": [
+        "empty_list ="
+      ],
       "name": "empty_list_reference_parse",
       "source_test": "empty_list_reference",
       "validation": "parse",
@@ -237,6 +303,11 @@
     },
     {
       "behaviors": [],
+      "conflicts": {
+        "variants": [
+          "proposed_behavior"
+        ]
+      },
       "expected": {
         "count": 1,
         "object": {
@@ -247,7 +318,9 @@
       "functions": [
         "build_hierarchy"
       ],
-      "input": "empty_list =",
+      "inputs": [
+        "empty_list ="
+      ],
       "name": "empty_list_reference_build_hierarchy",
       "source_test": "empty_list_reference",
       "validation": "build_hierarchy",
@@ -260,6 +333,11 @@
         "empty_list"
       ],
       "behaviors": [],
+      "conflicts": {
+        "variants": [
+          "proposed_behavior"
+        ]
+      },
       "expected": {
         "count": 0
       },
@@ -267,7 +345,9 @@
       "functions": [
         "get_list"
       ],
-      "input": "empty_list =",
+      "inputs": [
+        "empty_list ="
+      ],
       "name": "empty_list_reference_get_list",
       "source_test": "empty_list_reference",
       "validation": "get_list",
@@ -302,7 +382,9 @@
       "functions": [
         "parse"
       ],
-      "input": "numbers = 1\nnumbers = 42\nnumbers = -17\nnumbers = 0",
+      "inputs": [
+        "numbers = 1\nnumbers = 42\nnumbers = -17\nnumbers = 0"
+      ],
       "name": "list_with_numbers_reference_parse",
       "source_test": "list_with_numbers_reference",
       "validation": "parse",
@@ -327,7 +409,9 @@
       "functions": [
         "build_hierarchy"
       ],
-      "input": "numbers = 1\nnumbers = 42\nnumbers = -17\nnumbers = 0",
+      "inputs": [
+        "numbers = 1\nnumbers = 42\nnumbers = -17\nnumbers = 0"
+      ],
       "name": "list_with_numbers_reference_build_hierarchy",
       "source_test": "list_with_numbers_reference",
       "validation": "build_hierarchy",
@@ -341,6 +425,11 @@
         "list_coercion_disabled",
         "array_order_lexicographic"
       ],
+      "conflicts": {
+        "behaviors": [
+          "list_coercion_enabled"
+        ]
+      },
       "expected": {
         "count": 0
       },
@@ -348,7 +437,9 @@
       "functions": [
         "get_list"
       ],
-      "input": "numbers = 1\nnumbers = 42\nnumbers = -17\nnumbers = 0",
+      "inputs": [
+        "numbers = 1\nnumbers = 42\nnumbers = -17\nnumbers = 0"
+      ],
       "name": "list_with_numbers_reference_get_list",
       "source_test": "list_with_numbers_reference",
       "validation": "get_list",
@@ -381,7 +472,9 @@
       "functions": [
         "parse"
       ],
-      "input": "flags = true\nflags = false\nflags = yes\nflags = no",
+      "inputs": [
+        "flags = true\nflags = false\nflags = yes\nflags = no"
+      ],
       "name": "list_with_booleans_reference_parse",
       "source_test": "list_with_booleans_reference",
       "validation": "parse",
@@ -406,7 +499,9 @@
       "functions": [
         "build_hierarchy"
       ],
-      "input": "flags = true\nflags = false\nflags = yes\nflags = no",
+      "inputs": [
+        "flags = true\nflags = false\nflags = yes\nflags = no"
+      ],
       "name": "list_with_booleans_reference_build_hierarchy",
       "source_test": "list_with_booleans_reference",
       "validation": "build_hierarchy",
@@ -420,6 +515,11 @@
         "list_coercion_disabled",
         "array_order_lexicographic"
       ],
+      "conflicts": {
+        "behaviors": [
+          "list_coercion_enabled"
+        ]
+      },
       "expected": {
         "count": 0
       },
@@ -427,7 +527,9 @@
       "functions": [
         "get_list"
       ],
-      "input": "flags = true\nflags = false\nflags = yes\nflags = no",
+      "inputs": [
+        "flags = true\nflags = false\nflags = yes\nflags = no"
+      ],
       "name": "list_with_booleans_reference_get_list",
       "source_test": "list_with_booleans_reference",
       "validation": "get_list",
@@ -462,7 +564,9 @@
       "functions": [
         "parse"
       ],
-      "input": "items =   spaced   \nitems = normal\nitems =\nitems =   ",
+      "inputs": [
+        "items =   spaced   \nitems = normal\nitems =\nitems =   "
+      ],
       "name": "list_with_whitespace_reference_parse",
       "source_test": "list_with_whitespace_reference",
       "validation": "parse",
@@ -487,7 +591,9 @@
       "functions": [
         "build_hierarchy"
       ],
-      "input": "items =   spaced   \nitems = normal\nitems =\nitems =   ",
+      "inputs": [
+        "items =   spaced   \nitems = normal\nitems =\nitems =   "
+      ],
       "name": "list_with_whitespace_reference_build_hierarchy",
       "source_test": "list_with_whitespace_reference",
       "validation": "build_hierarchy",
@@ -501,6 +607,11 @@
         "list_coercion_disabled",
         "array_order_lexicographic"
       ],
+      "conflicts": {
+        "behaviors": [
+          "list_coercion_enabled"
+        ]
+      },
       "expected": {
         "count": 0
       },
@@ -510,7 +621,9 @@
       "functions": [
         "get_list"
       ],
-      "input": "items =   spaced   \nitems = normal\nitems =\nitems =   ",
+      "inputs": [
+        "items =   spaced   \nitems = normal\nitems =\nitems =   "
+      ],
       "name": "list_with_whitespace_reference_get_list",
       "source_test": "list_with_whitespace_reference",
       "validation": "get_list",
@@ -531,7 +644,9 @@
       "functions": [
         "parse"
       ],
-      "input": "config =\n  environments =\n    production =\n      servers = web1\n      servers = web2\n      servers = api1",
+      "inputs": [
+        "config =\n  environments =\n    production =\n      servers = web1\n      servers = web2\n      servers = api1"
+      ],
       "name": "deeply_nested_list_reference_parse",
       "source_test": "deeply_nested_list_reference",
       "validation": "parse",
@@ -561,7 +676,9 @@
       "functions": [
         "build_hierarchy"
       ],
-      "input": "config =\n  environments =\n    production =\n      servers = web1\n      servers = web2\n      servers = api1",
+      "inputs": [
+        "config =\n  environments =\n    production =\n      servers = web1\n      servers = web2\n      servers = api1"
+      ],
       "name": "deeply_nested_list_reference_build_hierarchy",
       "source_test": "deeply_nested_list_reference",
       "validation": "build_hierarchy",
@@ -578,6 +695,11 @@
         "list_coercion_disabled",
         "array_order_lexicographic"
       ],
+      "conflicts": {
+        "behaviors": [
+          "list_coercion_enabled"
+        ]
+      },
       "expected": {
         "count": 0
       },
@@ -585,7 +707,9 @@
       "functions": [
         "get_list"
       ],
-      "input": "config =\n  environments =\n    production =\n      servers = web1\n      servers = web2\n      servers = api1",
+      "inputs": [
+        "config =\n  environments =\n    production =\n      servers = web1\n      servers = web2\n      servers = api1"
+      ],
       "name": "deeply_nested_list_reference_get_list",
       "source_test": "deeply_nested_list_reference",
       "validation": "get_list",
@@ -620,7 +744,9 @@
       "functions": [
         "parse"
       ],
-      "input": "names = 张三\nnames = José\nnames = François\nnames = العربية",
+      "inputs": [
+        "names = 张三\nnames = José\nnames = François\nnames = العربية"
+      ],
       "name": "list_with_unicode_reference_parse",
       "source_test": "list_with_unicode_reference",
       "validation": "parse",
@@ -647,7 +773,9 @@
       "functions": [
         "build_hierarchy"
       ],
-      "input": "names = 张三\nnames = José\nnames = François\nnames = العربية",
+      "inputs": [
+        "names = 张三\nnames = José\nnames = François\nnames = العربية"
+      ],
       "name": "list_with_unicode_reference_build_hierarchy",
       "source_test": "list_with_unicode_reference",
       "validation": "build_hierarchy",
@@ -661,6 +789,11 @@
         "list_coercion_disabled",
         "array_order_lexicographic"
       ],
+      "conflicts": {
+        "behaviors": [
+          "list_coercion_enabled"
+        ]
+      },
       "expected": {
         "count": 0
       },
@@ -670,7 +803,9 @@
       "functions": [
         "get_list"
       ],
-      "input": "names = 张三\nnames = José\nnames = François\nnames = العربية",
+      "inputs": [
+        "names = 张三\nnames = José\nnames = François\nnames = العربية"
+      ],
       "name": "list_with_unicode_reference_get_list",
       "source_test": "list_with_unicode_reference",
       "validation": "get_list",
@@ -699,7 +834,9 @@
       "functions": [
         "parse"
       ],
-      "input": "symbols = @#$%\nsymbols = !^\u0026*()\nsymbols = []{}|",
+      "inputs": [
+        "symbols = @#$%\nsymbols = !^\u0026*()\nsymbols = []{}|"
+      ],
       "name": "list_with_special_characters_reference_parse",
       "source_test": "list_with_special_characters_reference",
       "validation": "parse",
@@ -723,7 +860,9 @@
       "functions": [
         "build_hierarchy"
       ],
-      "input": "symbols = @#$%\nsymbols = !^\u0026*()\nsymbols = []{}|",
+      "inputs": [
+        "symbols = @#$%\nsymbols = !^\u0026*()\nsymbols = []{}|"
+      ],
       "name": "list_with_special_characters_reference_build_hierarchy",
       "source_test": "list_with_special_characters_reference",
       "validation": "build_hierarchy",
@@ -737,6 +876,11 @@
         "list_coercion_disabled",
         "array_order_lexicographic"
       ],
+      "conflicts": {
+        "behaviors": [
+          "list_coercion_enabled"
+        ]
+      },
       "expected": {
         "count": 0
       },
@@ -744,7 +888,9 @@
       "functions": [
         "get_list"
       ],
-      "input": "symbols = @#$%\nsymbols = !^\u0026*()\nsymbols = []{}|",
+      "inputs": [
+        "symbols = @#$%\nsymbols = !^\u0026*()\nsymbols = []{}|"
+      ],
       "name": "list_with_special_characters_reference_get_list",
       "source_test": "list_with_special_characters_reference",
       "validation": "get_list",
@@ -782,7 +928,9 @@
       "functions": [
         "build_hierarchy"
       ],
-      "input": "config =\n  servers = web1\n  servers = web2\n  database =\n    hosts = primary\n    hosts = backup\n    port = 5432\n  cache = redis\nfeatures = auth\nfeatures = api\nfeatures = ui",
+      "inputs": [
+        "config =\n  servers = web1\n  servers = web2\n  database =\n    hosts = primary\n    hosts = backup\n    port = 5432\n  cache = redis\nfeatures = auth\nfeatures = api\nfeatures = ui"
+      ],
       "name": "complex_mixed_list_scenarios_reference_build_hierarchy",
       "source_test": "complex_mixed_list_scenarios_reference",
       "validation": "build_hierarchy",
@@ -796,6 +944,11 @@
         "list_coercion_disabled",
         "array_order_lexicographic"
       ],
+      "conflicts": {
+        "behaviors": [
+          "list_coercion_enabled"
+        ]
+      },
       "expected": {
         "count": 0
       },
@@ -803,7 +956,9 @@
       "functions": [
         "get_list"
       ],
-      "input": "config =\n  servers = web1\n  servers = web2\n  database =\n    hosts = primary\n    hosts = backup\n    port = 5432\n  cache = redis\nfeatures = auth\nfeatures = api\nfeatures = ui",
+      "inputs": [
+        "config =\n  servers = web1\n  servers = web2\n  database =\n    hosts = primary\n    hosts = backup\n    port = 5432\n  cache = redis\nfeatures = auth\nfeatures = api\nfeatures = ui"
+      ],
       "name": "complex_mixed_list_scenarios_reference_get_list",
       "source_test": "complex_mixed_list_scenarios_reference",
       "validation": "get_list",
@@ -811,6 +966,11 @@
     },
     {
       "behaviors": [],
+      "conflicts": {
+        "variants": [
+          "proposed_behavior"
+        ]
+      },
       "expected": {
         "count": 1,
         "entries": [
@@ -824,7 +984,9 @@
       "functions": [
         "parse"
       ],
-      "input": "safe = value",
+      "inputs": [
+        "safe = value"
+      ],
       "name": "list_path_traversal_protection_reference_parse",
       "source_test": "list_path_traversal_protection_reference",
       "validation": "parse",
@@ -834,6 +996,11 @@
     },
     {
       "behaviors": [],
+      "conflicts": {
+        "variants": [
+          "proposed_behavior"
+        ]
+      },
       "expected": {
         "count": 1,
         "object": {
@@ -844,7 +1011,9 @@
       "functions": [
         "build_hierarchy"
       ],
-      "input": "safe = value",
+      "inputs": [
+        "safe = value"
+      ],
       "name": "list_path_traversal_protection_reference_build_hierarchy",
       "source_test": "list_path_traversal_protection_reference",
       "validation": "build_hierarchy",
@@ -859,6 +1028,14 @@
       "behaviors": [
         "list_coercion_disabled"
       ],
+      "conflicts": {
+        "behaviors": [
+          "list_coercion_enabled"
+        ],
+        "variants": [
+          "proposed_behavior"
+        ]
+      },
       "expected": {
         "count": 0
       },
@@ -866,7 +1043,9 @@
       "functions": [
         "get_list"
       ],
-      "input": "safe = value",
+      "inputs": [
+        "safe = value"
+      ],
       "name": "list_path_traversal_protection_reference_get_list",
       "source_test": "list_path_traversal_protection_reference",
       "validation": "get_list",
@@ -876,6 +1055,11 @@
     },
     {
       "behaviors": [],
+      "conflicts": {
+        "variants": [
+          "proposed_behavior"
+        ]
+      },
       "expected": {
         "count": 1,
         "entries": [
@@ -889,7 +1073,9 @@
       "functions": [
         "parse"
       ],
-      "input": "empty_key =",
+      "inputs": [
+        "empty_key ="
+      ],
       "name": "empty_value_reference_behavior_parse",
       "source_test": "empty_value_reference_behavior",
       "validation": "parse",
@@ -899,6 +1085,11 @@
     },
     {
       "behaviors": [],
+      "conflicts": {
+        "variants": [
+          "proposed_behavior"
+        ]
+      },
       "expected": {
         "count": 1,
         "object": {
@@ -909,7 +1100,9 @@
       "functions": [
         "build_hierarchy"
       ],
-      "input": "empty_key =",
+      "inputs": [
+        "empty_key ="
+      ],
       "name": "empty_value_reference_behavior_build_hierarchy",
       "source_test": "empty_value_reference_behavior",
       "validation": "build_hierarchy",
@@ -919,6 +1112,11 @@
     },
     {
       "behaviors": [],
+      "conflicts": {
+        "variants": [
+          "proposed_behavior"
+        ]
+      },
       "expected": {
         "count": 1,
         "value": "empty_key =\n"
@@ -927,7 +1125,9 @@
       "functions": [
         "canonical_format"
       ],
-      "input": "empty_key =",
+      "inputs": [
+        "empty_key ="
+      ],
       "name": "canonical_format_empty_values_ocaml_reference_canonical_format",
       "source_test": "canonical_format_empty_values_ocaml_reference",
       "validation": "canonical_format",
@@ -939,6 +1139,14 @@
       "behaviors": [
         "tabs_preserve"
       ],
+      "conflicts": {
+        "behaviors": [
+          "tabs_to_spaces"
+        ],
+        "variants": [
+          "proposed_behavior"
+        ]
+      },
       "expected": {
         "count": 1,
         "value": "value_with_tabs =\n  text\t\twith\ttabs =\n"
@@ -947,7 +1155,9 @@
       "functions": [
         "canonical_format"
       ],
-      "input": "value_with_tabs = text\t\twith\ttabs\t",
+      "inputs": [
+        "value_with_tabs = text\t\twith\ttabs\t"
+      ],
       "name": "canonical_format_tab_preservation_ocaml_reference_canonical_format",
       "source_test": "canonical_format_tab_preservation_ocaml_reference",
       "validation": "canonical_format",
@@ -957,6 +1167,11 @@
     },
     {
       "behaviors": [],
+      "conflicts": {
+        "variants": [
+          "proposed_behavior"
+        ]
+      },
       "expected": {
         "count": 1,
         "value": "emo =\n  🌟✨ =\nunicode =\n  你好世界 =\n"
@@ -967,7 +1182,9 @@
       "functions": [
         "canonical_format"
       ],
-      "input": "unicode = 你好世界\nemo = 🌟✨",
+      "inputs": [
+        "unicode = 你好世界\nemo = 🌟✨"
+      ],
       "name": "canonical_format_unicode_ocaml_reference_canonical_format",
       "source_test": "canonical_format_unicode_ocaml_reference",
       "validation": "canonical_format",
@@ -979,6 +1196,14 @@
       "behaviors": [
         "crlf_preserve_literal"
       ],
+      "conflicts": {
+        "behaviors": [
+          "crlf_normalize_to_lf"
+        ],
+        "variants": [
+          "proposed_behavior"
+        ]
+      },
       "expected": {
         "count": 2,
         "entries": [
@@ -996,7 +1221,9 @@
       "functions": [
         "parse"
       ],
-      "input": "key1 = value1\r\nkey2 = value2\r\n",
+      "inputs": [
+        "key1 = value1\r\nkey2 = value2\r\n"
+      ],
       "name": "canonical_format_line_endings_reference_behavior_parse",
       "source_test": "canonical_format_line_endings_reference_behavior",
       "validation": "parse",
@@ -1008,6 +1235,14 @@
       "behaviors": [
         "crlf_preserve_literal"
       ],
+      "conflicts": {
+        "behaviors": [
+          "crlf_normalize_to_lf"
+        ],
+        "variants": [
+          "proposed_behavior"
+        ]
+      },
       "expected": {
         "count": 1,
         "value": "key1 =\n  value1\r =\nkey2 =\n  value2\r =\n"
@@ -1016,7 +1251,9 @@
       "functions": [
         "canonical_format"
       ],
-      "input": "key1 = value1\r\nkey2 = value2\r\n",
+      "inputs": [
+        "key1 = value1\r\nkey2 = value2\r\n"
+      ],
       "name": "canonical_format_line_endings_reference_behavior_canonical_format",
       "source_test": "canonical_format_line_endings_reference_behavior",
       "validation": "canonical_format",
@@ -1026,6 +1263,11 @@
     },
     {
       "behaviors": [],
+      "conflicts": {
+        "variants": [
+          "proposed_behavior"
+        ]
+      },
       "expected": {
         "count": 1,
         "value": "key1 =\n  value1 =\nkey2 =\n  value2 =\nkey3 =\n  value3 =\n"
@@ -1034,7 +1276,9 @@
       "functions": [
         "canonical_format"
       ],
-      "input": "key1=value1\nkey2  =  value2\nkey3\t=\tvalue3",
+      "inputs": [
+        "key1=value1\nkey2  =  value2\nkey3\t=\tvalue3"
+      ],
       "name": "canonical_format_consistent_spacing_ocaml_reference_canonical_format",
       "source_test": "canonical_format_consistent_spacing_ocaml_reference",
       "validation": "canonical_format",
@@ -1044,6 +1288,11 @@
     },
     {
       "behaviors": [],
+      "conflicts": {
+        "variants": [
+          "proposed_behavior"
+        ]
+      },
       "expected": {
         "count": 1,
         "value": "a =\n  first =\nm =\n  middle =\nz =\n  last =\n"
@@ -1052,7 +1301,9 @@
       "functions": [
         "canonical_format"
       ],
-      "input": "z = last\na = first\nm = middle",
+      "inputs": [
+        "z = last\na = first\nm = middle"
+      ],
       "name": "deterministic_output_ocaml_reference_canonical_format",
       "source_test": "deterministic_output_ocaml_reference",
       "validation": "canonical_format",

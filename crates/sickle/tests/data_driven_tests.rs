@@ -254,7 +254,7 @@ fn test_parsing_suite_basic_tests() {
     for test in parse_tests {
         let test_result = std::panic::catch_unwind(|| {
             // Parse and build hierarchy
-            let result = load(&test.input);
+            let result = load(test.input());
 
             // Check that parse succeeds or fails appropriately
             if test.expected.error.is_some() {
@@ -329,7 +329,7 @@ fn test_comments_suite() {
 
     for test in comment_tests {
         let test_result = std::panic::catch_unwind(|| {
-            let result = load(&test.input);
+            let result = load(test.input());
 
             if test.expected.error.is_some() {
                 assert!(
@@ -394,7 +394,7 @@ fn test_typed_access_suite_strings() {
     for test in string_tests {
         let test_result = std::panic::catch_unwind(|| {
             // Parse the input
-            let model = load(&test.input).unwrap_or_else(|e| {
+            let model = load(test.input()).unwrap_or_else(|e| {
                 panic!("Test '{}' failed to parse: {}", test.name, e);
             });
 
@@ -470,7 +470,7 @@ fn test_filter_function() {
     for test in &filter_tests {
         let test_result = std::panic::catch_unwind(|| {
             // Parse the input
-            let model = load(&test.input).unwrap_or_else(|e| {
+            let model = load(test.input()).unwrap_or_else(|e| {
                 panic!("Test '{}' failed to parse: {}", test.name, e);
             });
 
@@ -727,11 +727,11 @@ fn test_all_ccl_suites_comprehensive() {
                 // Parse the input based on validation type
                 let (entries, model_result) =
                     if test.validation == "parse_dedented" || test.validation == "parse_indented" {
-                        let e = parse_indented(&test.input);
+                        let e = parse_indented(test.input());
                         let m = e.as_ref().ok().map(|entries| build_hierarchy(entries));
                         (e, m)
                     } else {
-                        let e = parse(&test.input);
+                        let e = parse(test.input());
                         let m = e.as_ref().ok().map(|entries| build_hierarchy(entries));
                         (e, m)
                     };
@@ -1132,7 +1132,7 @@ fn test_all_ccl_suites_comprehensive() {
                     }
                     "canonical_format" => {
                         // Parse input and convert to canonical format
-                        let model = load(&test.input).unwrap_or_else(|e| {
+                        let model = load(test.input()).unwrap_or_else(|e| {
                             panic!("Test '{}' failed to load: {}", test.name, e);
                         });
 
