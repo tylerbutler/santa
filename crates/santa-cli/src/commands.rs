@@ -30,7 +30,7 @@
 //! let cache = PackageCache::new();
 //!
 //! // Display package status
-//! status_command(&mut config, &data, cache, &false).await?;
+//! status_command(&mut config, &data, cache, &false, &false, &false, None).await?;
 //! # Ok(())
 //! # }
 //! ```
