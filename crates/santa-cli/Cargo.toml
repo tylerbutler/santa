@@ -98,6 +98,9 @@ thiserror = "2.0.17"
 # HTTP client for fetching remote sources (lightweight, minimal deps)
 minreq = { version = "2.14.1", features = ["https-rustls"] }
 
+# Progress indicators and spinners for long operations
+indicatif = "0.18.3"
+
 [dev-dependencies]
 # Parameterized testing framework with fixtures
 rstest = "0.18"
