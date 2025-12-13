@@ -316,9 +316,9 @@ mod status_command_tests {
             &mut config,
             &test_data,
             populated_cache,
-            &false,    // all
-            &true,     // installed
-            &false,    // missing
+            &false, // all
+            &true,  // installed
+            &false, // missing
             None,
         )
         .await;
@@ -347,9 +347,9 @@ mod status_command_tests {
             &mut config,
             &test_data,
             populated_cache,
-            &false,    // all
-            &false,    // installed
-            &true,     // missing
+            &false, // all
+            &false, // installed
+            &true,  // missing
             None,
         )
         .await;
@@ -433,8 +433,8 @@ mod status_command_tests {
             &mut basic_config,
             &test_data,
             populated_cache,
-            &true,     // all
-            &true,     // installed (should be a no-op when all is true)
+            &true, // all
+            &true, // installed (should be a no-op when all is true)
             &false,
             None,
         )
@@ -489,7 +489,11 @@ mod status_command_tests {
             .filter(|p| cache.check(&source, p, &data))
             .cloned()
             .collect();
-        assert_eq!(installed, vec!["git", "vim"], "Should show only installed packages");
+        assert_eq!(
+            installed,
+            vec!["git", "vim"],
+            "Should show only installed packages"
+        );
 
         // Test missing filter
         let missing: Vec<String> = pkg_list
@@ -839,7 +843,10 @@ packages =
 
         // Add a package that exists in the test data
         let result = add_command(temp_file.path(), vec!["git".to_string()], &test_data).await;
-        assert!(result.is_ok(), "add_command should succeed for valid packages");
+        assert!(
+            result.is_ok(),
+            "add_command should succeed for valid packages"
+        );
 
         // Verify the package was added
         let updated_content = std::fs::read_to_string(temp_file.path()).unwrap();
@@ -862,9 +869,12 @@ packages =
         let temp_file = create_test_config_file(config_content);
 
         // Try to add a package that doesn't exist in the data
-        let result =
-            add_command(temp_file.path(), vec!["nonexistent_package".to_string()], &test_data)
-                .await;
+        let result = add_command(
+            temp_file.path(),
+            vec!["nonexistent_package".to_string()],
+            &test_data,
+        )
+        .await;
         assert!(
             result.is_err(),
             "add_command should fail for packages not in database"
@@ -924,10 +934,7 @@ packages =
 
         // Verify both packages were added
         let updated_content = std::fs::read_to_string(temp_file.path()).unwrap();
-        assert!(
-            updated_content.contains("git"),
-            "Config should contain git"
-        );
+        assert!(updated_content.contains("git"), "Config should contain git");
         assert!(
             updated_content.contains("curl"),
             "Config should contain curl"
@@ -1046,8 +1053,7 @@ packages =
         let temp_file = create_test_config_file(config_content);
 
         // Try to remove a package that's not in config
-        let result =
-            remove_command(temp_file.path(), vec!["nonexistent".to_string()], false).await;
+        let result = remove_command(temp_file.path(), vec!["nonexistent".to_string()], false).await;
         assert!(
             result.is_ok(),
             "remove_command should succeed even when package not found"
