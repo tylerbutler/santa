@@ -43,6 +43,7 @@ use crate::errors::{Result, SantaError};
 use crate::script_generator::{ExecutionMode, ScriptFormat};
 use crate::{configuration::SantaConfig, sources::PackageCache};
 use futures::future::try_join_all;
+use indicatif::{MultiProgress, ProgressBar, ProgressStyle};
 use std::sync::Arc;
 use tabular::{Row, Table};
 use tokio::sync::RwLock;
@@ -118,6 +119,12 @@ pub async fn status_command(
     // Track durations for each source
     let durations = Arc::new(RwLock::new(HashMap::new()));
 
+    // Create multi-progress for concurrent operations
+    let multi = MultiProgress::new();
+    let style = ProgressStyle::with_template("  {spinner:.green} {msg}")
+        .unwrap()
+        .tick_chars("⠁⠂⠄⡀⢀⠠⠐⠈ ");
+
     // Use structured concurrency to cache data for all sources concurrently
     #[cfg(debug_assertions)]
     let cache_setup_start = Instant::now();
@@ -128,9 +135,13 @@ pub async fn status_command(
             let cache_clone: Arc<RwLock<PackageCache>> = Arc::clone(&cache);
             let durations_clone = Arc::clone(&durations);
             let source = source.clone();
+            let pb = multi.add(ProgressBar::new_spinner());
+            pb.set_style(style.clone());
+            pb.set_message(format!("Checking {}...", source.name()));
+            pb.enable_steady_tick(std::time::Duration::from_millis(100));
+
             async move {
                 let task_start = Instant::now();
-                eprint!("  Checking {}... ", source.name());
                 let cache = cache_clone.write().await;
                 let result = cache.cache_for_async(&source).await;
                 let duration = task_start.elapsed();
@@ -139,7 +150,7 @@ pub async fn status_command(
                 let mut durations = durations_clone.write().await;
                 durations.insert(source.name_str(), duration);
 
-                eprintln!("✓");
+                pb.finish_with_message(format!("Checked {} ✓", source.name()));
                 #[cfg(debug_assertions)]
                 debug!("⏱️  Cache for {} took: {:?}", source.name(), duration);
                 result
