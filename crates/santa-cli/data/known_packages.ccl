@@ -1,7 +1,259 @@
 /= Packages with simple format (no source-specific overrides)
+
+/= Development Tools
 act =
   = brew
   = scoop
+
+cmake =
+  = brew
+  = scoop
+  = apt
+  = pacman
+  = nix
+
+docker =
+  = brew
+  = scoop
+  = apt
+  = pacman
+  = nix
+
+gradle =
+  = brew
+  = scoop
+  = apt
+  = pacman
+  = nix
+
+just =
+  = brew
+  = scoop
+  = apt
+  = pacman
+  = nix
+  = cargo
+
+make =
+  = brew
+  = apt
+  = pacman
+  = nix
+
+maven =
+  = brew
+  = scoop
+  = apt
+  = pacman
+  = nix
+
+meson =
+  = brew
+  = scoop
+  = apt
+  = pacman
+  = nix
+
+ninja =
+  = brew
+  = scoop
+  = apt
+  = pacman
+  = nix
+
+/= Text Editors
+helix =
+  = brew
+  = scoop
+  = apt
+  = pacman
+  = nix
+  = cargo
+
+neovim =
+  = brew
+  = scoop
+  = apt
+  = pacman
+  = nix
+
+vim =
+  = brew
+  = scoop
+  = apt
+  = pacman
+  = nix
+
+/= File Management Tools
+broot =
+  = brew
+  = scoop
+  = pacman
+  = nix
+  = cargo
+
+ranger =
+  = brew
+  = apt
+  = pacman
+  = nix
+
+tree =
+  = brew
+  = scoop
+  = apt
+  = pacman
+  = nix
+
+xplr =
+  = brew
+  = pacman
+  = nix
+  = cargo
+
+/= Git Tools
+lazygit =
+  = brew
+  = scoop
+  = apt
+  = pacman
+  = nix
+
+tig =
+  = brew
+  = apt
+  = pacman
+  = nix
+
+/= System Monitoring
+btop =
+  = brew
+  = scoop
+  = apt
+  = pacman
+  = nix
+
+glances =
+  = brew
+  = apt
+  = pacman
+  = nix
+
+htop =
+  = brew
+  = apt
+  = pacman
+  = nix
+
+/= Data Processing
+miller =
+  = brew
+  = apt
+  = pacman
+  = nix
+
+yq =
+  = brew
+  = scoop
+  = apt
+  = pacman
+  = nix
+
+/= Network Tools
+curl =
+  = brew
+  = scoop
+  = apt
+  = pacman
+  = nix
+
+httpie =
+  = brew
+  = apt
+  = pacman
+  = nix
+
+wget =
+  = brew
+  = scoop
+  = pacman
+  = apt
+
+/= Disk Tools
+duf =
+  = brew
+  = scoop
+  = apt
+  = pacman
+  = nix
+  = cargo
+
+hyperfine =
+  = brew
+  = scoop
+  = pacman
+  = nix
+  = cargo
+
+ncdu =
+  = brew
+  = apt
+  = pacman
+  = nix
+
+/= Shell Tools
+starship =
+  = brew
+  = scoop
+  = apt
+  = pacman
+  = nix
+  = cargo
+
+/= Database CLI Tools
+litecli =
+  = brew
+  = apt
+  = nix
+  = pip
+
+mycli =
+  = brew
+  = apt
+  = nix
+  = pip
+
+pgcli =
+  = brew
+  = apt
+  = nix
+  = pip
+
+/= Security Tools
+age =
+  = brew
+  = scoop
+  = apt
+  = pacman
+  = nix
+  = cargo
+
+gnupg =
+  = brew
+  = scoop
+  = apt
+  = pacman
+  = nix
+
+sops =
+  = brew
+  = scoop
+  = apt
+  = pacman
+  = nix
+  = cargo
+
+/= Additional Universal Tools
 
 aria2 =
   = brew
@@ -206,12 +458,6 @@ tre-command =
   = brew
   = scoop
 
-wget =
-  = brew
-  = scoop
-  = pacman
-  = apt
-
 which =
   = scoop
 
@@ -313,3 +559,40 @@ ripgrep =
 @fluidframework/build-tools =
   npm =
     install_suffix = @latest
+
+/= Aliases for commonly used alternative names
+btm =
+  scoop = bottom
+  _sources =
+    = brew
+    = pacman
+    = nix
+
+delta =
+  brew = git-delta
+  _sources =
+    = scoop
+    = pacman
+
+gh =
+  scoop = github-cli
+  brew = github-cli
+  _sources =
+    = apt
+    = pacman
+    = nix
+
+rg =
+  scoop = ripgrep
+  brew = ripgrep
+  _sources =
+    = apt
+    = pacman
+    = nix
+
+tldr =
+  brew = tealdeer
+  _sources =
+    = scoop
+    = pacman
+    = nix
