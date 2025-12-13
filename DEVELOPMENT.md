@@ -2,6 +2,23 @@
 
 This guide covers development workflows, architecture decisions, and maintenance procedures for the Santa package manager project.
 
+## Prerequisites
+
+1. **Rust** (1.80 or later): Install from [rustup.rs](https://rustup.rs/)
+   ```bash
+   curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+   ```
+
+2. **Just** task runner: Install using [mise](https://mise.jdx.dev/)
+   ```bash
+   mise use -g just
+   ```
+
+3. **Git**: Verify it's installed
+   ```bash
+   git --version
+   ```
+
 ## Quick Start
 
 ```bash
