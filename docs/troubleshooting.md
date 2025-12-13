@@ -45,13 +45,13 @@ Common issues and solutions when using Santa.
 
 **Common causes**:
 
-1. **Incorrect indentation**: CCL uses 2-space indentation
+1. **Incorrect indentation**: CCL requires consistent indentation (any amount of spaces works, but must be consistent)
    ```ccl
-   # Wrong
+   /= Wrong - no indentation
    sources =
    = brew
 
-   # Correct
+   /= Correct - indented
    sources =
      = brew
    ```

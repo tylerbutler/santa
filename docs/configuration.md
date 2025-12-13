@@ -298,76 +298,6 @@ export RUST_LOG=santa=trace
 santa install
 ```
 
-## Configuration Tips
-
-### Start Simple
-
-Begin with a minimal configuration and add packages as needed:
-
-```ccl
-sources =
-  = brew
-  = apt
-
-packages =
-  = git
-  = curl
-```
-
-### Use Comments
-
-Document why packages are included or why specific sources are chosen:
-
-```ccl
-/= Prefer Homebrew for up-to-date versions
-sources =
-  = brew
-  = apt
-
-/= Required for CI pipeline
-packages =
-  = jq
-  = yq
-
-/= Development tools
-packages =
-  = ripgrep
-  = bat
-```
-
-### Test Changes
-
-Use `santa config` to verify configuration is loaded correctly:
-
-```bash
-# Edit config
-vim ~/.config/santa/config.ccl
-
-# Verify
-santa config
-
-# Check packages
-santa config --packages
-
-# Test with specific config
-SANTA_CONFIG=./test-config.ccl santa status
-```
-
-### Share Configurations
-
-Keep configurations in version control for team sharing:
-
-```bash
-# In project repository
-mkdir .santa
-vim .santa/config.ccl
-
-# Team members can now use
-cd project
-santa status
-santa install
-```
-
 ## Configuration Validation
 
 Santa validates configuration on load. Common errors:
@@ -434,22 +364,6 @@ sources =
 
 packages =
   = myapp
-```
-
-## Migration from YAML
-
-Santa supports automatic migration from old YAML configurations. If you have `~/.config/santa/config.yaml`, Santa converts it to CCL format automatically on first run.
-
-Manual migration:
-
-```bash
-# Backup old config
-cp ~/.config/santa/config.yaml ~/.config/santa/config.yaml.bak
-
-# Run Santa (auto-migrates)
-santa status
-
-# New CCL config created at ~/.config/santa/config.ccl
 ```
 
 ## Reference
