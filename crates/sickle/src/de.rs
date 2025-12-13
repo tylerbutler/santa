@@ -12,7 +12,7 @@ use std::fmt;
 ///
 /// # Examples
 ///
-/// ```rust,ignore
+/// ```rust
 /// use serde::Deserialize;
 /// use sickle::from_str;
 ///
@@ -28,6 +28,8 @@ use std::fmt;
 /// "#;
 ///
 /// let config: Config = from_str(ccl).unwrap();
+/// assert_eq!(config.name, "MyApp");
+/// assert_eq!(config.version, "1.0.0");
 /// ```
 pub fn from_str<'a, T>(s: &'a str) -> Result<T>
 where
@@ -652,14 +654,12 @@ npm =
     fn test_deserialize_hashmap_with_optionals() {
         use std::collections::HashMap;
 
-        #[allow(dead_code)]
         #[derive(Deserialize, Debug)]
         struct PlatformOverride {
             install: Option<String>,
             check: Option<String>,
         }
 
-        #[allow(dead_code)]
         #[derive(Deserialize, Debug)]
         struct SourceDef {
             emoji: String,
@@ -694,28 +694,46 @@ nix =
         let sources: HashMap<String, SourceDef> = from_str(ccl).unwrap();
         assert_eq!(sources.len(), 3);
 
+        // Test brew
+        let brew = &sources["brew"];
+        assert_eq!(brew.emoji, "🍺");
+        assert_eq!(brew.install, "brew install {package}");
+        assert_eq!(brew.check, "brew leaves");
+        assert!(brew.prefix.is_none());
+        assert!(brew.overrides.is_none());
+
         // Test npm with overrides
         let npm = &sources["npm"];
         assert_eq!(npm.emoji, "📦");
+        assert_eq!(npm.install, "npm install -g {package}");
+        assert_eq!(npm.check, "npm list -g");
+        assert!(npm.prefix.is_none());
         assert!(npm.overrides.is_some());
+        let npm_overrides = npm.overrides.as_ref().unwrap();
+        assert!(npm_overrides.contains_key("windows"));
+        let windows_override = &npm_overrides["windows"];
+        assert_eq!(windows_override.check, Some("npm root -g | gci -Name".to_string()));
+        assert!(windows_override.install.is_none());
 
         // Test nix with prefix
         let nix = &sources["nix"];
+        assert_eq!(nix.emoji, "📈");
+        assert_eq!(nix.install, "nix-env -iA {package}");
+        assert_eq!(nix.check, "nix-env -q");
         assert_eq!(nix.prefix, Some("nixpkgs.".to_string()));
+        assert!(nix.overrides.is_none());
     }
 
     #[test]
     fn test_exact_santa_cli_case() {
         use std::collections::HashMap;
 
-        #[allow(dead_code)]
         #[derive(Deserialize, Debug)]
         struct PlatformOverride {
             install: Option<String>,
             check: Option<String>,
         }
 
-        #[allow(dead_code)]
         #[derive(Deserialize, Debug)]
         struct SourceDef {
             emoji: String,
@@ -751,6 +769,30 @@ flathub =
                 assert!(sources.contains_key("brew"));
                 assert!(sources.contains_key("npm"));
                 assert!(sources.contains_key("flathub"));
+
+                // Verify all fields for brew
+                let brew = &sources["brew"];
+                assert_eq!(brew.emoji, "🍺");
+                assert_eq!(brew.install, "brew install {package}");
+                assert_eq!(brew.check, "brew leaves --installed-on-request");
+                assert!(brew.prefix.is_none());
+                assert!(brew.overrides.is_none());
+
+                // Verify all fields for npm
+                let npm = &sources["npm"];
+                assert_eq!(npm.emoji, "📦");
+                assert_eq!(npm.install, "npm install -g {package}");
+                assert_eq!(npm.check, "npm list -g --depth=0");
+                assert!(npm.prefix.is_none());
+                assert!(npm.overrides.is_none());
+
+                // Verify all fields for flathub
+                let flathub = &sources["flathub"];
+                assert_eq!(flathub.emoji, "📦");
+                assert_eq!(flathub.install, "flatpak install flathub {package}");
+                assert_eq!(flathub.check, "flatpak list --app");
+                assert!(flathub.prefix.is_none());
+                assert!(flathub.overrides.is_none());
             }
             Err(e) => {
                 panic!("Failed to deserialize: {:?}", e);
