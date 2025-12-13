@@ -27,7 +27,7 @@
 //!
 //! ### Serde Integration (requires "serde" feature)
 //!
-//! ```rust,ignore
+//! ```rust
 //! use serde::Deserialize;
 //! use sickle::from_str;
 //!
@@ -37,7 +37,14 @@
 //!     version: String,
 //! }
 //!
+//! let ccl = r#"
+//! name = MyApp
+//! version = 1.0.0
+//! "#;
+//!
 //! let config: Config = from_str(ccl).unwrap();
+//! assert_eq!(config.name, "MyApp");
+//! assert_eq!(config.version, "1.0.0");
 //! ```
 //!
 //! ## Capabilities

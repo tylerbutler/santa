@@ -285,7 +285,9 @@ async fn handle_sources_command(
                                 install: s.install_command.clone(),
                                 check: s.check_command.clone(),
                                 prefix: s.prepend_to_package_name.clone(),
-                                overrides: None, // TODO: convert overrides
+                                // ConfigPackageSource.overrides are PackageNameOverride (for renaming packages),
+                                // not PlatformOverride (for platform-specific commands). Different concepts.
+                                overrides: None,
                             },
                         )
                     })
