@@ -122,6 +122,20 @@ impl CclPrinter {
         indent: usize,
         output: &mut String,
     ) {
+        // Handle blank lines: empty key with empty value
+        if key.is_empty() && value.is_empty() {
+            output.push('\n');
+            return;
+        }
+
+        // Handle comment lines: key starts with "/=" and has empty value
+        if key.starts_with("/=") && value.is_empty() {
+            output.push_str(indent_str);
+            output.push_str(key);
+            output.push('\n');
+            return;
+        }
+
         if value.is_empty() {
             // Leaf value: key with empty map represents a string value
             // In CCL, the key itself IS the value at this level

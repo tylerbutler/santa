@@ -1,8 +1,8 @@
-/= Generated package index =
-/= DO NOT EDIT - Generated from data/sources/*.ccl =
-/= Run: just generate-index to regenerate =
- =
-/= Packages with simple format (no source-specific overrides) =
+/= Generated package index
+/= DO NOT EDIT - Generated from data/sources/*.ccl
+/= Run: just generate-index to regenerate
+
+/= Packages with simple format (no source-specific overrides)
 act =
    = brew
    = scoop
@@ -201,7 +201,7 @@ zoxide =
    = nix
    = pacman
    = scoop
-/= Packages with complex format (have source-specific overrides or descriptions) =
+/= Packages with complex format (have source-specific overrides or descriptions)
 @fluidframework/build-tools =
   npm =
     install_suffix = @latest

@@ -49,6 +49,7 @@ impl PackageDefinition {
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 #[serde(default)]
+#[non_exhaustive]
 pub struct ComplexPackageDefinition {
     /// Short description of the package
     #[serde(rename = "_description", skip_serializing_if = "Option::is_none")]
@@ -152,6 +153,29 @@ fn default_true() -> bool {
 }
 
 impl ComplexPackageDefinition {
+    /// Create a new ComplexPackageDefinition with the given sources
+    pub fn with_sources(sources: Vec<String>) -> Self {
+        Self {
+            sources: Some(sources),
+            ..Default::default()
+        }
+    }
+
+    /// Set the platforms for this package definition
+    pub fn set_platforms(&mut self, platforms: Vec<String>) {
+        self.platforms = Some(platforms);
+    }
+
+    /// Set the aliases for this package definition
+    pub fn set_aliases(&mut self, aliases: Vec<String>) {
+        self.aliases = Some(aliases);
+    }
+
+    /// Set the description for this package definition
+    pub fn set_description(&mut self, description: String) {
+        self.description = Some(description);
+    }
+
     /// Get all sources where this package is available
     pub fn get_sources(&self) -> Vec<&str> {
         let mut all_sources = Vec::new();

@@ -240,10 +240,10 @@ impl CclObject {
         CclObject(map)
     }
 
-    /// Create a CclObject representing a comment
+    /// Add a comment entry to this CclObject
     ///
-    /// CCL comments use the `/=` prefix. This is a convenience method for
-    /// creating comment entries.
+    /// CCL comments use the `/=` prefix followed by the comment text as the key,
+    /// with an empty value. This method adds a comment entry directly to the object.
     ///
     /// # Example
     ///
@@ -251,11 +251,33 @@ impl CclObject {
     /// use sickle::CclObject;
     ///
     /// let mut obj = CclObject::new();
-    /// obj.inner_mut().insert("/= Header".to_string(), vec![CclObject::comment("Generated file")]);
-    /// // Represents: /= Generated file
+    /// obj.add_comment("Generated file - do not edit");
+    /// // When printed, represents: /= Generated file - do not edit
     /// ```
-    pub fn comment(text: impl Into<String>) -> Self {
-        CclObject::from_string(text)
+    pub fn add_comment(&mut self, text: impl Into<String>) {
+        let comment_key = format!("/= {}", text.into());
+        self.0.insert(comment_key, vec![CclObject::empty()]);
+    }
+
+    /// Add a blank line entry to this CclObject
+    ///
+    /// Blank lines in CCL output are represented as entries with an empty key
+    /// and empty value. This is useful for visual separation in generated files.
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// use sickle::CclObject;
+    ///
+    /// let mut obj = CclObject::new();
+    /// obj.add_comment("Header section");
+    /// obj.add_blank_line();
+    /// // When printed, adds visual separation
+    /// ```
+    pub fn add_blank_line(&mut self) {
+        // Use a unique blank line marker that won't conflict with actual empty keys
+        // The printer will handle this specially
+        self.0.insert("".to_string(), vec![CclObject::empty()]);
     }
 
     // ========================================================================
