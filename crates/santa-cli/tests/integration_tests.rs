@@ -5,6 +5,7 @@ use std::process::Command;
 use tempfile::NamedTempFile;
 
 // Include the new integration test modules
+mod e2e;
 mod integration;
 
 #[test]

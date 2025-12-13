@@ -155,9 +155,15 @@ impl ScriptFormatOption {
 }
 
 fn load_config(path: &Path) -> Result<SantaConfig, anyhow::Error> {
-    let dir = BaseDirs::new().context("Failed to get base directories")?;
-    let home_dir = dir.home_dir();
-    let config_file = home_dir.join(path);
+    // Check for SANTA_CONFIG_PATH environment variable first
+    let config_file = if let Ok(env_path) = std::env::var("SANTA_CONFIG_PATH") {
+        debug!("Using config path from SANTA_CONFIG_PATH: {}", env_path);
+        std::path::PathBuf::from(env_path)
+    } else {
+        let dir = BaseDirs::new().context("Failed to get base directories")?;
+        let home_dir = dir.home_dir();
+        home_dir.join(path)
+    };
     let config = SantaConfig::load_from(&config_file)?;
     trace!("{:?}", config);
     Ok(config)
