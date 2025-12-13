@@ -70,7 +70,7 @@ mod cli_parsing_tests {
         assert!(!cli.builtin_only, "Default builtin_only should be false");
 
         match cli.command {
-            Some(Commands::Status { all }) => assert!(!all, "Default all should be false"),
+            Some(Commands::Status { all, .. }) => assert!(!all, "Default all should be false"),
             _ => panic!("Should parse as Status command"),
         }
     }
@@ -80,7 +80,7 @@ mod cli_parsing_tests {
         let cli = Cli::try_parse_from(vec!["santa", "status", "--all"]).unwrap();
 
         match cli.command {
-            Some(Commands::Status { all }) => assert!(all, "All flag should be true"),
+            Some(Commands::Status { all, .. }) => assert!(all, "All flag should be true"),
             _ => panic!("Should parse as Status command"),
         }
     }
@@ -202,7 +202,7 @@ mod cli_parsing_tests {
         assert!(cli.builtin_only, "Builtin-only should work with status");
 
         match cli.command {
-            Some(Commands::Status { all }) => {
+            Some(Commands::Status { all, .. }) => {
                 assert!(all, "All flag should work with global flags")
             }
             _ => panic!("Should be Status command"),
@@ -370,7 +370,7 @@ mod command_routing_tests {
         let cli = Cli::try_parse_from(vec!["santa", "status", "--all"]).unwrap();
 
         match cli.command {
-            Some(Commands::Status { all }) => {
+            Some(Commands::Status { all, .. }) => {
                 assert!(all, "All flag should be true");
             }
             _ => panic!("Should have parsed as Status command"),
@@ -419,11 +419,10 @@ mod command_routing_tests {
         let cli = Cli::try_parse_from(vec!["santa", "add"]).unwrap();
 
         match cli.command {
-            Some(Commands::Add { source, package }) => {
-                assert!(source.is_none(), "Source should be None when not provided");
+            Some(Commands::Add { packages }) => {
                 assert!(
-                    package.is_none(),
-                    "Package should be None when not provided"
+                    packages.is_empty(),
+                    "Packages should be empty when not provided"
                 );
             }
             _ => panic!("Should have parsed as Add command"),
@@ -503,7 +502,7 @@ mod integration_tests {
         assert_eq!(cli.verbose, 1, "Verbose should be 1");
 
         match cli.command {
-            Some(Commands::Status { all }) => assert!(all, "All flag should be true"),
+            Some(Commands::Status { all, .. }) => assert!(all, "All flag should be true"),
             _ => panic!("Should be status command"),
         }
     }
@@ -540,9 +539,8 @@ mod error_handling_tests {
         let cli = Cli::try_parse_from(vec!["santa", "add", "git", "brew"]).unwrap();
 
         match cli.command {
-            Some(Commands::Add { source, package }) => {
-                assert_eq!(source, Some("brew".to_string()));
-                assert_eq!(package, Some("git".to_string()));
+            Some(Commands::Add { packages }) => {
+                assert_eq!(packages, vec!["git".to_string(), "brew".to_string()]);
             }
             _ => panic!("Should be Add command"),
         }

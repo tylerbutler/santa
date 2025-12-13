@@ -12,6 +12,7 @@ categories.workspace = true
 keywords.workspace = true
 readme.workspace = true
 publish = true
+default-run = "santa"
 
 [features]
 default = []
@@ -122,6 +123,10 @@ criterion = { version = "0.5", features = ["html_reports", "async_tokio"] }
 [[bin]]
 name = "santa"
 path = "src/main.rs"
+
+[[bin]]
+name = "generate-index"
+path = "src/bin/generate_index.rs"
 
 [[bench]]
 name = "subprocess_performance"

@@ -5,6 +5,7 @@ use std::process::Command;
 use tempfile::NamedTempFile;
 
 // Include the new integration test modules
+mod e2e;
 mod integration;
 
 #[test]
@@ -82,12 +83,13 @@ fn test_status_all_with_builtin() {
 }
 
 #[test]
-fn test_add_command_not_implemented() {
+fn test_add_command_validates_packages() {
+    // The add command now validates packages against the database
     let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("santa"));
-    cmd.args(["add", "git", "brew", "--builtin-only"]);
+    cmd.args(["add", "nonexistent_package", "--builtin-only"]);
     cmd.assert()
         .failure()
-        .stderr(predicate::str::contains("Add command not yet implemented"));
+        .stderr(predicate::str::contains("not found in database"));
 }
 
 #[test]
@@ -153,15 +155,16 @@ fn test_security_command_injection_protection() {
     ];
 
     for dangerous_arg in dangerous_args {
-        // Test with add command (which should fail safely)
+        // Test with add command - dangerous arguments should fail safely
+        // by failing validation rather than being executed
         let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("santa"));
         cmd.args(["add", dangerous_arg, "--builtin-only"]);
         cmd.assert()
             .failure()
-            .stderr(predicate::str::contains("Add command not yet implemented"));
+            .stderr(predicate::str::contains("not found in database"));
 
-        // The dangerous argument should be captured in the error message but not executed
-        // This documents current behavior - arguments are handled safely by clap
+        // The dangerous argument is safely rejected during validation
+        // rather than being executed - this is the correct behavior
     }
 }
 
@@ -232,4 +235,136 @@ fn test_full_workflow_simulation() {
     cmd.assert().success();
 
     // This test ensures the basic CLI workflow works end-to-end
+}
+
+// Tests for new CLI options added in feature/ws1-cli-features branch
+
+#[test]
+fn test_status_with_installed_flag() {
+    let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("santa"));
+    cmd.args(["status", "--installed", "--builtin-only"]);
+    cmd.assert().success();
+}
+
+#[test]
+fn test_status_with_missing_flag() {
+    let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("santa"));
+    cmd.args(["status", "--missing", "--builtin-only"]);
+    cmd.assert().success();
+}
+
+#[test]
+fn test_status_with_source_filter() {
+    // This may fail if brew is not an enabled source, but should not crash
+    let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("santa"));
+    cmd.args(["status", "--source", "brew", "--builtin-only"]);
+    // The command should either succeed or fail gracefully with an error message
+    let output = cmd.output().expect("Failed to execute command");
+    // Just verify it doesn't panic/crash
+    assert!(
+        output.status.success()
+            || String::from_utf8_lossy(&output.stderr).contains("not found or not enabled")
+    );
+}
+
+#[test]
+fn test_status_flags_are_mutually_exclusive() {
+    // --all and --installed should conflict
+    let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("santa"));
+    cmd.args(["status", "--all", "--installed", "--builtin-only"]);
+    cmd.assert()
+        .failure()
+        .stderr(predicate::str::contains("cannot be used with"));
+
+    // --all and --missing should conflict
+    let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("santa"));
+    cmd.args(["status", "--all", "--missing", "--builtin-only"]);
+    cmd.assert()
+        .failure()
+        .stderr(predicate::str::contains("cannot be used with"));
+
+    // --installed and --missing should conflict
+    let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("santa"));
+    cmd.args(["status", "--installed", "--missing", "--builtin-only"]);
+    cmd.assert()
+        .failure()
+        .stderr(predicate::str::contains("cannot be used with"));
+}
+
+#[test]
+fn test_config_option_with_nonexistent_file() {
+    // Test --config with a non-existent file
+    let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("santa"));
+    cmd.args(["config", "--config", "/nonexistent/path/config.ccl"]);
+    // Should fail with an error about the file not existing
+    cmd.assert().failure();
+}
+
+#[test]
+fn test_config_option_with_valid_file() {
+    // Create a temp config file
+    let config_content = r#"
+sources =
+  = brew
+packages =
+  = git
+"#;
+    let mut temp_file = NamedTempFile::new().unwrap();
+    write!(temp_file, "{config_content}").unwrap();
+
+    let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("santa"));
+    cmd.args(["config", "--config", temp_file.path().to_str().unwrap()]);
+    cmd.assert().success();
+}
+
+#[test]
+fn test_remove_command_exists() {
+    // Verify the remove command is recognized
+    let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("santa"));
+    cmd.args(["remove", "--help"]);
+    cmd.assert()
+        .success()
+        .stdout(predicate::str::contains("Remove"));
+}
+
+#[test]
+fn test_remove_command_requires_packages() {
+    // Remove command should require at least one package
+    let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("santa"));
+    cmd.args(["remove", "--builtin-only"]);
+    cmd.assert()
+        .failure()
+        .stderr(predicate::str::contains("No packages specified"));
+}
+
+#[test]
+fn test_add_command_requires_packages() {
+    // Add command should require at least one package
+    let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("santa"));
+    cmd.args(["add", "--builtin-only"]);
+    cmd.assert()
+        .failure()
+        .stderr(predicate::str::contains("No packages specified"));
+}
+
+#[test]
+fn test_add_command_with_builtin_only_validates_but_does_not_add() {
+    // In builtin-only mode, add should validate packages but not modify config
+    // Use 'wget' which is in the builtin package database
+    let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("santa"));
+    cmd.args(["add", "wget", "--builtin-only"]);
+    cmd.assert()
+        .success()
+        .stdout(predicate::str::contains("exists in database"))
+        .stdout(predicate::str::contains("builtin-only mode"));
+}
+
+#[test]
+fn test_remove_command_with_uninstall_flag() {
+    // Test that --uninstall flag is recognized
+    let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("santa"));
+    cmd.args(["remove", "--help"]);
+    cmd.assert()
+        .success()
+        .stdout(predicate::str::contains("uninstall"));
 }

@@ -41,6 +41,7 @@ impl PackageDefinition {
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 #[serde(default)]
+#[non_exhaustive]
 pub struct ComplexPackageDefinition {
     /// List of sources where package is available with same name as key
     #[serde(rename = "_sources", skip_serializing_if = "Option::is_none")]
@@ -140,6 +141,14 @@ fn default_true() -> bool {
 }
 
 impl ComplexPackageDefinition {
+    /// Create a new ComplexPackageDefinition with the given sources
+    pub fn with_sources(sources: Vec<String>) -> Self {
+        Self {
+            sources: Some(sources),
+            ..Default::default()
+        }
+    }
+
     /// Get all sources where this package is available
     pub fn get_sources(&self) -> Vec<&str> {
         let mut all_sources = Vec::new();
