@@ -44,9 +44,13 @@ fn config_command_with_custom_config_file() {
     let mut config_file = NamedTempFile::new().unwrap();
     writeln!(
         config_file,
-        r#"
-sources = ["brew", "cargo"]
-packages = ["rust-analyzer", "ripgrep"]
+        r#"sources =
+  = brew
+  = cargo
+
+packages =
+  = rust-analyzer
+  = ripgrep
 "#
     )
     .unwrap();
@@ -55,10 +59,10 @@ packages = ["rust-analyzer", "ripgrep"]
     cmd.env("SANTA_CONFIG_PATH", config_file.path());
     cmd.arg("config");
 
-    // Should display custom configuration
+    // Should display custom configuration (sources appear capitalized like "Brew", "Cargo")
     cmd.assert()
         .success()
-        .stdout(predicate::str::contains("brew").or(predicate::str::contains("cargo")));
+        .stdout(predicate::str::contains("Brew").or(predicate::str::contains("Cargo")));
 }
 
 #[test]

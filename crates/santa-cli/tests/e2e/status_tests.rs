@@ -50,9 +50,12 @@ fn status_command_with_custom_config() {
     let mut config_file = NamedTempFile::new().unwrap();
     writeln!(
         config_file,
-        r#"
-sources = ["brew"]
-packages = ["git", "curl"]
+        r#"sources =
+  = brew
+
+packages =
+  = git
+  = curl
 "#
     )
     .unwrap();

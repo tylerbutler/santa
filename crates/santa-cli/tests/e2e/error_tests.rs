@@ -123,9 +123,11 @@ fn dangerous_package_names_sanitized() {
     let mut config_file = NamedTempFile::new().unwrap();
     writeln!(
         config_file,
-        r#"
-sources = ["brew"]
-packages = ["git; rm -rf /"]
+        r#"sources =
+  = brew
+
+packages =
+  = git; rm -rf /
 "#
     )
     .unwrap();
