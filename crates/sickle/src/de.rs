@@ -733,7 +733,10 @@ nix =
         let npm_overrides = npm.overrides.as_ref().unwrap();
         assert!(npm_overrides.contains_key("windows"));
         let windows_override = &npm_overrides["windows"];
-        assert_eq!(windows_override.check, Some("npm root -g | gci -Name".to_string()));
+        assert_eq!(
+            windows_override.check,
+            Some("npm root -g | gci -Name".to_string())
+        );
         assert!(windows_override.install.is_none());
 
         // Test nix with prefix
