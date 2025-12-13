@@ -3,13 +3,12 @@
 //! Tests verify CLI behavior for package status checking with and without flags.
 
 use assert_cmd::prelude::*;
-use predicates::prelude::*;
 use std::process::Command;
 use tempfile::NamedTempFile;
 
 #[test]
 fn status_command_with_builtin_config() {
-    let mut cmd = Command::cargo_bin("santa").unwrap();
+    let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("santa"));
     cmd.args(["status", "--builtin-only"]);
 
     // Should succeed and show status information
@@ -18,7 +17,7 @@ fn status_command_with_builtin_config() {
 
 #[test]
 fn status_command_with_all_flag() {
-    let mut cmd = Command::cargo_bin("santa").unwrap();
+    let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("santa"));
     cmd.args(["status", "--all", "--builtin-only"]);
 
     // Should succeed and show all packages
@@ -27,7 +26,7 @@ fn status_command_with_all_flag() {
 
 #[test]
 fn status_command_default_behavior() {
-    let mut cmd = Command::cargo_bin("santa").unwrap();
+    let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("santa"));
     cmd.args(["status", "--builtin-only"]);
 
     // Default behavior (without --all) should show missing packages
@@ -36,7 +35,7 @@ fn status_command_default_behavior() {
 
 #[test]
 fn status_command_with_verbose() {
-    let mut cmd = Command::cargo_bin("santa").unwrap();
+    let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("santa"));
     cmd.args(["status", "--builtin-only", "-v"]);
 
     // Should succeed with verbose output
@@ -60,7 +59,7 @@ packages =
     )
     .unwrap();
 
-    let mut cmd = Command::cargo_bin("santa").unwrap();
+    let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("santa"));
     cmd.env("SANTA_CONFIG_PATH", config_file.path());
     cmd.arg("status");
 
@@ -70,7 +69,7 @@ packages =
 
 #[test]
 fn status_command_output_format() {
-    let mut cmd = Command::cargo_bin("santa").unwrap();
+    let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("santa"));
     cmd.args(["status", "--builtin-only"]);
 
     // Output should be well-formatted (not checking specific content)
@@ -84,7 +83,7 @@ fn status_command_output_format() {
 
 #[test]
 fn status_command_with_multiple_verbosity_levels() {
-    let mut cmd = Command::cargo_bin("santa").unwrap();
+    let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("santa"));
     cmd.args(["status", "--builtin-only", "-vv"]);
 
     // Should handle multiple verbosity flags
@@ -94,7 +93,7 @@ fn status_command_with_multiple_verbosity_levels() {
 #[test]
 fn status_command_exit_codes() {
     // Test that status command exits with success code
-    let mut cmd = Command::cargo_bin("santa").unwrap();
+    let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("santa"));
     cmd.args(["status", "--builtin-only"]);
 
     cmd.assert().success().code(0);

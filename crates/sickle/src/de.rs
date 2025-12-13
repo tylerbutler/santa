@@ -590,6 +590,8 @@ impl de::Error for DeError {
 
 #[cfg(test)]
 mod tests {
+    #![allow(dead_code)] // Test structs exist to verify deserialization, not field usage
+
     use super::*;
     use serde::Deserialize;
 
@@ -1081,6 +1083,7 @@ mod serde_validation_tests {
         // in CCL's key-value model. To get a single-item list, you need the
         // explicit list syntax or use duplicate keys.
         let ccl = "items = only_one";
+        #[allow(dead_code)]
         #[derive(Deserialize, Debug)]
         struct S {
             items: Vec<String>,
@@ -1345,6 +1348,7 @@ api =
 
     #[test]
     fn test_invalid_number_format() {
+        #[allow(dead_code)]
         #[derive(Deserialize, Debug)]
         struct S {
             port: u16,
@@ -1357,6 +1361,7 @@ api =
 
     #[test]
     fn test_number_overflow() {
+        #[allow(dead_code)]
         #[derive(Deserialize, Debug)]
         struct S {
             value: u8,
@@ -1369,6 +1374,7 @@ api =
 
     #[test]
     fn test_invalid_bool() {
+        #[allow(dead_code)]
         #[derive(Deserialize, Debug)]
         struct S {
             enabled: bool,
@@ -1408,6 +1414,7 @@ check = brew leaves --installed-on-request
 
     #[test]
     fn test_source_definition_with_prefix() {
+        #[allow(dead_code)]
         #[derive(Deserialize, Debug)]
         struct SourceDef {
             emoji: String,
