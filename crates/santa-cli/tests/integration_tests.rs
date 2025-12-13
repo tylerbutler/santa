@@ -5,8 +5,8 @@ use std::process::Command;
 use tempfile::NamedTempFile;
 
 // Include the new integration test modules
-mod integration;
 mod e2e;
+mod integration;
 
 #[test]
 fn test_cli_help() {

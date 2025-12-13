@@ -11,7 +11,7 @@ use tempfile::NamedTempFile;
 fn config_command_shows_default_config() {
     let mut cmd = Command::cargo_bin("santa").unwrap();
     cmd.args(["config", "--builtin-only"]);
-    
+
     // Should display default configuration
     cmd.assert()
         .success()
@@ -23,26 +23,24 @@ fn config_command_shows_default_config() {
 fn config_command_with_packages_flag() {
     let mut cmd = Command::cargo_bin("santa").unwrap();
     cmd.args(["config", "--packages", "--builtin-only"]);
-    
+
     // Should show package information
-    cmd.assert()
-        .success();
+    cmd.assert().success();
 }
 
 #[test]
 fn config_command_with_pipe_flag() {
     let mut cmd = Command::cargo_bin("santa").unwrap();
     cmd.args(["config", "--pipe", "--builtin-only"]);
-    
+
     // Should produce pipe-friendly output
-    cmd.assert()
-        .success();
+    cmd.assert().success();
 }
 
 #[test]
 fn config_command_with_custom_config_file() {
     use std::io::Write;
-    
+
     let mut config_file = NamedTempFile::new().unwrap();
     writeln!(
         config_file,
@@ -52,11 +50,11 @@ packages = ["rust-analyzer", "ripgrep"]
 "#
     )
     .unwrap();
-    
+
     let mut cmd = Command::cargo_bin("santa").unwrap();
     cmd.env("SANTA_CONFIG", config_file.path());
     cmd.arg("config");
-    
+
     // Should display custom configuration
     cmd.assert()
         .success()
@@ -66,15 +64,14 @@ packages = ["rust-analyzer", "ripgrep"]
 #[test]
 fn config_command_with_invalid_config_file() {
     use std::io::Write;
-    
+
     let mut config_file = NamedTempFile::new().unwrap();
-    writeln!(config_file, "invalid ccl syntax @@@")
-        .unwrap();
-    
+    writeln!(config_file, "invalid ccl syntax @@@").unwrap();
+
     let mut cmd = Command::cargo_bin("santa").unwrap();
     cmd.env("SANTA_CONFIG", config_file.path());
     cmd.arg("config");
-    
+
     // Should handle invalid config gracefully (may succeed with default or fail)
     let output = cmd.output().unwrap();
     // Just verify it doesn't panic
@@ -85,13 +82,13 @@ fn config_command_with_invalid_config_file() {
 fn config_command_output_is_valid_format() {
     let mut cmd = Command::cargo_bin("santa").unwrap();
     cmd.args(["config", "--builtin-only"]);
-    
+
     let output = cmd.output().unwrap();
     assert!(output.status.success());
-    
+
     let stdout = String::from_utf8_lossy(&output.stdout);
     assert!(!stdout.is_empty(), "Config should produce output");
-    
+
     // Should contain structured configuration data
     assert!(
         stdout.contains("name:") || stdout.contains("sources"),
@@ -103,29 +100,25 @@ fn config_command_output_is_valid_format() {
 fn config_command_with_verbose_flag() {
     let mut cmd = Command::cargo_bin("santa").unwrap();
     cmd.args(["config", "--builtin-only", "-v"]);
-    
+
     // Should handle verbose output
-    cmd.assert()
-        .success();
+    cmd.assert().success();
 }
 
 #[test]
 fn config_command_respects_log_levels() {
     let mut cmd = Command::cargo_bin("santa").unwrap();
     cmd.args(["config", "--builtin-only", "-vvv"]);
-    
+
     // Should handle maximum verbosity
-    cmd.assert()
-        .success();
+    cmd.assert().success();
 }
 
 #[test]
 fn config_command_exit_codes() {
     let mut cmd = Command::cargo_bin("santa").unwrap();
     cmd.args(["config", "--builtin-only"]);
-    
+
     // Should exit with success code
-    cmd.assert()
-        .success()
-        .code(0);
+    cmd.assert().success().code(0);
 }
