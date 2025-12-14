@@ -9,7 +9,7 @@ use tempfile::NamedTempFile;
 
 #[test]
 fn invalid_subcommand_shows_help() {
-    let mut cmd = Command::cargo_bin("santa").unwrap();
+    let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("santa"));
     cmd.arg("invalid-command");
 
     // Should fail with helpful error message
@@ -20,7 +20,7 @@ fn invalid_subcommand_shows_help() {
 
 #[test]
 fn missing_required_argument_shows_error() {
-    let mut cmd = Command::cargo_bin("santa").unwrap();
+    let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("santa"));
     cmd.arg("add");
 
     // Add command requires arguments, should show error or prompt
@@ -31,7 +31,7 @@ fn missing_required_argument_shows_error() {
 
 #[test]
 fn invalid_flag_combination_handled() {
-    let mut cmd = Command::cargo_bin("santa").unwrap();
+    let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("santa"));
     cmd.args(["--unknown-flag", "status"]);
 
     // Should fail gracefully with error message
@@ -42,7 +42,7 @@ fn invalid_flag_combination_handled() {
 
 #[test]
 fn nonexistent_config_file_handled() {
-    let mut cmd = Command::cargo_bin("santa").unwrap();
+    let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("santa"));
     cmd.env("SANTA_CONFIG_PATH", "/nonexistent/path/to/config.ccl");
     cmd.args(["status", "--builtin-only"]);
 
@@ -58,7 +58,7 @@ fn malformed_config_file_shows_error() {
     let mut config_file = NamedTempFile::new().unwrap();
     writeln!(config_file, "completely invalid syntax @@@ {{{{ ]]]]]").unwrap();
 
-    let mut cmd = Command::cargo_bin("santa").unwrap();
+    let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("santa"));
     cmd.env("SANTA_CONFIG_PATH", config_file.path());
     cmd.arg("config");
 
@@ -74,7 +74,7 @@ fn empty_config_file_handled() {
     let mut config_file = NamedTempFile::new().unwrap();
     writeln!(config_file, "").unwrap();
 
-    let mut cmd = Command::cargo_bin("santa").unwrap();
+    let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("santa"));
     cmd.env("SANTA_CONFIG_PATH", config_file.path());
     cmd.args(["status"]);
 
@@ -85,7 +85,7 @@ fn empty_config_file_handled() {
 
 #[test]
 fn help_flag_always_works() {
-    let mut cmd = Command::cargo_bin("santa").unwrap();
+    let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("santa"));
     cmd.arg("--help");
 
     // Help should always succeed
@@ -96,7 +96,7 @@ fn help_flag_always_works() {
 
 #[test]
 fn version_flag_always_works() {
-    let mut cmd = Command::cargo_bin("santa").unwrap();
+    let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("santa"));
     cmd.arg("--version");
 
     // Version should always succeed
@@ -107,7 +107,7 @@ fn version_flag_always_works() {
 
 #[test]
 fn invalid_source_name_handled() {
-    let mut cmd = Command::cargo_bin("santa").unwrap();
+    let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("santa"));
     cmd.args(["install", "nonexistent-source", "--builtin-only"]);
 
     // Should handle invalid source gracefully
@@ -132,7 +132,7 @@ packages =
     )
     .unwrap();
 
-    let mut cmd = Command::cargo_bin("santa").unwrap();
+    let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("santa"));
     cmd.env("SANTA_CONFIG_PATH", config_file.path());
     cmd.arg("status");
 
@@ -148,7 +148,7 @@ packages =
 
 #[test]
 fn execution_mode_flag_validation() {
-    let mut cmd = Command::cargo_bin("santa").unwrap();
+    let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("santa"));
     cmd.args(["--execute", "status", "--builtin-only"]);
 
     // Should handle execute flag (safe mode vs execute mode)
@@ -158,7 +158,7 @@ fn execution_mode_flag_validation() {
 
 #[test]
 fn script_format_validation() {
-    let mut cmd = Command::cargo_bin("santa").unwrap();
+    let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("santa"));
     cmd.args(["--format", "shell", "status", "--builtin-only"]);
 
     // Should handle format flag
@@ -174,7 +174,7 @@ fn concurrent_operations_safe() {
     let handles: Vec<_> = (0..3)
         .map(|_| {
             thread::spawn(|| {
-                let mut cmd = Command::cargo_bin("santa").unwrap();
+                let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("santa"));
                 cmd.args(["status", "--builtin-only"]);
                 cmd.output()
             })
