@@ -67,12 +67,16 @@ jobs:
           targets: "${{ matrix.target }}"
 
       - uses: ./.github/actions/install-tools
+        with:
+          tools: "just,cargo-binstall,cargo-udeps"
 
-      # Only install cross if we need it (not in mise.toml)
+      # Only install cross if we need it
+      # Install via cargo-binstall which is typically faster
       - name: Install Cross
         if: matrix.command == 'cross'
-        shell: bash
-        run: cargo binstall --no-confirm cross
+        uses: ./.github/actions/install-tools
+        with:
+          tools: "cross"
 
       - name: Build Binary
         run: ${{ matrix.command }} build --locked --release --target ${{ matrix.target }}

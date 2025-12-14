@@ -5,10 +5,7 @@
 # This justfile provides convenient commands for development, testing, and deployment.
 # Install just: https://github.com/casey/just#installation
 
-# ===================
-# Aliases
-# ===================
-
+# Common aliases for faster development
 alias b := build
 alias br := build-release
 alias r := release
@@ -27,8 +24,7 @@ set windows-shell := ["powershell.exe", "-NoLogo", "-Command"]
 default:
     @just --list
 
-# ===================
-# Development Setup
+# Development Commands
 # ===================
 
 # Install all development dependencies
@@ -91,7 +87,7 @@ build-all:
 
 
 # Testing Commands
-# ===================
+# ================
 
 # Run all tests with cargo test
 test *ARGS='':
@@ -100,6 +96,14 @@ test *ARGS='':
 # Run tests with nextest (faster parallel execution)
 test-fast *ARGS='':
     cargo nextest run {{ARGS}}
+
+# Run only unit tests
+test-unit:
+    cargo test --lib
+
+# Run only integration tests
+test-integration:
+    cargo test --test '*'
 
 # Run tests with all features enabled
 test-all *ARGS='':
@@ -153,12 +157,9 @@ fix:
     cargo clippy --fix --allow-dirty --allow-staged
     cargo fix --allow-dirty --allow-staged
 
-# Quick development check for faster iteration
-check-quick:
-    @echo "⚡ Running quick checks..."
-    cargo check
-    cargo test --lib
-    @echo "✅ Quick checks passed!"
+# Check for unused dependencies (requires nightly)
+deps:
+    cargo +nightly udeps
 
 # Security audit
 audit:
@@ -215,9 +216,8 @@ ci:
     cargo build --release
     cargo audit
 
-# ===================
-# Binary Size Analysis (Linux only)
-# ===================
+# Binary Size Analysis Commands
+# =============================
 
 # Run cargo-bloated on santa and sickle, save to metrics/ (Linux only)
 [linux]

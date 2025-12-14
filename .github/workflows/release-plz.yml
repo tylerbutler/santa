@@ -93,6 +93,8 @@ jobs:
 
       - uses: ./.github/actions/install-tools
         if: steps.release-plz.outputs.prs_created == 'true'
+        with:
+          tools: just
 
       - name: Record binary size metrics
         id: binary-size

@@ -32,9 +32,11 @@ jobs:
           toolchain: ${{ matrix.rust }}
 
       - uses: ./.github/actions/install-tools
+        with:
+          tools: just
 
-      - run: just test --verbose --workspace --all-features
-      - run: just test --verbose --workspace --no-default-features
+      - run: cargo test --verbose --workspace --all-features
+      - run: cargo test --verbose --workspace --no-default-features
 
   test-extended-platforms:
     name: Extended Test - ${{ matrix.rust }} on ${{ matrix.os }}
@@ -53,9 +55,11 @@ jobs:
           toolchain: ${{ matrix.rust }}
 
       - uses: ./.github/actions/install-tools
+        with:
+          tools: just
 
-      - run: just test --verbose --workspace --all-features
-      - run: just test --verbose --workspace --no-default-features
+      - run: cargo test --verbose --workspace --all-features
+      - run: cargo test --verbose --workspace --no-default-features
 
   cross-test:
     name: Cross Test - ${{ matrix.target }}
@@ -76,10 +80,8 @@ jobs:
       - uses: ./.github/actions/setup-rust
 
       - uses: ./.github/actions/install-tools
-
-      # Install cross (not in mise.toml, platform-specific)
-      - name: Install cross
-        run: cargo binstall --no-confirm cross
+        with:
+          tools: cross
 
       - run: cross test --verbose --target=${{ matrix.target }} --no-default-features
       - run: cross test --verbose --target=${{ matrix.target }} --all-features
@@ -96,9 +98,13 @@ jobs:
           components: rustfmt
 
       - uses: ./.github/actions/install-tools
+        with:
+          tools: just
 
       - name: Check formatting
-        run: just format --check
+        run: cargo fmt --all -- --check
 
       - name: Check documentation
-        run: just docs-check
+        env:
+          RUSTDOCFLAGS: -D warnings
+        run: cargo doc --no-deps --document-private-items --workspace
