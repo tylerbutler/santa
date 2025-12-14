@@ -21,6 +21,47 @@ fn navigate_path<'a>(
     Ok(current)
 }
 
+/// Helper function to validate a Vec of CclObjects against expected JSON array
+fn validate_vec_against_json(
+    values: &[sickle::CclObject],
+    expected: &serde_json::Value,
+    test_name: &str,
+    path: &str,
+) {
+    let expected_array = expected
+        .as_array()
+        .expect("expected value should be an array");
+
+    assert_eq!(
+        values.len(),
+        expected_array.len(),
+        "Test '{}': expected {} items at '{}', got {}",
+        test_name,
+        expected_array.len(),
+        path,
+        values.len()
+    );
+
+    // Each value in the Vec is a CclObject representing one list item
+    // The list item's value is the single key in the CclObject
+    for (i, (value, expected_item)) in values.iter().zip(expected_array.iter()).enumerate() {
+        let new_path = format!("{}[{}]", path, i);
+        if let serde_json::Value::String(expected_str) = expected_item {
+            let actual_key = value.keys().next().unwrap_or(&"".to_string()).clone();
+            assert_eq!(
+                &actual_key, expected_str,
+                "Test '{}': wrong list value at '{}'",
+                test_name, new_path
+            );
+        } else {
+            panic!(
+                "Test '{}': unsupported list item type at '{}'",
+                test_name, new_path
+            );
+        }
+    }
+}
+
 /// Helper function to recursively validate a Model against expected JSON structure
 fn validate_model_against_json(
     model: &sickle::CclObject,
@@ -63,11 +104,20 @@ fn validate_model_against_json(
                     format!("{}.{}", path, key)
                 };
 
-                let actual_model = model.get(key).unwrap_or_else(|_| {
-                    panic!("Test '{}': missing key '{}' at '{}'", test_name, key, path)
-                });
-
-                validate_model_against_json(actual_model, expected_value, test_name, &new_path);
+                // If expected value is an array, we need to use get_all() to get all Vec values
+                // because get() only returns the first element
+                if expected_value.is_array() {
+                    // Get all values for this key and create a synthetic model with them
+                    let all_values = model.get_all(key).unwrap_or_else(|_| {
+                        panic!("Test '{}': missing key '{}' at '{}'", test_name, key, path)
+                    });
+                    validate_vec_against_json(all_values, expected_value, test_name, &new_path);
+                } else {
+                    let actual_model = model.get(key).unwrap_or_else(|_| {
+                        panic!("Test '{}': missing key '{}' at '{}'", test_name, key, path)
+                    });
+                    validate_model_against_json(actual_model, expected_value, test_name, &new_path);
+                }
             }
 
             // Check for extra keys
@@ -82,35 +132,71 @@ fn validate_model_against_json(
             );
         }
         serde_json::Value::Array(expected_array) => {
-            // Expect a list - multiple keys with empty values
-            // Access via public IndexMap field
-            assert_eq!(
-                model.len(),
-                expected_array.len(),
-                "Test '{}': expected {} items at '{}', got {}",
-                test_name,
-                expected_array.len(),
-                path,
-                model.len()
-            );
+            // Expect a list - with Vec structure, lists are stored as:
+            // { "": [CclObject({item1}), CclObject({item2}), ...] }
+            // We need to check if this is a bare list (single empty key)
+            // and iterate over the Vec values
 
-            // Validate each item - lists are represented as keys in order
-            for (i, (actual_key, expected_item)) in
-                model.keys().zip(expected_array.iter()).enumerate()
-            {
-                let new_path = format!("{}[{}]", path, i);
-                // For list items, create a synthetic Model for string comparison
-                if let serde_json::Value::String(expected_str) = expected_item {
-                    assert_eq!(
-                        actual_key, expected_str,
-                        "Test '{}': wrong list value at '{}'",
-                        test_name, new_path
-                    );
-                } else {
-                    panic!(
-                        "Test '{}': unsupported list item type at '{}'",
-                        test_name, new_path
-                    );
+            if model.len() == 1 && model.keys().next() == Some(&"".to_string()) {
+                // Bare list structure - get values from the Vec at key ""
+                let children = model.get_all("").expect("should have empty key");
+                assert_eq!(
+                    children.len(),
+                    expected_array.len(),
+                    "Test '{}': expected {} items at '{}', got {}",
+                    test_name,
+                    expected_array.len(),
+                    path,
+                    children.len()
+                );
+
+                // Each child has a single key which is the list item value
+                for (i, (child, expected_item)) in
+                    children.iter().zip(expected_array.iter()).enumerate()
+                {
+                    let new_path = format!("{}[{}]", path, i);
+                    let actual_key = child.keys().next().unwrap_or(&"".to_string()).clone();
+                    if let serde_json::Value::String(expected_str) = expected_item {
+                        assert_eq!(
+                            &actual_key, expected_str,
+                            "Test '{}': wrong list value at '{}'",
+                            test_name, new_path
+                        );
+                    } else {
+                        panic!(
+                            "Test '{}': unsupported list item type at '{}'",
+                            test_name, new_path
+                        );
+                    }
+                }
+            } else {
+                // Legacy structure - keys are the list items
+                assert_eq!(
+                    model.len(),
+                    expected_array.len(),
+                    "Test '{}': expected {} items at '{}', got {}",
+                    test_name,
+                    expected_array.len(),
+                    path,
+                    model.len()
+                );
+
+                for (i, (actual_key, expected_item)) in
+                    model.keys().zip(expected_array.iter()).enumerate()
+                {
+                    let new_path = format!("{}[{}]", path, i);
+                    if let serde_json::Value::String(expected_str) = expected_item {
+                        assert_eq!(
+                            actual_key, expected_str,
+                            "Test '{}': wrong list value at '{}'",
+                            test_name, new_path
+                        );
+                    } else {
+                        panic!(
+                            "Test '{}': unsupported list item type at '{}'",
+                            test_name, new_path
+                        );
+                    }
                 }
             }
         }
@@ -168,7 +254,7 @@ fn test_parsing_suite_basic_tests() {
     for test in parse_tests {
         let test_result = std::panic::catch_unwind(|| {
             // Parse and build hierarchy
-            let result = load(&test.input);
+            let result = load(test.input());
 
             // Check that parse succeeds or fails appropriately
             if test.expected.error.is_some() {
@@ -243,7 +329,7 @@ fn test_comments_suite() {
 
     for test in comment_tests {
         let test_result = std::panic::catch_unwind(|| {
-            let result = load(&test.input);
+            let result = load(test.input());
 
             if test.expected.error.is_some() {
                 assert!(
@@ -308,7 +394,7 @@ fn test_typed_access_suite_strings() {
     for test in string_tests {
         let test_result = std::panic::catch_unwind(|| {
             // Parse the input
-            let model = load(&test.input).unwrap_or_else(|e| {
+            let model = load(test.input()).unwrap_or_else(|e| {
                 panic!("Test '{}' failed to parse: {}", test.name, e);
             });
 
@@ -384,7 +470,7 @@ fn test_filter_function() {
     for test in &filter_tests {
         let test_result = std::panic::catch_unwind(|| {
             // Parse the input
-            let model = load(&test.input).unwrap_or_else(|e| {
+            let model = load(test.input()).unwrap_or_else(|e| {
                 panic!("Test '{}' failed to parse: {}", test.name, e);
             });
 
@@ -641,11 +727,11 @@ fn test_all_ccl_suites_comprehensive() {
                 // Parse the input based on validation type
                 let (entries, model_result) =
                     if test.validation == "parse_dedented" || test.validation == "parse_indented" {
-                        let e = parse_indented(&test.input);
+                        let e = parse_indented(test.input());
                         let m = e.as_ref().ok().map(|entries| build_hierarchy(entries));
                         (e, m)
                     } else {
-                        let e = parse(&test.input);
+                        let e = parse(test.input());
                         let m = e.as_ref().ok().map(|entries| build_hierarchy(entries));
                         (e, m)
                     };
@@ -1046,7 +1132,7 @@ fn test_all_ccl_suites_comprehensive() {
                     }
                     "canonical_format" => {
                         // Parse input and convert to canonical format
-                        let model = load(&test.input).unwrap_or_else(|e| {
+                        let model = load(test.input()).unwrap_or_else(|e| {
                             panic!("Test '{}' failed to load: {}", test.name, e);
                         });
 

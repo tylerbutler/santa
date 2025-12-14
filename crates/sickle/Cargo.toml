@@ -12,10 +12,14 @@ keywords = ["ccl", "config", "parser", "categorical", "configuration"]
 categories = ["config", "parser-implementations"]
 readme = "README.md"
 
+[lib]
+crate-type = ["rlib", "dylib"]
+
 [features]
 # Default features - includes only essential functionality
 # Users opt-in to additional features as needed
 default = []
+
 
 # Core parsing - parse CCL to flat key-value entries
 parse = []
@@ -53,20 +57,19 @@ full = ["serde", "printer", "intern"]
 
 [dependencies]
 # Data structures - IndexMap for insertion-order preservation
-indexmap = { version = "2.0", features = ["serde"] }
+indexmap = { version = "2.12.1", features = ["serde"] }
 
 # Optional: Serde support for deserialization
 serde = { workspace = true, optional = true }
-serde_derive = { version = "1.0", optional = true }
+serde_derive = { version = "1.0.228", optional = true }
 
 # Optional: String interning for memory efficiency
-string-interner = { version = "0.17", optional = true }
+string-interner = { version = "0.19.0", optional = true }
 
 [dev-dependencies]
 # Testing framework
 serde.workspace = true
 serde_json.workspace = true
-serde_test = "1.0.177"
 
 # Enable all features for tests
 [dev-dependencies.sickle]

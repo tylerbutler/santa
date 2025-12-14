@@ -26,6 +26,6 @@ serde-enum-str = { workspace = true }
 derive_more = { workspace = true }
 
 # Configuration loading dependencies
-derive_builder = "0.12"
+derive_builder = "0.20.2"
 validator = { version = "0.20", features = ["derive"] }
-tracing = "0.1"
+tracing = "0.1.43"

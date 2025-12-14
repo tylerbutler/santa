@@ -24,7 +24,9 @@
       "functions": [
         "parse"
       ],
-      "input": "servers = web1\nservers = web2\nservers = web3",
+      "inputs": [
+        "servers = web1\nservers = web2\nservers = web3"
+      ],
       "name": "basic_list_from_duplicates_parse",
       "source_test": "basic_list_from_duplicates",
       "validation": "parse",
@@ -46,7 +48,9 @@
       "functions": [
         "build_hierarchy"
       ],
-      "input": "servers = web1\nservers = web2\nservers = web3",
+      "inputs": [
+        "servers = web1\nservers = web2\nservers = web3"
+      ],
       "name": "basic_list_from_duplicates_build_hierarchy",
       "source_test": "basic_list_from_duplicates",
       "validation": "build_hierarchy",
@@ -59,6 +63,11 @@
       "behaviors": [
         "list_coercion_enabled"
       ],
+      "conflicts": {
+        "behaviors": [
+          "list_coercion_disabled"
+        ]
+      },
       "expected": {
         "count": 3,
         "list": [
@@ -71,7 +80,9 @@
       "functions": [
         "get_list"
       ],
-      "input": "servers = web1\nservers = web2\nservers = web3",
+      "inputs": [
+        "servers = web1\nservers = web2\nservers = web3"
+      ],
       "name": "basic_list_from_duplicates_get_list",
       "source_test": "basic_list_from_duplicates",
       "validation": "get_list",
@@ -168,7 +179,9 @@
       "functions": [
         "parse"
       ],
-      "input": "items = item01\nitems = item02\nitems = item03\nitems = item04\nitems = item05\nitems = item06\nitems = item07\nitems = item08\nitems = item09\nitems = item10\nitems = item11\nitems = item12\nitems = item13\nitems = item14\nitems = item15\nitems = item16\nitems = item17\nitems = item18\nitems = item19\nitems = item20",
+      "inputs": [
+        "items = item01\nitems = item02\nitems = item03\nitems = item04\nitems = item05\nitems = item06\nitems = item07\nitems = item08\nitems = item09\nitems = item10\nitems = item11\nitems = item12\nitems = item13\nitems = item14\nitems = item15\nitems = item16\nitems = item17\nitems = item18\nitems = item19\nitems = item20"
+      ],
       "name": "large_list_parse",
       "source_test": "large_list",
       "validation": "parse",
@@ -207,7 +220,9 @@
       "functions": [
         "build_hierarchy"
       ],
-      "input": "items = item01\nitems = item02\nitems = item03\nitems = item04\nitems = item05\nitems = item06\nitems = item07\nitems = item08\nitems = item09\nitems = item10\nitems = item11\nitems = item12\nitems = item13\nitems = item14\nitems = item15\nitems = item16\nitems = item17\nitems = item18\nitems = item19\nitems = item20",
+      "inputs": [
+        "items = item01\nitems = item02\nitems = item03\nitems = item04\nitems = item05\nitems = item06\nitems = item07\nitems = item08\nitems = item09\nitems = item10\nitems = item11\nitems = item12\nitems = item13\nitems = item14\nitems = item15\nitems = item16\nitems = item17\nitems = item18\nitems = item19\nitems = item20"
+      ],
       "name": "large_list_build_hierarchy",
       "source_test": "large_list",
       "validation": "build_hierarchy",
@@ -220,6 +235,11 @@
       "behaviors": [
         "list_coercion_enabled"
       ],
+      "conflicts": {
+        "behaviors": [
+          "list_coercion_disabled"
+        ]
+      },
       "expected": {
         "count": 20,
         "list": [
@@ -249,7 +269,9 @@
       "functions": [
         "get_list"
       ],
-      "input": "items = item01\nitems = item02\nitems = item03\nitems = item04\nitems = item05\nitems = item06\nitems = item07\nitems = item08\nitems = item09\nitems = item10\nitems = item11\nitems = item12\nitems = item13\nitems = item14\nitems = item15\nitems = item16\nitems = item17\nitems = item18\nitems = item19\nitems = item20",
+      "inputs": [
+        "items = item01\nitems = item02\nitems = item03\nitems = item04\nitems = item05\nitems = item06\nitems = item07\nitems = item08\nitems = item09\nitems = item10\nitems = item11\nitems = item12\nitems = item13\nitems = item14\nitems = item15\nitems = item16\nitems = item17\nitems = item18\nitems = item19\nitems = item20"
+      ],
       "name": "large_list_get_list",
       "source_test": "large_list",
       "validation": "get_list",
@@ -288,7 +310,9 @@
       "functions": [
         "parse"
       ],
-      "input": "servers = web1\n/= Production servers\nservers = web2\nservers = web3\n/= End of list",
+      "inputs": [
+        "servers = web1\n/= Production servers\nservers = web2\nservers = web3\n/= End of list"
+      ],
       "name": "list_with_comments_parse",
       "source_test": "list_with_comments",
       "validation": "parse",
@@ -318,7 +342,9 @@
       "functions": [
         "build_hierarchy"
       ],
-      "input": "servers = web1\n/= Production servers\nservers = web2\nservers = web3\n/= End of list",
+      "inputs": [
+        "servers = web1\n/= Production servers\nservers = web2\nservers = web3\n/= End of list"
+      ],
       "name": "list_with_comments_build_hierarchy",
       "source_test": "list_with_comments",
       "validation": "build_hierarchy",
@@ -332,6 +358,11 @@
         "list_coercion_enabled",
         "array_order_insertion"
       ],
+      "conflicts": {
+        "behaviors": [
+          "list_coercion_disabled"
+        ]
+      },
       "expected": {
         "count": 3,
         "list": [
@@ -346,7 +377,9 @@
       "functions": [
         "get_list"
       ],
-      "input": "servers = web1\n/= Production servers\nservers = web2\nservers = web3\n/= End of list",
+      "inputs": [
+        "servers = web1\n/= Production servers\nservers = web2\nservers = web3\n/= End of list"
+      ],
       "name": "list_with_comments_get_list",
       "source_test": "list_with_comments",
       "validation": "get_list",
@@ -385,7 +418,9 @@
       "functions": [
         "parse"
       ],
-      "input": "servers = web1\n/= Production servers\nservers = web2\nservers = web3\n/= End of list",
+      "inputs": [
+        "servers = web1\n/= Production servers\nservers = web2\nservers = web3\n/= End of list"
+      ],
       "name": "list_with_comments_lexicographic_parse",
       "source_test": "list_with_comments_lexicographic",
       "validation": "parse",
@@ -415,7 +450,9 @@
       "functions": [
         "build_hierarchy"
       ],
-      "input": "servers = web1\n/= Production servers\nservers = web2\nservers = web3\n/= End of list",
+      "inputs": [
+        "servers = web1\n/= Production servers\nservers = web2\nservers = web3\n/= End of list"
+      ],
       "name": "list_with_comments_lexicographic_build_hierarchy",
       "source_test": "list_with_comments_lexicographic",
       "validation": "build_hierarchy",
@@ -429,6 +466,11 @@
         "list_coercion_enabled",
         "array_order_lexicographic"
       ],
+      "conflicts": {
+        "behaviors": [
+          "list_coercion_disabled"
+        ]
+      },
       "expected": {
         "count": 3,
         "list": [
@@ -443,7 +485,9 @@
       "functions": [
         "get_list"
       ],
-      "input": "servers = web1\n/= Production servers\nservers = web2\nservers = web3\n/= End of list",
+      "inputs": [
+        "servers = web1\n/= Production servers\nservers = web2\nservers = web3\n/= End of list"
+      ],
       "name": "list_with_comments_lexicographic_get_list",
       "source_test": "list_with_comments_lexicographic",
       "validation": "get_list",
@@ -464,7 +508,9 @@
       "functions": [
         "parse"
       ],
-      "input": "existing = value",
+      "inputs": [
+        "existing = value"
+      ],
       "name": "list_error_missing_key_parse",
       "source_test": "list_error_missing_key",
       "validation": "parse",
@@ -482,7 +528,9 @@
       "functions": [
         "build_hierarchy"
       ],
-      "input": "existing = value",
+      "inputs": [
+        "existing = value"
+      ],
       "name": "list_error_missing_key_build_hierarchy",
       "source_test": "list_error_missing_key",
       "validation": "build_hierarchy",
@@ -500,7 +548,9 @@
       "functions": [
         "get_list"
       ],
-      "input": "existing = value",
+      "inputs": [
+        "existing = value"
+      ],
       "name": "list_error_missing_key_get_list",
       "source_test": "list_error_missing_key",
       "validation": "get_list",
@@ -521,7 +571,9 @@
       "functions": [
         "parse"
       ],
-      "input": "config =\n  server = web1",
+      "inputs": [
+        "config =\n  server = web1"
+      ],
       "name": "list_error_nested_missing_key_parse",
       "source_test": "list_error_nested_missing_key",
       "validation": "parse",
@@ -541,7 +593,9 @@
       "functions": [
         "build_hierarchy"
       ],
-      "input": "config =\n  server = web1",
+      "inputs": [
+        "config =\n  server = web1"
+      ],
       "name": "list_error_nested_missing_key_build_hierarchy",
       "source_test": "list_error_nested_missing_key",
       "validation": "build_hierarchy",
@@ -560,7 +614,9 @@
       "functions": [
         "get_list"
       ],
-      "input": "config =\n  server = web1",
+      "inputs": [
+        "config =\n  server = web1"
+      ],
       "name": "list_error_nested_missing_key_get_list",
       "source_test": "list_error_nested_missing_key",
       "validation": "get_list",
@@ -581,7 +637,9 @@
       "functions": [
         "parse"
       ],
-      "input": "value = simple",
+      "inputs": [
+        "value = simple"
+      ],
       "name": "list_error_non_object_path_parse",
       "source_test": "list_error_non_object_path",
       "validation": "parse",
@@ -599,7 +657,9 @@
       "functions": [
         "build_hierarchy"
       ],
-      "input": "value = simple",
+      "inputs": [
+        "value = simple"
+      ],
       "name": "list_error_non_object_path_build_hierarchy",
       "source_test": "list_error_non_object_path",
       "validation": "build_hierarchy",
@@ -618,7 +678,9 @@
       "functions": [
         "get_list"
       ],
-      "input": "value = simple",
+      "inputs": [
+        "value = simple"
+      ],
       "name": "list_error_non_object_path_get_list",
       "source_test": "list_error_non_object_path",
       "validation": "get_list",
@@ -633,7 +695,9 @@
       "functions": [
         "parse"
       ],
-      "input": "",
+      "inputs": [
+        ""
+      ],
       "name": "list_edge_case_zero_length_parse",
       "source_test": "list_edge_case_zero_length",
       "validation": "parse",
@@ -649,7 +713,9 @@
       "functions": [
         "build_hierarchy"
       ],
-      "input": "",
+      "inputs": [
+        ""
+      ],
       "name": "list_edge_case_zero_length_build_hierarchy",
       "source_test": "list_edge_case_zero_length",
       "validation": "build_hierarchy",
@@ -667,7 +733,9 @@
       "functions": [
         "get_list"
       ],
-      "input": "",
+      "inputs": [
+        ""
+      ],
       "name": "list_edge_case_zero_length_get_list",
       "source_test": "list_edge_case_zero_length",
       "validation": "get_list",
@@ -690,7 +758,9 @@
       "functions": [
         "parse"
       ],
-      "input": "servers =\n  = web1\n  = web2\n  = web3",
+      "inputs": [
+        "servers =\n  = web1\n  = web2\n  = web3"
+      ],
       "name": "bare_list_basic_parse",
       "source_test": "bare_list_basic",
       "validation": "parse",
@@ -716,7 +786,9 @@
       "functions": [
         "build_hierarchy"
       ],
-      "input": "servers =\n  = web1\n  = web2\n  = web3",
+      "inputs": [
+        "servers =\n  = web1\n  = web2\n  = web3"
+      ],
       "name": "bare_list_basic_build_hierarchy",
       "source_test": "bare_list_basic",
       "validation": "build_hierarchy",
@@ -741,7 +813,9 @@
       "functions": [
         "get_list"
       ],
-      "input": "servers =\n  = web1\n  = web2\n  = web3",
+      "inputs": [
+        "servers =\n  = web1\n  = web2\n  = web3"
+      ],
       "name": "bare_list_basic_get_list",
       "source_test": "bare_list_basic",
       "validation": "get_list",
@@ -764,7 +838,9 @@
       "functions": [
         "parse"
       ],
-      "input": "network =\n  ports =\n    = 80\n    = 443\n    = 8080",
+      "inputs": [
+        "network =\n  ports =\n    = 80\n    = 443\n    = 8080"
+      ],
       "name": "bare_list_nested_parse",
       "source_test": "bare_list_nested",
       "validation": "parse",
@@ -794,7 +870,9 @@
       "functions": [
         "build_hierarchy"
       ],
-      "input": "network =\n  ports =\n    = 80\n    = 443\n    = 8080",
+      "inputs": [
+        "network =\n  ports =\n    = 80\n    = 443\n    = 8080"
+      ],
       "name": "bare_list_nested_build_hierarchy",
       "source_test": "bare_list_nested",
       "validation": "build_hierarchy",
@@ -822,7 +900,9 @@
       "functions": [
         "get_list"
       ],
-      "input": "network =\n  ports =\n    = 80\n    = 443\n    = 8080",
+      "inputs": [
+        "network =\n  ports =\n    = 80\n    = 443\n    = 8080"
+      ],
       "name": "bare_list_nested_get_list",
       "source_test": "bare_list_nested",
       "validation": "get_list",
@@ -845,7 +925,9 @@
       "functions": [
         "parse"
       ],
-      "input": "network =\n  ports =\n    = 80\n    = 443\n    = 8080",
+      "inputs": [
+        "network =\n  ports =\n    = 80\n    = 443\n    = 8080"
+      ],
       "name": "bare_list_nested_lexicographic_parse",
       "source_test": "bare_list_nested_lexicographic",
       "validation": "parse",
@@ -875,7 +957,9 @@
       "functions": [
         "build_hierarchy"
       ],
-      "input": "network =\n  ports =\n    = 80\n    = 443\n    = 8080",
+      "inputs": [
+        "network =\n  ports =\n    = 80\n    = 443\n    = 8080"
+      ],
       "name": "bare_list_nested_lexicographic_build_hierarchy",
       "source_test": "bare_list_nested_lexicographic",
       "validation": "build_hierarchy",
@@ -903,7 +987,9 @@
       "functions": [
         "get_list"
       ],
-      "input": "network =\n  ports =\n    = 80\n    = 443\n    = 8080",
+      "inputs": [
+        "network =\n  ports =\n    = 80\n    = 443\n    = 8080"
+      ],
       "name": "bare_list_nested_lexicographic_get_list",
       "source_test": "bare_list_nested_lexicographic",
       "validation": "get_list",
@@ -927,7 +1013,9 @@
       "functions": [
         "parse"
       ],
-      "input": "allowed_hosts =\n  /= Production hosts\n  = localhost\n  = 127.0.0.1\n  = example.com",
+      "inputs": [
+        "allowed_hosts =\n  /= Production hosts\n  = localhost\n  = 127.0.0.1\n  = example.com"
+      ],
       "name": "bare_list_with_comments_parse",
       "source_test": "bare_list_with_comments",
       "validation": "parse",
@@ -957,7 +1045,9 @@
       "functions": [
         "build_hierarchy"
       ],
-      "input": "allowed_hosts =\n  /= Production hosts\n  = localhost\n  = 127.0.0.1\n  = example.com",
+      "inputs": [
+        "allowed_hosts =\n  /= Production hosts\n  = localhost\n  = 127.0.0.1\n  = example.com"
+      ],
       "name": "bare_list_with_comments_build_hierarchy",
       "source_test": "bare_list_with_comments",
       "validation": "build_hierarchy",
@@ -985,7 +1075,9 @@
       "functions": [
         "get_list"
       ],
-      "input": "allowed_hosts =\n  /= Production hosts\n  = localhost\n  = 127.0.0.1\n  = example.com",
+      "inputs": [
+        "allowed_hosts =\n  /= Production hosts\n  = localhost\n  = 127.0.0.1\n  = example.com"
+      ],
       "name": "bare_list_with_comments_get_list",
       "source_test": "bare_list_with_comments",
       "validation": "get_list",
@@ -1009,7 +1101,9 @@
       "functions": [
         "parse"
       ],
-      "input": "allowed_hosts =\n  /= Production hosts\n  = localhost\n  = 127.0.0.1\n  = example.com",
+      "inputs": [
+        "allowed_hosts =\n  /= Production hosts\n  = localhost\n  = 127.0.0.1\n  = example.com"
+      ],
       "name": "bare_list_with_comments_lexicographic_parse",
       "source_test": "bare_list_with_comments_lexicographic",
       "validation": "parse",
@@ -1039,7 +1133,9 @@
       "functions": [
         "build_hierarchy"
       ],
-      "input": "allowed_hosts =\n  /= Production hosts\n  = localhost\n  = 127.0.0.1\n  = example.com",
+      "inputs": [
+        "allowed_hosts =\n  /= Production hosts\n  = localhost\n  = 127.0.0.1\n  = example.com"
+      ],
       "name": "bare_list_with_comments_lexicographic_build_hierarchy",
       "source_test": "bare_list_with_comments_lexicographic",
       "validation": "build_hierarchy",
@@ -1067,7 +1163,9 @@
       "functions": [
         "get_list"
       ],
-      "input": "allowed_hosts =\n  /= Production hosts\n  = localhost\n  = 127.0.0.1\n  = example.com",
+      "inputs": [
+        "allowed_hosts =\n  /= Production hosts\n  = localhost\n  = 127.0.0.1\n  = example.com"
+      ],
       "name": "bare_list_with_comments_lexicographic_get_list",
       "source_test": "bare_list_with_comments_lexicographic",
       "validation": "get_list",
@@ -1090,7 +1188,9 @@
       "functions": [
         "parse"
       ],
-      "input": "config =\n  environments =\n    production =\n      servers =\n        = web1\n        = web2\n        = api1",
+      "inputs": [
+        "config =\n  environments =\n    production =\n      servers =\n        = web1\n        = web2\n        = api1"
+      ],
       "name": "bare_list_deeply_nested_parse",
       "source_test": "bare_list_deeply_nested",
       "validation": "parse",
@@ -1124,7 +1224,9 @@
       "functions": [
         "build_hierarchy"
       ],
-      "input": "config =\n  environments =\n    production =\n      servers =\n        = web1\n        = web2\n        = api1",
+      "inputs": [
+        "config =\n  environments =\n    production =\n      servers =\n        = web1\n        = web2\n        = api1"
+      ],
       "name": "bare_list_deeply_nested_build_hierarchy",
       "source_test": "bare_list_deeply_nested",
       "validation": "build_hierarchy",
@@ -1154,7 +1256,9 @@
       "functions": [
         "get_list"
       ],
-      "input": "config =\n  environments =\n    production =\n      servers =\n        = web1\n        = web2\n        = api1",
+      "inputs": [
+        "config =\n  environments =\n    production =\n      servers =\n        = web1\n        = web2\n        = api1"
+      ],
       "name": "bare_list_deeply_nested_get_list",
       "source_test": "bare_list_deeply_nested",
       "validation": "get_list",
@@ -1177,7 +1281,9 @@
       "functions": [
         "parse"
       ],
-      "input": "config =\n  environments =\n    production =\n      servers =\n        = web1\n        = web2\n        = api1",
+      "inputs": [
+        "config =\n  environments =\n    production =\n      servers =\n        = web1\n        = web2\n        = api1"
+      ],
       "name": "bare_list_deeply_nested_lexicographic_parse",
       "source_test": "bare_list_deeply_nested_lexicographic",
       "validation": "parse",
@@ -1211,7 +1317,9 @@
       "functions": [
         "build_hierarchy"
       ],
-      "input": "config =\n  environments =\n    production =\n      servers =\n        = web1\n        = web2\n        = api1",
+      "inputs": [
+        "config =\n  environments =\n    production =\n      servers =\n        = web1\n        = web2\n        = api1"
+      ],
       "name": "bare_list_deeply_nested_lexicographic_build_hierarchy",
       "source_test": "bare_list_deeply_nested_lexicographic",
       "validation": "build_hierarchy",
@@ -1241,7 +1349,9 @@
       "functions": [
         "get_list"
       ],
-      "input": "config =\n  environments =\n    production =\n      servers =\n        = web1\n        = web2\n        = api1",
+      "inputs": [
+        "config =\n  environments =\n    production =\n      servers =\n        = web1\n        = web2\n        = api1"
+      ],
       "name": "bare_list_deeply_nested_lexicographic_get_list",
       "source_test": "bare_list_deeply_nested_lexicographic",
       "validation": "get_list",
@@ -1264,7 +1374,9 @@
       "functions": [
         "parse"
       ],
-      "input": "database =\n  host = localhost\n  port = 5432\n  replicas =\n    = replica1\n    = replica2",
+      "inputs": [
+        "database =\n  host = localhost\n  port = 5432\n  replicas =\n    = replica1\n    = replica2"
+      ],
       "name": "bare_list_mixed_with_other_keys_parse",
       "source_test": "bare_list_mixed_with_other_keys",
       "validation": "parse",
@@ -1293,7 +1405,9 @@
       "functions": [
         "build_hierarchy"
       ],
-      "input": "database =\n  host = localhost\n  port = 5432\n  replicas =\n    = replica1\n    = replica2",
+      "inputs": [
+        "database =\n  host = localhost\n  port = 5432\n  replicas =\n    = replica1\n    = replica2"
+      ],
       "name": "bare_list_mixed_with_other_keys_build_hierarchy",
       "source_test": "bare_list_mixed_with_other_keys",
       "validation": "build_hierarchy",
@@ -1318,7 +1432,9 @@
       "functions": [
         "get_list"
       ],
-      "input": "database =\n  host = localhost\n  port = 5432\n  replicas =\n    = replica1\n    = replica2",
+      "inputs": [
+        "database =\n  host = localhost\n  port = 5432\n  replicas =\n    = replica1\n    = replica2"
+      ],
       "name": "bare_list_mixed_with_other_keys_get_list",
       "source_test": "bare_list_mixed_with_other_keys",
       "validation": "get_list",
@@ -1339,7 +1455,9 @@
       "functions": [
         "parse"
       ],
-      "input": "config =\n  setting = value",
+      "inputs": [
+        "config =\n  setting = value"
+      ],
       "name": "bare_list_error_not_a_list_parse",
       "source_test": "bare_list_error_not_a_list",
       "validation": "parse",
@@ -1359,7 +1477,9 @@
       "functions": [
         "build_hierarchy"
       ],
-      "input": "config =\n  setting = value",
+      "inputs": [
+        "config =\n  setting = value"
+      ],
       "name": "bare_list_error_not_a_list_build_hierarchy",
       "source_test": "bare_list_error_not_a_list",
       "validation": "build_hierarchy",
@@ -1373,6 +1493,11 @@
       "behaviors": [
         "list_coercion_disabled"
       ],
+      "conflicts": {
+        "behaviors": [
+          "list_coercion_enabled"
+        ]
+      },
       "expected": {
         "count": 0
       },
@@ -1380,7 +1505,9 @@
       "functions": [
         "get_list"
       ],
-      "input": "config =\n  setting = value",
+      "inputs": [
+        "config =\n  setting = value"
+      ],
       "name": "bare_list_error_not_a_list_get_list",
       "source_test": "bare_list_error_not_a_list",
       "validation": "get_list",

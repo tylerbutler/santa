@@ -25,7 +25,6 @@ thiserror = "1.0"
 # Serialization
 serde = { version = "1.0.219", features = ["derive"] }
 serde_json = "1.0"
-serde_yaml = "0.9"
 serde-enum-str = "0.2.5"
 
 # CLI
@@ -54,12 +53,12 @@ moka = { version = "0.12", features = ["sync", "logging"] }
 notify = "6.1"
 shell-escape = "0.1"
 shlex = "1.3"
-tera = "1.19"
+minijinja = "2"
 powershell_script = "1.1"
 chrono = { version = "0.4", features = ["serde"] }
 
-# HTTP client (minimal, blocking)
-ureq = "2.10"
+# HTTP client (lightweight, minimal deps)
+minreq = { version = "2.12", features = ["https-rustls"] }
 
 # Dev dependencies
 rstest = "0.18"
@@ -69,6 +68,10 @@ mockall = "0.12"
 assert_cmd = "2.0"
 predicates = "3.1"
 criterion = { version = "0.5", features = ["html_reports", "async_tokio"] }
+
+[profile.release]
+lto = true
+strip = true
 
 [profile.dist]
 inherits = "release"

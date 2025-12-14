@@ -38,7 +38,9 @@
       "functions": [
         "parse"
       ],
-      "input": "/= This is an environment section\nport = 8080\nserve = index.html\n/= Database section\nmode = in-memory\nconnections = 16",
+      "inputs": [
+        "/= This is an environment section\nport = 8080\nserve = index.html\n/= Database section\nmode = in-memory\nconnections = 16"
+      ],
       "name": "comment_extension_parse",
       "source_test": "comment_extension",
       "validation": "parse",
@@ -81,7 +83,9 @@
       "functions": [
         "filter"
       ],
-      "input": "/= This is an environment section\nport = 8080\nserve = index.html\n/= Database section\nmode = in-memory\nconnections = 16",
+      "inputs": [
+        "/= This is an environment section\nport = 8080\nserve = index.html\n/= Database section\nmode = in-memory\nconnections = 16"
+      ],
       "name": "comment_extension_filter",
       "source_test": "comment_extension",
       "validation": "filter",
@@ -104,7 +108,9 @@
       "functions": [
         "parse"
       ],
-      "input": "/= this is a comment",
+      "inputs": [
+        "/= this is a comment"
+      ],
       "name": "comment_syntax_slash_equals_parse",
       "source_test": "comment_syntax_slash_equals",
       "validation": "parse",
@@ -127,7 +133,9 @@
       "functions": [
         "filter"
       ],
-      "input": "/= this is a comment",
+      "inputs": [
+        "/= this is a comment"
+      ],
       "name": "comment_syntax_slash_equals_filter",
       "source_test": "comment_syntax_slash_equals",
       "validation": "filter",
@@ -171,7 +179,9 @@
       "functions": [
         "parse"
       ],
-      "input": "== Database Config ==\n/= Connection settings\nhost = localhost\n=== Cache Config ===\n/= Redis configuration\nport = 6379",
+      "inputs": [
+        "== Database Config ==\n/= Connection settings\nhost = localhost\n=== Cache Config ===\n/= Redis configuration\nport = 6379"
+      ],
       "name": "section_headers_with_comments_parse",
       "source_test": "section_headers_with_comments",
       "validation": "parse",
@@ -215,7 +225,9 @@
       "functions": [
         "filter"
       ],
-      "input": "== Database Config ==\n/= Connection settings\nhost = localhost\n=== Cache Config ===\n/= Redis configuration\nport = 6379",
+      "inputs": [
+        "== Database Config ==\n/= Connection settings\nhost = localhost\n=== Cache Config ===\n/= Redis configuration\nport = 6379"
+      ],
       "name": "section_headers_with_comments_filter",
       "source_test": "section_headers_with_comments",
       "validation": "filter",
