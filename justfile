@@ -184,6 +184,10 @@ markdown-help:
 docs:
     cargo doc --open --no-deps
 
+# Check documentation builds without warnings (for CI)
+docs-check:
+    RUSTDOCFLAGS="-D warnings" cargo doc --no-deps --document-private-items --workspace
+
 # Release Commands
 # ===============
 

@@ -35,8 +35,8 @@ jobs:
         with:
           tools: just
 
-      - run: cargo test --verbose --workspace --all-features
-      - run: cargo test --verbose --workspace --no-default-features
+      - run: just test --verbose --workspace --all-features
+      - run: just test --verbose --workspace --no-default-features
 
   test-extended-platforms:
     name: Extended Test - ${{ matrix.rust }} on ${{ matrix.os }}
@@ -58,8 +58,8 @@ jobs:
         with:
           tools: just
 
-      - run: cargo test --verbose --workspace --all-features
-      - run: cargo test --verbose --workspace --no-default-features
+      - run: just test --verbose --workspace --all-features
+      - run: just test --verbose --workspace --no-default-features
 
   cross-test:
     name: Cross Test - ${{ matrix.target }}
@@ -102,9 +102,7 @@ jobs:
           tools: just
 
       - name: Check formatting
-        run: cargo fmt --all -- --check
+        run: just format --check
 
       - name: Check documentation
-        env:
-          RUSTDOCFLAGS: -D warnings
-        run: cargo doc --no-deps --document-private-items --workspace
+        run: just docs-check
