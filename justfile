@@ -113,6 +113,14 @@ test-all *ARGS='':
 test-watch:
     cargo watch -x test
 
+# Run tests with coverage (outputs lcov.info)
+test-coverage:
+    cargo llvm-cov nextest --all-features --workspace --lcov --output-path lcov.info
+
+# Generate HTML coverage report (run after test-coverage)
+coverage-report:
+    cargo llvm-cov report --html --output-dir target/llvm-cov/html
+
 # Download CCL test data from ccl-test-data repository
 download-ccl-tests:
     @echo "📥 Downloading CCL test data from ccl-test-data repository..."
@@ -184,6 +192,10 @@ markdown-help:
 docs:
     cargo doc --open --no-deps
 
+# Check documentation builds without warnings (for CI)
+docs-check:
+    RUSTDOCFLAGS="-D warnings" cargo doc --no-deps --document-private-items --workspace
+
 # Release Commands
 # ===============
 
@@ -210,11 +222,11 @@ clean:
 
 # Run the same checks as CI
 ci:
-    cargo fmt -- --check
-    cargo clippy -- -A clippy::needless_return -D warnings
-    cargo test
-    cargo build --release
-    cargo audit
+    just format --check
+    just lint
+    just test-coverage
+    just build-release
+    just audit
 
 # Binary Size Analysis Commands
 # =============================
