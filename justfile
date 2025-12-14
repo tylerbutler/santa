@@ -11,6 +11,7 @@
 
 alias b := build
 alias br := build-release
+alias r := release
 alias t := test
 alias ta := test-all
 alias tf := test-fast
