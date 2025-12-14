@@ -27,7 +27,7 @@
 //!
 //! ### Serde Integration (requires "serde" feature)
 //!
-//! ```rust,ignore
+//! ```rust
 //! use serde::Deserialize;
 //! use sickle::from_str;
 //!
@@ -37,7 +37,14 @@
 //!     version: String,
 //! }
 //!
+//! let ccl = r#"
+//! name = MyApp
+//! version = 1.0.0
+//! "#;
+//!
 //! let config: Config = from_str(ccl).unwrap();
+//! assert_eq!(config.name, "MyApp");
+//! assert_eq!(config.version, "1.0.0");
 //! ```
 //!
 //! ## Capabilities
@@ -188,9 +195,9 @@ fn is_valid_ccl_key(key: &str) -> bool {
 /// Internal helper: Build a Model from the grouped key-value map
 ///
 /// Following the CCL desugaring rules:
-/// - `key = value` becomes `{"key": {"value": {}}}`
-/// - `key =` (empty value) becomes `{"key": {"": {}}}`
-/// - Multiple values become multiple nested keys
+/// - `key = value` becomes `{"key": [{"value": [{}]}]}`
+/// - `key =` (empty value) becomes `{"key": [{"": [{}]}]}`
+/// - Multiple values become Vec entries for the same key
 /// - Nested CCL is recursively parsed
 #[cfg(feature = "hierarchy")]
 fn build_model(map: indexmap::IndexMap<String, Vec<String>>) -> Result<CclObject> {
@@ -209,8 +216,8 @@ fn build_model(map: indexmap::IndexMap<String, Vec<String>>) -> Result<CclObject
             v
         };
 
-        // Build the nested map for this key
-        let mut nested = indexmap::IndexMap::new();
+        // Build Vec of CclObjects for this key
+        let mut nested_values = Vec::new();
 
         for value in values {
             if value.contains('=') {
@@ -224,31 +231,54 @@ fn build_model(map: indexmap::IndexMap<String, Vec<String>>) -> Result<CclObject
                             let has_valid_keys = parsed.keys().all(|k| is_valid_ccl_key(k));
 
                             if has_valid_keys {
-                                // It's valid nested CCL, merge it into our nested map
-                                for (k, v) in parsed.into_inner() {
-                                    nested.insert(k, v);
-                                }
+                                // It's valid nested CCL, add it to our values
+                                nested_values.push(parsed);
                             } else {
                                 // Keys don't look like valid CCL, treat as string value
-                                nested.insert(value.clone(), CclObject::new());
+                                nested_values.push(CclObject::from_string(value));
                             }
                         } else {
                             // Empty parsed result, treat as string value
-                            nested.insert(value.clone(), CclObject::new());
+                            nested_values.push(CclObject::from_string(value));
                         }
                     }
                     Err(_) => {
                         // Failed to parse, treat as string value
-                        nested.insert(value.clone(), CclObject::new());
+                        nested_values.push(CclObject::from_string(value));
                     }
                 }
             } else {
-                // Plain string value - becomes a key with empty map
-                nested.insert(value, CclObject::new());
+                // Plain string value
+                nested_values.push(CclObject::from_string(value));
             }
         }
 
-        result.insert(key, CclObject::from_map(nested));
+        // Handle duplicate keys according to CCL semantics:
+        // - Empty keys (bare list items): always keep as Vec
+        // - Non-empty keys with simple string values (like "item = first"): keep as list
+        // - Non-empty keys with nested objects: compose them into a single object
+        //
+        // We determine if values are "simple strings" by checking if each has
+        // exactly one key with an empty child (the pattern for string values)
+        if !key.is_empty() && nested_values.len() > 1 {
+            let all_simple_strings = nested_values.iter().all(|obj| {
+                // A simple string value has exactly one key, and that key maps to empty
+                obj.len() == 1 && obj.iter().next().is_some_and(|(_, v)| v.is_empty())
+            });
+
+            if all_simple_strings {
+                // Keep as list - these are string values like "item = first"
+                result.insert(key, nested_values);
+            } else {
+                // Compose into single object - these are nested structures
+                let composed = nested_values
+                    .iter()
+                    .fold(CclObject::new(), |acc, obj| acc.compose(obj));
+                result.insert(key, vec![composed]);
+            }
+        } else {
+            result.insert(key, nested_values);
+        }
     }
 
     Ok(CclObject::from_map(result))

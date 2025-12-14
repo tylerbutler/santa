@@ -1,0 +1,4 @@
+/= AUR packages
+/= Packages with name overrides
+fnm = fnm-bin
+oh-my-posh = oh-my-posh-git

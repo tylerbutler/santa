@@ -5,10 +5,6 @@
 # This justfile provides convenient commands for development, testing, and deployment.
 # Install just: https://github.com/casey/just#installation
 
-export RUST_BACKTRACE := "1"
-
-set windows-shell := ["powershell.exe", "-NoLogo", "-Command"]
-
 # ===================
 # Aliases
 # ===================
@@ -20,8 +16,11 @@ alias ta := test-all
 alias tf := test-fast
 alias l := lint
 alias f := fix
-alias c := check-quick
 alias pr := ci
+
+export RUST_BACKTRACE := "1"
+
+set windows-shell := ["powershell.exe", "-NoLogo", "-Command"]
 
 # Default recipe - shows available commands
 default:
@@ -31,76 +30,83 @@ default:
 # Development Setup
 # ===================
 
-# Install all development dependencies via mise
-setup:
-    @echo "🔧 Setting up development environment..."
-    @command -v mise >/dev/null 2>&1 || { echo "❌ mise not found. Install from https://mise.jdx.dev"; exit 1; }
-    mise install
-    @echo "✅ Development setup complete!"
-    @echo ""
-    @echo "Installed tools:"
-    @mise list --current
+# Install all development dependencies
+_install-udeps:
+    cargo install cargo-udeps --locked
 
-# ===================
-# Build Commands
-# ===================
+_install-nextest:
+    cargo install cargo-nextest --locked
+
+_install-llvm-cov:
+    cargo install cargo-llvm-cov --locked
+
+_install-audit:
+    cargo install cargo-audit --locked
+
+_install-deny:
+    cargo install cargo-deny --locked
+
+_install-watch:
+    cargo install cargo-watch --locked
+
+_install-outdated:
+    cargo install cargo-outdated --locked
+
+_install-dist:
+    cargo install cargo-dist --locked
 
 # Build the project in debug mode
 build *ARGS='':
-    @echo "🔨 Building santa (debug)..."
     cargo build {{ARGS}}
-    @just markdown-help
 
 # Build the project in release mode
 build-release *ARGS='':
-    @echo "🔨 Building santa (release)..."
     cargo build --release {{ARGS}}
 
-# ===================
+# Generate package index from source files
+generate-index:
+    @echo "📋 Generating package index from source files..."
+    cargo run --bin generate-index
+    @echo "✅ Package index generated at crates/santa-cli/data/known_packages.ccl"
+
+# Build for CI with specific target
+ci-build TARGET='x86_64-unknown-linux-gnu' *ARGS='':
+    @echo "🔨 Building for CI target: {{TARGET}}"
+    cargo build --locked --release --target {{TARGET}} {{ARGS}}
+
+# Cross-compile build (requires cross)
+cbuild target='x86_64-unknown-linux-gnu' *ARGS='':
+    @echo "🔨 Cross-building for: {{target}}"
+    cross build --locked --release --target {{target}} {{ARGS}}
+
+# Build for all supported targets
+build-all:
+    @echo "🔨 Building for all targets..."
+    cargo build --target x86_64-unknown-linux-gnu
+    cargo build --target aarch64-unknown-linux-gnu
+    cargo build --target x86_64-apple-darwin
+    cargo build --target aarch64-apple-darwin
+    cargo build --target x86_64-pc-windows-gnu
+
+
 # Testing Commands
 # ===================
 
 # Run all tests with cargo test
 test *ARGS='':
-    @echo "🧪 Running tests..."
     cargo test {{ARGS}}
 
 # Run tests with nextest (faster parallel execution)
 test-fast *ARGS='':
-    @echo "🧪 Running tests with nextest..."
     cargo nextest run {{ARGS}}
 
 # Run tests with all features enabled
 test-all *ARGS='':
-    @echo "🧪 Running tests with all features..."
     cargo test --all-features {{ARGS}}
 
 # Run tests in watch mode
 test-watch:
-    @echo "🧪 Running tests in watch mode..."
     cargo watch -x test
-
-# Run tests with coverage reporting (uses nextest for speed)
-test-coverage:
-    @echo "🧪 Running tests with coverage (nextest + llvm-cov)..."
-    cargo llvm-cov nextest --all-features --workspace --lcov --output-path coverage/lcov.info
-    cargo llvm-cov report --html --output-dir coverage/html
-    @echo "📊 Coverage reports generated:"
-    @echo "  - LCOV: coverage/lcov.info"
-    @echo "  - HTML: coverage/html/index.html"
-
-# Run sickle data-driven tests with coverage
-test-coverage-sickle:
-    @echo "🧪 Running sickle data-driven tests with coverage..."
-    cargo llvm-cov nextest -p sickle --all-features \
-      --lcov --output-path coverage/sickle-lcov.info \
-      -E 'binary(data_driven_tests)'
-    cargo llvm-cov report --html --output-dir coverage/sickle-html
-    @echo "📊 Sickle coverage: coverage/sickle-html/index.html"
-
-# ===================
-# CCL/Sickle Commands
-# ===================
 
 # Download CCL test data from ccl-test-data repository
 download-ccl-tests:
@@ -113,7 +119,6 @@ download-ccl-tests:
     @cp /tmp/ccl-test-data/generated_tests/*.json crates/sickle/tests/test_data/
     @rm -rf /tmp/ccl-test-data
     @echo "✅ Downloaded all test files to crates/sickle/tests/test_data/"
-    @echo "   Files: $$(ls crates/sickle/tests/test_data/*.json | wc -l) JSON test suites"
 
 # Run CCL test suites with detailed results from all JSON test files
 test-ccl:
@@ -123,23 +128,26 @@ test-ccl:
 sickle-capabilities:
     @python3 crates/sickle/scripts/generate_capabilities.py
 
-# ===================
-# Code Quality
-# ===================
+# Benchmarking Commands
+# ====================
+
+# Run all benchmarks
+bench:
+    cargo bench
+
+# Code Quality Commands
+# ====================
 
 # Run linting with clippy
 lint *ARGS='':
-    @echo "🔍 Running clippy..."
     cargo clippy {{ARGS}} -- -A clippy::needless_return -D warnings
 
 # Format code
 format *ARGS='':
-    @echo "🎨 Formatting code..."
     cargo fmt --all -- {{ARGS}}
 
 # Auto-fix formatting and simple lint issues
 fix:
-    @echo "🔧 Auto-fixing code issues..."
     cargo fmt
     cargo clippy --fix --allow-dirty --allow-staged
     cargo fix --allow-dirty --allow-staged
@@ -151,25 +159,17 @@ check-quick:
     cargo test --lib
     @echo "✅ Quick checks passed!"
 
-# Check for unused dependencies (requires nightly)
-unused-deps:
-    @echo "🔍 Checking for unused dependencies..."
-    cargo +nightly udeps
-
 # Security audit
 audit:
-    @echo "🔒 Running security audit..."
     cargo audit
     cargo deny check
 
 # Check for semver-incompatible changes
 semver:
-    @echo "🔍 Checking semver compatibility..."
     cargo semver-checks
 
-# ===================
-# Documentation
-# ===================
+# Documentation Commands
+# ======================
 
 # Generate CLI help in markdown format
 markdown-help:
@@ -180,32 +180,39 @@ markdown-help:
 
 # Generate and open documentation
 docs:
-    @echo "📚 Generating documentation..."
     cargo doc --open --no-deps
 
-# Check documentation for errors (used in CI)
-docs-check:
-    @echo "📚 Checking documentation..."
-    RUSTDOCFLAGS="-D warnings" cargo doc --no-deps --document-private-items --workspace
+# Release Commands
+# ===============
 
-# ===================
-# Benchmarking
-# ===================
+# Standard release build
+release:
+    cargo build --release
 
-# Run all benchmarks
-bench:
-    @echo "🚀 Running benchmarks..."
-    cargo bench
+# Verify packages can be packaged (validates metadata and structure)
+# Uses --no-verify because path deps may not be published to crates.io yet
+verify-package:
+    cargo package --no-verify -p sickle
+    cargo package --no-verify -p santa-data
+    cargo package --no-verify -p santa
 
-# Run benchmarks and save baseline
-bench-baseline:
-    @echo "🚀 Running benchmarks and saving baseline: main"
-    cargo bench -- --save-baseline main
+# Development Workflow Commands
+# ============================
 
-# Compare benchmarks against saved baseline
-bench-compare:
-    @echo "🚀 Comparing benchmarks against baseline: main"
-    cargo bench -- --baseline main
+# Clean build artifacts
+clean:
+    cargo clean
+
+# CI/CD Commands (matches GitHub Actions)
+# =====================================
+
+# Run the same checks as CI
+ci:
+    cargo fmt -- --check
+    cargo clippy -- -A clippy::needless_return -D warnings
+    cargo test
+    cargo build --release
+    cargo audit
 
 # ===================
 # Binary Size Analysis (Linux only)
@@ -233,36 +240,3 @@ record-size:
     DATE=$(date +%Y-%m-%d)
     echo "$DATE v$VERSION $SIZE $HUMAN" >> metrics/binary-size.txt
     echo "Recorded: $DATE v$VERSION $SIZE ($HUMAN)"
-
-# ===================
-# Utilities
-# ===================
-
-# Clean build artifacts
-clean:
-    @echo "🧹 Cleaning build artifacts..."
-    cargo clean
-    rm -rf coverage/
-    rm -rf dist/
-
-# Install santa locally for testing
-install-local:
-    @echo "📦 Installing santa locally..."
-    cargo install --path . --force
-
-# Verify that packages can be built for crates.io publishing
-verify-package:
-    @echo "📦 Verifying crate packaging..."
-    cargo package --workspace --no-verify --quiet
-    @echo "✅ Package verification complete!"
-
-# Run comprehensive CI checks locally (matches PR workflow)
-ci:
-    @echo "🤖 Running CI checks locally..."
-    just format --check
-    just lint
-    just test
-    just audit
-    just build-release
-    just verify-package
-    @echo "✅ CI checks complete!"

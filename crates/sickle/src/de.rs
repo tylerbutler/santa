@@ -12,7 +12,7 @@ use std::fmt;
 ///
 /// # Examples
 ///
-/// ```rust,ignore
+/// ```rust
 /// use serde::Deserialize;
 /// use sickle::from_str;
 ///
@@ -28,6 +28,8 @@ use std::fmt;
 /// "#;
 ///
 /// let config: Config = from_str(ccl).unwrap();
+/// assert_eq!(config.name, "MyApp");
+/// assert_eq!(config.version, "1.0.0");
 /// ```
 pub fn from_str<'a, T>(s: &'a str) -> Result<T>
 where
@@ -343,30 +345,32 @@ impl<'de> de::Deserializer<'de> for &mut Deserializer {
 
         // Check if it's a map with empty keys (list representation)
         if self.model.keys().any(|k| k.is_empty()) {
-            // Special case: if there's only one empty key and its value has entries,
-            // use those entries as the list
-            if self.model.len() == 1 {
-                if let Ok(value) = self.model.get("") {
-                    if !value.is_empty() && value.values().all(|v| v.is_empty()) {
-                        let items: Vec<String> = value.keys().cloned().collect();
-                        let seq = StringSeqDeserializer {
-                            iter: items.into_iter(),
-                        };
-                        return visitor.visit_seq(seq);
-                    }
+            // Get all values for the empty key
+            if let Ok(values) = self.model.get_all("") {
+                // Check if all values are simple string values (each has exactly one key with empty children)
+                let all_simple_strings = values
+                    .iter()
+                    .all(|v| v.len() == 1 && v.values().all(|child| child.is_empty()));
+
+                if all_simple_strings {
+                    // Extract the string values from each entry
+                    let items: Vec<String> = values
+                        .iter()
+                        .filter_map(|v| v.keys().next().cloned())
+                        .collect();
+                    let seq = StringSeqDeserializer {
+                        iter: items.into_iter(),
+                    };
+                    return visitor.visit_seq(seq);
+                } else {
+                    // Not simple strings, return the CclObjects
+                    let list: Vec<crate::CclObject> = values.to_vec();
+                    let seq = ModelSeqDeserializer {
+                        iter: list.into_iter(),
+                    };
+                    return visitor.visit_seq(seq);
                 }
             }
-
-            // Otherwise, extract values with empty keys as a list
-            let list: Vec<crate::CclObject> = self
-                .model
-                .iter()
-                .filter_map(|(k, v)| if k.is_empty() { Some(v.clone()) } else { None })
-                .collect();
-            let seq = ModelSeqDeserializer {
-                iter: list.into_iter(),
-            };
-            return visitor.visit_seq(seq);
         }
 
         Err(DeError::custom("expected a list"))
@@ -402,6 +406,7 @@ impl<'de> de::Deserializer<'de> for &mut Deserializer {
         let map_de = MapDeserializer {
             iter: self.model.iter_map(),
             value: None,
+            full_vec: None,
         };
         visitor.visit_map(map_de)
     }
@@ -501,8 +506,9 @@ impl<'de> SeqAccess<'de> for ModelSeqDeserializer {
 }
 
 struct MapDeserializer<'a> {
-    iter: indexmap::map::Iter<'a, String, CclObject>,
+    iter: crate::model::CclMapIter<'a>,
     value: Option<&'a CclObject>,
+    full_vec: Option<&'a Vec<CclObject>>,
 }
 
 impl<'de, 'a> MapAccess<'de> for MapDeserializer<'a> {
@@ -513,8 +519,11 @@ impl<'de, 'a> MapAccess<'de> for MapDeserializer<'a> {
         K: DeserializeSeed<'de>,
     {
         match self.iter.next() {
-            Some((key, value)) => {
-                self.value = Some(value);
+            Some((key, vec)) => {
+                // Take the first value from the Vec (serde expects single values per key)
+                self.value = vec.first();
+                // Store the full Vec for potential list deserialization
+                self.full_vec = Some(vec);
                 seed.deserialize(key.as_str().into_deserializer()).map(Some)
             }
             None => Ok(None),
@@ -525,6 +534,20 @@ impl<'de, 'a> MapAccess<'de> for MapDeserializer<'a> {
     where
         V: DeserializeSeed<'de>,
     {
+        // If there are multiple values in the Vec, compose them into one for deserialization
+        // This handles the case of duplicate keys becoming a list
+        if let Some(vec) = self.full_vec.take() {
+            if vec.len() > 1 {
+                // Multiple values for this key - compose them into a single object
+                // that can be deserialized as a sequence
+                let composed = vec
+                    .iter()
+                    .fold(CclObject::new(), |acc, obj| acc.compose(obj));
+                let mut de = Deserializer { model: composed };
+                return seed.deserialize(&mut de);
+            }
+        }
+
         match self.value.take() {
             Some(value) => {
                 let mut de = Deserializer {
@@ -567,6 +590,8 @@ impl de::Error for DeError {
 
 #[cfg(test)]
 mod tests {
+    #![allow(dead_code)] // Test structs exist to verify deserialization, not field usage
+
     use super::*;
     use serde::Deserialize;
 
@@ -652,14 +677,12 @@ npm =
     fn test_deserialize_hashmap_with_optionals() {
         use std::collections::HashMap;
 
-        #[allow(dead_code)]
         #[derive(Deserialize, Debug)]
         struct PlatformOverride {
             install: Option<String>,
             check: Option<String>,
         }
 
-        #[allow(dead_code)]
         #[derive(Deserialize, Debug)]
         struct SourceDef {
             emoji: String,
@@ -694,28 +717,49 @@ nix =
         let sources: HashMap<String, SourceDef> = from_str(ccl).unwrap();
         assert_eq!(sources.len(), 3);
 
+        // Test brew
+        let brew = &sources["brew"];
+        assert_eq!(brew.emoji, "🍺");
+        assert_eq!(brew.install, "brew install {package}");
+        assert_eq!(brew.check, "brew leaves");
+        assert!(brew.prefix.is_none());
+        assert!(brew.overrides.is_none());
+
         // Test npm with overrides
         let npm = &sources["npm"];
         assert_eq!(npm.emoji, "📦");
+        assert_eq!(npm.install, "npm install -g {package}");
+        assert_eq!(npm.check, "npm list -g");
+        assert!(npm.prefix.is_none());
         assert!(npm.overrides.is_some());
+        let npm_overrides = npm.overrides.as_ref().unwrap();
+        assert!(npm_overrides.contains_key("windows"));
+        let windows_override = &npm_overrides["windows"];
+        assert_eq!(
+            windows_override.check,
+            Some("npm root -g | gci -Name".to_string())
+        );
+        assert!(windows_override.install.is_none());
 
         // Test nix with prefix
         let nix = &sources["nix"];
+        assert_eq!(nix.emoji, "📈");
+        assert_eq!(nix.install, "nix-env -iA {package}");
+        assert_eq!(nix.check, "nix-env -q");
         assert_eq!(nix.prefix, Some("nixpkgs.".to_string()));
+        assert!(nix.overrides.is_none());
     }
 
     #[test]
     fn test_exact_santa_cli_case() {
         use std::collections::HashMap;
 
-        #[allow(dead_code)]
         #[derive(Deserialize, Debug)]
         struct PlatformOverride {
             install: Option<String>,
             check: Option<String>,
         }
 
-        #[allow(dead_code)]
         #[derive(Deserialize, Debug)]
         struct SourceDef {
             emoji: String,
@@ -751,6 +795,30 @@ flathub =
                 assert!(sources.contains_key("brew"));
                 assert!(sources.contains_key("npm"));
                 assert!(sources.contains_key("flathub"));
+
+                // Verify all fields for brew
+                let brew = &sources["brew"];
+                assert_eq!(brew.emoji, "🍺");
+                assert_eq!(brew.install, "brew install {package}");
+                assert_eq!(brew.check, "brew leaves --installed-on-request");
+                assert!(brew.prefix.is_none());
+                assert!(brew.overrides.is_none());
+
+                // Verify all fields for npm
+                let npm = &sources["npm"];
+                assert_eq!(npm.emoji, "📦");
+                assert_eq!(npm.install, "npm install -g {package}");
+                assert_eq!(npm.check, "npm list -g --depth=0");
+                assert!(npm.prefix.is_none());
+                assert!(npm.overrides.is_none());
+
+                // Verify all fields for flathub
+                let flathub = &sources["flathub"];
+                assert_eq!(flathub.emoji, "📦");
+                assert_eq!(flathub.install, "flatpak install flathub {package}");
+                assert_eq!(flathub.check, "flatpak list --app");
+                assert!(flathub.prefix.is_none());
+                assert!(flathub.overrides.is_none());
             }
             Err(e) => {
                 panic!("Failed to deserialize: {:?}", e);
@@ -1015,6 +1083,7 @@ mod serde_validation_tests {
         // in CCL's key-value model. To get a single-item list, you need the
         // explicit list syntax or use duplicate keys.
         let ccl = "items = only_one";
+        #[allow(dead_code)]
         #[derive(Deserialize, Debug)]
         struct S {
             items: Vec<String>,
@@ -1279,6 +1348,7 @@ api =
 
     #[test]
     fn test_invalid_number_format() {
+        #[allow(dead_code)]
         #[derive(Deserialize, Debug)]
         struct S {
             port: u16,
@@ -1291,6 +1361,7 @@ api =
 
     #[test]
     fn test_number_overflow() {
+        #[allow(dead_code)]
         #[derive(Deserialize, Debug)]
         struct S {
             value: u8,
@@ -1303,6 +1374,7 @@ api =
 
     #[test]
     fn test_invalid_bool() {
+        #[allow(dead_code)]
         #[derive(Deserialize, Debug)]
         struct S {
             enabled: bool,
@@ -1342,6 +1414,7 @@ check = brew leaves --installed-on-request
 
     #[test]
     fn test_source_definition_with_prefix() {
+        #[allow(dead_code)]
         #[derive(Deserialize, Debug)]
         struct SourceDef {
             emoji: String,

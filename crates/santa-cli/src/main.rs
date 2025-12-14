@@ -52,6 +52,10 @@ struct Cli {
     /// Print help in markdown format (for documentation generation)
     #[clap(long, hide = true)]
     markdown_help: bool,
+
+    /// Path to custom config file
+    #[clap(short, long, global = true)]
+    config: Option<std::path::PathBuf>,
 }
 
 #[derive(Subcommand)]
@@ -61,13 +65,34 @@ enum Commands {
         /// List all packages, not just missing ones
         #[clap(short, long)]
         all: bool,
+
+        /// Show only installed packages
+        #[clap(short, long, conflicts_with_all = &["missing", "all"])]
+        installed: bool,
+
+        /// Show only missing packages
+        #[clap(short, long, conflicts_with_all = &["installed", "all"])]
+        missing: bool,
+
+        /// Filter by specific source
+        #[clap(short, long)]
+        source: Option<String>,
     },
     /// Installs packages
     Install { source: Option<String> },
-    /// Adds a package to the tracking list for a package source
+    /// Adds packages to the configuration
     Add {
-        package: Option<String>,
-        source: Option<String>,
+        /// Package names to add
+        packages: Vec<String>,
+    },
+    /// Removes packages from the configuration
+    Remove {
+        /// Package names to remove
+        packages: Vec<String>,
+
+        /// Uninstall packages before removing from config
+        #[clap(short, long)]
+        uninstall: bool,
     },
     Config {
         /// Show full config
@@ -130,9 +155,15 @@ impl ScriptFormatOption {
 }
 
 fn load_config(path: &Path) -> Result<SantaConfig, anyhow::Error> {
-    let dir = BaseDirs::new().context("Failed to get base directories")?;
-    let home_dir = dir.home_dir();
-    let config_file = home_dir.join(path);
+    // Check for SANTA_CONFIG_PATH environment variable first
+    let config_file = if let Ok(env_path) = std::env::var("SANTA_CONFIG_PATH") {
+        debug!("Using config path from SANTA_CONFIG_PATH: {}", env_path);
+        std::path::PathBuf::from(env_path)
+    } else {
+        let dir = BaseDirs::new().context("Failed to get base directories")?;
+        let home_dir = dir.home_dir();
+        home_dir.join(path)
+    };
     let config = SantaConfig::load_from(&config_file)?;
     trace!("{:?}", config);
     Ok(config)
@@ -254,7 +285,9 @@ async fn handle_sources_command(
                                 install: s.install_command.clone(),
                                 check: s.check_command.clone(),
                                 prefix: s.prepend_to_package_name.clone(),
-                                overrides: None, // TODO: convert overrides
+                                // ConfigPackageSource.overrides are PackageNameOverride (for renaming packages),
+                                // not PlatformOverride (for platform-specific commands). Different concepts.
+                                overrides: None,
                             },
                         )
                     })
@@ -479,7 +512,12 @@ pub async fn run() -> Result<(), anyhow::Error> {
         info!("loading built-in config because of CLI flag.");
         SantaConfig::default_for_platform()
     } else {
-        load_config(Path::new(DEFAULT_CONFIG_FILE_PATH))?
+        // Use custom config path if provided, otherwise use default
+        let config_path = cli
+            .config
+            .as_deref()
+            .unwrap_or_else(|| Path::new(DEFAULT_CONFIG_FILE_PATH));
+        load_config(config_path)?
     };
     config.log_level = cli.verbose;
 
@@ -501,9 +539,23 @@ pub async fn run() -> Result<(), anyhow::Error> {
         .unwrap_or_else(|| std::env::current_dir().expect("Failed to get current directory"));
 
     match &command {
-        Commands::Status { all } => {
+        Commands::Status {
+            all,
+            installed,
+            missing,
+            source,
+        } => {
             debug!("santa status");
-            crate::commands::status_command(&mut config, &data, cache, all).await?;
+            crate::commands::status_command(
+                &mut config,
+                &data,
+                cache,
+                all,
+                installed,
+                missing,
+                source.as_deref(),
+            )
+            .await?;
         }
         Commands::Install { source: _ } => {
             crate::commands::install_command(
@@ -516,12 +568,50 @@ pub async fn run() -> Result<(), anyhow::Error> {
             )
             .await?;
         }
-        Commands::Add { source, package } => {
-            bail!(
-                "Add command not yet implemented for source: {:?}, package: {:?}",
-                source,
-                package
-            );
+        Commands::Add { packages } => {
+            if packages.is_empty() {
+                bail!("No packages specified. Usage: santa add <package1> [package2 ...]");
+            }
+            // Validate packages exist in database first (before config operations)
+            for pkg in packages.iter() {
+                if !data.packages.contains_key(pkg) {
+                    bail!("Package '{}' not found in database", pkg);
+                }
+            }
+            // In builtin-only mode, we can only validate packages exist
+            if cli.builtin_only {
+                for pkg in packages.iter() {
+                    println!("Package '{}' exists in database", pkg);
+                }
+                println!("\nNote: --builtin-only mode - packages not added to config file");
+                return Ok(());
+            }
+            let config_path = cli
+                .config
+                .as_deref()
+                .unwrap_or_else(|| Path::new(DEFAULT_CONFIG_FILE_PATH));
+            let config_path = BaseDirs::new()
+                .context("Failed to get base directories")?
+                .home_dir()
+                .join(config_path);
+            crate::commands::add_command(&config_path, packages.clone(), &data).await?;
+        }
+        Commands::Remove {
+            packages,
+            uninstall,
+        } => {
+            if packages.is_empty() {
+                bail!("No packages specified. Usage: santa remove <package1> [package2 ...]");
+            }
+            let config_path = cli
+                .config
+                .as_deref()
+                .unwrap_or_else(|| Path::new(DEFAULT_CONFIG_FILE_PATH));
+            let config_path = BaseDirs::new()
+                .context("Failed to get base directories")?
+                .home_dir()
+                .join(config_path);
+            crate::commands::remove_command(&config_path, packages.clone(), *uninstall).await?;
         }
         Commands::Config { packages, pipe: _ } => {
             crate::commands::config_command(&config, &data, *packages, cli.builtin_only)?;

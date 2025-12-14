@@ -30,7 +30,7 @@
 //! let cache = PackageCache::new();
 //!
 //! // Display package status
-//! status_command(&mut config, &data, cache, &false).await?;
+//! status_command(&mut config, &data, cache, &false, &false, &false, None).await?;
 //! # Ok(())
 //! # }
 //! ```
@@ -65,6 +65,9 @@ mod tests;
 /// * `data` - Reference to Santa data containing source definitions
 /// * `cache` - Package cache for performance optimization
 /// * `all` - If true, show all packages; if false, only show missing packages
+/// * `installed` - If true, show only installed packages
+/// * `missing` - If true, show only missing packages
+/// * `source_filter` - Optional source name to filter by
 ///
 /// # Returns
 ///
@@ -83,7 +86,7 @@ mod tests;
 /// let cache = PackageCache::new();
 ///
 /// // Show only missing packages
-/// status_command(&mut config, &data, cache, &false).await?;
+/// status_command(&mut config, &data, cache, &false, &false, &true, None).await?;
 /// # Ok(())
 /// # }
 /// ```
@@ -92,6 +95,9 @@ pub async fn status_command(
     data: &SantaData,
     cache: PackageCache,
     all: &bool,
+    installed: &bool,
+    missing: &bool,
+    source_filter: Option<&str>,
 ) -> Result<()> {
     use std::collections::HashMap;
     use std::time::Instant;
@@ -102,12 +108,24 @@ pub async fn status_command(
     // filter sources to those enabled in the config (avoiding clone)
     #[cfg(debug_assertions)]
     let filter_start = Instant::now();
-    let sources: SourceList = data
+    let mut sources: SourceList = data
         .sources
         .iter()
         .filter(|source| config.source_is_enabled(source))
         .cloned()
         .collect();
+
+    // Apply source filter if provided
+    if let Some(source_name) = source_filter {
+        sources.retain(|s| s.name_str() == source_name);
+        if sources.is_empty() {
+            return Err(SantaError::Config(anyhow::anyhow!(
+                "Source '{}' not found or not enabled",
+                source_name
+            )));
+        }
+    }
+
     #[cfg(debug_assertions)]
     debug!("⏱️  Source filtering took: {:?}", filter_start.elapsed());
 
@@ -194,7 +212,32 @@ pub async fn status_command(
                 #[cfg(debug_assertions)]
                 let table_start = Instant::now();
                 let pkg_count = pkgs.len();
-                let table = format!("{}", source.table(&pkgs, &cache, data, *all));
+
+                // Filter packages based on installed/missing flags
+                let filtered_pkgs: Vec<String> = if *installed {
+                    // Show only installed packages
+                    pkgs.iter()
+                        .filter(|p| cache.check(source, p, data))
+                        .cloned()
+                        .collect()
+                } else if *missing {
+                    // Show only missing packages (default behavior)
+                    pkgs.iter()
+                        .filter(|p| !cache.check(source, p, data))
+                        .cloned()
+                        .collect()
+                } else {
+                    // No filter or --all flag
+                    pkgs.clone()
+                };
+
+                // Determine if we should show installed packages in table
+                let include_installed = *all || *installed;
+                let table = format!(
+                    "{}",
+                    source.table(&filtered_pkgs, &cache, data, include_installed)
+                );
+
                 #[cfg(debug_assertions)]
                 debug!(
                     "⏱️  Table generation for {} ({} pkgs) took: {:?}",
@@ -421,5 +464,104 @@ pub async fn install_command(
             }
         }
     }
+    Ok(())
+}
+
+/// Add packages to the Santa configuration.
+///
+/// This command adds one or more packages to the configuration file,
+/// validating that they exist in the package database.
+///
+/// # Arguments
+///
+/// * `config_path` - Path to the configuration file
+/// * `package_names` - List of package names to add
+/// * `data` - Reference to Santa data containing package definitions
+///
+/// # Returns
+///
+/// Returns `Ok(())` on success, or a [`SantaError`] on failure.
+pub async fn add_command(
+    config_path: &std::path::Path,
+    package_names: Vec<String>,
+    data: &SantaData,
+) -> Result<()> {
+    // Load current config
+    let mut config = SantaConfig::load_from(config_path)?;
+
+    // Validate packages exist in database
+    for pkg in &package_names {
+        if !data.packages.contains_key(pkg) {
+            return Err(SantaError::Config(anyhow::anyhow!(
+                "Package '{}' not found in database",
+                pkg
+            )));
+        }
+    }
+
+    // Add packages to config (avoiding duplicates)
+    for pkg in package_names {
+        if !config.packages.contains(&pkg) {
+            config.packages.push(pkg.clone());
+            println!("Added package: {}", pkg);
+        } else {
+            println!("Package already in config: {}", pkg);
+        }
+    }
+
+    // Save config back to CCL format
+    let ccl_content = sickle::to_string(&config)
+        .map_err(|e| SantaError::Config(anyhow::anyhow!("Failed to serialize config: {}", e)))?;
+    std::fs::write(config_path, ccl_content).map_err(SantaError::Io)?;
+
+    println!("\nConfiguration updated: {}", config_path.display());
+    Ok(())
+}
+
+/// Remove packages from the Santa configuration.
+///
+/// This command removes one or more packages from the configuration file.
+/// Optionally uninstalls the packages before removing them.
+///
+/// # Arguments
+///
+/// * `config_path` - Path to the configuration file
+/// * `package_names` - List of package names to remove
+/// * `uninstall` - If true, uninstall packages before removing from config
+///
+/// # Returns
+///
+/// Returns `Ok(())` on success, or a [`SantaError`] on failure.
+pub async fn remove_command(
+    config_path: &std::path::Path,
+    package_names: Vec<String>,
+    uninstall: bool,
+) -> Result<()> {
+    // Load current config
+    let mut config = SantaConfig::load_from(config_path)?;
+
+    // If uninstall requested, handle that first
+    if uninstall {
+        println!("Uninstall functionality not yet implemented");
+        // TODO: Implement uninstall logic
+    }
+
+    // Remove packages from config
+    let original_count = config.packages.len();
+    config.packages.retain(|pkg| !package_names.contains(pkg));
+    let removed_count = original_count - config.packages.len();
+
+    if removed_count == 0 {
+        println!("No packages were removed (not found in config)");
+        return Ok(());
+    }
+
+    // Save config back to CCL format
+    let ccl_content = sickle::to_string(&config)
+        .map_err(|e| SantaError::Config(anyhow::anyhow!("Failed to serialize config: {}", e)))?;
+    std::fs::write(config_path, ccl_content).map_err(SantaError::Io)?;
+
+    println!("\nRemoved {} package(s) from configuration", removed_count);
+    println!("Configuration updated: {}", config_path.display());
     Ok(())
 }

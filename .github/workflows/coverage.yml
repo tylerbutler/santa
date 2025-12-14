@@ -3,6 +3,7 @@ name: Code Coverage
 on:
   pull_request:
     branches: [main]
+    types: [opened, synchronize, reopened, ready_for_review]
   push:
     branches: [main, dev]
   workflow_dispatch:
