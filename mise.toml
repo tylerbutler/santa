@@ -1,6 +1,4 @@
 [tools]
 just = "latest"
 
-# Install cargo-binstall first via ubi (fast, pre-built binary)
-# Then cargo: backend will automatically use cargo-binstall if available
 "ubi:cargo-bins/cargo-binstall" = "1"  # Latest 1.x
