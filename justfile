@@ -222,11 +222,11 @@ clean:
 
 # Run the same checks as CI
 ci:
-    cargo fmt -- --check
-    cargo clippy -- -A clippy::needless_return -D warnings
-    cargo test
-    cargo build --release
-    cargo audit
+    just format --check
+    just lint
+    just test-coverage
+    just build-release
+    just audit
 
 # Binary Size Analysis Commands
 # =============================
