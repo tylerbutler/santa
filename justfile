@@ -113,6 +113,14 @@ test-all *ARGS='':
 test-watch:
     cargo watch -x test
 
+# Run tests with coverage (outputs lcov.info)
+test-coverage:
+    cargo llvm-cov nextest --all-features --workspace --lcov --output-path lcov.info
+
+# Generate HTML coverage report (run after test-coverage)
+coverage-report:
+    cargo llvm-cov report --html --output-dir target/llvm-cov/html
+
 # Download CCL test data from ccl-test-data repository
 download-ccl-tests:
     @echo "📥 Downloading CCL test data from ccl-test-data repository..."
