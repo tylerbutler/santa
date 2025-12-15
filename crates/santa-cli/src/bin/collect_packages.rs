@@ -194,22 +194,19 @@ impl Collector {
     async fn collect_aur(&mut self, limit: usize) -> Result<Vec<Package>> {
         println!("Fetching AUR packages (by votes)...");
 
-        // This is a workaround - AUR search is limited
-        // For a real implementation, we'd need to paginate or use a different approach
-        let common_prefixes = [
-            "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "r",
-            "s", "t", "u", "v", "w", "x", "y", "z",
+        // AUR API requires search terms of at least 2 characters
+        // Use common tool-related search terms to get a diverse set of packages
+        let search_terms = [
+            "git", "vim", "zsh", "rust", "node", "python", "docker", "gtk", "kde", "cli", "bin",
+            "dev", "lib", "app", "tool", "util", "linux", "arch", "aur",
         ];
 
         let mut all_packages: BTreeSet<String> = BTreeSet::new();
         let mut packages = Vec::new();
 
-        // Just get a sample using a few prefix searches
-        for prefix in &common_prefixes[..5] {
-            let url = format!(
-                "https://aur.archlinux.org/rpc/?v=5&type=search&by=name&arg={}",
-                prefix
-            );
+        for term in &search_terms {
+            // Use the new AUR RPC v5 URL format
+            let url = format!("https://aur.archlinux.org/rpc/v5/search/{}?by=name", term);
 
             match self.client.get(&url).send().await {
                 Ok(response) => {
@@ -235,7 +232,7 @@ impl Collector {
                 }
                 Err(e) => {
                     self.errors
-                        .push(format!("AUR search for '{}': {}", prefix, e));
+                        .push(format!("AUR search for '{}': {}", term, e));
                 }
             }
 
@@ -255,36 +252,47 @@ impl Collector {
     async fn collect_arch(&mut self, limit: usize) -> Result<Vec<Package>> {
         println!("Fetching Arch official packages...");
 
-        let repos = ["core", "extra"];
+        // Arch search API requires a query parameter to return valid results
+        // Use common search terms to get a diverse set of packages
+        let search_terms = [
+            "lib", "python", "rust", "git", "vim", "zsh", "bash", "linux", "util", "gtk", "kde",
+            "qt", "gnome", "xorg", "audio", "video", "network",
+        ];
+        let mut all_packages: BTreeSet<String> = BTreeSet::new();
         let mut packages = Vec::new();
 
-        for repo in repos {
+        for term in &search_terms {
+            // Search across all repos with a query
             let url = format!(
-                "https://archlinux.org/packages/search/json/?repo={}&arch=x86_64",
-                repo
+                "https://archlinux.org/packages/search/json/?q={}&arch=x86_64",
+                term
             );
 
             match self.client.get(&url).send().await {
                 Ok(response) => {
                     if let Ok(data) = response.json::<ArchResponse>().await {
                         for pkg in data.results {
-                            packages.push(Package {
-                                name: pkg.pkgname.to_lowercase(),
-                                display_name: Some(pkg.pkgname.clone()),
-                                source: "arch".to_string(),
-                                source_id: pkg.pkgname,
-                                popularity: None,
-                                popularity_rank: None,
-                                description: pkg.pkgdesc,
-                                homepage: pkg.url,
-                                category: None,
-                                collected_at: Self::today(),
-                            });
+                            if !all_packages.contains(&pkg.pkgname) {
+                                all_packages.insert(pkg.pkgname.clone());
+                                packages.push(Package {
+                                    name: pkg.pkgname.to_lowercase(),
+                                    display_name: Some(pkg.pkgname.clone()),
+                                    source: "arch".to_string(),
+                                    source_id: pkg.pkgname,
+                                    popularity: None,
+                                    popularity_rank: None,
+                                    description: pkg.pkgdesc,
+                                    homepage: pkg.url,
+                                    category: None,
+                                    collected_at: Self::today(),
+                                });
+                            }
                         }
                     }
                 }
                 Err(e) => {
-                    self.errors.push(format!("Arch {} fetch: {}", repo, e));
+                    self.errors
+                        .push(format!("Arch search for '{}': {}", term, e));
                 }
             }
 
@@ -300,7 +308,8 @@ impl Collector {
 
     async fn collect_modern_unix(&mut self) -> Result<Vec<Package>> {
         println!("Fetching modern-unix list...");
-        let url = "https://raw.githubusercontent.com/ibraheemdev/modern-unix/master/readme.md";
+        // Note: File is README.md (uppercase), not readme.md
+        let url = "https://raw.githubusercontent.com/ibraheemdev/modern-unix/master/README.md";
 
         let response = self
             .client
@@ -311,39 +320,31 @@ impl Collector {
 
         let content = response.text().await?;
 
-        // Parse markdown to extract tool names
+        // Parse HTML-style format: <h1><a href="url"><code>name</code></a></h1>
+        // The README uses this format for each tool entry
         let mut packages = Vec::new();
-        for line in content.lines() {
-            // Look for markdown links like [tool](url)
-            if line.starts_with("* [") || line.starts_with("- [") {
-                if let Some(start) = line.find('[') {
-                    if let Some(end) = line[start..].find(']') {
-                        let name = &line[start + 1..start + end];
-                        // Extract URL if present
-                        let homepage = if let Some(url_start) = line.find("](") {
-                            if let Some(url_end) = line[url_start + 2..].find(')') {
-                                Some(line[url_start + 2..url_start + 2 + url_end].to_string())
-                            } else {
-                                None
-                            }
-                        } else {
-                            None
-                        };
 
-                        packages.push(Package {
-                            name: name.to_lowercase(),
-                            display_name: Some(name.to_string()),
-                            source: "modern_unix".to_string(),
-                            source_id: name.to_lowercase(),
-                            popularity: None,
-                            popularity_rank: None,
-                            description: None,
-                            homepage,
-                            category: None,
-                            collected_at: Self::today(),
-                        });
-                    }
-                }
+        // Look for patterns like: <a href="https://github.com/..."><code>toolname</code></a>
+        let link_regex =
+            regex::Regex::new(r#"<a href="([^"]+)"><code>([^<]+)</code></a>"#).unwrap();
+
+        for cap in link_regex.captures_iter(&content) {
+            let homepage = cap.get(1).map(|m| m.as_str().to_string());
+            let name = cap.get(2).map(|m| m.as_str()).unwrap_or("");
+
+            if !name.is_empty() {
+                packages.push(Package {
+                    name: name.to_lowercase(),
+                    display_name: Some(name.to_string()),
+                    source: "modern_unix".to_string(),
+                    source_id: name.to_lowercase(),
+                    popularity: None,
+                    popularity_rank: None,
+                    description: None,
+                    homepage,
+                    category: None,
+                    collected_at: Self::today(),
+                });
             }
         }
 
@@ -353,7 +354,10 @@ impl Collector {
 
     async fn collect_toolleeo(&mut self) -> Result<Vec<Package>> {
         println!("Fetching toolleeo CLI apps list...");
-        let url = "https://raw.githubusercontent.com/toolleeo/cli-apps/master/data/cli-apps.csv";
+        // Note: Repo was renamed from cli-apps to awesome-cli-apps-in-a-csv
+        // CSV format: category,name,homepage,git,description
+        let url =
+            "https://raw.githubusercontent.com/toolleeo/awesome-cli-apps-in-a-csv/master/data/apps.csv";
 
         let response = self
             .client
@@ -367,19 +371,25 @@ impl Collector {
         let mut packages = Vec::new();
         for (i, line) in content.lines().enumerate() {
             if i == 0 {
-                continue; // Skip header
+                continue; // Skip header: category,name,homepage,git,description
             }
 
-            let parts: Vec<&str> = line.split(',').collect();
+            // CSV format: category,name,homepage,git,description
+            // Handle quoted fields that may contain commas
+            let parts: Vec<&str> = line.splitn(5, ',').collect();
             if parts.len() >= 2 {
-                let name = parts[0].trim().trim_matches('"');
-                let description = if parts.len() > 1 {
-                    Some(parts[1].trim().trim_matches('"').to_string())
+                let category = Some(parts[0].trim().trim_matches('"').to_string());
+                let name = parts[1].trim().trim_matches('"');
+                let homepage = if parts.len() > 2 && !parts[2].trim().is_empty() {
+                    Some(parts[2].trim().trim_matches('"').to_string())
+                } else if parts.len() > 3 && !parts[3].trim().is_empty() {
+                    // Fall back to git URL if homepage is empty
+                    Some(parts[3].trim().trim_matches('"').to_string())
                 } else {
                     None
                 };
-                let category = if parts.len() > 2 {
-                    Some(parts[2].trim().trim_matches('"').to_string())
+                let description = if parts.len() > 4 {
+                    Some(parts[4].trim().trim_matches('"').to_string())
                 } else {
                     None
                 };
@@ -393,7 +403,7 @@ impl Collector {
                         popularity: None,
                         popularity_rank: None,
                         description,
-                        homepage: None,
+                        homepage,
                         category,
                         collected_at: Self::today(),
                     });
@@ -407,7 +417,8 @@ impl Collector {
 
     async fn collect_awesome_cli(&mut self) -> Result<Vec<Package>> {
         println!("Fetching awesome-cli-apps list...");
-        let url = "https://raw.githubusercontent.com/agarrharr/awesome-cli-apps/main/readme.md";
+        // Note: Uses master branch, not main
+        let url = "https://raw.githubusercontent.com/agarrharr/awesome-cli-apps/master/readme.md";
 
         let response = self
             .client
@@ -522,6 +533,9 @@ async fn main() -> Result<()> {
         .and_then(|s| s.parse().ok())
         .unwrap_or(200);
 
+    // Strict mode fails on empty sources
+    let strict_mode = args.iter().any(|a| a == "--strict");
+
     let sources: Vec<&str> = if args.iter().any(|a| a == "--list") {
         println!("Available collectors:");
         println!("  - homebrew");
@@ -531,6 +545,11 @@ async fn main() -> Result<()> {
         println!("  - modern_unix");
         println!("  - toolleeo");
         println!("  - awesome_cli_apps");
+        println!("\nOptions:");
+        println!("  --strict           Fail if any source returns 0 packages");
+        println!("  --homebrew-limit=N Limit homebrew results (default: 500)");
+        println!("  --arch-limit=N     Limit arch results (default: 200)");
+        println!("  --sources X Y Z    Only collect from specified sources");
         return Ok(());
     } else if let Some(pos) = args.iter().position(|a| a == "--sources") {
         args.iter()
@@ -550,10 +569,13 @@ async fn main() -> Result<()> {
         ]
     };
 
+    println!("📦 Collecting packages from sources...");
     println!("Running collectors: {}\n", sources.join(", "));
 
     let mut collector = Collector::new(output_dir)?;
     let mut total = 0;
+    let mut empty_sources: Vec<String> = Vec::new();
+    let mut failed_sources: Vec<(String, String)> = Vec::new();
 
     for source in &sources {
         let result = match *source {
@@ -573,12 +595,17 @@ async fn main() -> Result<()> {
         match result {
             Ok(packages) => {
                 let count = packages.len();
+                if count == 0 {
+                    empty_sources.push(source.to_string());
+                    eprintln!("  ⚠️  WARNING: {} returned 0 packages!", source);
+                }
                 let path = collector.save(source, packages)?;
                 println!("  Saved to {}", path.display());
                 total += count;
             }
             Err(e) => {
-                eprintln!("  Error collecting {}: {}", source, e);
+                failed_sources.push((source.to_string(), e.to_string()));
+                eprintln!("  ❌ Error collecting {}: {}", source, e);
             }
         }
         println!();
@@ -588,6 +615,38 @@ async fn main() -> Result<()> {
     println!("SUMMARY");
     println!("{}", "=".repeat(60));
     println!("Total packages collected: {}", total);
+
+    // Show warnings for empty sources
+    if !empty_sources.is_empty() {
+        println!();
+        println!("⚠️  WARNING: The following sources returned 0 packages:");
+        for source in &empty_sources {
+            println!("   - {}", source);
+        }
+        println!();
+        println!("This may indicate:");
+        println!("  • API changes or URL updates needed");
+        println!("  • Network issues or rate limiting");
+        println!("  • Parser changes needed for new data formats");
+    }
+
+    // Show errors for failed sources
+    if !failed_sources.is_empty() {
+        println!();
+        println!("❌ ERRORS: The following sources failed:");
+        for (source, error) in &failed_sources {
+            println!("   - {}: {}", source, error);
+        }
+    }
+
+    // Fail in strict mode if there were issues
+    if strict_mode && (!empty_sources.is_empty() || !failed_sources.is_empty()) {
+        anyhow::bail!(
+            "Strict mode: {} empty sources, {} failed sources",
+            empty_sources.len(),
+            failed_sources.len()
+        );
+    }
 
     Ok(())
 }

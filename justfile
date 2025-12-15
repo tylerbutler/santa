@@ -63,35 +63,35 @@ build-release *ARGS='':
 # Generate package index from source files
 generate-index:
     @echo "📋 Generating package index from source files..."
-    cargo run --bin generate-index
+    @cargo run --quiet --features dev-tools --bin generate-index
     @echo "✅ Package index generated at crates/santa-cli/data/known_packages.ccl"
 
 # Migrate packages from known_packages.ccl to source files
 migrate-sources:
     @echo "📋 Migrating packages to source files..."
-    cargo run --bin migrate-sources
+    @cargo run --quiet --features dev-tools --bin migrate-sources
     @echo "✅ Packages migrated to crates/santa-cli/data/sources/"
 
 # Merge verified packages into source files
 merge-verified:
     @echo "📋 Merging verified packages into source files..."
-    cargo run --bin merge-verified
+    @cargo run --quiet --features dev-tools --bin merge-verified
     @echo "✅ Verified packages merged"
 
 # Collect packages from all sources
 collect-packages *ARGS='':
     @echo "📦 Collecting packages from sources..."
-    cargo run --bin collect-packages -- {{ARGS}}
+    @cargo run --quiet --features dev-tools --bin collect-packages -- {{ARGS}}
 
 # Cross-reference and score packages
 crossref-packages *ARGS='':
     @echo "🔗 Cross-referencing packages..."
-    cargo run --bin crossref-packages -- {{ARGS}}
+    @cargo run --quiet --features dev-tools --bin crossref-packages -- {{ARGS}}
 
 # Verify package availability
 verify-packages *ARGS='':
     @echo "✓ Verifying packages..."
-    cargo run --bin verify-packages -- {{ARGS}}
+    @cargo run --quiet --features dev-tools --bin verify-packages -- {{ARGS}}
 
 # Full package discovery pipeline
 pipeline:
