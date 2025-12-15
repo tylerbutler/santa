@@ -66,6 +66,43 @@ generate-index:
     cargo run --bin generate-index
     @echo "✅ Package index generated at crates/santa-cli/data/known_packages.ccl"
 
+# Migrate packages from known_packages.ccl to source files
+migrate-sources:
+    @echo "📋 Migrating packages to source files..."
+    cargo run --bin migrate-sources
+    @echo "✅ Packages migrated to crates/santa-cli/data/sources/"
+
+# Merge verified packages into source files
+merge-verified:
+    @echo "📋 Merging verified packages into source files..."
+    cargo run --bin merge-verified
+    @echo "✅ Verified packages merged"
+
+# Collect packages from all sources
+collect-packages *ARGS='':
+    @echo "📦 Collecting packages from sources..."
+    cargo run --bin collect-packages -- {{ARGS}}
+
+# Cross-reference and score packages
+crossref-packages *ARGS='':
+    @echo "🔗 Cross-referencing packages..."
+    cargo run --bin crossref-packages -- {{ARGS}}
+
+# Verify package availability
+verify-packages *ARGS='':
+    @echo "✓ Verifying packages..."
+    cargo run --bin verify-packages -- {{ARGS}}
+
+# Full package discovery pipeline
+pipeline:
+    @echo "🚀 Running full package discovery pipeline..."
+    just collect-packages
+    just crossref-packages --top=500
+    just verify-packages --limit=500
+    just merge-verified
+    just generate-index
+    @echo "✅ Pipeline complete"
+
 # Build for CI with specific target
 ci-build TARGET='x86_64-unknown-linux-gnu' *ARGS='':
     @echo "🔨 Building for CI target: {{TARGET}}"

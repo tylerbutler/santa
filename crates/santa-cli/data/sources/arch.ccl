@@ -1,0 +1,14 @@
+/= Arch packages
+binutils =
+fontconfig =
+gdbm =
+giflib =
+grep =
+libarchive =
+libidn2 =
+libksba =
+libssh2 =
+openssl =
+p11-kit =
+pcre2 =
+perl =
