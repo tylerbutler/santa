@@ -268,11 +268,6 @@
       "behaviors": [
         "boolean_lenient"
       ],
-      "conflicts": {
-        "behaviors": [
-          "boolean_strict"
-        ]
-      },
       "expected": {
         "count": 1,
         "value": true
@@ -345,11 +340,6 @@
       "behaviors": [
         "boolean_strict"
       ],
-      "conflicts": {
-        "behaviors": [
-          "boolean_lenient"
-        ]
-      },
       "expected": {
         "count": 1
       },
@@ -664,11 +654,6 @@
       "behaviors": [
         "boolean_lenient"
       ],
-      "conflicts": {
-        "behaviors": [
-          "boolean_strict"
-        ]
-      },
       "expected": {
         "count": 1,
         "value": false
@@ -802,11 +787,6 @@
       "behaviors": [
         "boolean_strict"
       ],
-      "conflicts": {
-        "behaviors": [
-          "boolean_lenient"
-        ]
-      },
       "expected": {
         "count": 1
       },
@@ -956,11 +936,6 @@
       "behaviors": [
         "boolean_lenient"
       ],
-      "conflicts": {
-        "behaviors": [
-          "boolean_strict"
-        ]
-      },
       "expected": {
         "count": 1,
         "value": true
@@ -1086,11 +1061,6 @@
       "behaviors": [
         "boolean_strict"
       ],
-      "conflicts": {
-        "behaviors": [
-          "boolean_lenient"
-        ]
-      },
       "expected": {
         "count": 1
       },
@@ -1228,11 +1198,6 @@
       "behaviors": [
         "boolean_lenient"
       ],
-      "conflicts": {
-        "behaviors": [
-          "boolean_strict"
-        ]
-      },
       "expected": {
         "count": 1,
         "value": true
@@ -1394,11 +1359,6 @@
       "behaviors": [
         "boolean_strict"
       ],
-      "conflicts": {
-        "behaviors": [
-          "boolean_lenient"
-        ]
-      },
       "expected": {
         "count": 1,
         "value": true
@@ -1842,11 +1802,6 @@
       "behaviors": [
         "boolean_strict"
       ],
-      "conflicts": {
-        "behaviors": [
-          "boolean_lenient"
-        ]
-      },
       "expected": {
         "count": 1
       },
