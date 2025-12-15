@@ -2,12 +2,20 @@
 //!
 //! This binary reads all CCL files in data/sources/ and generates a unified
 //! package index that maps package names to their available sources.
+//! It also reads packages.ccl catalog for descriptions and other metadata.
 
 use anyhow::{Context, Result};
 use sickle::printer::CclPrinter;
 use std::collections::BTreeMap;
 use std::fs;
 use std::path::{Path, PathBuf};
+
+/// Package metadata from the catalog (packages.ccl)
+#[derive(Debug, Clone, Default)]
+struct CatalogEntry {
+    description: Option<String>,
+    homepage: Option<String>,
+}
 
 /// Configuration for a package from a specific source
 #[derive(Debug, Clone)]
@@ -65,6 +73,47 @@ fn extract_string_value(obj: &sickle::CclObject) -> Option<String> {
     } else {
         None
     }
+}
+
+/// Load the package catalog (packages.ccl) for metadata
+fn load_catalog(path: &Path) -> Result<BTreeMap<String, CatalogEntry>> {
+    let mut catalog = BTreeMap::new();
+
+    if !path.exists() {
+        return Ok(catalog);
+    }
+
+    let content = fs::read_to_string(path)
+        .with_context(|| format!("Failed to read catalog: {}", path.display()))?;
+
+    let model = sickle::load(&content)
+        .with_context(|| format!("Failed to parse catalog: {}", path.display()))?;
+
+    for key in model.keys() {
+        if key.starts_with('/') || key.is_empty() {
+            continue;
+        }
+
+        let value = model.get(key)?;
+        let mut entry = CatalogEntry::default();
+
+        if !value.is_empty() {
+            if let Ok(desc_obj) = value.get("description") {
+                if let Some(desc) = extract_string_value(desc_obj) {
+                    entry.description = Some(desc);
+                }
+            }
+            if let Ok(homepage_obj) = value.get("homepage") {
+                if let Some(homepage) = extract_string_value(homepage_obj) {
+                    entry.homepage = Some(homepage);
+                }
+            }
+        }
+
+        catalog.insert(key.clone(), entry);
+    }
+
+    Ok(catalog)
 }
 
 /// Parsed package info from a source file
@@ -138,7 +187,10 @@ fn parse_source_file(path: &Path) -> Result<BTreeMap<String, ParsedPackage>> {
     Ok(packages)
 }
 
-fn generate_index(sources_dir: &Path) -> Result<String> {
+fn generate_index(
+    sources_dir: &Path,
+    catalog: &BTreeMap<String, CatalogEntry>,
+) -> Result<String> {
     let mut all_packages: BTreeMap<String, PackageData> = BTreeMap::new();
     let mut index = sickle::CclObject::new();
 
@@ -163,11 +215,22 @@ fn generate_index(sources_dir: &Path) -> Result<String> {
 
             for (package_name, parsed) in packages {
                 let pkg_data = all_packages
-                    .entry(package_name)
+                    .entry(package_name.clone())
                     .or_insert_with(PackageData::new);
                 pkg_data.add_source(source_name.clone(), parsed.config);
+
+                // Use source description if provided
                 if let Some(desc) = parsed.description {
                     pkg_data.set_description(desc);
+                }
+
+                // Fall back to catalog description if no source description
+                if pkg_data.description.is_none() {
+                    if let Some(catalog_entry) = catalog.get(&package_name) {
+                        if let Some(ref desc) = catalog_entry.description {
+                            pkg_data.set_description(desc.clone());
+                        }
+                    }
                 }
             }
         }
@@ -280,16 +343,22 @@ fn generate_index(sources_dir: &Path) -> Result<String> {
 fn main() -> Result<()> {
     let manifest_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
     let sources_dir = manifest_dir.join("data").join("sources");
+    let catalog_file = manifest_dir.join("data").join("packages.ccl");
     let output_file = manifest_dir.join("data").join("known_packages.ccl");
 
     if !sources_dir.exists() {
         anyhow::bail!("Sources directory not found: {}", sources_dir.display());
     }
 
+    // Load the package catalog for metadata
+    println!("Loading package catalog from: {}", catalog_file.display());
+    let catalog = load_catalog(&catalog_file)?;
+    println!("Loaded {} packages from catalog", catalog.len());
+
     println!("Reading source files from: {}", sources_dir.display());
 
-    // Generate index
-    let index_content = generate_index(&sources_dir)?;
+    // Generate index with catalog metadata
+    let index_content = generate_index(&sources_dir, &catalog)?;
 
     // Write output
     fs::write(&output_file, index_content).context("Failed to write output file")?;
@@ -539,8 +608,9 @@ oh-my-posh =
         writeln!(scoop_file, "bat =").unwrap();
         writeln!(scoop_file, "ripgrep = rg").unwrap();
 
-        // Generate the index
-        let result = generate_index(temp_dir.path()).unwrap();
+        // Generate the index with empty catalog
+        let catalog = BTreeMap::new();
+        let result = generate_index(temp_dir.path(), &catalog).unwrap();
 
         // Verify the output contains expected content
         assert!(result.contains("/= Generated package index"));
@@ -562,7 +632,8 @@ oh-my-posh =
         writeln!(source_file, "simple-pkg =").unwrap();
         writeln!(source_file, "complex-pkg = override-name").unwrap();
 
-        let result = generate_index(temp_dir.path()).unwrap();
+        let catalog = BTreeMap::new();
+        let result = generate_index(temp_dir.path(), &catalog).unwrap();
 
         // Simple packages should appear before the complex section header
         assert!(result.contains("/= Packages with simple format"));
@@ -581,7 +652,8 @@ oh-my-posh =
         writeln!(source_file, "bat =").unwrap();
         writeln!(source_file, "  _description = A cat clone with wings").unwrap();
 
-        let result = generate_index(temp_dir.path()).unwrap();
+        let catalog = BTreeMap::new();
+        let result = generate_index(temp_dir.path(), &catalog).unwrap();
 
         assert!(result.contains("_description = A cat clone with wings"));
     }
@@ -597,7 +669,8 @@ oh-my-posh =
         let mut source_file = fs::File::create(&source_path).unwrap();
         writeln!(source_file, "ripgrep = rg").unwrap();
 
-        let result = generate_index(temp_dir.path()).unwrap();
+        let catalog = BTreeMap::new();
+        let result = generate_index(temp_dir.path(), &catalog).unwrap();
 
         assert!(result.contains("ripgrep ="));
         assert!(result.contains("brew = rg"));
@@ -608,7 +681,8 @@ oh-my-posh =
         use tempfile::tempdir;
 
         let temp_dir = tempdir().unwrap();
-        let result = generate_index(temp_dir.path()).unwrap();
+        let catalog = BTreeMap::new();
+        let result = generate_index(temp_dir.path(), &catalog).unwrap();
 
         // Should still produce valid output with headers
         assert!(result.contains("/= Generated package index"));
@@ -631,9 +705,38 @@ oh-my-posh =
         let mut txt_file = fs::File::create(&txt_path).unwrap();
         writeln!(txt_file, "This should be ignored").unwrap();
 
-        let result = generate_index(temp_dir.path()).unwrap();
+        let catalog = BTreeMap::new();
+        let result = generate_index(temp_dir.path(), &catalog).unwrap();
 
         assert!(result.contains("bat ="));
         assert!(!result.contains("readme"));
+    }
+
+    #[test]
+    fn test_generate_index_uses_catalog_descriptions() {
+        use std::io::Write;
+        use tempfile::tempdir;
+
+        let temp_dir = tempdir().unwrap();
+
+        // Create a source file with a simple package
+        let source_path = temp_dir.path().join("brew.ccl");
+        let mut source_file = fs::File::create(&source_path).unwrap();
+        writeln!(source_file, "bat =").unwrap();
+
+        // Create a catalog with a description
+        let mut catalog = BTreeMap::new();
+        catalog.insert(
+            "bat".to_string(),
+            CatalogEntry {
+                description: Some("A cat clone with syntax highlighting".to_string()),
+                homepage: None,
+            },
+        );
+
+        let result = generate_index(temp_dir.path(), &catalog).unwrap();
+
+        // The package should now be complex due to the description
+        assert!(result.contains("_description = A cat clone with syntax highlighting"));
     }
 }

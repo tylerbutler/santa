@@ -286,6 +286,6 @@ zeitkatze =
 zfxtop =
 zq =
 
-/= Packages with overrides or config
-fnm = fnm-bin
-oh-my-posh = oh-my-posh-git
+/= Packages with name mappings to canonical
+fnm-bin = fnm
+oh-my-posh-git = oh-my-posh

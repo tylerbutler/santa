@@ -10,6 +10,6 @@ tiged =
 vsts-npm-auth =
 yarn =
 
-/= Packages with overrides or config
+/= Packages with install config
 @fluidframework/build-tools =
   install_suffix = @latest

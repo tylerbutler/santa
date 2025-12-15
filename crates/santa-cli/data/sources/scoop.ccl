@@ -313,8 +313,10 @@ zig =
 zoxide =
 zstd =
 
-/= Packages with overrides or config
-fnm = fnm-bin
-git-delta = delta
-node = nodejs
+/= Packages with name mappings to canonical
+fnm-bin = fnm
+delta = git-delta
+nodejs = node
+
+/= Packages with custom install URLs
 oh-my-posh = https://github.com/JanDeDobbeleer/oh-my-posh/releases/latest/download/oh-my-posh.json
