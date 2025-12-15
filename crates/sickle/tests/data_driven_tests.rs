@@ -783,10 +783,8 @@ fn test_all_ccl_suites_comprehensive() {
                             });
 
                             // Filter out comment entries (key == "/")
-                            let filtered: Vec<_> = entry_list
-                                .iter()
-                                .filter(|e| e.key != "/")
-                                .collect();
+                            let filtered: Vec<_> =
+                                entry_list.iter().filter(|e| e.key != "/").collect();
 
                             assert_eq!(
                                 filtered.len(),
