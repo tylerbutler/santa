@@ -3,6 +3,10 @@
 # Set shell to bash
 set shell := ["bash", "-cu"]
 
+# Default recipe - shows available commands
+default:
+    @just --list
+
 # Create virtual environment
 venv:
 	uv venv

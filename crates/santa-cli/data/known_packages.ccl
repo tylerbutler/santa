@@ -20,6 +20,9 @@ actionlint =
 add-gitignore =
   = aur
 
+aewan =
+  = aur
+
 ag =
   = scoop
 
@@ -32,6 +35,15 @@ alder =
 allure =
   = brew
   = scoop
+
+alpine =
+  = aur
+
+amber =
+  = aur
+
+anew =
+  = aur
 
 ansible =
   = brew
@@ -58,11 +70,17 @@ aria2 =
   = pacman
   = scoop
 
+artem =
+  = aur
+
 asdf =
   = brew
 
 ast-grep =
   = scoop
+
+asuka =
+  = aur
 
 at-spi2-core =
   = brew
@@ -128,11 +146,20 @@ bats-core/bats-core/bats-assert =
 bats-core/bats-core/bats-support =
   = brew
 
+bazaar =
+  = aur
+
 bazelisk =
   = brew
   = scoop
 
 bcal =
+  = aur
+
+below =
+  = aur
+
+bin =
   = aur
 
 binutils =
@@ -153,6 +180,9 @@ blindspot =
 boilr =
   = aur
 
+bombadillo =
+  = aur
+
 boost =
   = brew
   = scoop
@@ -160,6 +190,9 @@ boost =
 broot =
   = brew
   = scoop
+
+browsh =
+  = aur
 
 btop =
   = brew
@@ -175,6 +208,9 @@ bufbuild/buf/buf =
 buku =
   = aur
 
+c-ares =
+  = brew
+
 ca-certificates =
   = brew
 
@@ -187,6 +223,12 @@ cargo-update =
 cask =
   = aur
   = brew
+
+castero =
+  = aur
+
+cbonsai =
+  = aur
 
 ccache =
   = brew
@@ -211,8 +253,14 @@ cffi =
 cfn-lint =
   = brew
 
+chafa =
+  = scoop
+
 chargepoint/xcparse/xcparse =
   = brew
+
+chars =
+  = aur
 
 cheat =
   = aur
@@ -240,6 +288,9 @@ clang-format =
 cliclick =
   = brew
 
+clidle =
+  = aur
+
 clifm =
   = aur
 
@@ -265,6 +316,9 @@ cmake =
 cmake-docs =
   = brew
 
+cobib =
+  = aur
+
 cocoapods =
   = brew
 
@@ -279,6 +333,10 @@ colima =
 
 composer =
   = brew
+  = scoop
+
+conan =
+  = aur
   = scoop
 
 config-file-validator =
@@ -299,8 +357,14 @@ cosign =
 cowsay =
   = scoop
 
+cpass =
+  = aur
+
 crawley =
   = aur
+
+croc =
+  = scoop
 
 cryptography =
   = brew
@@ -329,8 +393,14 @@ dart-lang/dart/dart =
 dasel =
   = aur
 
+dasht =
+  = aur
+
 databricks/tap/databricks =
   = brew
+
+datadash =
+  = aur
 
 ddev/ddev/ddev =
   = brew
@@ -349,6 +419,15 @@ deno =
 derailed/k9s/k9s =
   = brew
 
+devbox =
+  = aur
+
+diakonos =
+  = aur
+
+diff-so-fancy =
+  = scoop
+
 diff2html =
   = aur
 
@@ -357,6 +436,9 @@ difftastic =
   = nix
   = pacman
   = scoop
+
+dijo =
+  = aur
 
 direnv =
   = brew
@@ -402,12 +484,24 @@ doggo =
   = brew
   = scoop
 
+dolt =
+  = scoop
+
 dotnet =
   = brew
 
 doxygen =
   = brew
   = scoop
+
+dstask =
+  = aur
+
+dtach =
+  = aur
+
+dtool =
+  = aur
 
 dtrx =
   = aur
@@ -439,11 +533,17 @@ dyff =
   = aur
   = scoop
 
+dysk =
+  = brew
+
 dzr =
   = aur
 
 edencommon =
   = brew
+
+eg =
+  = aur
 
 eigen =
   = brew
@@ -464,6 +564,9 @@ emplace =
 
 erlang =
   = brew
+  = scoop
+
+espanso =
   = scoop
 
 espeak =
@@ -497,6 +600,9 @@ fastfetch =
 
 fastlane =
   = brew
+
+fastmod =
+  = aur
 
 fb303 =
   = brew
@@ -562,7 +668,16 @@ fontconfig =
   = arch
   = brew
 
+forgit =
+  = aur
+
+fossil =
+  = scoop
+
 foy =
+  = aur
+
+freesweep =
   = aur
 
 freetds =
@@ -570,6 +685,9 @@ freetds =
 
 freetype =
   = brew
+
+friendly-find =
+  = aur
 
 fx =
   = scoop
@@ -580,10 +698,19 @@ fzf =
   = pacman
   = scoop
 
+gambit =
+  = aur
+
+gameshell =
+  = aur
+
 gauche =
   = aur
   = brew
   = scoop
+
+gaze =
+  = aur
 
 gcalcli =
   = aur
@@ -608,6 +735,9 @@ gdbm =
 
 gdk-pixbuf =
   = brew
+
+gdu =
+  = scoop
 
 generate =
   = npm
@@ -682,6 +812,9 @@ git-secret =
 gita =
   = aur
 
+gitea =
+  = scoop
+
 gitleaks =
   = brew
   = scoop
@@ -735,6 +868,9 @@ go-task =
 gobject-introspection =
   = brew
 
+gojq =
+  = aur
+
 golangci-lint =
   = brew
   = scoop
@@ -742,6 +878,12 @@ golangci-lint =
 gomplate =
   = brew
   = scoop
+
+goobook =
+  = aur
+
+googler =
+  = aur
 
 gopass =
   = scoop
@@ -761,6 +903,9 @@ graphicsmagick =
   = brew
   = scoop
 
+graphtage =
+  = aur
+
 graphviz =
   = brew
   = scoop
@@ -777,6 +922,9 @@ grex =
   = scoop
 
 grip =
+  = aur
+
+grit =
   = aur
 
 gron =
@@ -832,6 +980,9 @@ hashicorp/tap/terraform =
 hashicorp/tap/vault =
   = brew
 
+haxor-news =
+  = aur
+
 hdf5 =
   = brew
 
@@ -853,8 +1004,14 @@ helmfile =
 heroku/brew/heroku =
   = brew
 
+hexyl =
+  = scoop
+
 hledger =
   = scoop
+
+hors =
+  = aur
 
 howdoi =
   = aur
@@ -884,11 +1041,20 @@ hugo =
   = brew
   = scoop
 
+huniq =
+  = aur
+
+hunter =
+  = aur
+
 hyperfine =
   = brew
   = nix
   = pacman
   = scoop
+
+ictree =
+  = aur
 
 imagemagick =
   = apt
@@ -896,6 +1062,9 @@ imagemagick =
   = nix
   = pacman
   = scoop
+
+imgcat =
+  = aur
 
 imgp =
   = aur
@@ -916,6 +1085,9 @@ iredis =
 jandedobbeleer/oh-my-posh/oh-my-posh =
   = brew
 
+jc =
+  = scoop
+
 jed =
   = aur
 
@@ -924,6 +1096,9 @@ jenv =
 
 jfrog =
   = scoop
+
+jiq =
+  = aur
 
 jo =
   = brew
@@ -971,6 +1146,13 @@ kafka =
   = brew
   = scoop
 
+kakikun =
+  = aur
+
+kalker =
+  = aur
+  = scoop
+
 kaos/shell/bats-assert =
   = brew
 
@@ -993,6 +1175,9 @@ kirc =
 kotlin =
   = brew
   = scoop
+
+kpcli =
+  = aur
 
 kubeconform =
   = brew
@@ -1032,6 +1217,9 @@ lf =
 
 lfm =
   = aur
+
+lftp =
+  = scoop
 
 libarchive =
   = arch
@@ -1108,6 +1296,12 @@ libzip =
 lima =
   = brew
 
+linkchecker =
+  = aur
+
+links =
+  = scoop
+
 little-cms2 =
   = brew
 
@@ -1145,9 +1339,21 @@ luarocks =
   = brew
   = scoop
 
+luneta =
+  = aur
+
 lychee =
   = brew
   = scoop
+
+lynx =
+  = scoop
+
+mabel =
+  = aur
+
+mackup =
+  = aur
 
 make =
   = apt
@@ -1162,6 +1368,12 @@ mariadb =
 mas =
   = brew
 
+massren =
+  = aur
+
+matterhorn =
+  = aur
+
 maven =
   = brew
   = scoop
@@ -1169,6 +1381,12 @@ maven =
 mcfly =
   = brew
   = scoop
+
+mdbook =
+  = scoop
+
+mdt =
+  = aur
 
 mercurial =
   = brew
@@ -1187,6 +1405,9 @@ micro =
 midnight-commander =
   = brew
 
+min =
+  = aur
+
 minikube =
   = brew
   = scoop
@@ -1200,6 +1421,9 @@ mise =
 
 mkcert =
   = brew
+
+mmv =
+  = aur
 
 mongodb/brew/mongodb-community =
   = brew
@@ -1242,7 +1466,13 @@ mvfst =
   = aur
   = brew
 
+mx =
+  = aur
+
 mycli =
+  = aur
+
+mynav =
   = aur
 
 mysql =
@@ -1259,6 +1489,9 @@ nano =
 nasm =
   = brew
   = scoop
+
+nat =
+  = aur
 
 navi =
   = scoop
@@ -1303,6 +1536,9 @@ ninja =
 nircmd =
   = scoop
 
+nmail =
+  = aur
+
 nmap =
   = brew
   = scoop
@@ -1312,8 +1548,19 @@ nnn =
   = nix
   = pacman
 
+nomino =
+  = aur
+  = scoop
+
 norwoodj/tap/helm-docs =
   = brew
+
+nota =
+  = aur
+
+noti =
+  = aur
+  = scoop
 
 npkill =
   = npm
@@ -1405,6 +1652,10 @@ organize =
 ots =
   = aur
 
+ov =
+  = aur
+  = scoop
+
 oven-sh/bun/bun =
   = brew
 
@@ -1437,9 +1688,18 @@ parallel =
 pastel =
   = scoop
 
+pazi =
+  = aur
+
+pbgopy =
+  = aur
+
 pcre2 =
   = arch
   = brew
+
+pdd =
+  = aur
 
 percol =
   = aur
@@ -1484,6 +1744,9 @@ plantuml =
 pm =
   = aur
 
+pmenu =
+  = aur
+
 pnpm =
   = brew
   = scoop
@@ -1495,6 +1758,9 @@ podman =
 poetry =
   = brew
   = scoop
+
+pokeget =
+  = aur
 
 pokete =
   = aur
@@ -1524,6 +1790,9 @@ procs =
   = pacman
   = scoop
 
+proji =
+  = aur
+
 protobuf =
   = brew
 
@@ -1551,6 +1820,9 @@ putty =
 
 pv =
   = brew
+
+pycp =
+  = aur
 
 pycparser =
   = brew
@@ -1592,6 +1864,10 @@ qemu =
 
 qpdf =
   = brew
+  = scoop
+
+qrcp =
+  = aur
   = scoop
 
 qt =
@@ -1636,7 +1912,18 @@ release-it =
 rimraf =
   = npm
 
+rip =
+  = aur
+  = scoop
+
 rmlint =
+  = aur
+
+rnr =
+  = aur
+  = scoop
+
+rr =
   = aur
 
 rsync =
@@ -1668,6 +1955,9 @@ rust-analyzer =
   = brew
   = scoop
 
+rustcat =
+  = aur
+
 rustup =
   = brew
   = nix
@@ -1676,6 +1966,9 @@ rustup =
 
 s =
   = aur
+  = scoop
+
+sad =
   = scoop
 
 sbt =
@@ -1687,6 +1980,9 @@ sc-im =
 
 scc =
   = aur
+  = scoop
+
+scons =
   = scoop
 
 scrcpy =
@@ -1734,17 +2030,36 @@ sift =
   = aur
   = scoop
 
+siren =
+  = aur
+
+sitecopy =
+  = aur
+
 slides =
   = aur
 
+smartmontools =
+  = brew
+  = scoop
+
 smem =
+  = aur
+
+snallygaster =
   = aur
 
 sncli =
   = aur
 
+so =
+  = aur
+
 socat =
   = brew
+
+socli =
+  = aur
 
 sonar-scanner =
   = brew
@@ -1773,6 +2088,9 @@ sqlite =
 srt =
   = brew
 
+ssh-chat =
+  = aur
+
 sshuttle =
   = brew
 
@@ -1789,11 +2107,20 @@ stern =
   = brew
   = scoop
 
+stew =
+  = aur
+
+stftp =
+  = aur
+
 stripe/stripe-cli/stripe =
   = brew
 
 subversion =
   = brew
+
+sup =
+  = aur
 
 supabase/tap/supabase =
   = brew
@@ -1830,6 +2157,9 @@ task-spooler =
 taskbook =
   = aur
 
+taskell =
+  = aur
+
 tcl-tk =
   = brew
 
@@ -1845,6 +2175,12 @@ tealdeer =
 teapot =
   = aur
 
+teip =
+  = aur
+
+telescope =
+  = aur
+
 television =
   = brew
 
@@ -1852,8 +2188,20 @@ telnet =
   = brew
   = scoop
 
+tera =
+  = aur
+
 tere =
   = scoop
+
+terminalimageviewer =
+  = aur
+
+termusic =
+  = scoop
+
+termv =
+  = aur
 
 ternimal =
   = aur
@@ -1874,6 +2222,9 @@ tesseract =
   = brew
   = scoop
 
+texel =
+  = aur
+
 tfenv =
   = brew
 
@@ -1892,6 +2243,9 @@ thefuck =
   = apt
   = brew
   = nix
+
+thokr =
+  = aur
 
 ticker =
   = aur
@@ -1928,6 +2282,9 @@ tmux =
   = nix
   = pacman
 
+toipe =
+  = aur
+
 topgrade =
   = brew
   = nix
@@ -1963,13 +2320,28 @@ trufflehog =
   = brew
   = scoop
 
+tsung =
+  = aur
+
 ttygif =
   = aur
 
 ttyload =
   = aur
 
+tuc =
+  = aur
+
 tudu =
+  = aur
+
+tv =
+  = aur
+
+typespeed =
+  = aur
+
+uacme =
   = aur
 
 ugrep =
@@ -2013,6 +2385,12 @@ vale =
   = brew
   = scoop
 
+vgrep =
+  = aur
+
+viddy =
+  = aur
+
 vim =
   = apt
   = brew
@@ -2031,6 +2409,9 @@ viu =
   = nix
   = pacman
 
+vizex =
+  = aur
+
 vmware-tanzu/carvel/vendir =
   = brew
 
@@ -2040,6 +2421,9 @@ vsts-npm-auth =
 vtk =
   = brew
 
+vy =
+  = aur
+
 wangle =
   = brew
 
@@ -2048,6 +2432,9 @@ warp =
 
 watch =
   = brew
+
+watchexec =
+  = scoop
 
 watchman =
   = brew
@@ -2074,6 +2461,9 @@ when-cli =
 which =
   = scoop
 
+wifi-password =
+  = aur
+
 wimlib =
   = brew
 
@@ -2083,10 +2473,16 @@ wireshark =
 wix/brew/applesimutils =
   = brew
 
+woof =
+  = aur
+
 wordgrinder =
   = aur
 
 wtf =
+  = aur
+
+wutag =
   = aur
 
 wyrd =
@@ -2110,6 +2506,9 @@ xcodes =
 xcodesorg/made/xcodes =
   = brew
 
+xcp =
+  = aur
+
 xcresultparser =
   = brew
 
@@ -2125,6 +2524,9 @@ xiringuito =
 
 xmlstarlet =
   = brew
+  = scoop
+
+xsv =
   = scoop
 
 xz =
@@ -2144,6 +2546,9 @@ yazi =
   = brew
   = scoop
 
+ydiff =
+  = aur
+
 yokadi =
   = aur
 
@@ -2151,17 +2556,29 @@ youtube-dl =
   = aur
   = scoop
 
+youtube-viewer =
+  = aur
+
 yq =
   = brew
   = scoop
+
+yt-audio =
+  = aur
 
 yt-dlp =
   = brew
   = scoop
 
+ytmdl =
+  = aur
+
 z.lua =
   = aur
   = scoop
+
+zbackup =
+  = aur
 
 zellij =
   = brew
@@ -2183,6 +2600,9 @@ zoxide =
   = nix
   = pacman
   = scoop
+
+zq =
+  = aur
 
 zsh =
   = apt
