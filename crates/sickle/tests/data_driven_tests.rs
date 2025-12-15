@@ -773,9 +773,8 @@ fn test_all_ccl_suites_comprehensive() {
                         }
                     }
                     "filter" => {
-                        // "filter" validation tests work the same as "parse" tests
-                        // They're tagged with the "filter" function to indicate they test
-                        // the capability filtering mechanism itself
+                        // "filter" validation tests parse the input, then filter out
+                        // comment entries (where key == "/")
                         if test.expected.error.is_some() {
                             assert!(entries.is_err(), "Test '{}' expected error", test.name);
                         } else {
@@ -783,14 +782,19 @@ fn test_all_ccl_suites_comprehensive() {
                                 panic!("Test '{}' failed to parse: {}", test.name, e);
                             });
 
-                            // For filter tests with entries, just verify parsing succeeded
+                            // Filter out comment entries (key == "/")
+                            let filtered: Vec<_> = entry_list
+                                .iter()
+                                .filter(|e| e.key != "/")
+                                .collect();
+
                             assert_eq!(
-                                entry_list.len(),
+                                filtered.len(),
                                 test.expected.count,
-                                "Test '{}' expected {} entries, got {}",
+                                "Test '{}' expected {} entries after filtering, got {}",
                                 test.name,
                                 test.expected.count,
-                                entry_list.len()
+                                filtered.len()
                             );
                         }
                     }
