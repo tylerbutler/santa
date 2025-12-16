@@ -9,7 +9,7 @@ use tempfile::NamedTempFile;
 
 #[test]
 fn config_command_shows_default_config() {
-    let mut cmd = Command::cargo_bin("santa").unwrap();
+    let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("santa"));
     cmd.args(["config", "--builtin-only"]);
 
     // Should display default configuration
@@ -21,7 +21,7 @@ fn config_command_shows_default_config() {
 
 #[test]
 fn config_command_with_packages_flag() {
-    let mut cmd = Command::cargo_bin("santa").unwrap();
+    let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("santa"));
     cmd.args(["config", "--packages", "--builtin-only"]);
 
     // Should show package information
@@ -30,7 +30,7 @@ fn config_command_with_packages_flag() {
 
 #[test]
 fn config_command_with_pipe_flag() {
-    let mut cmd = Command::cargo_bin("santa").unwrap();
+    let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("santa"));
     cmd.args(["config", "--pipe", "--builtin-only"]);
 
     // Should produce pipe-friendly output
@@ -55,7 +55,7 @@ packages =
     )
     .unwrap();
 
-    let mut cmd = Command::cargo_bin("santa").unwrap();
+    let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("santa"));
     cmd.env("SANTA_CONFIG_PATH", config_file.path());
     cmd.arg("config");
 
@@ -72,7 +72,7 @@ fn config_command_with_invalid_config_file() {
     let mut config_file = NamedTempFile::new().unwrap();
     writeln!(config_file, "invalid ccl syntax @@@").unwrap();
 
-    let mut cmd = Command::cargo_bin("santa").unwrap();
+    let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("santa"));
     cmd.env("SANTA_CONFIG_PATH", config_file.path());
     cmd.arg("config");
 
@@ -84,7 +84,7 @@ fn config_command_with_invalid_config_file() {
 
 #[test]
 fn config_command_output_is_valid_format() {
-    let mut cmd = Command::cargo_bin("santa").unwrap();
+    let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("santa"));
     cmd.args(["config", "--builtin-only"]);
 
     let output = cmd.output().unwrap();
@@ -102,7 +102,7 @@ fn config_command_output_is_valid_format() {
 
 #[test]
 fn config_command_with_verbose_flag() {
-    let mut cmd = Command::cargo_bin("santa").unwrap();
+    let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("santa"));
     cmd.args(["config", "--builtin-only", "-v"]);
 
     // Should handle verbose output
@@ -111,7 +111,7 @@ fn config_command_with_verbose_flag() {
 
 #[test]
 fn config_command_respects_log_levels() {
-    let mut cmd = Command::cargo_bin("santa").unwrap();
+    let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("santa"));
     cmd.args(["config", "--builtin-only", "-vvv"]);
 
     // Should handle maximum verbosity
@@ -120,7 +120,7 @@ fn config_command_respects_log_levels() {
 
 #[test]
 fn config_command_exit_codes() {
-    let mut cmd = Command::cargo_bin("santa").unwrap();
+    let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("santa"));
     cmd.args(["config", "--builtin-only"]);
 
     // Should exit with success code

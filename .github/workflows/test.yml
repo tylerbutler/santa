@@ -31,8 +31,12 @@ jobs:
         with:
           toolchain: ${{ matrix.rust }}
 
-      - run: cargo test --verbose --workspace --all-features
-      - run: cargo test --verbose --workspace --no-default-features
+      - uses: ./.github/actions/install-tools
+        with:
+          tools: just
+
+      - run: just test --verbose --workspace --all-features
+      - run: just test --verbose --workspace --no-default-features
 
   test-extended-platforms:
     name: Extended Test - ${{ matrix.rust }} on ${{ matrix.os }}
@@ -50,8 +54,12 @@ jobs:
         with:
           toolchain: ${{ matrix.rust }}
 
-      - run: cargo test --verbose --workspace --all-features
-      - run: cargo test --verbose --workspace --no-default-features
+      - uses: ./.github/actions/install-tools
+        with:
+          tools: just
+
+      - run: just test --verbose --workspace --all-features
+      - run: just test --verbose --workspace --no-default-features
 
   cross-test:
     name: Cross Test - ${{ matrix.target }}
@@ -73,26 +81,7 @@ jobs:
 
       - uses: ./.github/actions/install-tools
         with:
-          tool: cross
+          tools: cross
 
       - run: cross test --verbose --target=${{ matrix.target }} --no-default-features
       - run: cross test --verbose --target=${{ matrix.target }} --all-features
-
-  checks:
-    name: Checks
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # ratchet:actions/checkout@v4
-
-      - uses: ./.github/actions/setup-rust
-        with:
-          components: rustfmt
-
-      - name: Check formatting
-        run: cargo fmt --all -- --check
-
-      - name: Check documentation
-        env:
-          RUSTDOCFLAGS: -D warnings
-        run: cargo doc --no-deps --document-private-items --workspace

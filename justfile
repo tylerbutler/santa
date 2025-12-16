@@ -14,7 +14,7 @@ alias ta := test-all
 alias tf := test-fast
 alias l := lint
 alias f := fix
-alias pr := ci
+alias ci := pr
 
 export RUST_BACKTRACE := "1"
 
@@ -113,6 +113,14 @@ test-all *ARGS='':
 test-watch:
     cargo watch -x test
 
+# Run tests with coverage (outputs lcov.info)
+test-coverage:
+    cargo llvm-cov nextest --all-features --workspace --lcov --output-path lcov.info
+
+# Generate HTML coverage report (run after test-coverage)
+coverage-report:
+    cargo llvm-cov report --html --output-dir target/llvm-cov/html
+
 # Download CCL test data from ccl-test-data repository
 download-ccl-tests:
     @echo "📥 Downloading CCL test data from ccl-test-data repository..."
@@ -184,6 +192,10 @@ markdown-help:
 docs:
     cargo doc --open --no-deps
 
+# Check documentation builds without warnings (for CI)
+docs-check:
+    RUSTDOCFLAGS="-D warnings" cargo doc --no-deps --document-private-items --workspace
+
 # Release Commands
 # ===============
 
@@ -208,13 +220,24 @@ clean:
 # CI/CD Commands (matches GitHub Actions)
 # =====================================
 
-# Run the same checks as CI
-ci:
-    cargo fmt -- --check
-    cargo clippy -- -A clippy::needless_return -D warnings
-    cargo test
-    cargo build --release
-    cargo audit
+# Run PR checks (mimics pr.yml workflow)
+pr:
+    just format --check
+    just docs-check
+    just lint
+    just test-coverage
+    just audit
+    just build
+    just verify-package
+
+# Run main branch checks (mimics test.yml workflow)
+main:
+    just format --check
+    just docs-check
+    just lint
+    just test-coverage
+    just audit
+    just build-release
 
 # Binary Size Analysis Commands
 # =============================
@@ -222,8 +245,8 @@ ci:
 # Run cargo-bloated on santa and sickle, save to metrics/ (Linux only)
 [linux]
 bloat:
-    cargo bloated -p santa --output crates | tee metrics/bloat.txt
-    cargo bloated --lib -p sickle --all-features --output crates | tee metrics/bloat-sickle.txt
+    cargo bloated -p santa --bin=santa --output crates | tee metrics/bloat.txt
+    cargo bloated -p sickle --lib --all-features --output crates | tee metrics/bloat-sickle.txt
 
 # Record release binary size to metrics/binary-size.txt
 [linux]

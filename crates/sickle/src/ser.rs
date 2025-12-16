@@ -546,6 +546,8 @@ impl<'a> ser::SerializeStructVariant for MapSerializer<'a> {
 /// Mirrors the structure of `de::serde_validation_tests` for consistency.
 #[cfg(test)]
 mod serde_validation_tests {
+    #![allow(dead_code)] // Test structs/enums exist to verify serialization, not field usage
+
     use super::*;
     use crate::printer::PrinterConfig;
     use serde::{Deserialize, Serialize};

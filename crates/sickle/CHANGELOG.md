@@ -2,11 +2,31 @@
 
 All notable changes to this project will be documented in this file.
 
-### CI
+### Bug Fixes
 
-- Improve codecov configuration for multi-crate workspace (#33)
+- Parser cleanup and test improvements (#56)
 
-- Use per-crate git-cliff configs for changelog generation (#35)
+- Filter out comments in filter validation tests (#61)
+
+
+### Features
+
+- Add granular feature flags and serde serialization (#44)
+
+
+### Performance
+
+- Optimize release binary size and add size tracking (#48)
+
+
+### Refactoring
+
+- API cleanup and canonical format printer (#43)
+
+
+### Testing
+
+- Exclude known failing tests
 
 
 ### Features
