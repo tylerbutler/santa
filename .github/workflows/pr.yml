@@ -65,7 +65,7 @@ jobs:
 
       - name: Verify package
         # Skip for release-plz PRs - bumped workspace deps won't exist on crates.io yet
-        if: github.actor != 'github-actions[bot]' || !startsWith(github.head_ref, 'release-plz-')
+        if: ${{ !startsWith(github.head_ref, 'release-plz-') }}
         run: just verify-package
 
       - name: Check for unexpected changes
