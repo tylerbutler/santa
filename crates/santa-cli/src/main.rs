@@ -5,11 +5,8 @@ mod configuration;
 mod data;
 mod data_layers;
 mod errors;
-mod plugins;
 mod script_generator;
-mod source_layers;
 mod sources;
-mod traits;
 
 #[cfg(test)]
 mod tests;

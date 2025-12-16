@@ -8,8 +8,6 @@
 //!
 //! - [`PackageSource`]: Individual package manager implementations
 //! - [`PackageCache`]: Thread-safe caching with TTL and LRU eviction
-//! - [`PackageManager`]: Trait defining common package manager operations
-//! - [`Cacheable`]: Trait for cache-aware operations
 //!
 //! # Examples
 //!
@@ -28,8 +26,6 @@
 use crate::configuration::SantaConfig;
 use crate::errors::{Result, SantaError};
 use crate::script_generator::{ExecutionMode, ScriptFormat, ScriptGenerator};
-use crate::traits::{Cacheable, PackageManager};
-use std::borrow::Cow;
 use std::time::Duration;
 
 use colored::*;
@@ -38,15 +34,12 @@ use dialoguer::{theme::ColorfulTheme, Confirm};
 use moka::sync::Cache;
 use serde::{Deserialize, Serialize};
 use shell_escape::escape;
-// Removed subprocess::Exec - now standardized on tokio::process
 use tabular::{Row, Table};
 use tokio::process::Command;
 use tokio::time::timeout;
 use tracing::{debug, error, info, trace, warn};
 
 use crate::data::{KnownSources, Platform, PlatformExt, SantaData};
-
-pub mod traits;
 
 const MACHINE_KIND: &str = if cfg!(windows) {
     "windows"
@@ -98,35 +91,13 @@ impl PackageCache {
     pub fn stats(&self) -> CacheStats {
         CacheStats {
             entries: self.cache.entry_count(),
-            weighted_size: self.cache.weighted_size(),
         }
-    }
-
-    /// Clear all cache entries
-    pub fn clear(&self) {
-        let entries_cleared = self.cache.entry_count();
-        self.cache.invalidate_all();
-        if entries_cleared > 0 {
-            info!("Cleared {} cache entries", entries_cleared);
-        }
-    }
-
-    /// Invalidate specific cache entry
-    pub fn invalidate(&self, source_name: &str) {
-        self.cache.invalidate(source_name);
-        debug!("Invalidated cache entry for {}", source_name);
     }
 
     /// Insert directly into cache (for testing)
     #[cfg(any(test, feature = "bench"))]
     pub fn insert_for_test(&self, key: String, packages: Vec<String>) {
         self.cache.insert(key, packages);
-    }
-
-    /// Check if cache is empty (for testing)
-    #[cfg(any(test, feature = "bench"))]
-    pub fn is_empty(&self) -> bool {
-        self.cache.entry_count() == 0
     }
 
     /// Create a small cache for testing eviction behavior
@@ -136,11 +107,10 @@ impl PackageCache {
     }
 }
 
-/// Cache statistics for monitoring  
+/// Cache statistics for monitoring
 #[derive(Debug, Clone)]
 pub struct CacheStats {
     pub entries: u64,
-    pub weighted_size: u64,
 }
 
 impl Default for PackageCache {
@@ -220,24 +190,6 @@ impl PackageCache {
         config_pkg_name.to_string()
     }
 
-    pub fn cache_for(&self, source: &PackageSource) {
-        info!("Caching data for {}", source);
-        let pkgs = source.packages();
-        self.cache.insert(source.name_str(), pkgs);
-
-        // Warn if cache is getting full
-        let stats = self.stats();
-        let capacity_ratio = stats.entries as f64 / self.max_capacity as f64;
-        if capacity_ratio > 0.8 {
-            warn!(
-                "Cache is {}% full ({}/{} entries)",
-                (capacity_ratio * 100.0) as u64,
-                stats.entries,
-                self.max_capacity
-            );
-        }
-    }
-
     /// Async version of cache_for with timeout and better error handling
     pub async fn cache_for_async(&self, source: &PackageSource) -> Result<()> {
         info!("Async caching data for {}", source);
@@ -257,41 +209,6 @@ impl PackageCache {
         }
 
         Ok(())
-    }
-
-    /// Returns all packages for a PackageSource. This will call the PackageSource's check_command and populate the cache if needed.
-    /// If the PackageSource can't be found, or the cache population fails, then None will be returned.
-    #[must_use]
-    pub fn packages_for(cache: &PackageCache, source: &PackageSource) -> Option<Vec<String>> {
-        let key = source.name_str();
-
-        // Try to get from cache first
-        if let Some(packages) = cache.cache.get(&key) {
-            trace!("Cache hit for {}", source.name);
-            return Some(packages);
-        }
-
-        // Cache miss - fetch and cache
-        debug!("Cache miss, filling cache for {}", source.name);
-        let pkgs = source.packages();
-        cache.cache.insert(key, pkgs.clone());
-        Some(pkgs)
-    }
-
-    /// Get packages with efficient string handling using Cow
-    pub fn get_packages_cow(&self, source: &PackageSource) -> Option<Cow<'_, Vec<String>>> {
-        let key = source.name_str();
-
-        if let Some(packages) = self.cache.get(&key) {
-            trace!("Cache hit (cow) for {}", source.name);
-            return Some(Cow::Owned(packages)); // moka returns owned values
-        }
-
-        // Cache miss - fetch and cache
-        debug!("Cache miss (cow), filling cache for {}", source.name);
-        let pkgs = source.packages();
-        self.cache.insert(key, pkgs.clone());
-        Some(Cow::Owned(pkgs))
     }
 }
 
@@ -365,18 +282,6 @@ impl PackageSource {
         &self.emoji
     }
 
-    /// Get the prepend string for package names
-    #[must_use]
-    pub fn prepend_to_package_name(&self) -> Option<&String> {
-        self.prepend_to_package_name.as_ref()
-    }
-
-    /// Get the platform overrides
-    #[must_use]
-    pub fn overrides(&self) -> Option<&Vec<SourceOverride>> {
-        self.overrides.as_ref()
-    }
-
     pub fn new_for_test(
         name: KnownSources,
         emoji: &str,
@@ -394,18 +299,6 @@ impl PackageSource {
             check_command: check_command.to_string(),
             prepend_to_package_name,
             overrides,
-        }
-    }
-
-    fn exec_check(&self) -> String {
-        // Use async version with a tokio runtime for sync compatibility
-        let rt = tokio::runtime::Runtime::new().expect("Failed to create tokio runtime");
-        match rt.block_on(self.exec_check_async()) {
-            Ok(result) => result,
-            Err(e) => {
-                error!("Command execution error: {}", e);
-                String::new()
-            }
         }
     }
 
@@ -556,16 +449,6 @@ impl PackageSource {
         }
     }
 
-    #[must_use]
-    pub fn packages(&self) -> Vec<String> {
-        let pkg_list = self.exec_check();
-        let lines = pkg_list.lines();
-        let packages: Vec<String> = lines.map(|s| self.adjust_package_name(s)).collect();
-        debug!("{} - {} packages installed", self.name, packages.len());
-        trace!("{:?}", packages);
-        packages
-    }
-
     /// Async version of exec_check using tokio::process with timeout support
     async fn exec_check_async(&self) -> Result<String> {
         let check = self.check_command();
@@ -639,16 +522,6 @@ impl PackageSource {
                 Vec::new()
             }
         }
-    }
-
-    /// Async version of packages() that returns Result for better error propagation
-    pub async fn packages_async_result(&self) -> Result<Vec<String>> {
-        let pkg_list = self.exec_check_async().await?;
-        let lines = pkg_list.lines();
-        let packages: Vec<String> = lines.map(|s| self.adjust_package_name(s)).collect();
-        debug!("{} - {} packages installed", self.name, packages.len());
-        trace!("{:?}", packages);
-        Ok(packages)
     }
 
     /// Async helper for executing install commands using tokio::process
@@ -827,82 +700,6 @@ impl PackageSource {
 impl std::fmt::Display for PackageSource {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{} {}", self.emoji, self.name)
-    }
-}
-
-// Trait implementations for PackageSource
-
-impl PackageManager for PackageSource {
-    type Error = SantaError;
-
-    fn name(&self) -> String {
-        self.name_str()
-    }
-
-    fn install_command(&self) -> &str {
-        &self.install_command
-    }
-
-    fn list_command(&self) -> &str {
-        &self.check_command
-    }
-
-    async fn install_packages(&self, packages: &[&str]) -> Result<()> {
-        let packages_vec: Vec<String> = packages.iter().map(|s| s.to_string()).collect();
-        let install_cmd = self.install_packages_command(packages_vec);
-
-        // Use the existing install infrastructure
-        self.exec_install_command_async(&install_cmd).await?;
-        Ok(())
-    }
-
-    async fn list_packages(&self) -> Result<Vec<String>> {
-        self.packages_async_result().await
-    }
-
-    fn is_package_installed(&self, package: &str) -> bool {
-        // Use sync version for quick check
-        let packages = self.packages();
-        packages.iter().any(|p| p == package)
-    }
-
-    fn supports_batch_install(&self) -> bool {
-        true // Most package managers support batch installation
-    }
-
-    fn requires_elevation(&self) -> bool {
-        // Heuristic: if install command contains sudo, it requires elevation
-        self.install_command.contains("sudo")
-    }
-}
-
-impl Cacheable<String, Vec<String>> for PackageCache {
-    fn get(&self, key: &String) -> Option<Vec<String>> {
-        self.cache.get(key)
-    }
-
-    fn insert(&self, key: String, value: Vec<String>) {
-        self.cache.insert(key, value);
-    }
-
-    fn invalidate(&self, key: &String) {
-        self.cache.invalidate(key);
-    }
-
-    fn clear(&self) {
-        self.cache.invalidate_all();
-    }
-
-    fn size(&self) -> usize {
-        self.cache.weighted_size() as usize
-    }
-
-    fn stats(&self) -> crate::traits::CacheStats {
-        crate::traits::CacheStats {
-            entries: self.size(),
-            hits: 0, // moka doesn't expose hit/miss stats in the sync interface
-            misses: 0,
-        }
     }
 }
 

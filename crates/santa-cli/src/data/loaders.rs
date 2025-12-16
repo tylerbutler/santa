@@ -1,14 +1,22 @@
 // Data loading functions using the new schema-based structures
 
-use anyhow::{Context, Result};
 use std::collections::HashMap;
+use tracing::warn;
+
+#[cfg(test)]
+use anyhow::{Context, Result};
+#[cfg(test)]
 use std::fs;
+#[cfg(test)]
 use std::path::Path;
-use tracing::{info, warn};
+#[cfg(test)]
+use tracing::info;
 
 #[cfg(test)]
 use super::schemas::ComplexPackageDefinition;
-use super::schemas::{ConfigDefinition, PackageDefinition, PlatformOverride, SourcesDefinition};
+#[cfg(test)]
+use super::schemas::ConfigDefinition;
+use super::schemas::{PackageDefinition, PlatformOverride, SourcesDefinition};
 use crate::data::{KnownSources, PackageData, PackageDataList, SourceList};
 use crate::sources::{PackageSource, SourceOverrideBuilder};
 use santa_data::models::{Arch, Platform, OS};

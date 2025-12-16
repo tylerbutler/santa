@@ -44,22 +44,6 @@ impl SantaError {
     {
         SantaError::CommandFailed(format!("{}: {}", cmd.into(), details.into()))
     }
-
-    /// Returns true if this error represents a transient failure that might be retried.
-    pub fn is_retryable(&self) -> bool {
-        matches!(self, SantaError::Io(_) | SantaError::CommandFailed(_))
-    }
-
-    /// Returns the error category as a string for logging/metrics.
-    pub fn category(&self) -> &'static str {
-        match self {
-            SantaError::Config(_) => "config",
-            SantaError::CommandFailed(_) => "command_failed",
-            SantaError::Io(_) => "io",
-            SantaError::Concurrency(_) => "concurrency",
-            SantaError::Template(_) => "template",
-        }
-    }
 }
 
 // Implement conversion from common error types that we might encounter
@@ -95,16 +79,14 @@ mod tests {
     #[test]
     fn test_error_creation() {
         let err = SantaError::command_failed("apt install curl", "Installation failed");
-        assert_eq!(err.category(), "command_failed");
-    }
-
-    #[test]
-    fn test_retryable_errors() {
-        let cmd_err = SantaError::CommandFailed("Connection timeout".to_string());
-        assert!(cmd_err.is_retryable());
-
-        let config_err = SantaError::Config(anyhow::anyhow!("Invalid config"));
-        assert!(!config_err.is_retryable());
+        // Verify error was created correctly
+        match err {
+            SantaError::CommandFailed(msg) => {
+                assert!(msg.contains("apt install curl"));
+                assert!(msg.contains("Installation failed"));
+            }
+            _ => panic!("Expected CommandFailed variant"),
+        }
     }
 
     #[test]

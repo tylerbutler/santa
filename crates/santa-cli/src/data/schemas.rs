@@ -169,12 +169,6 @@ impl ComplexPackageDefinition {
     pub fn get_source_config(&self, source: &str) -> Option<&SourceSpecificConfig> {
         self.source_configs.get(source)
     }
-
-    /// Check if package is available in a specific source
-    #[cfg(test)]
-    pub fn is_available_in(&self, source: &str) -> bool {
-        self.get_sources().contains(&source)
-    }
 }
 
 #[cfg(test)]
