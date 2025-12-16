@@ -72,7 +72,7 @@ fn empty_config_file_handled() {
     use std::io::Write;
 
     let mut config_file = NamedTempFile::new().unwrap();
-    writeln!(config_file, "").unwrap();
+    writeln!(config_file).unwrap();
 
     let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("santa"));
     cmd.env("SANTA_CONFIG_PATH", config_file.path());

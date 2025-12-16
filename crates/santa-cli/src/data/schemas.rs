@@ -1,7 +1,6 @@
 // Schema-based data structures for Santa Package Manager
 // These structs match the YAML schemas defined in /data/*.yaml files
 
-use crate::data::{Platform, OS};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
@@ -34,6 +33,7 @@ impl PackageDefinition {
     }
 
     /// Check if package is available in a specific source
+    #[cfg(test)]
     pub fn is_available_in(&self, source: &str) -> bool {
         self.get_sources().contains(&source)
     }
@@ -142,6 +142,7 @@ fn default_true() -> bool {
 
 impl ComplexPackageDefinition {
     /// Create a new ComplexPackageDefinition with the given sources
+    #[cfg(test)]
     pub fn with_sources(sources: Vec<String>) -> Self {
         Self {
             sources: Some(sources),
@@ -170,48 +171,9 @@ impl ComplexPackageDefinition {
     }
 
     /// Check if package is available in a specific source
+    #[cfg(test)]
     pub fn is_available_in(&self, source: &str) -> bool {
         self.get_sources().contains(&source)
-    }
-}
-
-impl SourceDefinition {
-    /// Get the appropriate command for the current platform
-    pub fn get_install_command(&self, platform: &Platform) -> &str {
-        if let Some(overrides) = &self.overrides {
-            let platform_key = match platform.os {
-                OS::Windows => "windows",
-                OS::Linux => "linux",
-                OS::Macos => "macos",
-                _ => return &self.install, // Unknown OS, use default
-            };
-
-            if let Some(platform_override) = overrides.get(platform_key) {
-                if let Some(install) = &platform_override.install {
-                    return install;
-                }
-            }
-        }
-        &self.install
-    }
-
-    /// Get the appropriate check command for the current platform
-    pub fn get_check_command(&self, platform: &Platform) -> &str {
-        if let Some(overrides) = &self.overrides {
-            let platform_key = match platform.os {
-                OS::Windows => "windows",
-                OS::Linux => "linux",
-                OS::Macos => "macos",
-                _ => return &self.check, // Unknown OS, use default
-            };
-
-            if let Some(platform_override) = overrides.get(platform_key) {
-                if let Some(check) = &platform_override.check {
-                    return check;
-                }
-            }
-        }
-        &self.check
     }
 }
 

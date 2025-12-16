@@ -15,6 +15,7 @@ use santa_data::models::{Arch, Platform, OS};
 
 /// Load packages from the new schema format
 /// Supports both simple array format and complex object format
+#[cfg(test)]
 pub fn load_packages_from_schema(path: &Path) -> Result<HashMap<String, PackageDefinition>> {
     let content = fs::read_to_string(path)
         .with_context(|| format!("Failed to read packages file: {:?}", path))?;
@@ -28,6 +29,7 @@ pub fn load_packages_from_schema(path: &Path) -> Result<HashMap<String, PackageD
 }
 
 /// Load sources from the new schema format
+#[cfg(test)]
 pub fn load_sources_from_schema(path: &Path) -> Result<SourcesDefinition> {
     let content = fs::read_to_string(path)
         .with_context(|| format!("Failed to read sources file: {:?}", path))?;
@@ -40,6 +42,7 @@ pub fn load_sources_from_schema(path: &Path) -> Result<SourcesDefinition> {
 }
 
 /// Load configuration from the new schema format
+#[cfg(test)]
 pub fn load_config_from_schema(path: &Path) -> Result<ConfigDefinition> {
     let content = fs::read_to_string(path)
         .with_context(|| format!("Failed to read config file: {:?}", path))?;

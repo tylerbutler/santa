@@ -62,47 +62,9 @@ impl SourceLayerManager {
         Self { config_dir }
     }
 
-    /// Create a SourceLayerManager using the default config directory
-    pub fn with_default_config_dir() -> Result<Self> {
-        let config_dir = directories::ProjectDirs::from("com", "tylerbutler", "santa")
-            .context("Failed to determine config directory")?
-            .config_dir()
-            .to_path_buf();
-        Ok(Self::new(config_dir))
-    }
-
     /// Path to the downloaded sources file
     pub fn downloaded_sources_path(&self) -> PathBuf {
         self.config_dir.join(DOWNLOADED_SOURCES_FILENAME)
-    }
-
-    /// Fetch sources from GitHub and save to local storage
-    pub fn update_sources(&self) -> Result<()> {
-        info!("Fetching sources from {}", SOURCES_URL);
-
-        let response = minreq::get(SOURCES_URL)
-            .send()
-            .context("Failed to fetch sources from GitHub")?;
-
-        let content = response
-            .as_str()
-            .context("Failed to read response body")?
-            .to_string();
-
-        // Validate that the content is valid CCL before saving
-        let _: SourcesDefinition =
-            sickle::from_str(&content).context("Downloaded content is not valid CCL")?;
-
-        // Ensure config directory exists
-        fs::create_dir_all(&self.config_dir).context("Failed to create config directory")?;
-
-        // Write the downloaded sources
-        let path = self.downloaded_sources_path();
-        fs::write(&path, &content)
-            .with_context(|| format!("Failed to write sources to {:?}", path))?;
-
-        info!("Sources updated successfully at {:?}", path);
-        Ok(())
     }
 
     /// Load downloaded sources if they exist

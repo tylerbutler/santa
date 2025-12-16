@@ -481,7 +481,7 @@ mod status_command_tests {
             packages,
         };
 
-        let pkg_list = vec!["git".to_string(), "curl".to_string(), "vim".to_string()];
+        let pkg_list = ["git".to_string(), "curl".to_string(), "vim".to_string()];
 
         // Test installed filter
         let installed: Vec<String> = pkg_list

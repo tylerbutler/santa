@@ -61,23 +61,6 @@ pub struct LayeredSource {
     pub origin: DataOrigin,
 }
 
-/// A package with its origin tracked
-#[derive(Debug, Clone)]
-pub struct LayeredPackage {
-    pub name: String,
-    pub definition: PackageDefinition,
-    pub origin: DataOrigin,
-}
-
-/// Result of an update operation
-#[derive(Debug, Clone)]
-pub struct UpdateResult {
-    pub sources_updated: bool,
-    pub packages_updated: bool,
-    pub sources_count: usize,
-    pub packages_count: usize,
-}
-
 /// Manages the layered data system for both sources and packages
 pub struct DataLayerManager {
     config_dir: PathBuf,
@@ -417,29 +400,11 @@ impl DataLayerManager {
 
     // ============= Combined Operations =============
 
-    /// Update both sources and packages from GitHub
-    pub fn update_all(&self) -> Result<UpdateResult> {
-        let sources_count = self.update_sources()?;
-        let packages_count = self.update_packages()?;
-
-        Ok(UpdateResult {
-            sources_updated: true,
-            packages_updated: true,
-            sources_count,
-            packages_count,
-        })
-    }
-
     /// Clear all downloaded data
     pub fn clear_all(&self) -> Result<()> {
         self.clear_downloaded_sources()?;
         self.clear_downloaded_packages()?;
         Ok(())
-    }
-
-    /// Check if any downloaded data exists
-    pub fn has_any_downloaded(&self) -> bool {
-        self.has_downloaded_sources() || self.has_downloaded_packages()
     }
 }
 
