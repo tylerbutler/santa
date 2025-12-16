@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [unreleased]
+
+No notable changes in this release.
+
+## [sickle-v0.1.1] - 2025-12-16
+
 ### Bug Fixes
 
 - Parser cleanup and test improvements (#56)
@@ -14,32 +20,10 @@ All notable changes to this project will be documented in this file.
 - Add granular feature flags and serde serialization (#44)
 
 
-### Performance
-
-- Optimize release binary size and add size tracking (#48)
-
-
-### Refactoring
-
-- API cleanup and canonical format printer (#43)
-
-
-### Testing
-
-- Exclude known failing tests
-
+## [sickle-v0.1.0] - 2025-12-01
 
 ### Features
 
 - Add CCL parser library and codecov tracking (#26)
 
-
-### Refactoring
-
-- Major Model API redesign with data-driven test framework (#29)
-
-
-### Testing
-
-- Add ccl-test-data test suites (#28)
 

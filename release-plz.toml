@@ -24,14 +24,14 @@ semver_check = true
 [[package]]
 name = "sickle"
 publish = true
-git_tag_enable = false
+git_tag_enable = true
 changelog_update = false  # git-cliff handles this separately
 
 # Santa Data Library - Core data models and CCL parser
 [[package]]
 name = "santa-data"
 publish = true
-git_tag_enable = false
+git_tag_enable = true
 changelog_update = false  # git-cliff handles this separately
 
 # Santa CLI - Main binary application

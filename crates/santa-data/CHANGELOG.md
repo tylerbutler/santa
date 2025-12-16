@@ -2,27 +2,38 @@
 
 All notable changes to this project will be documented in this file.
 
+## [unreleased]
+
+No notable changes in this release.
+
+## [santa-data-v0.3.0] - 2025-12-16
+
 ### Features
 
 - Reorganize package data by source (#45)
 
 
-### Features
+## [santa-data-v0.2.0] - 2025-12-01
 
-- Enhance workspace configuration and CI for multi-package best practices (#23)
+No notable changes in this release.
 
+## [santa-data-v0.1.4] - 2025-11-17
 
-### Bug Fixes
+No notable changes in this release.
 
-- Make source system extensible without code changes (#19)
+## [santa-data-v0.1.3] - 2025-11-17
 
+No notable changes in this release.
 
-### Refactoring
+## [santa-data-v0.1.2] - 2025-11-17
 
-- Remove unused dependencies and fix clippy warnings (#12)
+No notable changes in this release.
 
+## [santa-data-v0.1.1] - 2025-11-17
 
-### Refactoring
+No notable changes in this release.
 
-- Migrate to workspace structure with santa-data crate (#6)
+## [santa-data-v0.1.0] - 2025-11-16
+
+No notable changes in this release.
 

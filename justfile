@@ -196,6 +196,28 @@ docs:
 docs-check:
     RUSTDOCFLAGS="-D warnings" cargo doc --no-deps --document-private-items --workspace
 
+# Changelog Commands
+# ==================
+
+# Regenerate all configs from commit-types.json (single source of truth)
+generate-configs:
+    python3 scripts/generate-cliff-configs.py
+    python3 scripts/generate-commitlint-config.py
+
+# Check that generated configs are in sync with commit-types.json
+check-configs:
+    python3 scripts/check-configs-sync.py
+
+# Regenerate git-cliff config files for all crates
+generate-cliff-configs:
+    python3 scripts/generate-cliff-configs.py
+
+# Generate changelogs for all crates
+changelogs: generate-cliff-configs
+    git-cliff --config crates/sickle/cliff.toml -o crates/sickle/CHANGELOG.md 2>/dev/null
+    git-cliff --config crates/santa-data/cliff.toml -o crates/santa-data/CHANGELOG.md 2>/dev/null
+    git-cliff --config crates/santa-cli/cliff.toml -o crates/santa-cli/CHANGELOG.md 2>/dev/null
+
 # Release Commands
 # ===============
 
@@ -225,6 +247,7 @@ pr:
     just format --check
     just docs-check
     just lint
+    just check-configs
     just test-coverage
     just audit
     just build
