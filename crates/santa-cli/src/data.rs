@@ -1,4 +1,4 @@
-use crate::SantaConfig;
+use crate::configuration::SantaConfig;
 use std::{collections::HashMap, fs, path::Path};
 
 use anyhow::Context;
@@ -554,7 +554,7 @@ mod tests {
 
     #[test]
     fn test_santa_data_sources_filtering() {
-        use crate::SantaConfig;
+        use crate::configuration::SantaConfig;
 
         // Create test data with some sources
         let test_sources = vec![
@@ -855,7 +855,7 @@ git =
 
     #[test]
     fn test_santa_data_sources_with_empty_custom_sources() {
-        use crate::SantaConfig;
+        use crate::configuration::SantaConfig;
 
         let test_sources = vec![crate::sources::PackageSource::new_for_test(
             KnownSources::Brew,

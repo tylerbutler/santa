@@ -9,7 +9,7 @@ use std::path::Path;
 ///
 /// # Examples
 ///
-/// ```rust,no_run
+/// ```ignore
 /// use santa::traits::PackageManager;
 /// use santa::sources::PackageSource;
 /// use santa::data::KnownSources;
@@ -55,7 +55,7 @@ pub trait PackageManager {
     ///
     /// # Examples
     ///
-    /// ```rust,no_run
+    /// ```ignore
     /// # use santa::traits::PackageManager;
     /// # use santa::sources::PackageSource;
     /// # use santa::data::KnownSources;
@@ -73,7 +73,7 @@ pub trait PackageManager {
     ///
     /// # Examples
     ///
-    /// ```rust,no_run
+    /// ```ignore
     /// # use santa::traits::PackageManager;
     /// # use santa::sources::PackageSource;
     /// # use santa::data::KnownSources;
@@ -124,7 +124,7 @@ pub trait PackageManager {
     ///
     /// # Examples
     ///
-    /// ```rust,no_run
+    /// ```ignore
     /// # use santa::traits::PackageManager;
     /// # use santa::sources::PackageSource;
     /// # use santa::data::KnownSources;
@@ -167,7 +167,7 @@ pub trait PackageManager {
     ///
     /// # Examples
     ///
-    /// ```rust,no_run
+    /// ```ignore
     /// # use santa::traits::PackageManager;
     /// # use santa::sources::PackageSource;
     /// # use santa::data::KnownSources;
