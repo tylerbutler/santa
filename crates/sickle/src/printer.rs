@@ -107,7 +107,8 @@ impl CclPrinter {
     fn print_object(&self, model: &CclObject, indent: usize, output: &mut String) {
         let indent_str = " ".repeat(indent);
 
-        for (key, value) in model.iter() {
+        // Use iter_all() to print all values including duplicates
+        for (key, value) in model.iter_all() {
             self.print_entry(key, value, &indent_str, indent, output);
         }
     }
@@ -121,6 +122,20 @@ impl CclPrinter {
         indent: usize,
         output: &mut String,
     ) {
+        // Handle blank lines: empty key with empty value
+        if key.is_empty() && value.is_empty() {
+            output.push('\n');
+            return;
+        }
+
+        // Handle comment lines: key starts with "/=" and has empty value
+        if key.starts_with("/=") && value.is_empty() {
+            output.push_str(indent_str);
+            output.push_str(key);
+            output.push('\n');
+            return;
+        }
+
         if value.is_empty() {
             // Leaf value: key with empty map represents a string value
             // In CCL, the key itself IS the value at this level
@@ -134,8 +149,14 @@ impl CclPrinter {
             // The string value is stored as {value_string: {}}
             let string_value = value.keys().next().unwrap();
             output.push_str(indent_str);
-            output.push_str(key);
-            output.push_str(" = ");
+            if key.is_empty() {
+                // Bare list syntax: = value (no leading space)
+                output.push_str("= ");
+            } else {
+                // Normal key-value: key = value
+                output.push_str(key);
+                output.push_str(" = ");
+            }
             output.push_str(string_value);
             output.push('\n');
         } else if self.is_list_value(value) {
@@ -306,5 +327,35 @@ mod tests {
         let output = printer.print(&model);
         assert!(output.contains("config ="));
         assert!(output.contains("port = 80"));
+    }
+
+    #[test]
+    fn test_from_list_uses_correct_indentation() {
+        // Test that CclObject::from_list() produces correct 2-space indentation
+        // This is the code path used by generate_index.rs
+        use crate::CclObject;
+
+        let mut model = CclObject::new();
+        let map = model.inner_mut();
+        map.insert(
+            "package".to_string(),
+            vec![CclObject::from_list(vec!["brew", "scoop", "nix"])],
+        );
+
+        let printer = CclPrinter::new();
+        let output = printer.print(&model);
+
+        // Should produce:
+        // package =
+        //   = brew
+        //   = scoop
+        //   = nix
+        assert!(output.contains("package =\n"));
+        assert!(output.contains("  = brew\n")); // Exactly 2 spaces
+        assert!(output.contains("  = scoop\n"));
+        assert!(output.contains("  = nix")); // Last line has no trailing newline
+
+        // Verify NO 3-space indentation (the bug we fixed)
+        assert!(!output.contains("   = "));
     }
 }

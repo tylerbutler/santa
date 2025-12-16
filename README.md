@@ -16,14 +16,40 @@ This is a Cargo workspace containing three packages:
 
 The main Santa command-line application. Install and manage packages across Homebrew, Cargo, APT, Pacman, Scoop, Nix, and more.
 
-**For users:** See the [santa-cli README](crates/santa-cli/README.md) for installation and usage instructions.
+**For users:** See the [User Guide](docs/user-guide.md) for complete usage instructions.
 
 ```bash
 # Install Santa
 cargo install santa-cli
 
-# Use Santa
-santa install ripgrep bat fd
+# Check package status
+santa status
+
+# Install missing packages (generates script)
+santa install
+
+# Review and run the generated script
+sh ~/.santa/scripts/install_*.sh
+```
+
+### Quick Examples
+
+```bash
+# Add packages to your tracking list
+santa add ripgrep cargo
+santa add bat brew
+
+# Check what's installed
+santa status --all
+
+# Update source definitions
+santa sources update
+
+# Generate installation script for specific source
+santa install brew
+
+# Direct execution mode (use with caution)
+santa install -x
 ```
 
 ### 📊 [santa-data](crates/santa-data)
@@ -49,9 +75,9 @@ let config: MyConfig = from_str(ccl_string)?;
 
 ## Quick Links
 
-- **User Documentation:** [santa-cli README](crates/santa-cli/README.md)
+- **User Documentation:** [User Guide](docs/user-guide.md) | [Configuration Guide](docs/configuration.md) | [Troubleshooting](docs/troubleshooting.md)
 - **API Documentation:** [docs.rs/santa-data](https://docs.rs/santa-data) | [docs.rs/sickle](https://docs.rs/sickle)
-- **Contributing:** See [Development](#development) below
+- **Contributing:** [CONTRIBUTING.md](CONTRIBUTING.md)
 
 ## Key Features
 
@@ -309,11 +335,15 @@ just bench
 
 ## Documentation
 
-- **User Guide:** [santa-cli README](crates/santa-cli/README.md)
-- **CLI Reference:** [docs/cli-reference.md](docs/cli-reference.md) - Complete command-line reference
+### User Documentation
+- **[User Guide](docs/user-guide.md)** - Installation, commands, and workflows
+- **[Configuration Guide](docs/configuration.md)** - CCL format and configuration options
+- **[Troubleshooting](docs/troubleshooting.md)** - Common issues and solutions
+
+### Developer Documentation
+- **[CONTRIBUTING.md](CONTRIBUTING.md)** - Development setup and guidelines
 - **API Docs:** [docs.rs/santa-data](https://docs.rs/santa-data) | [docs.rs/sickle](https://docs.rs/sickle)
-- **CCL Format:** See [sickle documentation](crates/sickle/README.md)
-- **Project Docs:** [CLAUDE.md](CLAUDE.md) - Project context and architecture
+- **[CLAUDE.md](CLAUDE.md)** - Project context and architecture
 
 Generate local documentation:
 

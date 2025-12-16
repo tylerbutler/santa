@@ -8,9 +8,10 @@ use tracing::{info, warn};
 
 #[cfg(test)]
 use super::schemas::ComplexPackageDefinition;
-use super::schemas::{ConfigDefinition, PackageDefinition, SourcesDefinition};
+use super::schemas::{ConfigDefinition, PackageDefinition, PlatformOverride, SourcesDefinition};
 use crate::data::{KnownSources, PackageData, PackageDataList, SourceList};
-use crate::sources::PackageSource;
+use crate::sources::{PackageSource, SourceOverrideBuilder};
+use santa_data::models::{Arch, Platform, OS};
 
 /// Load packages from the new schema format
 /// Supports both simple array format and complex object format
@@ -144,6 +145,34 @@ pub fn convert_to_legacy_packages(
     legacy_packages
 }
 
+/// Convert a platform key string to a SourceOverride
+fn convert_platform_override(
+    platform_key: &str,
+    platform_override: &PlatformOverride,
+) -> Option<crate::sources::SourceOverride> {
+    let os = match platform_key.to_lowercase().as_str() {
+        "windows" => OS::Windows,
+        "linux" => OS::Linux,
+        "macos" | "darwin" => OS::Macos,
+        _ => {
+            warn!("Unknown platform key '{}', skipping override", platform_key);
+            return None;
+        }
+    };
+
+    SourceOverrideBuilder::default()
+        .platform(Platform {
+            os,
+            arch: Arch::X64, // Default architecture
+            distro: None,
+        })
+        .shell_command(None::<String>)
+        .install_command(platform_override.install.clone())
+        .check_command(platform_override.check.clone())
+        .build()
+        .ok()
+}
+
 /// Convert new schema sources to legacy SourceList format
 pub fn convert_to_legacy_sources(schema_sources: SourcesDefinition) -> SourceList {
     let mut legacy_sources = SourceList::new();
@@ -159,7 +188,15 @@ pub fn convert_to_legacy_sources(schema_sources: SourcesDefinition) -> SourceLis
             }
         };
 
-        // Create PackageSource from schema using new_for_test (TODO: create proper constructor)
+        // Convert platform overrides from schema format to SourceOverride format
+        let overrides = source_def.overrides.as_ref().map(|ovs| {
+            ovs.iter()
+                .filter_map(|(key, val)| convert_platform_override(key, val))
+                .collect()
+        });
+
+        // Create PackageSource from schema
+        // TODO: Replace new_for_test with proper public constructor once API is stabilized
         let package_source = PackageSource::new_for_test(
             known_source,
             &source_def.emoji,
@@ -167,7 +204,7 @@ pub fn convert_to_legacy_sources(schema_sources: SourcesDefinition) -> SourceLis
             &source_def.install,
             &source_def.check,
             source_def.prefix.clone(),
-            None, // TODO: Convert platform overrides
+            overrides,
         );
 
         legacy_sources.push(package_source);
@@ -338,12 +375,10 @@ npm =
         let mut schema_packages = HashMap::new();
         schema_packages.insert(
             "bat".to_string(),
-            PackageDefinition::Complex(ComplexPackageDefinition {
-                sources: Some(vec!["brew".to_string(), "scoop".to_string()]),
-                platforms: None,
-                aliases: None,
-                source_configs: HashMap::new(),
-            }),
+            PackageDefinition::Complex(ComplexPackageDefinition::with_sources(vec![
+                "brew".to_string(),
+                "scoop".to_string(),
+            ])),
         );
 
         let legacy = convert_to_legacy_packages(schema_packages);
@@ -498,14 +533,11 @@ customPkgManager =
             SourceSpecificConfig::Name("another-command".to_string()),
         );
 
+        let mut complex = ComplexPackageDefinition::with_sources(vec!["brew".to_string()]);
+        complex.source_configs = source_configs;
         schema_packages.insert(
             "oh-my-posh".to_string(),
-            PackageDefinition::Complex(ComplexPackageDefinition {
-                sources: Some(vec!["brew".to_string()]),
-                platforms: None,
-                aliases: None,
-                source_configs,
-            }),
+            PackageDefinition::Complex(complex),
         );
 
         let legacy = convert_to_legacy_packages(schema_packages);

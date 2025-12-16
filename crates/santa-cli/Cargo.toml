@@ -12,6 +12,7 @@ categories.workspace = true
 keywords.workspace = true
 readme.workspace = true
 publish = true
+default-run = "santa"
 
 [features]
 default = []
@@ -49,8 +50,8 @@ serde = { version = "1.0.228", features = ["derive"] }
 serde-enum-str = "0.4.0"
 
 # CCL configuration parser with serde support
-sickle = { version = "0.1.0", path = "../sickle", features = ["serde"] }
-santa-data = { version = "0.2.0", path = "../santa-data" }
+sickle = { version = "0.1.1", path = "../sickle", features = ["serde"] }
+santa-data = { version = "0.3.0", path = "../santa-data" }
 
 # Structured logging and tracing
 tracing = "0.1.43"
@@ -119,6 +120,10 @@ criterion = { version = "0.5", features = ["html_reports", "async_tokio"] }
 [[bin]]
 name = "santa"
 path = "src/main.rs"
+
+[[bin]]
+name = "generate-index"
+path = "src/bin/generate_index.rs"
 
 [[bench]]
 name = "subprocess_performance"

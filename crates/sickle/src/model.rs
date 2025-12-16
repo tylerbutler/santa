@@ -7,6 +7,17 @@ use std::str::FromStr;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
+// ============================================================================
+// Type Aliases - prevent confusion between single-value and multi-value maps
+// ============================================================================
+
+/// The internal storage type for CclObject - maps keys to a Vec of values.
+/// Each key can have multiple values, preserving duplicate key semantics.
+pub(crate) type CclMap = IndexMap<String, Vec<CclObject>>;
+
+/// Iterator over key-value pairs where value is the full Vec.
+pub(crate) type CclMapIter<'a> = indexmap::map::Iter<'a, String, Vec<CclObject>>;
+
 /// Options for list access operations
 ///
 /// Controls how `get_list()` interprets the CCL data structure.
@@ -77,17 +88,18 @@ impl Entry {
 
 /// Represents a parsed CCL document as a recursive map structure
 ///
-/// Following the OCaml implementation: `type t = Fix of t Map.Make(String).t`
+/// Following the OCaml implementation: `type entry_map = value_entry list KeyMap.t`
 ///
 /// A CCL document is a fixed-point recursive structure where:
-/// - Every Model is a map from String to Model
+/// - Every Model is a map from String to `Vec<Model>`
 /// - An empty map {} represents a leaf/terminal value
 /// - String values are encoded in the recursive structure
 /// - Lists are represented as multiple entries with the same key
-/// - Uses IndexMap to preserve insertion order
+/// - Uses IndexMap to preserve insertion order (keys ordered by first appearance)
+/// - Uses Vec to preserve order of values for each key (insertion order)
 #[derive(Debug, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-pub struct CclObject(IndexMap<String, CclObject>);
+pub struct CclObject(CclMap);
 
 impl CclObject {
     /// Create a new empty model
@@ -97,15 +109,26 @@ impl CclObject {
 
     /// Create a Model from an IndexMap
     /// This is internal-only for crate operations
-    #[cfg(feature = "hierarchy")]
-    pub(crate) fn from_map(map: IndexMap<String, CclObject>) -> Self {
+    pub(crate) fn from_map(map: CclMap) -> Self {
         CclObject(map)
     }
 
     /// Get a value by key, returning an error if the key doesn't exist
+    ///
+    /// If the key has multiple values, returns the first one (matching OCaml behavior).
+    /// Use `get_all()` to get all values for a key.
     pub fn get(&self, key: &str) -> Result<&CclObject> {
         self.0
             .get(key)
+            .and_then(|vec| vec.first())
+            .ok_or_else(|| Error::MissingKey(key.to_string()))
+    }
+
+    /// Get all values for a key, returning an error if the key doesn't exist
+    pub fn get_all(&self, key: &str) -> Result<&[CclObject]> {
+        self.0
+            .get(key)
+            .map(|vec| vec.as_slice())
             .ok_or_else(|| Error::MissingKey(key.to_string()))
     }
 
@@ -114,19 +137,33 @@ impl CclObject {
         self.0.keys()
     }
 
-    /// Get an iterator over the values in this model
+    /// Get an iterator over the first value for each key
+    ///
+    /// This flattens the Vec structure, returning only the first value per key.
+    /// Use `iter_all()` to get all values.
     pub fn values(&self) -> impl Iterator<Item = &CclObject> {
-        self.0.values()
+        self.0.values().filter_map(|vec| vec.first())
     }
 
-    /// Get an iterator over key-value pairs in this model
+    /// Get an iterator over key-value pairs (first value only per key)
+    ///
+    /// This flattens the Vec structure, returning only the first value per key.
+    /// Use `iter_all()` to get all key-value pairs including duplicates.
     pub fn iter(&self) -> impl Iterator<Item = (&String, &CclObject)> {
-        self.0.iter()
+        self.0
+            .iter()
+            .filter_map(|(k, vec)| vec.first().map(|v| (k, v)))
+    }
+
+    /// Get an iterator over all key-value pairs including duplicate keys
+    pub fn iter_all(&self) -> impl Iterator<Item = (&String, &CclObject)> {
+        self.0
+            .iter()
+            .flat_map(|(k, vec)| vec.iter().map(move |v| (k, v)))
     }
 
     /// Get the concrete IndexMap iterator for internal use (Serde)
-    #[cfg(feature = "serde-deserialize")]
-    pub(crate) fn iter_map(&self) -> indexmap::map::Iter<'_, String, CclObject> {
+    pub(crate) fn iter_map(&self) -> indexmap::map::Iter<'_, String, Vec<CclObject>> {
         self.0.iter()
     }
 
@@ -140,19 +177,223 @@ impl CclObject {
         self.0.is_empty()
     }
 
+    // ========================================================================
+    // Builder API - Programmatic CCL Construction
+    // ========================================================================
+
+    /// Get mutable access to the internal IndexMap for direct manipulation
+    ///
+    /// This allows programmatic construction of CCL structures when you need
+    /// full control over the data model.
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// use sickle::CclObject;
+    ///
+    /// let mut obj = CclObject::new();
+    /// let map = obj.inner_mut();
+    /// map.insert("key".to_string(), vec![CclObject::from_string("value")]);
+    /// ```
+    pub fn inner_mut(&mut self) -> &mut CclMap {
+        &mut self.0
+    }
+
+    /// Create an empty CclObject (represents an empty value in CCL: `key =`)
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// use sickle::CclObject;
+    ///
+    /// let empty = CclObject::empty();
+    /// // Represents: key =
+    /// ```
+    pub fn empty() -> Self {
+        CclObject(IndexMap::new())
+    }
+
+    /// Create a CclObject representing a list using bare list syntax
+    ///
+    /// In CCL, a list is represented using the same empty key with multiple values.
+    /// Now that we use `Vec<CclObject>` internally, we can properly support duplicate keys.
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// use sickle::CclObject;
+    ///
+    /// let list = CclObject::from_list(vec!["brew", "scoop", "pacman"]);
+    /// // Represents:
+    /// // packages =
+    /// //   = brew
+    /// //   = scoop
+    /// //   = pacman
+    /// ```
+    pub fn from_list(items: Vec<impl Into<String>>) -> Self {
+        let mut map = IndexMap::new();
+        let values: Vec<CclObject> = items
+            .into_iter()
+            .map(|item| CclObject::from_string(item))
+            .collect();
+        map.insert("".to_string(), values);
+        CclObject(map)
+    }
+
+    /// Add a comment entry to this CclObject
+    ///
+    /// CCL comments use the `/=` prefix followed by the comment text as the key,
+    /// with an empty value. This method adds a comment entry directly to the object.
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// use sickle::CclObject;
+    ///
+    /// let mut obj = CclObject::new();
+    /// obj.add_comment("Generated file - do not edit");
+    /// // When printed, represents: /= Generated file - do not edit
+    /// ```
+    pub fn add_comment(&mut self, text: impl Into<String>) {
+        let comment_key = format!("/= {}", text.into());
+        self.0.insert(comment_key, vec![CclObject::empty()]);
+    }
+
+    /// Add a blank line entry to this CclObject
+    ///
+    /// Blank lines in CCL output are represented as entries with an empty key
+    /// and empty value. This is useful for visual separation in generated files.
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// use sickle::CclObject;
+    ///
+    /// let mut obj = CclObject::new();
+    /// obj.add_comment("Header section");
+    /// obj.add_blank_line();
+    /// // When printed, adds visual separation
+    /// ```
+    pub fn add_blank_line(&mut self) {
+        // Use a unique blank line marker that won't conflict with actual empty keys
+        // The printer will handle this specially
+        self.0.insert("".to_string(), vec![CclObject::empty()]);
+    }
+
+    // ========================================================================
+    // Composition API - CCL Monoid Operations
+    // ========================================================================
+
+    /// Compose two CCL objects together (monoid binary operation)
+    ///
+    /// This implements the fundamental CCL composition operation that makes CCL
+    /// a monoid. When composing two objects:
+    /// - Keys unique to either object are preserved
+    /// - Keys present in both are recursively composed
+    /// - The empty object is the identity element
+    ///
+    /// # Algebraic Properties
+    ///
+    /// - **Associativity**: `a.compose(&b).compose(&c) == a.compose(&b.compose(&c))`
+    /// - **Left Identity**: `CclObject::new().compose(&x) == x`
+    /// - **Right Identity**: `x.compose(&CclObject::new()) == x`
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// use sickle::{load, CclObject};
+    ///
+    /// let a = load("config =\n  host = localhost").unwrap();
+    /// let b = load("config =\n  port = 8080").unwrap();
+    /// let composed = a.compose(&b);
+    /// // Result: config = { host = localhost, port = 8080 }
+    /// ```
+    pub fn compose(&self, other: &CclObject) -> CclObject {
+        let mut result: CclMap = CclMap::new();
+
+        // First, add all keys from self
+        for (key, self_values) in &self.0 {
+            if let Some(other_values) = other.0.get(key) {
+                // Key exists in both - compose the values
+                let composed_values = Self::compose_value_lists(self_values, other_values);
+                result.insert(key.clone(), composed_values);
+            } else {
+                // Key only in self
+                result.insert(key.clone(), self_values.clone());
+            }
+        }
+
+        // Add keys only in other
+        for (key, other_values) in &other.0 {
+            if !self.0.contains_key(key) {
+                result.insert(key.clone(), other_values.clone());
+            }
+        }
+
+        CclObject(result)
+    }
+
+    /// Compose two value lists (`Vec<CclObject>`) into one
+    ///
+    /// When composing values for the same key, we merge them into a single
+    /// composed value by recursively composing each pair.
+    fn compose_value_lists(a: &[CclObject], b: &[CclObject]) -> Vec<CclObject> {
+        // For composition, we merge all values from both lists into a single composed value
+        // This matches OCaml's behavior: fold_left merge empty [v1, v2, v3, ...]
+
+        // Start with empty, compose all from a, then all from b
+        let mut composed = CclObject::new();
+
+        for obj in a {
+            composed = composed.compose(obj);
+        }
+        for obj in b {
+            composed = composed.compose(obj);
+        }
+
+        vec![composed]
+    }
+
+    /// Check if composing three objects is associative
+    ///
+    /// Tests: `(a ∘ b) ∘ c == a ∘ (b ∘ c)`
+    ///
+    /// This is used for testing the algebraic properties of CCL.
+    pub fn compose_associative(a: &CclObject, b: &CclObject, c: &CclObject) -> bool {
+        let left = a.compose(b).compose(c);
+        let right = a.compose(&b.compose(c));
+        left == right
+    }
+
+    /// Check left identity property
+    ///
+    /// Tests: `empty ∘ x == x`
+    pub fn identity_left(x: &CclObject) -> bool {
+        let empty = CclObject::new();
+        empty.compose(x) == *x
+    }
+
+    /// Check right identity property
+    ///
+    /// Tests: `x ∘ empty == x`
+    pub fn identity_right(x: &CclObject) -> bool {
+        let empty = CclObject::new();
+        x.compose(&empty) == *x
+    }
+
     /// Extract a string value from the model (no key lookup)
     ///
-    /// A string value is represented as a map with a single key (the string) and empty value
-    /// Example: `{"Alice": {}}` represents the string "Alice"
+    /// A string value is represented as a map with a single key (the string) and empty value.
+    /// Example: `{"Alice": [{}]}` represents the string "Alice"
     pub(crate) fn as_string(&self) -> Result<&str> {
         if self.0.len() == 1 {
-            let (key, value) = self.0.iter().next().unwrap();
-            if value.0.is_empty() {
+            let (key, vec) = self.0.iter().next().unwrap();
+            if vec.len() == 1 && vec[0].0.is_empty() {
                 return Ok(key.as_str());
             }
         }
         Err(Error::ValueError(
-            "expected single string value (map with one key and empty value)".to_string(),
+            "expected single string value (map with one key and single empty value)".to_string(),
         ))
     }
 
@@ -240,17 +481,15 @@ impl CclObject {
                 self.keys().filter(|k| !k.starts_with('/')).collect();
 
             // Handle bare list syntax: single empty-key child containing the list items
-            // Example: servers = { "": { "web1": {}, "web2": {} } }
-            // Should return ["web1", "web2"]
-            // Also handles: { "": {...}, "/": {...comment...} } - ignores comments
+            // With Vec structure: { "": [CclObject({item1}), CclObject({item2}), ...] }
+            // We need to get ALL values from the Vec at key ""
             if non_comment_keys.len() == 1 && non_comment_keys[0].is_empty() {
-                if let Ok(child) = self.get("") {
-                    // Found empty-key child - return its keys as the list
-                    // Also filter out comment keys from the child
-                    return child
-                        .keys()
-                        .filter(|k| !k.starts_with('/'))
-                        .cloned()
+                if let Ok(children) = self.get_all("") {
+                    // Found empty-key entries - each child contains one list item as its key
+                    // Filter out comment keys from each child
+                    return children
+                        .iter()
+                        .flat_map(|child| child.keys().filter(|k| !k.starts_with('/')).cloned())
                         .collect();
                 }
             }
@@ -260,18 +499,8 @@ impl CclObject {
                 return Vec::new();
             }
 
-            // Multiple non-comment keys: ONLY return values if ALL are empty strings
-            // This means we're in a bare list structure with multiple empty keys
-            let all_keys_empty = non_comment_keys.iter().all(|k| k.is_empty());
-            if all_keys_empty {
-                // For bare lists, the VALUES (nested keys) are the list items
-                // But since keys are empty, we need to look at the nested structure
-                // For now, return empty as bare lists need special handling
-                Vec::new()
-            } else {
-                // Non-empty keys = not a list in reference mode
-                Vec::new()
-            }
+            // Multiple non-comment keys = not a bare list in reference mode
+            Vec::new()
         }
     }
 
@@ -356,21 +585,29 @@ impl CclObject {
         }
     }
 
-    /// Create a Model from a string value
+    /// Create a CclObject representing a string value
     ///
-    /// Creates the representation `{string: {}}`
-    /// This is internal-only for Serde support
-    #[cfg(feature = "serde-deserialize")]
-    pub(crate) fn from_string(s: impl Into<String>) -> Self {
+    /// In CCL, a string is represented as a map with a single key (the string)
+    /// and an empty value: `{"string_value": [{}]}`
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// use sickle::CclObject;
+    ///
+    /// let val = CclObject::from_string("hello");
+    /// // Represents: key = hello
+    /// ```
+    pub fn from_string(s: impl Into<String>) -> Self {
         let mut map = IndexMap::new();
-        map.insert(s.into(), CclObject::new());
+        map.insert(s.into(), vec![CclObject::new()]);
         CclObject(map)
     }
 
     /// Extract the inner IndexMap, consuming the Model
     /// This is internal-only for crate operations
-    #[cfg(feature = "hierarchy")]
-    pub(crate) fn into_inner(self) -> IndexMap<String, CclObject> {
+    #[allow(dead_code)]
+    pub(crate) fn into_inner(self) -> CclMap {
         self.0
     }
 
@@ -379,8 +616,8 @@ impl CclObject {
     #[cfg(feature = "serde-serialize")]
     pub(crate) fn insert_string(&mut self, key: &str, value: String) {
         let mut inner = IndexMap::new();
-        inner.insert(value, CclObject::new());
-        self.0.insert(key.to_string(), CclObject(inner));
+        inner.insert(value, vec![CclObject::new()]);
+        self.0.insert(key.to_string(), vec![CclObject(inner)]);
     }
 
     /// Insert a list of string values at the given key
@@ -389,15 +626,15 @@ impl CclObject {
     pub(crate) fn insert_list(&mut self, key: &str, values: Vec<String>) {
         let mut inner = IndexMap::new();
         for value in values {
-            inner.insert(value, CclObject::new());
+            inner.insert(value, vec![CclObject::new()]);
         }
-        self.0.insert(key.to_string(), CclObject(inner));
+        self.0.insert(key.to_string(), vec![CclObject(inner)]);
     }
 
     /// Insert a nested object at the given key
     #[cfg(feature = "serde-serialize")]
     pub(crate) fn insert_object(&mut self, key: &str, obj: CclObject) {
-        self.0.insert(key.to_string(), obj);
+        self.0.insert(key.to_string(), vec![obj]);
     }
 }
 
@@ -420,12 +657,141 @@ mod tests {
     #[test]
     fn test_map_navigation() {
         let mut inner = IndexMap::new();
-        inner.insert("name".to_string(), CclObject::new());
-        inner.insert("version".to_string(), CclObject::new());
+        inner.insert("name".to_string(), vec![CclObject::new()]);
+        inner.insert("version".to_string(), vec![CclObject::new()]);
 
         let model = CclObject(inner);
         assert!(model.get("name").is_ok());
         assert!(model.get("version").is_ok());
         assert!(model.get("nonexistent").is_err());
+    }
+
+    #[test]
+    fn test_compose_disjoint_keys() {
+        // Composing objects with different keys should combine them
+        let a = CclObject::from_string("hello");
+        let b = CclObject::from_string("world");
+
+        let mut obj_a = CclObject::new();
+        obj_a.inner_mut().insert("a".to_string(), vec![a]);
+
+        let mut obj_b = CclObject::new();
+        obj_b.inner_mut().insert("b".to_string(), vec![b]);
+
+        let composed = obj_a.compose(&obj_b);
+        assert!(composed.get("a").is_ok());
+        assert!(composed.get("b").is_ok());
+    }
+
+    #[test]
+    fn test_compose_overlapping_keys() {
+        // Composing objects with same key should merge values
+        let mut obj_a = CclObject::new();
+        obj_a.inner_mut().insert(
+            "config".to_string(),
+            vec![{
+                let mut inner = CclObject::new();
+                inner.inner_mut().insert(
+                    "host".to_string(),
+                    vec![CclObject::from_string("localhost")],
+                );
+                inner
+            }],
+        );
+
+        let mut obj_b = CclObject::new();
+        obj_b.inner_mut().insert(
+            "config".to_string(),
+            vec![{
+                let mut inner = CclObject::new();
+                inner
+                    .inner_mut()
+                    .insert("port".to_string(), vec![CclObject::from_string("8080")]);
+                inner
+            }],
+        );
+
+        let composed = obj_a.compose(&obj_b);
+        let config = composed.get("config").unwrap();
+        assert!(config.get("host").is_ok());
+        assert!(config.get("port").is_ok());
+    }
+
+    #[test]
+    fn test_compose_left_identity() {
+        let mut obj = CclObject::new();
+        obj.inner_mut()
+            .insert("key".to_string(), vec![CclObject::from_string("value")]);
+
+        assert!(CclObject::identity_left(&obj));
+    }
+
+    #[test]
+    fn test_compose_right_identity() {
+        let mut obj = CclObject::new();
+        obj.inner_mut()
+            .insert("key".to_string(), vec![CclObject::from_string("value")]);
+
+        assert!(CclObject::identity_right(&obj));
+    }
+
+    #[test]
+    fn test_compose_associativity() {
+        let mut a = CclObject::new();
+        a.inner_mut()
+            .insert("a".to_string(), vec![CclObject::from_string("1")]);
+
+        let mut b = CclObject::new();
+        b.inner_mut()
+            .insert("b".to_string(), vec![CclObject::from_string("2")]);
+
+        let mut c = CclObject::new();
+        c.inner_mut()
+            .insert("c".to_string(), vec![CclObject::from_string("3")]);
+
+        assert!(CclObject::compose_associative(&a, &b, &c));
+    }
+
+    #[test]
+    fn test_compose_nested_associativity() {
+        // Test associativity with overlapping nested keys
+        let mut a = CclObject::new();
+        a.inner_mut().insert(
+            "config".to_string(),
+            vec![{
+                let mut inner = CclObject::new();
+                inner.inner_mut().insert(
+                    "host".to_string(),
+                    vec![CclObject::from_string("localhost")],
+                );
+                inner
+            }],
+        );
+
+        let mut b = CclObject::new();
+        b.inner_mut().insert(
+            "config".to_string(),
+            vec![{
+                let mut inner = CclObject::new();
+                inner
+                    .inner_mut()
+                    .insert("port".to_string(), vec![CclObject::from_string("8080")]);
+                inner
+            }],
+        );
+
+        let mut c = CclObject::new();
+        c.inner_mut().insert(
+            "db".to_string(),
+            vec![{
+                let mut inner = CclObject::new();
+                inner
+                    .inner_mut()
+                    .insert("name".to_string(), vec![CclObject::from_string("test")]);
+                inner
+            }],
+        );
+
+        assert!(CclObject::compose_associative(&a, &b, &c));
     }
 }

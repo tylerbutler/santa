@@ -1,0 +1,15 @@
+/= NPM packages
+auto-install =
+generate =
+generate-license =
+npkill =
+npm-check-updates =
+rimraf =
+sort-package-json =
+tiged =
+vsts-npm-auth =
+yarn =
+
+/= Packages with install suffix
+@fluidframework/build-tools =
+  install_suffix = @latest

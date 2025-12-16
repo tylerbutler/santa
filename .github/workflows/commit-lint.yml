@@ -2,7 +2,7 @@ name: Lint PR Title
 
 on:
   pull_request:
-    types: [opened, synchronize, reopened, edited]
+    types: [opened, synchronize, reopened, edited, ready_for_review]
 
 jobs:
   pr-title-lint:
@@ -27,3 +27,18 @@ jobs:
           PR_TITLE: ${{ github.event.pull_request.title }}
         run: |
           echo "$PR_TITLE" | npx commitlint --config .commitlintrc.json
+
+  config-sync:
+    name: Verify commit config sync
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # ratchet:actions/checkout@v5
+
+      - uses: ./.github/actions/install-tools
+        with:
+          tools: just
+
+      - name: Verify configs are in sync with commit-types.json
+        run: just check-configs
