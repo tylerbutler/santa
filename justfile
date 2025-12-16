@@ -234,8 +234,8 @@ ci:
 # Run cargo-bloated on santa and sickle, save to metrics/ (Linux only)
 [linux]
 bloat:
-    cargo bloated -p santa --output crates | tee metrics/bloat.txt
-    cargo bloated --lib -p sickle --all-features --output crates | tee metrics/bloat-sickle.txt
+    cargo bloated -p santa --bin=santa --output crates | tee metrics/bloat.txt
+    cargo bloated -p sickle --lib --all-features --output crates | tee metrics/bloat-sickle.txt
 
 # Record release binary size to metrics/binary-size.txt
 [linux]
