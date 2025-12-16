@@ -187,10 +187,7 @@ fn parse_source_file(path: &Path) -> Result<BTreeMap<String, ParsedPackage>> {
     Ok(packages)
 }
 
-fn generate_index(
-    sources_dir: &Path,
-    catalog: &BTreeMap<String, CatalogEntry>,
-) -> Result<String> {
+fn generate_index(sources_dir: &Path, catalog: &BTreeMap<String, CatalogEntry>) -> Result<String> {
     let mut all_packages: BTreeMap<String, PackageData> = BTreeMap::new();
     let mut index = sickle::CclObject::new();
 
