@@ -153,31 +153,13 @@ fn trim_value(s: &str, options: &ParserOptions) -> String {
     }
 }
 
-/// Process tabs in a value based on options
-fn process_tabs(s: &str, options: &ParserOptions) -> String {
-    if options.preserve_tabs() {
-        s.to_string()
-    } else {
-        s.replace('\t', " ")
-    }
-}
-
-/// Process CRLF line endings based on options
-fn process_crlf(s: &str, options: &ParserOptions) -> String {
-    if options.preserve_crlf() {
-        s.to_string()
-    } else {
-        s.replace("\r\n", "\n")
-    }
-}
-
 /// Parse CCL text into a flat list of entries
 ///
 /// This respects indentation - lines at the base level start new entries,
 /// lines indented further become part of the current entry's value
 fn parse_entries(input: &str, options: &ParserOptions) -> Vec<Entry> {
     // Pre-process input based on options
-    let input = process_crlf(input, options);
+    let input = options.process_crlf(input);
 
     // First normalize multiline keys
     let normalized = normalize_multiline_keys(&input);
@@ -276,8 +258,8 @@ fn parse_entries(input: &str, options: &ParserOptions) -> Vec<Entry> {
 
 /// Finalize a value by trimming trailing whitespace and processing tabs
 fn finalize_value(value: &str, options: &ParserOptions) -> String {
-    let trimmed = value.trim_end().to_string();
-    process_tabs(&trimmed, options)
+    let trimmed = value.trim_end();
+    options.process_tabs(trimmed).into_owned()
 }
 
 /// Remove common leading whitespace from all lines while preserving relative indentation

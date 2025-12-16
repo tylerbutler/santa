@@ -2,6 +2,12 @@
 
 use sickle::load;
 
+#[cfg(feature = "unstable")]
+use sickle::{
+    load_with_options, parse_indented_with_options, parse_with_options, CrlfBehavior,
+    ParserOptions, TabBehavior,
+};
+
 /// Test helper to extract string value from Model using public API
 fn model_as_str(model: &sickle::CclObject) -> Result<&str, String> {
     if model.len() == 1 {
@@ -234,4 +240,86 @@ database =
     assert_eq!(config.name, "MyApp");
     assert_eq!(config.database.host, "db.example.com");
     assert_eq!(config.database.port, 3306);
+}
+
+// Tests for *_with_options APIs (unstable feature)
+
+#[cfg(feature = "unstable")]
+#[test]
+fn test_parse_with_options_tabs_preserved() {
+    let ccl = "name = hello\tworld";
+    let opts = ParserOptions::new(); // Default preserves tabs
+    let entries = parse_with_options(ccl, &opts).expect("should parse");
+    assert_eq!(entries.len(), 1);
+    assert_eq!(entries[0].value, "hello\tworld");
+}
+
+#[cfg(feature = "unstable")]
+#[test]
+fn test_parse_with_options_tabs_to_spaces() {
+    let ccl = "name = hello\tworld";
+    let opts = ParserOptions::new().with_tabs(TabBehavior::ToSpaces);
+    let entries = parse_with_options(ccl, &opts).expect("should parse");
+    assert_eq!(entries.len(), 1);
+    assert_eq!(entries[0].value, "hello world");
+}
+
+#[cfg(feature = "unstable")]
+#[test]
+fn test_parse_with_options_crlf_preserved() {
+    // Test with CRLF in a single-line value (not continuation lines)
+    let ccl = "name = line1\r\nother = value";
+    let opts = ParserOptions::new(); // Default preserves CRLF
+    let entries = parse_with_options(ccl, &opts).expect("should parse");
+    // With default options, CRLF is preserved, so the input splits into separate entries
+    assert_eq!(entries.len(), 2);
+    assert_eq!(entries[0].key, "name");
+    assert_eq!(entries[1].key, "other");
+}
+
+#[cfg(feature = "unstable")]
+#[test]
+fn test_parse_with_options_crlf_normalized() {
+    // With normalization, CRLF becomes LF during parsing
+    let ccl = "name = line1\r\n  line2";
+    let opts = ParserOptions::new().with_crlf(CrlfBehavior::NormalizeToLf);
+    let entries = parse_with_options(ccl, &opts).expect("should parse");
+    assert_eq!(entries.len(), 1);
+    // The multiline value should not contain CRLF after normalization
+    assert!(!entries[0].value.contains("\r\n"));
+}
+
+#[cfg(feature = "unstable")]
+#[test]
+fn test_parse_indented_with_options() {
+    let ccl = "  name = value\n  other = data";
+    let opts = ParserOptions::new();
+    let entries = parse_indented_with_options(ccl, &opts).expect("should parse");
+    assert_eq!(entries.len(), 2);
+}
+
+#[cfg(feature = "unstable")]
+#[test]
+fn test_load_with_options_tabs() {
+    let ccl = "name = hello\tworld";
+
+    // With tabs preserved (default)
+    let opts_preserve = ParserOptions::new();
+    let model = load_with_options(ccl, &opts_preserve).expect("should load");
+    assert_eq!(model.get_string("name").unwrap(), "hello\tworld");
+
+    // With tabs converted to spaces
+    let opts_to_spaces = ParserOptions::new().with_tabs(TabBehavior::ToSpaces);
+    let model = load_with_options(ccl, &opts_to_spaces).expect("should load");
+    assert_eq!(model.get_string("name").unwrap(), "hello world");
+}
+
+#[cfg(feature = "unstable")]
+#[test]
+fn test_load_with_options_permissive() {
+    let ccl = "name=value\r\nother\t=\tdata";
+    let opts = ParserOptions::permissive();
+    let model = load_with_options(ccl, &opts).expect("should load with permissive options");
+    assert_eq!(model.get_string("name").unwrap(), "value");
+    assert_eq!(model.get_string("other").unwrap(), "data");
 }

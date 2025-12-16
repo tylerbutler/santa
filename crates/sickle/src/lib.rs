@@ -366,19 +366,13 @@ fn parse_indented_with_options_internal(
     let dedented = input
         .lines()
         .map(|line| {
-            // Expand tabs based on options (for dedenting calculation)
-            let for_dedent = if options.preserve_tabs() {
-                // For character-level dedenting, treat tabs as single char
-                line.replace('\t', " ")
-            } else {
-                line.replace('\t', " ")
-            };
+            // For dedenting calculation, we always need tabs converted to spaces
+            // to properly calculate character positions
+            let for_dedent = line.replace('\t', " ");
+
             if for_dedent.trim().is_empty() {
-                if options.preserve_tabs() {
-                    line.to_string()
-                } else {
-                    for_dedent
-                }
+                // Empty/whitespace line: preserve original if preserving tabs, else use converted
+                options.process_tabs(line).into_owned()
             } else if for_dedent.len() > min_indent {
                 if options.preserve_tabs() {
                     // Preserve original line but remove min_indent chars
@@ -479,11 +473,7 @@ fn parse_single_entry_with_raw_value(input: &str, options: &ParserOptions) -> Re
                 first_value + "\n" + &remaining_lines.join("\n")
             };
             // Process tabs based on options
-            if options.preserve_tabs() {
-                joined
-            } else {
-                joined.replace('\t', " ")
-            }
+            options.process_tabs(&joined).into_owned()
         } else {
             first_value
         };

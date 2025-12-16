@@ -108,6 +108,30 @@ impl ParserOptions {
     pub(crate) fn preserve_crlf(&self) -> bool {
         matches!(self.crlf, CrlfBehavior::Preserve)
     }
+
+    /// Process tabs in a string based on the configured tab behavior
+    ///
+    /// - `Preserve`: returns the string unchanged
+    /// - `ToSpaces`: replaces each tab with a single space
+    pub(crate) fn process_tabs<'a>(&self, s: &'a str) -> std::borrow::Cow<'a, str> {
+        if self.preserve_tabs() {
+            std::borrow::Cow::Borrowed(s)
+        } else {
+            std::borrow::Cow::Owned(s.replace('\t', " "))
+        }
+    }
+
+    /// Process CRLF line endings based on the configured CRLF behavior
+    ///
+    /// - `Preserve`: returns the string unchanged
+    /// - `NormalizeToLf`: replaces CRLF with LF
+    pub(crate) fn process_crlf<'a>(&self, s: &'a str) -> std::borrow::Cow<'a, str> {
+        if self.preserve_crlf() {
+            std::borrow::Cow::Borrowed(s)
+        } else {
+            std::borrow::Cow::Owned(s.replace("\r\n", "\n"))
+        }
+    }
 }
 
 #[cfg(test)]
@@ -140,5 +164,53 @@ mod tests {
         assert!(!opts.preserve_tabs());
         // Others remain default
         assert!(opts.preserve_crlf());
+    }
+
+    #[test]
+    fn test_process_tabs_preserve() {
+        let opts = ParserOptions::new(); // Default preserves tabs
+        let input = "hello\tworld";
+        let result = opts.process_tabs(input);
+        assert_eq!(result, "hello\tworld");
+    }
+
+    #[test]
+    fn test_process_tabs_to_spaces() {
+        let opts = ParserOptions::new().with_tabs(TabBehavior::ToSpaces);
+        let input = "hello\tworld";
+        let result = opts.process_tabs(input);
+        assert_eq!(result, "hello world");
+    }
+
+    #[test]
+    fn test_process_tabs_multiple() {
+        let opts = ParserOptions::new().with_tabs(TabBehavior::ToSpaces);
+        let input = "\t\tindented\ttext\t";
+        let result = opts.process_tabs(input);
+        assert_eq!(result, "  indented text ");
+    }
+
+    #[test]
+    fn test_process_crlf_preserve() {
+        let opts = ParserOptions::new(); // Default preserves CRLF
+        let input = "line1\r\nline2";
+        let result = opts.process_crlf(input);
+        assert_eq!(result, "line1\r\nline2");
+    }
+
+    #[test]
+    fn test_process_crlf_normalize() {
+        let opts = ParserOptions::new().with_crlf(CrlfBehavior::NormalizeToLf);
+        let input = "line1\r\nline2\r\nline3";
+        let result = opts.process_crlf(input);
+        assert_eq!(result, "line1\nline2\nline3");
+    }
+
+    #[test]
+    fn test_process_crlf_mixed_endings() {
+        let opts = ParserOptions::new().with_crlf(CrlfBehavior::NormalizeToLf);
+        let input = "line1\r\nline2\nline3\r\n";
+        let result = opts.process_crlf(input);
+        assert_eq!(result, "line1\nline2\nline3\n");
     }
 }

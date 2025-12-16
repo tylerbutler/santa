@@ -563,54 +563,72 @@ fn test_all_ccl_suites_comprehensive() {
 
     println!("\n🧪 Running comprehensive CCL test suite");
     println!("📁 Loaded {} test suite files", suites.len());
-    println!("🔧 Implementation capabilities:");
 
+    // Display implementation capabilities
+    println!("\n🔧 Implementation Capabilities");
+
+    // Functions
     let mut functions: Vec<_> = config.supported_functions.iter().collect();
     functions.sort();
-    println!(
-        "   Functions: {}",
-        functions
+    println!("   Functions ({}):", functions.len());
+    // Display functions in rows of 4 for better readability
+    for chunk in functions.chunks(4) {
+        let row = chunk
             .iter()
-            .map(|s| s.as_str())
+            .map(|s| format!("{:<18}", s))
             .collect::<Vec<_>>()
-            .join(", ")
-    );
+            .join("");
+        println!("     {}", row.trim_end());
+    }
 
-    // Display type-safe behavior choices
-    println!("   Behaviors (type-safe configuration):");
-    println!("      Boolean: {}", config.boolean_behavior.as_str());
-    println!("      CRLF: {}", config.crlf_behavior.as_str());
+    println!("   Behaviors:");
+
+    // Fixed behaviors (compile-time)
+    println!("     Fixed (compile-time):");
     println!(
-        "      List Coercion: {} (runtime configurable)",
-        config
-            .supported_list_coercion_behaviors
-            .iter()
-            .map(|b| b.as_str())
-            .collect::<Vec<_>>()
-            .join(", ")
+        "       • Boolean parsing:  {}",
+        config.boolean_behavior.as_str()
     );
     println!(
-        "      Spacing: {} (runtime configurable)",
-        config
-            .supported_spacing_behaviors
-            .iter()
-            .map(|b| b.as_str())
-            .collect::<Vec<_>>()
-            .join(", ")
+        "       • CRLF handling:    {}",
+        config.crlf_behavior.as_str()
     );
     println!(
-        "      Tabs: {} (runtime configurable)",
-        config
-            .supported_tab_behaviors
-            .iter()
-            .map(|b| b.as_str())
-            .collect::<Vec<_>>()
-            .join(", ")
-    );
-    println!(
-        "      Array Order: {}\n",
+        "       • Array ordering:   {}",
         config.array_order_behavior.as_str()
     );
+
+    // Runtime-configurable behaviors
+    println!("     Configurable (runtime via ParserOptions):");
+
+    // Spacing
+    let mut spacing: Vec<_> = config
+        .supported_spacing_behaviors
+        .iter()
+        .map(|b| b.as_str())
+        .collect();
+    spacing.sort();
+    println!("       • Spacing:          {}", spacing.join(", "));
+
+    // Tabs
+    let mut tabs: Vec<_> = config
+        .supported_tab_behaviors
+        .iter()
+        .map(|b| b.as_str())
+        .collect();
+    tabs.sort();
+    println!("       • Tab handling:     {}", tabs.join(", "));
+
+    // List coercion
+    let mut list_coercion: Vec<_> = config
+        .supported_list_coercion_behaviors
+        .iter()
+        .map(|b| b.as_str())
+        .collect();
+    list_coercion.sort();
+    println!("       • List coercion:    {}", list_coercion.join(", "));
+
+    println!();
 
     let mut total_passed = 0;
     let mut total_failed = 0;

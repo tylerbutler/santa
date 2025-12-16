@@ -279,33 +279,6 @@ pub struct ImplementationConfig {
     pub supported_list_coercion_behaviors: HashSet<ListCoercionBehavior>,
 }
 
-// Legacy aliases for backwards compatibility with display code
-impl ImplementationConfig {
-    /// Get the default spacing behavior for display purposes
-    pub fn spacing_behavior(&self) -> SpacingBehavior {
-        if self
-            .supported_spacing_behaviors
-            .contains(&SpacingBehavior::Strict)
-        {
-            SpacingBehavior::Strict
-        } else {
-            SpacingBehavior::Loose
-        }
-    }
-
-    /// Get the default tab behavior for display purposes
-    pub fn tab_behavior(&self) -> TabBehavior {
-        if self
-            .supported_tab_behaviors
-            .contains(&TabBehavior::Preserve)
-        {
-            TabBehavior::Preserve
-        } else {
-            TabBehavior::ToSpaces
-        }
-    }
-}
-
 impl ImplementationConfig {
     /// Validate the configuration (compile-time enforcement via type system)
     ///
