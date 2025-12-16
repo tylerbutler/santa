@@ -14,7 +14,7 @@ alias ta := test-all
 alias tf := test-fast
 alias l := lint
 alias f := fix
-alias pr := ci
+alias ci := pr
 
 export RUST_BACKTRACE := "1"
 
@@ -220,13 +220,24 @@ clean:
 # CI/CD Commands (matches GitHub Actions)
 # =====================================
 
-# Run the same checks as CI
-ci:
+# Run PR checks (mimics pr.yml workflow)
+pr:
     just format --check
+    just docs-check
     just lint
     just test-coverage
-    just build-release
     just audit
+    just build
+    just verify-package
+
+# Run main branch checks (mimics test.yml workflow)
+main:
+    just format --check
+    just docs-check
+    just lint
+    just test-coverage
+    just audit
+    just build-release
 
 # Binary Size Analysis Commands
 # =============================
