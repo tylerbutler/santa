@@ -1,104 +1,76 @@
   File  .text    Size  Crate
- 48.3%  98.5% 5.16MiB  *
-  7.1%  14.4%  772KiB  tera
-  4.5%   9.2%  495KiB  rustls
-  4.4%   9.0%  481KiB  regex_automata
-  3.7%   7.5%  405KiB  clap_builder
-  2.4%   4.8%  259KiB  ?
-  2.3%   4.7%  255KiB  regex_syntax
-  2.3%   4.7%  255KiB  santa
-  2.1%   4.2%  225KiB  moka
-  1.8%   3.7%  197KiB  aho_corasick
-  1.7%   3.5%  190KiB  tokio
-  1.4%   2.9%  158KiB  santa
-  1.2%   2.5%  133KiB  ureq
-  1.1%   2.3%  122KiB  tracing_subscriber
-  1.0%   2.1%  110KiB  alloc
-  0.9%   1.9%  103KiB  ring
-  0.9%   1.8% 98.2KiB  clap_complete
-  0.9%   1.8% 95.8KiB  std
-  0.8%   1.7% 92.1KiB  chrono
-  0.7%   1.4% 73.7KiB  serde_json
-  0.6%   1.2% 66.8KiB  santa_data
-  0.6%   1.2% 65.2KiB  webpki
-  0.4%   0.8% 45.3KiB  url
-  0.4%   0.8% 44.6KiB  sickle
-  0.4%   0.7% 39.7KiB  core
-  0.3%   0.7% 36.1KiB  unsafe_libyaml
-  0.3%   0.6% 32.8KiB  idna
-  0.3%   0.6% 30.0KiB  std
-  0.3%   0.5% 29.1KiB  memchr
-  0.2%   0.4% 23.4KiB  clap_markdown
-  0.2%   0.4% 22.3KiB  alloc
-  0.2%   0.4% 22.0KiB  console
-  0.2%   0.3% 17.8KiB  serde_yaml
-  0.2%   0.3% 17.6KiB  dialoguer
-  0.1%   0.3% 16.0KiB  anyhow
-  0.1%   0.3% 15.7KiB  signal_hook_registry
-  0.1%   0.3% 14.9KiB  icu_normalizer
-  0.1%   0.3% 14.8KiB  tracing_core
-  0.1%   0.3% 13.6KiB  miniz_oxide
-  0.1%   0.2% 12.5KiB  tabular
-  0.1%   0.2% 11.3KiB  flate2
-  0.1%   0.2% 11.2KiB  core
-  0.1%   0.2% 11.0KiB  parking_lot
-  0.1%   0.2% 11.0KiB  crossbeam_channel
-  0.1%   0.2% 10.4KiB  rustls_pki_types
-  0.1%   0.2% 10.1KiB  regex
-  0.1%   0.2% 9.18KiB  chrono_tz
-  0.1%   0.2% 9.02KiB  colored
-  0.1%   0.2% 8.31KiB  rand_chacha
-  0.1%   0.1% 7.56KiB  crossbeam_epoch
-  0.1%   0.1% 7.51KiB  unicode_segmentation
-  0.1%   0.1% 5.61KiB  hashbrown
-  0.0%   0.1% 5.21KiB  serde_core
-  0.0%   0.1% 4.73KiB  which
-  0.0%   0.1% 4.34KiB  pest
-  0.0%   0.1% 3.92KiB  iana_time_zone
-  0.0%   0.1% 3.74KiB  clap_lex
-  0.0%   0.1% 3.50KiB  nu_ansi_term
-  0.0%   0.1% 3.09KiB  parking_lot_core
-  0.0%   0.1% 2.69KiB  sharded_slab
-  0.0%   0.0% 2.67KiB  thread_local
-  0.0%   0.0% 2.66KiB  ryu
-  0.0%   0.0% 2.61KiB  anstyle
-  0.0%   0.0% 2.48KiB  anstream
-  0.0%   0.0% 2.43KiB  smallvec
-  0.0%   0.0% 2.07KiB  once_cell
-  0.0%   0.0% 2.03KiB  base64
-  0.0%   0.0% 2.01KiB  directories
-  0.0%   0.0% 1957  B  tracing_log
-  0.0%   0.0% 1945  B  rand
-  0.0%   0.0% 1941  B  percent_encoding
-  0.0%   0.0% 1825  B  getrandom
-  0.0%   0.0% 1825  B  strsim
-  0.0%   0.0% 1742  B  crc32fast
-  0.0%   0.0% 1609  B  icu_collections
-  0.0%   0.0% 1503  B  mio
-  0.0%   0.0% 1358  B  shell_escape
-  0.0%   0.0% 1272  B  slug
-  0.0%   0.0% 1257  B  humansize
-  0.0%   0.0% 1089  B  matchers
-  0.0%   0.0%  882  B  simd_adler32
+ 67.9%  98.4% 3.94MiB  *
+ 14.3%  20.7%  851KiB  minijinja
+  6.9%  10.0%  412KiB  clap_builder
+  5.2%   7.5%  309KiB  rustls
+  4.4%   6.4%  263KiB  santa
+  4.2%   6.1%  250KiB  ?
+  3.8%   5.5%  227KiB  moka
+  3.3%   4.9%  199KiB  regex_syntax
+  3.2%   4.6%  189KiB  tokio
+  3.0%   4.4%  179KiB  regex_automata
+  2.9%   4.3%  175KiB  santa
+  2.1%   3.0%  123KiB  tracing_subscriber
+  1.6%   2.4% 97.3KiB  clap_complete
+  1.5%   2.2% 91.0KiB  std
+  1.5%   2.2% 89.2KiB  alloc
+  1.3%   1.9% 79.7KiB  santa_data
+  1.1%   1.6% 66.2KiB  ring
+  1.0%   1.5% 62.4KiB  sickle
+  0.8%   1.2% 48.6KiB  minreq
+  0.4%   0.6% 25.2KiB  chrono
+  0.4%   0.6% 24.2KiB  webpki
+  0.4%   0.6% 22.9KiB  clap_markdown
+  0.4%   0.5% 22.2KiB  std
+  0.4%   0.5% 21.4KiB  core
+  0.3%   0.4% 17.4KiB  signal_hook_registry
+  0.3%   0.4% 17.1KiB  alloc
+  0.3%   0.4% 16.7KiB  anyhow
+  0.3%   0.4% 16.1KiB  tracing_core
+  0.2%   0.3% 13.9KiB  console
+  0.2%   0.3% 12.1KiB  tabular
+  0.2%   0.3% 11.3KiB  parking_lot
+  0.2%   0.3% 10.7KiB  core
+  0.2%   0.3% 10.4KiB  crossbeam_channel
+  0.2%   0.2% 9.94KiB  colored
+  0.2%   0.2% 9.26KiB  dialoguer
+  0.1%   0.2% 7.19KiB  crossbeam_epoch
+  0.1%   0.1% 5.93KiB  which
+  0.1%   0.1% 5.09KiB  serde_core
+  0.1%   0.1% 5.09KiB  hashbrown
+  0.1%   0.1% 3.57KiB  clap_lex
+  0.1%   0.1% 3.51KiB  nu_ansi_term
+  0.1%   0.1% 3.42KiB  directories
+  0.0%   0.1% 2.86KiB  parking_lot_core
+  0.0%   0.1% 2.73KiB  sharded_slab
+  0.0%   0.1% 2.63KiB  anstream
+  0.0%   0.1% 2.56KiB  thread_local
+  0.0%   0.1% 2.29KiB  anstyle
+  0.0%   0.0% 1922  B  tracing_log
+  0.0%   0.0% 1868  B  sct
+  0.0%   0.0% 1814  B  strsim
+  0.0%   0.0% 1765  B  mio
+  0.0%   0.0% 1412  B  once_cell
+  0.0%   0.0% 1348  B  shell_escape
+  0.0%   0.0% 1051  B  matchers
   0.0%   0.0%  840  B  unicode_width
+  0.0%   0.0%  825  B  serde
+  0.0%   0.0%  748  B  getrandom
   0.0%   0.0%  743  B  unicode_width
   0.0%   0.0%  738  B  hashbrown
-  0.0%   0.0%  676  B  hashbrown
-  0.0%   0.0%  659  B  dirs_sys
-  0.0%   0.0%  538  B  icu_properties
-  0.0%   0.0%  516  B  serde
-  0.0%   0.0%  423  B  tracing
-  0.0%   0.0%  328  B  log
-  0.0%   0.0%  304  B  utf8_iter
+  0.0%   0.0%  672  B  hashbrown
+  0.0%   0.0%  619  B  dirs_sys
+  0.0%   0.0%  452  B  compiler_builtins
+  0.0%   0.0%  421  B  tracing
+  0.0%   0.0%  376  B  smallvec
   0.0%   0.0%  272  B  futures_core
-  0.0%   0.0%  232  B  terminal_size
+  0.0%   0.0%  244  B  terminal_size
   0.0%   0.0%  191  B  libc
-  0.0%   0.0%  184  B  untrusted
-  0.0%   0.0%  182  B  rand_core
+  0.0%   0.0%  176  B  log
+  0.0%   0.0%  157  B  env_home
   0.0%   0.0%  138  B  futures_util
   0.0%   0.0%  130  B  rustix
   0.0%   0.0%   82  B  tagptr
-  0.0%   0.0%   15  B  home
-  0.0%   0.0%   11  B  subtle
+  0.0%   0.0%   63  B  untrusted
   0.0%   0.0%    8  B  colorchoice
 
