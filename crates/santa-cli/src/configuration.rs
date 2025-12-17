@@ -1,11 +1,6 @@
-pub mod env;
-pub mod watcher;
-
 use crate::data::PlatformExt;
-use crate::errors::{Result, SantaError};
 use crate::sources::PackageSource;
 use std::collections::HashMap;
-use std::path::Path;
 
 use tracing::{trace, warn};
 
@@ -21,9 +16,7 @@ pub enum UnknownPackageReason {
 }
 
 // Re-export SantaConfig and related types from santa-data
-pub use santa_data::config::{
-    ConfigPackageSource, PackageNameOverride, SantaConfig, SantaConfigBuilder,
-};
+pub use santa_data::config::{ConfigPackageSource, SantaConfig};
 
 /// Extension trait for SantaConfig with CLI-specific functionality
 pub trait SantaConfigExt {
@@ -41,20 +34,6 @@ pub trait SantaConfigExt {
 
     /// Comprehensive validation including business logic
     fn validate_with_data(&self, data: &SantaData) -> anyhow::Result<()>;
-
-    /// Create a configuration watcher for hot-reloading
-    fn create_watcher(
-        &self,
-        config_path: std::path::PathBuf,
-    ) -> anyhow::Result<crate::configuration::watcher::ConfigWatcher>;
-
-    /// Load configuration with environment variable support
-    fn load_with_env_support(config_path: Option<&str>, builtin_only: bool) -> anyhow::Result<Self>
-    where
-        Self: Sized;
-
-    /// Print environment variable help
-    fn print_env_help_info();
 
     /// Get default configuration for the current platform
     fn default_for_platform() -> Self
@@ -191,25 +170,6 @@ impl SantaConfigExt for SantaConfig {
         Ok(())
     }
 
-    fn create_watcher(
-        &self,
-        config_path: std::path::PathBuf,
-    ) -> anyhow::Result<crate::configuration::watcher::ConfigWatcher> {
-        crate::configuration::watcher::ConfigWatcher::new(config_path, self.clone())
-    }
-
-    fn load_with_env_support(
-        config_path: Option<&str>,
-        builtin_only: bool,
-    ) -> anyhow::Result<Self> {
-        crate::configuration::env::load_config_with_env(config_path, builtin_only)
-    }
-
-    fn print_env_help_info() {
-        let env_config = crate::configuration::env::EnvironmentConfig::default();
-        env_config.print_env_help();
-    }
-
     fn default_for_platform() -> Self {
         let mut config = SantaConfig::load_from_str(constants::DEFAULT_CONFIG)
             .expect("Failed to load default config - this should never fail");
@@ -234,36 +194,12 @@ impl SantaConfigExt for SantaConfig {
     }
 }
 
-// Note: Cannot implement Default, Exportable, or Configurable for SantaConfig here
-// as it's defined in santa-data crate (foreign type).
-// These traits should be moved to santa-data or we use wrapper functions.
-
-/// Wrapper struct for CLI-specific configuration functionality
-pub struct SantaConfigLoader;
-
-impl SantaConfigLoader {
-    /// Load configuration from a CCL file
-    pub fn load_config(path: &Path) -> Result<SantaConfig> {
-        let contents = std::fs::read_to_string(path).map_err(SantaError::Io)?;
-
-        let config: SantaConfig =
-            sickle::from_str(&contents).map_err(|e| SantaError::Config(anyhow::Error::from(e)))?;
-
-        config.validate_basic().map_err(SantaError::Config)?;
-        Ok(config)
-    }
-
-    /// Get default configuration for current platform
-    pub fn default_config() -> SantaConfig {
-        SantaConfig::default_for_platform()
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::data::KnownSources;
     use std::io::Write;
+    use std::path::Path;
     use tempfile::NamedTempFile;
 
     #[test]

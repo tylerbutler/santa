@@ -15,41 +15,17 @@ pub enum SantaError {
     #[error("Configuration error: {0}")]
     Config(#[from] anyhow::Error),
 
-    /// Package source-related errors (installation, listing, etc.)
-    #[error("Package source error: {0}")]
-    PackageSource(String),
-
     /// Command execution failures
     #[error("Command execution failed: {0}")]
     CommandFailed(String),
-
-    /// Security-related violations (malicious package names, etc.)
-    #[error("Security violation: {0}")]
-    Security(String),
-
-    /// Cache operation failures
-    #[error("Cache operation failed: {0}")]
-    Cache(String),
 
     /// File I/O operation failures
     #[error("I/O operation failed: {0}")]
     Io(#[from] std::io::Error),
 
-    /// Network-related errors
-    #[error("Network error: {0}")]
-    Network(String),
-
-    /// Package parsing or validation errors
-    #[error("Invalid package: {0}")]
-    InvalidPackage(String),
-
     /// Concurrent access or locking errors
     #[error("Concurrency error: {0}")]
     Concurrency(String),
-
-    /// Plugin or extension loading errors
-    #[error("Plugin error: {0}")]
-    Plugin(String),
 
     /// Template rendering or parsing errors
     #[error("Template error: {0}")]
@@ -60,15 +36,6 @@ pub enum SantaError {
 pub type Result<T> = std::result::Result<T, SantaError>;
 
 impl SantaError {
-    /// Creates a new PackageSource error with context.
-    pub fn package_source<S1, S2>(source: S1, msg: S2) -> Self
-    where
-        S1: Into<String>,
-        S2: Into<String>,
-    {
-        SantaError::PackageSource(format!("{}: {}", source.into(), msg.into()))
-    }
-
     /// Creates a new CommandFailed error with context.
     pub fn command_failed<S1, S2>(cmd: S1, details: S2) -> Self
     where
@@ -76,54 +43,6 @@ impl SantaError {
         S2: Into<String>,
     {
         SantaError::CommandFailed(format!("{}: {}", cmd.into(), details.into()))
-    }
-
-    /// Creates a new InvalidPackage error with context.
-    pub fn invalid_package<S1, S2>(package: S1, reason: S2) -> Self
-    where
-        S1: Into<String>,
-        S2: Into<String>,
-    {
-        SantaError::InvalidPackage(format!("{}: {}", package.into(), reason.into()))
-    }
-
-    /// Creates a new Plugin error with context.
-    pub fn plugin<S1, S2>(plugin: S1, msg: S2) -> Self
-    where
-        S1: Into<String>,
-        S2: Into<String>,
-    {
-        SantaError::Plugin(format!("{}: {}", plugin.into(), msg.into()))
-    }
-
-    /// Returns true if this error represents a security violation.
-    pub fn is_security_error(&self) -> bool {
-        matches!(self, SantaError::Security(_))
-    }
-
-    /// Returns true if this error represents a transient failure that might be retried.
-    pub fn is_retryable(&self) -> bool {
-        matches!(
-            self,
-            SantaError::Network(_) | SantaError::Io(_) | SantaError::CommandFailed(_)
-        )
-    }
-
-    /// Returns the error category as a string for logging/metrics.
-    pub fn category(&self) -> &'static str {
-        match self {
-            SantaError::Config(_) => "config",
-            SantaError::PackageSource(_) => "package_source",
-            SantaError::CommandFailed(_) => "command_failed",
-            SantaError::Security(_) => "security",
-            SantaError::Cache(_) => "cache",
-            SantaError::Io(_) => "io",
-            SantaError::Network(_) => "network",
-            SantaError::InvalidPackage(_) => "invalid_package",
-            SantaError::Concurrency(_) => "concurrency",
-            SantaError::Plugin(_) => "plugin",
-            SantaError::Template(_) => "template",
-        }
     }
 }
 
@@ -159,25 +78,15 @@ mod tests {
 
     #[test]
     fn test_error_creation() {
-        let err = SantaError::package_source("apt", "Installation failed");
-        assert_eq!(err.category(), "package_source");
-        assert!(!err.is_security_error());
-    }
-
-    #[test]
-    fn test_security_error_detection() {
-        let err = SantaError::Security("Malicious package name detected".to_string());
-        assert!(err.is_security_error());
-        assert_eq!(err.category(), "security");
-    }
-
-    #[test]
-    fn test_retryable_errors() {
-        let network_err = SantaError::Network("Connection timeout".to_string());
-        assert!(network_err.is_retryable());
-
-        let security_err = SantaError::Security("Invalid input".to_string());
-        assert!(!security_err.is_retryable());
+        let err = SantaError::command_failed("apt install curl", "Installation failed");
+        // Verify error was created correctly
+        match err {
+            SantaError::CommandFailed(msg) => {
+                assert!(msg.contains("apt install curl"));
+                assert!(msg.contains("Installation failed"));
+            }
+            _ => panic!("Expected CommandFailed variant"),
+        }
     }
 
     #[test]

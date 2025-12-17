@@ -19,7 +19,7 @@
 //!
 //! # Examples
 //!
-//! ```rust,no_run
+//! ```ignore
 //! use santa::{SantaConfig, SantaData, sources::PackageCache};
 //! use santa::configuration::SantaConfigExt;
 //! use santa::commands::status_command;
@@ -75,7 +75,7 @@ mod tests;
 ///
 /// # Examples
 ///
-/// ```rust,no_run
+/// ```ignore
 /// use santa::{SantaConfig, SantaData, sources::PackageCache};
 /// use santa::configuration::SantaConfigExt;
 /// use santa::commands::status_command;
@@ -315,7 +315,7 @@ pub async fn status_command(
 ///
 /// # Examples
 ///
-/// ```rust,no_run
+/// ```ignore
 /// use santa::{SantaConfig, SantaData};
 /// use santa::configuration::SantaConfigExt;
 /// use santa::commands::config_command;
@@ -370,7 +370,7 @@ pub fn config_command(
 ///
 /// # Examples
 ///
-/// ```rust,no_run
+/// ```ignore
 /// use santa::{SantaConfig, SantaData, sources::PackageCache};
 /// use santa::configuration::SantaConfigExt;
 /// use santa::script_generator::{ExecutionMode, ScriptFormat};

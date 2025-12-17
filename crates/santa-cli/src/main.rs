@@ -1,9 +1,22 @@
+// Declare modules directly in binary - no library crate
+mod commands;
+mod completions;
+mod configuration;
+mod data;
+mod data_layers;
+mod errors;
+mod script_generator;
+mod sources;
+
+#[cfg(test)]
+mod tests;
+
 use anyhow::{bail, Context};
 use clap::{ArgAction, Command, CommandFactory, Parser, Subcommand, ValueEnum};
 use clap_complete::{generate, Shell};
-use santa::completions::EnhancedCompletions;
-use santa::configuration::{SantaConfig, SantaConfigExt};
-use santa::data::SantaData;
+use completions::EnhancedCompletions;
+use configuration::{SantaConfig, SantaConfigExt};
+use data::SantaData;
 use tracing::{debug, info, trace, Level};
 use tracing_subscriber::{EnvFilter, FmtSubscriber};
 extern crate directories;
@@ -11,13 +24,9 @@ use directories::BaseDirs;
 
 use std::path::Path;
 
-use santa::commands;
-use santa::data_layers::DataLayerManager;
-use santa::script_generator::{ExecutionMode, ScriptFormat};
-use santa::sources::PackageCache;
-
-#[cfg(test)]
-mod tests;
+use data_layers::DataLayerManager;
+use script_generator::{ExecutionMode, ScriptFormat};
+use sources::PackageCache;
 
 static DEFAULT_CONFIG_FILE_PATH: &str = ".config/santa/config.ccl";
 
@@ -226,7 +235,7 @@ async fn handle_sources_command(
     config: &SantaConfig,
 ) -> Result<(), anyhow::Error> {
     use colored::Colorize;
-    use santa::data_layers::DataOrigin;
+    use data_layers::DataOrigin;
 
     let manager = DataLayerManager::with_default_config_dir()?;
 
@@ -280,7 +289,7 @@ async fn handle_sources_command(
                     .map(|s| {
                         (
                             s.name.to_string(),
-                            santa::data::schemas::SourceDefinition {
+                            data::schemas::SourceDefinition {
                                 emoji: s.emoji.clone(),
                                 install: s.install_command.clone(),
                                 check: s.check_command.clone(),
@@ -364,7 +373,7 @@ async fn handle_sources_command(
                     .map(|s| {
                         (
                             s.name.to_string(),
-                            santa::data::schemas::SourceDefinition {
+                            data::schemas::SourceDefinition {
                                 emoji: s.emoji.clone(),
                                 install: s.install_command.clone(),
                                 check: s.check_command.clone(),

@@ -4,9 +4,8 @@ use std::io::Write;
 use std::process::Command;
 use tempfile::NamedTempFile;
 
-// Include the new integration test modules
+// Include end-to-end tests (black box CLI testing)
 mod e2e;
-mod integration;
 
 #[test]
 fn test_cli_help() {

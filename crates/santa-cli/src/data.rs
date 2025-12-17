@@ -1,9 +1,4 @@
-use crate::SantaConfig;
-use std::{collections::HashMap, fs, path::Path};
-
-use anyhow::Context;
 use serde::{Deserialize, Serialize};
-use tracing::{error, info};
 
 use crate::sources::PackageSource;
 
@@ -16,15 +11,14 @@ mod integration_tests;
 pub mod constants;
 
 // Re-export core data models from santa-data
-pub use santa_data::{
-    Arch, CommandName, Distro, KnownSources, PackageData, PackageDataList, PackageName, Platform,
-    SourceName, OS,
-};
+pub use santa_data::{Arch, KnownSources, PackageData, PackageDataList, Platform, OS};
+// Additional re-exports used only in tests
+#[cfg(test)]
+pub use santa_data::Distro;
 
 /// Extension trait for Platform with santa-cli specific functionality
 pub trait PlatformExt {
     fn current() -> Platform;
-    fn detect_available_package_managers() -> Vec<KnownSources>;
     fn get_default_sources() -> Vec<KnownSources>;
     fn detect_linux_package_managers() -> Vec<KnownSources>;
 }
@@ -73,40 +67,6 @@ impl PlatformExt for Platform {
         platform
     }
 
-    /// Detect available package managers on the current system
-    fn detect_available_package_managers() -> Vec<KnownSources> {
-        let mut sources = Vec::new();
-
-        if cfg!(target_os = "macos") {
-            if which::which("brew").is_ok() {
-                sources.push(KnownSources::Brew);
-            }
-        } else if cfg!(target_os = "linux") {
-            // Check common Linux package managers
-            if which::which("apt").is_ok() {
-                sources.push(KnownSources::Apt);
-            }
-            if which::which("pacman").is_ok() {
-                sources.push(KnownSources::Pacman);
-            }
-            if which::which("yay").is_ok() {
-                sources.push(KnownSources::Aur);
-            }
-        } else if cfg!(target_os = "windows") && which::which("scoop").is_ok() {
-            sources.push(KnownSources::Scoop);
-        }
-
-        // Universal package managers (available on multiple platforms)
-        if which::which("cargo").is_ok() {
-            sources.push(KnownSources::Cargo);
-        }
-        if which::which("nix").is_ok() || which::which("nix-env").is_ok() {
-            sources.push(KnownSources::Nix);
-        }
-
-        sources
-    }
-
     /// Get default package sources for the current platform
     fn get_default_sources() -> Vec<KnownSources> {
         if cfg!(target_os = "macos") {
@@ -148,49 +108,7 @@ impl PlatformExt for Platform {
     }
 }
 
-pub trait LoadFromFile {
-    fn load_from(file: &Path) -> Self
-    where
-        Self: Sized,
-    {
-        info!("Loading data from: {}", file.display());
-        if !file.exists() {
-            error!("Can't find data file: {}", file.display());
-        }
-        let yaml_str = fs::read_to_string(file)
-            .with_context(|| format!("Failed to read file: {}", file.display()))
-            .expect("Failed to read data file");
-        LoadFromFile::load_from_str(&yaml_str)
-    }
-
-    fn load_from_str(yaml_str: &str) -> Self
-    where
-        Self: Sized;
-}
-
-/// Type alias for mapping source names to package sources
-pub type SourceMap = HashMap<SourceName, PackageSource>;
-
-impl LoadFromFile for PackageDataList {
-    fn load_from_str(config_str: &str) -> Self {
-        match sickle::from_str(config_str) {
-            Ok(data) => data,
-            Err(e) => {
-                error!("Error parsing CCL data: {}", e);
-                error!("Using default empty data");
-                PackageDataList::new()
-            }
-        }
-    }
-}
-
 pub type SourceList = Vec<PackageSource>;
-
-impl LoadFromFile for SourceList {
-    fn load_from_str(config_str: &str) -> Self {
-        sickle::from_str(config_str).expect("Failed to load CCL source list")
-    }
-}
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct SantaData {
@@ -214,40 +132,6 @@ impl SantaData {
         let sources = convert_to_legacy_sources(schema_sources);
 
         SantaData { packages, sources }
-    }
-
-    // pub fn update_from_config(&mut self, config: &SantaConfig) {
-
-    /// Returns an iterator over sources (both built-in and custom) for memory efficiency.
-    /// Note: This now returns owned sources to avoid lifetime issues with conversion.
-    /// For truly zero-copy iteration, use sources_builtin_iter() + convert custom_sources separately.
-    pub fn sources_iter(&self, config: &SantaConfig) -> impl Iterator<Item = PackageSource> + '_ {
-        let builtin = self.sources.iter().cloned();
-        let custom = config
-            .custom_sources
-            .as_ref()
-            .map(|sources| {
-                sources
-                    .iter()
-                    .cloned()
-                    .map(PackageSource::from)
-                    .collect::<Vec<_>>()
-            })
-            .unwrap_or_default();
-        builtin.chain(custom)
-    }
-
-    /// Returns owned sources list. Use only when you need to own/modify the collection.
-    /// For read-only iteration, prefer sources_iter() for better performance.
-    pub fn sources(&self, config: &SantaConfig) -> SourceList {
-        let capacity =
-            self.sources.len() + config.custom_sources.as_ref().map(|s| s.len()).unwrap_or(0);
-        let mut ret = SourceList::with_capacity(capacity);
-        ret.extend(self.sources.iter().cloned());
-        if let Some(ref custom_sources) = config.custom_sources {
-            ret.extend(custom_sources.iter().cloned().map(PackageSource::from));
-        }
-        ret
     }
 
     pub fn name_for(&self, package: &str, source: &PackageSource) -> String {
@@ -278,6 +162,7 @@ impl Default for SantaData {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::collections::HashMap;
 
     #[test]
     fn test_known_sources_serialization() {
@@ -404,16 +289,6 @@ mod tests {
     }
 
     #[test]
-    fn test_load_from_file_error_handling() {
-        // Test error handling in LoadFromFile trait
-        let invalid_yaml = "invalid: yaml: content: [";
-
-        // This should return empty data on error to prevent recursion
-        let result = PackageDataList::load_from_str(invalid_yaml);
-        assert!(result.is_empty()); // Should return empty data on error
-    }
-
-    #[test]
     fn test_security_package_names() {
         // Test that various dangerous package names are handled
         let dangerous_names = vec![
@@ -457,41 +332,6 @@ mod tests {
             // Should return the name as-is - sanitization should happen at execution time
             assert!(!resolved.is_empty());
         }
-    }
-
-    #[test]
-    fn test_platform_detect_available_package_managers() {
-        let detected = Platform::detect_available_package_managers();
-
-        // Should always return a vector (empty or with sources)
-        assert!(detected.len() <= 10); // Reasonable upper bound
-
-        // All returned sources should be valid enum variants
-        for source in &detected {
-            match source {
-                KnownSources::Apt
-                | KnownSources::Brew
-                | KnownSources::Cargo
-                | KnownSources::Pacman
-                | KnownSources::Aur
-                | KnownSources::Scoop
-                | KnownSources::Nix
-                | KnownSources::Npm
-                | KnownSources::Flathub => {
-                    // Valid known sources
-                }
-                KnownSources::Unknown(_) => {
-                    panic!("detect_available_package_managers should only return known sources")
-                }
-                _ => {
-                    // Handle any future variants added to the non-exhaustive enum
-                }
-            }
-        }
-
-        // Test that the function is deterministic (same results on repeated calls)
-        let detected_again = Platform::detect_available_package_managers();
-        assert_eq!(detected, detected_again);
     }
 
     #[test]
@@ -553,121 +393,6 @@ mod tests {
     }
 
     #[test]
-    fn test_santa_data_sources_filtering() {
-        use crate::SantaConfig;
-
-        // Create test data with some sources
-        let test_sources = vec![
-            crate::sources::PackageSource::new_for_test(
-                KnownSources::Brew,
-                "🍺",
-                "brew",
-                "brew install",
-                "brew list",
-                None,
-                None,
-            ),
-            crate::sources::PackageSource::new_for_test(
-                KnownSources::Apt,
-                "📦",
-                "apt",
-                "apt install",
-                "apt list",
-                None,
-                None,
-            ),
-        ];
-
-        let data = SantaData {
-            packages: PackageDataList::new(),
-            sources: test_sources.clone(),
-        };
-
-        // Test with empty config (should return all sources)
-        let empty_config = SantaConfig {
-            sources: vec![],
-            packages: vec![],
-            custom_sources: None,
-            _groups: None,
-            log_level: 0,
-        };
-
-        let filtered_empty = data.sources(&empty_config);
-        assert_eq!(filtered_empty.len(), 2);
-
-        // Test with config containing custom sources (should extend with custom sources)
-        let config_with_custom_sources = SantaConfig {
-            sources: vec![KnownSources::Cargo],
-            packages: vec!["test-package".to_string()],
-            custom_sources: Some(vec![crate::configuration::ConfigPackageSource {
-                name: KnownSources::Cargo,
-                emoji: "📦".to_string(),
-                shell_command: "cargo".to_string(),
-                install_command: "cargo install".to_string(),
-                check_command: "cargo search".to_string(),
-                prepend_to_package_name: None,
-                overrides: None,
-            }]),
-            _groups: None,
-            log_level: 0,
-        };
-
-        let filtered_with_custom = data.sources(&config_with_custom_sources);
-        // Should be 2 original + 1 custom = 3
-        assert_eq!(filtered_with_custom.len(), 3);
-
-        // Test with no custom sources (should return original sources only)
-        let config_no_custom = SantaConfig {
-            sources: vec![],
-            packages: vec![],
-            custom_sources: None,
-            _groups: None,
-            log_level: 0,
-        };
-
-        let filtered_no_custom = data.sources(&config_no_custom);
-        assert_eq!(filtered_no_custom.len(), 2);
-    }
-
-    #[test]
-    fn test_load_from_file_actual_files() {
-        use std::io::Write;
-        use tempfile::NamedTempFile;
-
-        // Test successful file loading
-        let valid_ccl = r#"
-git =
-  brew =
-    name = git
-    before = echo before
-    after = echo after
-"#;
-
-        let mut temp_file = NamedTempFile::new().unwrap();
-        temp_file.write_all(valid_ccl.as_bytes()).unwrap();
-        temp_file.flush().unwrap();
-
-        let loaded_data = PackageDataList::load_from(temp_file.path());
-        assert!(loaded_data.contains_key("git"));
-
-        let git_data = &loaded_data["git"];
-        assert!(git_data.contains_key(&KnownSources::Brew));
-
-        if let Some(Some(pkg_data)) = git_data.get(&KnownSources::Brew) {
-            assert_eq!(pkg_data.name, Some("git".to_string()));
-            assert_eq!(pkg_data.before, Some("echo before".to_string()));
-            assert_eq!(pkg_data.after, Some("echo after".to_string()));
-        } else {
-            panic!("Expected PackageData for git/brew");
-        }
-
-        // Note: SourceList is Vec<PackageSource> which needs array format in CCL
-        // However, the actual application uses schema-based loading with HashMap
-        // For this test, we'll just verify that PackageDataList loading works
-        // SourceList loading is tested via schema-based loading in integration tests
-    }
-
-    #[test]
     fn test_santa_data_default_has_content() {
         // Test that default data has packages and sources
         let original_data = SantaData::default();
@@ -677,26 +402,6 @@ git =
 
         // Verify sources are loaded
         assert!(!original_data.sources.is_empty());
-    }
-
-    #[test]
-    fn test_strong_typing_newtypes() {
-        // Test that strong types work correctly
-        let package_name = PackageName::from("git".to_string());
-        let source_name = SourceName::from("brew".to_string());
-        let command_name = CommandName::from("install".to_string());
-
-        // Test Display trait
-        assert_eq!(format!("{package_name}"), "git");
-        assert_eq!(format!("{source_name}"), "brew");
-        assert_eq!(format!("{command_name}"), "install");
-
-        // Test Into/From traits
-        let pkg_string: String = package_name.into();
-        assert_eq!(pkg_string, "git");
-
-        let new_pkg = PackageName::from("vim".to_string());
-        assert_ne!(new_pkg, PackageName::from("git".to_string()));
     }
 
     #[test]
@@ -773,129 +478,6 @@ git =
                 assert!(display.contains(&format!("{distro:?}")));
             }
         }
-    }
-
-    #[test]
-    fn test_platform_detect_package_managers_edge_cases() {
-        // Test that detect function handles missing commands gracefully
-        let detected = Platform::detect_available_package_managers();
-
-        // Should never return duplicates
-        let mut unique_sources = std::collections::HashSet::new();
-        for source in &detected {
-            assert!(
-                unique_sources.insert(source.clone()),
-                "Duplicate source detected: {source:?}"
-            );
-        }
-
-        // Should be stable across multiple calls
-        for _ in 0..5 {
-            let detected_again = Platform::detect_available_package_managers();
-            assert_eq!(detected, detected_again, "Detection should be stable");
-        }
-
-        // Each detected source should be appropriate for the current platform
-        for source in &detected {
-            match source {
-                KnownSources::Brew => {
-                    if !cfg!(target_os = "macos") {
-                        // Brew can be installed on Linux too, so this is not an error
-                        // but we should at least verify it was actually found
-                    }
-                }
-                KnownSources::Apt | KnownSources::Pacman | KnownSources::Aur => {
-                    // Linux package managers - could be available on other systems via containers
-                }
-                KnownSources::Scoop => {
-                    // Windows package manager - could be available on other systems via WSL
-                }
-                KnownSources::Cargo | KnownSources::Nix | KnownSources::Npm => {
-                    // Universal package managers - valid on all platforms
-                }
-                KnownSources::Flathub => {
-                    // Flatpak - could be available on Linux and other systems
-                }
-                KnownSources::Unknown(_) => {
-                    panic!("detect_available_package_managers returned Unknown variant");
-                }
-                _ => {
-                    // Handle any future variants added to the non-exhaustive enum
-                }
-            }
-        }
-    }
-
-    #[test]
-    fn test_platform_default_sources_consistency() {
-        let defaults = Platform::get_default_sources();
-        let detected = Platform::detect_available_package_managers();
-
-        // Default sources should include some actually available package managers
-        // (but may include more that aren't available yet)
-        let available_count = defaults
-            .iter()
-            .filter(|&source| detected.contains(source))
-            .count();
-
-        // At least one default source should be available (Cargo is universal)
-        assert!(
-            available_count >= 1,
-            "At least one default source should be available. Defaults: {defaults:?}, Detected: {detected:?}"
-        );
-
-        // Should not contain Unknown variants in defaults
-        for source in &defaults {
-            assert!(
-                !matches!(source, KnownSources::Unknown(_)),
-                "Default sources should not contain Unknown variants"
-            );
-        }
-    }
-
-    #[test]
-    fn test_santa_data_sources_with_empty_custom_sources() {
-        use crate::SantaConfig;
-
-        let test_sources = vec![crate::sources::PackageSource::new_for_test(
-            KnownSources::Brew,
-            "🍺",
-            "brew",
-            "brew install",
-            "brew list",
-            None,
-            None,
-        )];
-
-        let data = SantaData {
-            packages: PackageDataList::new(),
-            sources: test_sources.clone(),
-        };
-
-        // Test with empty custom_sources vector (not None)
-        let mut config = SantaConfig {
-            sources: vec![],
-            packages: vec![],
-            custom_sources: Some(vec![]),
-            _groups: None,
-            log_level: 0,
-        };
-
-        let filtered = data.sources(&config);
-        assert_eq!(
-            filtered.len(),
-            1,
-            "Should return original sources when custom_sources is empty"
-        );
-
-        // Test with None custom_sources
-        config.custom_sources = None;
-        let filtered_none = data.sources(&config);
-        assert_eq!(
-            filtered_none.len(),
-            1,
-            "Should return original sources when custom_sources is None"
-        );
     }
 
     #[test]
@@ -1003,41 +585,6 @@ git =
     }
 
     #[test]
-    fn test_load_from_file_missing_file() {
-        use std::path::PathBuf;
-
-        // Test behavior when file doesn't exist
-        let nonexistent_path = PathBuf::from("/tmp/nonexistent_santa_test_file_12345.yaml");
-        assert!(!nonexistent_path.exists());
-
-        // This should panic (expected behavior according to current implementation)
-        // We use std::panic::catch_unwind to test panic behavior
-        let result = std::panic::catch_unwind(|| PackageDataList::load_from(&nonexistent_path));
-
-        assert!(result.is_err(), "Loading non-existent file should panic");
-    }
-
-    #[test]
-    fn test_source_list_load_from_str_errors() {
-        // Test various invalid CCL structures for SourceList
-        let invalid_ccl = [
-            "invalid: ccl: [structure",                    // Invalid CCL syntax
-            "name = valid\nemoji = 🍺\ninvalid_structure", // Invalid structure
-            "= null",                                      // Invalid CCL
-        ];
-
-        for ccl in invalid_ccl.iter() {
-            let result = std::panic::catch_unwind(|| SourceList::load_from_str(ccl));
-            // All invalid CCL should panic (current behavior)
-            assert!(result.is_err(), "Invalid CCL should cause panic: {}", ccl);
-        }
-
-        // Empty string might parse as empty object - both panic and success are acceptable
-        let empty_ccl = "";
-        let _ = std::panic::catch_unwind(|| SourceList::load_from_str(empty_ccl));
-    }
-
-    #[test]
     fn test_package_data_list_with_complex_names() {
         let mut packages = PackageDataList::new();
 
@@ -1060,7 +607,7 @@ git =
         // All packages should be present as keys
         for pkg in &test_packages {
             assert!(
-                packages.contains_key(&pkg.to_string()),
+                packages.contains_key(*pkg),
                 "PackageDataList should contain package: {pkg}"
             );
         }

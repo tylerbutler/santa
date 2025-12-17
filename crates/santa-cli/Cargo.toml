@@ -125,10 +125,6 @@ path = "src/main.rs"
 name = "generate-index"
 path = "src/bin/generate_index.rs"
 
-[[bench]]
-name = "subprocess_performance"
-harness = false
-
 # cargo-dist: This package generates distributable binaries
 [package.metadata.dist]
 dist = true

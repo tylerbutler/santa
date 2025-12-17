@@ -114,15 +114,6 @@ impl ScriptFormat {
             ScriptFormat::Batch => "install.bat",
         }
     }
-
-    /// Get check template name for this script format
-    pub fn check_template_name(&self) -> &'static str {
-        match self {
-            ScriptFormat::Shell => "check.sh",
-            ScriptFormat::PowerShell => "check.ps1",
-            ScriptFormat::Batch => "check.bat",
-        }
-    }
 }
 
 /// Script generator using MiniJinja templates for safe script generation.
@@ -185,12 +176,6 @@ impl ScriptGenerator {
         env.add_template("install.ps1", include_str!("../templates/install.ps1.tera"))
             .map_err(|e| SantaError::Template(e.to_string()))?;
 
-        env.add_template("check.sh", include_str!("../templates/check.sh.tera"))
-            .map_err(|e| SantaError::Template(e.to_string()))?;
-
-        env.add_template("check.ps1", include_str!("../templates/check.ps1.tera"))
-            .map_err(|e| SantaError::Template(e.to_string()))?;
-
         // Register custom filters for safe escaping
         env.add_filter("shell_escape", shell_escape_filter);
         env.add_filter("powershell_escape", powershell_escape_filter);
@@ -220,36 +205,6 @@ impl ScriptGenerator {
             timestamp => Utc::now().to_rfc3339(),
             version => env!("CARGO_PKG_VERSION"),
             package_count => packages.len(),
-        };
-
-        template.render(context).map_err(|e| {
-            SantaError::Template(format!(
-                "Failed to render {} template: {}",
-                template_name, e
-            ))
-        })
-    }
-
-    /// Generate check script for listing installed packages
-    pub fn generate_check_script(
-        &self,
-        manager: &str,
-        check_command: &str,
-        format: ScriptFormat,
-        source_name: &str,
-    ) -> Result<String> {
-        let template_name = format.check_template_name();
-        let template = self
-            .env
-            .get_template(template_name)
-            .map_err(|e| SantaError::Template(e.to_string()))?;
-
-        let context = minijinja::context! {
-            manager => manager,
-            check_command => check_command,
-            source_name => source_name,
-            timestamp => Utc::now().to_rfc3339(),
-            version => env!("CARGO_PKG_VERSION"),
         };
 
         template.render(context).map_err(|e| {
@@ -401,10 +356,6 @@ mod tests {
             "install.ps1"
         );
         assert_eq!(ScriptFormat::Batch.install_template_name(), "install.bat");
-
-        assert_eq!(ScriptFormat::Shell.check_template_name(), "check.sh");
-        assert_eq!(ScriptFormat::PowerShell.check_template_name(), "check.ps1");
-        assert_eq!(ScriptFormat::Batch.check_template_name(), "check.bat");
     }
 
     #[test]
@@ -439,37 +390,6 @@ mod tests {
             "Script should contain manager name"
         );
         assert!(script.contains("git"), "Script should contain package name");
-    }
-
-    #[test]
-    fn test_generate_check_script_shell() {
-        let generator = ScriptGenerator::new().unwrap();
-        let script = generator
-            .generate_check_script("brew", "brew list", ScriptFormat::Shell, "homebrew")
-            .unwrap();
-
-        assert!(
-            script.contains("brew list"),
-            "Script should contain check command"
-        );
-    }
-
-    #[test]
-    fn test_generate_check_script_powershell() {
-        let generator = ScriptGenerator::new().unwrap();
-        let script = generator
-            .generate_check_script(
-                "choco",
-                "choco list",
-                ScriptFormat::PowerShell,
-                "chocolatey",
-            )
-            .unwrap();
-
-        assert!(
-            script.contains("choco list"),
-            "Script should contain check command"
-        );
     }
 
     #[test]

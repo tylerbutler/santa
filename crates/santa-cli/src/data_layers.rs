@@ -65,17 +65,7 @@ pub struct LayeredSource {
 #[derive(Debug, Clone)]
 pub struct LayeredPackage {
     pub name: String,
-    pub definition: PackageDefinition,
     pub origin: DataOrigin,
-}
-
-/// Result of an update operation
-#[derive(Debug, Clone)]
-pub struct UpdateResult {
-    pub sources_updated: bool,
-    pub packages_updated: bool,
-    pub sources_count: usize,
-    pub packages_count: usize,
 }
 
 /// Manages the layered data system for both sources and packages
@@ -338,12 +328,11 @@ impl DataLayerManager {
 
         // Layer 1: Bundled (lowest priority)
         let bundled = self.load_bundled_packages()?;
-        for (name, definition) in bundled {
+        for (name, _definition) in bundled {
             result.insert(
                 name.clone(),
                 LayeredPackage {
                     name,
-                    definition,
                     origin: DataOrigin::Bundled,
                 },
             );
@@ -351,7 +340,7 @@ impl DataLayerManager {
 
         // Layer 2: Downloaded (overrides bundled)
         if let Some(downloaded) = self.load_downloaded_packages()? {
-            for (name, definition) in downloaded {
+            for (name, _definition) in downloaded {
                 if result.contains_key(&name) {
                     debug!("Downloaded package '{}' overrides bundled", name);
                 }
@@ -359,7 +348,6 @@ impl DataLayerManager {
                     name.clone(),
                     LayeredPackage {
                         name,
-                        definition,
                         origin: DataOrigin::Downloaded,
                     },
                 );
@@ -368,7 +356,7 @@ impl DataLayerManager {
 
         // Layer 3: User custom (highest priority)
         if let Some(custom) = user_custom {
-            for (name, definition) in custom {
+            for name in custom.keys() {
                 if result.contains_key(name) {
                     debug!("User custom package '{}' overrides lower layers", name);
                 }
@@ -376,7 +364,6 @@ impl DataLayerManager {
                     name.clone(),
                     LayeredPackage {
                         name: name.clone(),
-                        definition: definition.clone(),
                         origin: DataOrigin::UserCustom,
                     },
                 );
@@ -417,29 +404,11 @@ impl DataLayerManager {
 
     // ============= Combined Operations =============
 
-    /// Update both sources and packages from GitHub
-    pub fn update_all(&self) -> Result<UpdateResult> {
-        let sources_count = self.update_sources()?;
-        let packages_count = self.update_packages()?;
-
-        Ok(UpdateResult {
-            sources_updated: true,
-            packages_updated: true,
-            sources_count,
-            packages_count,
-        })
-    }
-
     /// Clear all downloaded data
     pub fn clear_all(&self) -> Result<()> {
         self.clear_downloaded_sources()?;
         self.clear_downloaded_packages()?;
         Ok(())
-    }
-
-    /// Check if any downloaded data exists
-    pub fn has_any_downloaded(&self) -> bool {
-        self.has_downloaded_sources() || self.has_downloaded_packages()
     }
 }
 
@@ -691,13 +660,12 @@ bat =
         fs::write(manager.downloaded_sources_path(), "sources").unwrap();
         fs::write(manager.downloaded_packages_path(), "packages").unwrap();
 
-        assert!(manager.has_any_downloaded());
+        assert!(manager.has_downloaded_sources() || manager.has_downloaded_packages());
 
         manager.clear_all().unwrap();
 
         assert!(!manager.has_downloaded_sources());
         assert!(!manager.has_downloaded_packages());
-        assert!(!manager.has_any_downloaded());
     }
 
     #[test]
@@ -968,9 +936,9 @@ downloaded-only-pkg =
         let (manager, _temp) = create_test_manager();
 
         // Should not error when clearing non-existent files
-        assert!(!manager.has_any_downloaded());
+        assert!(!manager.has_downloaded_sources() && !manager.has_downloaded_packages());
         manager.clear_all().unwrap();
-        assert!(!manager.has_any_downloaded());
+        assert!(!manager.has_downloaded_sources() && !manager.has_downloaded_packages());
     }
 
     #[test]
@@ -987,7 +955,7 @@ downloaded-only-pkg =
     }
 
     #[test]
-    fn test_has_any_downloaded_sources_only() {
+    fn test_has_downloaded_sources_only() {
         let (manager, temp) = create_test_manager();
 
         fs::create_dir_all(temp.path()).unwrap();
@@ -995,11 +963,10 @@ downloaded-only-pkg =
 
         assert!(manager.has_downloaded_sources());
         assert!(!manager.has_downloaded_packages());
-        assert!(manager.has_any_downloaded());
     }
 
     #[test]
-    fn test_has_any_downloaded_packages_only() {
+    fn test_has_downloaded_packages_only() {
         let (manager, temp) = create_test_manager();
 
         fs::create_dir_all(temp.path()).unwrap();
@@ -1007,7 +974,6 @@ downloaded-only-pkg =
 
         assert!(!manager.has_downloaded_sources());
         assert!(manager.has_downloaded_packages());
-        assert!(manager.has_any_downloaded());
     }
 
     #[test]
