@@ -505,10 +505,14 @@ fn test_spacing_behavior_strict_parsing() {
 #[cfg(feature = "unstable")]
 #[test]
 fn test_spacing_behavior_loose_accepts_variations() {
-    use sickle::SpacingBehavior;
+    use sickle::{SpacingBehavior, TabBehavior};
 
     let ccl = "name=value\nother  =  data\ntabs\t=\tmore";
-    let opts = ParserOptions::new().with_spacing(SpacingBehavior::Loose);
+    // Use tabs_to_spaces to ensure tabs around delimiter are trimmed
+    // With tabs_preserve (default), tabs would be kept as value content
+    let opts = ParserOptions::new()
+        .with_spacing(SpacingBehavior::Loose)
+        .with_tabs(TabBehavior::ToSpaces);
     let model = load_with_options(ccl, &opts).expect("should parse with loose spacing");
     assert_eq!(model.get_string("name").unwrap(), "value");
     assert_eq!(model.get_string("other").unwrap(), "data");
