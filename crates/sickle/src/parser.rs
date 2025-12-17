@@ -165,15 +165,15 @@ fn find_delimiter(s: &str, options: &ParserOptions) -> Option<usize> {
 }
 
 /// Trim whitespace from value based on options
-/// - Strict spacing: trim only spaces (preserve tabs)
-/// - Loose spacing: trim all whitespace (tabs handled separately by process_tabs)
+/// - If tabs are preserved: trim only spaces (preserve tabs)
+/// - If tabs are converted: trim all whitespace
 fn trim_value(s: &str, options: &ParserOptions) -> String {
-    if options.is_strict_spacing() {
-        // Strict: trim only spaces, preserve tabs
+    if options.preserve_tabs() {
+        // When preserving tabs, only trim spaces (not tabs)
+        // This applies to both strict and loose spacing modes
         trim_spaces(s).to_string()
     } else {
-        // Loose: trim all whitespace
-        // Tabs are handled separately by process_tabs in finalize_value
+        // When converting tabs to spaces, trim all whitespace
         s.trim().to_string()
     }
 }
