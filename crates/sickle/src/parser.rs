@@ -165,17 +165,14 @@ fn find_delimiter(s: &str, options: &ParserOptions) -> Option<usize> {
 }
 
 /// Trim whitespace from value based on options
-/// - If tabs are preserved: trim only spaces (preserve tabs)
-/// - If tabs are converted: trim all whitespace
-fn trim_value(s: &str, options: &ParserOptions) -> String {
-    if options.preserve_tabs() {
-        // When preserving tabs, only trim spaces (not tabs)
-        // This applies to both strict and loose spacing modes
-        trim_spaces(s).to_string()
-    } else {
-        // When converting tabs to spaces, trim all whitespace
-        s.trim().to_string()
-    }
+/// - Always trim only spaces (preserve tabs), because:
+///   - If tabs_preserve: tabs should be kept as-is
+///   - If tabs_to_spaces: tabs will be converted to spaces by process_tabs,
+///     so we preserve them here to convert later
+fn trim_value(s: &str, _options: &ParserOptions) -> String {
+    // Only trim spaces, not tabs
+    // Tabs are either preserved (tabs_preserve) or converted later (tabs_to_spaces)
+    trim_spaces(s).to_string()
 }
 
 /// Parse CCL text into a flat list of entries
