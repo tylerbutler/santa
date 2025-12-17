@@ -135,22 +135,12 @@ fn trim_spaces_start(s: &str) -> &str {
     s.trim_start_matches(' ')
 }
 
-/// Trim only spaces (not tabs) from the end of a string
-fn trim_spaces_end(s: &str) -> &str {
-    s.trim_end_matches(' ')
-}
-
-/// Trim only spaces (not tabs) from both ends of a string
-fn trim_spaces(s: &str) -> &str {
-    trim_spaces_end(trim_spaces_start(s))
-}
-
 /// Trim whitespace from a string, optionally preserving CR
 /// When preserve_cr is true, only trims spaces and tabs (not \r)
 fn trim_with_cr_option(s: &str, preserve_cr: bool) -> &str {
     if preserve_cr {
         // Only trim spaces and tabs, preserving \r
-        s.trim_matches(|c| c == ' ' || c == '\t')
+        s.trim_matches([' ', '\t'])
     } else {
         s.trim()
     }
@@ -159,7 +149,7 @@ fn trim_with_cr_option(s: &str, preserve_cr: bool) -> &str {
 /// Trim leading whitespace, optionally preserving CR
 fn trim_start_with_cr_option(s: &str, preserve_cr: bool) -> &str {
     if preserve_cr {
-        s.trim_start_matches(|c| c == ' ' || c == '\t')
+        s.trim_start_matches([' ', '\t'])
     } else {
         s.trim_start()
     }
@@ -335,7 +325,7 @@ fn parse_entries(input: &str, options: &ParserOptions) -> Vec<Entry> {
 fn finalize_value(value: &str, options: &ParserOptions) -> String {
     // Trim trailing whitespace, but preserve \r if crlf_preserve_literal is set
     let trimmed = if options.preserve_crlf() {
-        value.trim_end_matches(|c| c == ' ' || c == '\t' || c == '\n')
+        value.trim_end_matches([' ', '\t', '\n'])
     } else {
         value.trim_end()
     };
