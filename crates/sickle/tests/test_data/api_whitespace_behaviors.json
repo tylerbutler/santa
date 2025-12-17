@@ -439,7 +439,7 @@
         "entries": [
           {
             "key": "key",
-            "value": "  value  with  tabs"
+            "value": " value with tabs"
           }
         ]
       },
@@ -464,7 +464,7 @@
       "expected": {
         "count": 1,
         "object": {
-          "key": "  value  with  tabs"
+          "key": " value with tabs"
         }
       },
       "features": [
@@ -488,7 +488,7 @@
       "behaviors": [],
       "expected": {
         "count": 1,
-        "value": "  value  with  tabs"
+        "value": " value with tabs"
       },
       "features": [
         "whitespace"
@@ -513,7 +513,7 @@
         "entries": [
           {
             "key": "key",
-            "value": "  indented"
+            "value": " indented"
           }
         ]
       },
@@ -538,7 +538,7 @@
       "behaviors": [],
       "expected": {
         "count": 1,
-        "value": "  indented"
+        "value": " indented"
       },
       "features": [
         "whitespace"
@@ -563,7 +563,7 @@
         "entries": [
           {
             "key": "key",
-            "value": "      three_tabs"
+            "value": "   three_tabs"
           }
         ]
       },
@@ -618,7 +618,7 @@
         "entries": [
           {
             "key": "section",
-            "value": "\n    indented_with_tabs\n    another_line"
+            "value": "\n  indented_with_tabs\n  another_line"
           }
         ]
       },
@@ -665,7 +665,7 @@
       ],
       "expected": {
         "count": 1,
-        "value": "key =   value"
+        "value": "key =  value"
       },
       "features": [
         "whitespace"
@@ -719,7 +719,7 @@
         "entries": [
           {
             "key": "key",
-            "value": "  value  with  tabs"
+            "value": " value with tabs"
           }
         ]
       },
@@ -1152,7 +1152,7 @@
         "entries": [
           {
             "key": "key",
-            "value": "  value  with  tabs"
+            "value": " value with tabs"
           }
         ]
       },
