@@ -10,11 +10,11 @@ use std::collections::{HashMap, HashSet};
 use std::path::Path;
 
 /// Type-safe representation of mutually exclusive boolean parsing behaviors
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum BooleanBehavior {
     /// Strict boolean parsing (only "true"/"false")
     Strict,
-    /// Lenient boolean parsing (allows variations)
+    /// Lenient boolean parsing (also accepts "yes"/"no")
     Lenient,
 }
 
@@ -29,7 +29,7 @@ impl BooleanBehavior {
 }
 
 /// Type-safe representation of mutually exclusive CRLF handling behaviors
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum CRLFBehavior {
     /// Preserve CRLF line endings in literals
     PreserveLiteral,
@@ -260,21 +260,23 @@ pub struct TestSuite {
 pub struct ImplementationConfig {
     /// Supported functions (e.g., "parse", "build_hierarchy", "get_string")
     pub supported_functions: HashSet<String>,
-    /// Type-safe boolean parsing behavior choice
-    pub boolean_behavior: BooleanBehavior,
-    /// Type-safe CRLF handling behavior choice
-    pub crlf_behavior: CRLFBehavior,
-    /// Supported spacing behaviors (runtime-configurable via ParserOptions)
+    /// Supported boolean behaviors (access-time configurable via BoolOptions)
+    /// When both are present, the test runner selects based on test behaviors
+    pub supported_boolean_behaviors: HashSet<BooleanBehavior>,
+    /// Supported CRLF behaviors (parse-time configurable via ParserOptions)
+    /// When both are present, the test runner selects based on test behaviors
+    pub supported_crlf_behaviors: HashSet<CRLFBehavior>,
+    /// Supported spacing behaviors (parse-time configurable via ParserOptions)
     /// When both are present, the test runner selects based on test behaviors
     pub supported_spacing_behaviors: HashSet<SpacingBehavior>,
-    /// Supported tab behaviors (runtime-configurable via ParserOptions)
+    /// Supported tab behaviors (parse-time configurable via ParserOptions)
     /// When both are present, the test runner selects based on test behaviors
     pub supported_tab_behaviors: HashSet<TabBehavior>,
     /// Type-safe array ordering behavior choice
     pub array_order_behavior: ArrayOrderBehavior,
     /// Supported variants (e.g., "reference_compliant", excluding "proposed_behavior")
     pub supported_variants: HashSet<String>,
-    /// Supported list coercion behaviors (runtime-configurable via ListOptions)
+    /// Supported list coercion behaviors (access-time configurable via ListOptions)
     /// When both are present, the test runner will use the appropriate option based on the test
     pub supported_list_coercion_behaviors: HashSet<ListCoercionBehavior>,
 }
@@ -290,7 +292,7 @@ impl ImplementationConfig {
     /// with both `boolean_strict` AND `boolean_lenient` - the type system
     /// prevents it.
     ///
-    /// This is superior to runtime validation because:
+    /// This is superior to deferred validation because:
     /// - Errors caught at compile time, not during test execution
     /// - No performance overhead from validation checks
     /// - Impossible states are unrepresentable in the type system
@@ -337,14 +339,19 @@ impl ImplementationConfig {
             .iter()
             .map(|s| s.to_string())
             .collect(),
-            // Type-safe behavior choices (impossible to have conflicts)
-            boolean_behavior: BooleanBehavior::Strict,
-            crlf_behavior: CRLFBehavior::PreserveLiteral,
-            // Spacing is runtime-configurable via ParserOptions - we support both
+            // Boolean is access-time configurable via BoolOptions - we support both
+            supported_boolean_behaviors: [BooleanBehavior::Strict, BooleanBehavior::Lenient]
+                .into_iter()
+                .collect(),
+            // CRLF is parse-time configurable via ParserOptions - we support both
+            supported_crlf_behaviors: [CRLFBehavior::PreserveLiteral, CRLFBehavior::NormalizeToLF]
+                .into_iter()
+                .collect(),
+            // Spacing is parse-time configurable via ParserOptions - we support both
             supported_spacing_behaviors: [SpacingBehavior::Strict, SpacingBehavior::Loose]
                 .into_iter()
                 .collect(),
-            // Tab handling is runtime-configurable via ParserOptions - we support both
+            // Tab handling is parse-time configurable via ParserOptions - we support both
             supported_tab_behaviors: [TabBehavior::Preserve, TabBehavior::ToSpaces]
                 .into_iter()
                 .collect(),
@@ -359,7 +366,7 @@ impl ImplementationConfig {
                 .collect(),
             #[cfg(not(feature = "reference_compliant"))]
             supported_variants: HashSet::new(),
-            // List coercion is runtime-configurable via ListOptions - we support both
+            // List coercion is access-time configurable via ListOptions - we support both
             supported_list_coercion_behaviors: [
                 ListCoercionBehavior::Enabled,
                 ListCoercionBehavior::Disabled,
@@ -372,17 +379,14 @@ impl ImplementationConfig {
     /// Get all chosen behaviors as a set of strings for comparison
     #[allow(dead_code)]
     fn get_chosen_behaviors(&self) -> HashSet<String> {
-        let mut behaviors: HashSet<String> = [
-            self.boolean_behavior.as_str(),
-            self.crlf_behavior.as_str(),
-            self.array_order_behavior.as_str(),
-        ]
-        .iter()
-        .map(|s| s.to_string())
-        .collect();
+        // Fixed behaviors
+        let mut behaviors: HashSet<String> = [self.array_order_behavior.as_str()]
+            .iter()
+            .map(|s| s.to_string())
+            .collect();
 
-        // Add runtime-configurable behaviors
-        for b in &self.supported_list_coercion_behaviors {
+        // Add parse-time configurable behaviors
+        for b in &self.supported_crlf_behaviors {
             behaviors.insert(b.as_str().to_string());
         }
         for b in &self.supported_spacing_behaviors {
@@ -392,34 +396,53 @@ impl ImplementationConfig {
             behaviors.insert(b.as_str().to_string());
         }
 
+        // Add access-time configurable behaviors
+        for b in &self.supported_boolean_behaviors {
+            behaviors.insert(b.as_str().to_string());
+        }
+        for b in &self.supported_list_coercion_behaviors {
+            behaviors.insert(b.as_str().to_string());
+        }
+
         behaviors
     }
 
     /// Check if a behavior is supported
     ///
     /// This checks against our type-safe behavior configuration.
-    /// For runtime-configurable behaviors (spacing, tabs, list coercion),
-    /// returns true if the behavior is in the supported set.
+    /// For parse-time configurable behaviors (spacing, tabs, crlf) and
+    /// access-time configurable behaviors (boolean, list coercion), returns true
+    /// if the behavior is in the supported set.
     pub fn supports_behavior(&self, behavior: &str) -> bool {
         match behavior {
-            "boolean_strict" => self.boolean_behavior == BooleanBehavior::Strict,
-            "boolean_lenient" => self.boolean_behavior == BooleanBehavior::Lenient,
-            "crlf_preserve_literal" => self.crlf_behavior == CRLFBehavior::PreserveLiteral,
-            "crlf_normalize_to_lf" => self.crlf_behavior == CRLFBehavior::NormalizeToLF,
+            // Boolean is access-time configurable
+            "boolean_strict" => self
+                .supported_boolean_behaviors
+                .contains(&BooleanBehavior::Strict),
+            "boolean_lenient" => self
+                .supported_boolean_behaviors
+                .contains(&BooleanBehavior::Lenient),
+            // CRLF is parse-time configurable
+            "crlf_preserve_literal" => self
+                .supported_crlf_behaviors
+                .contains(&CRLFBehavior::PreserveLiteral),
+            "crlf_normalize_to_lf" => self
+                .supported_crlf_behaviors
+                .contains(&CRLFBehavior::NormalizeToLF),
             "list_coercion_enabled" => self
                 .supported_list_coercion_behaviors
                 .contains(&ListCoercionBehavior::Enabled),
             "list_coercion_disabled" => self
                 .supported_list_coercion_behaviors
                 .contains(&ListCoercionBehavior::Disabled),
-            // Spacing is runtime-configurable
+            // Spacing is parse-time configurable
             "strict_spacing" => self
                 .supported_spacing_behaviors
                 .contains(&SpacingBehavior::Strict),
             "loose_spacing" => self
                 .supported_spacing_behaviors
                 .contains(&SpacingBehavior::Loose),
-            // Tab handling is runtime-configurable
+            // Tab handling is parse-time configurable
             "tabs_preserve" => self
                 .supported_tab_behaviors
                 .contains(&TabBehavior::Preserve),

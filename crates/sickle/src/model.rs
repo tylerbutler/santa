@@ -18,6 +18,28 @@ pub(crate) type CclMap = IndexMap<String, Vec<CclObject>>;
 /// Iterator over key-value pairs where value is the full Vec.
 pub(crate) type CclMapIter<'a> = indexmap::map::Iter<'a, String, Vec<CclObject>>;
 
+/// Options for boolean access operations
+///
+/// Controls how `get_bool()` interprets string values as booleans.
+#[derive(Debug, Clone, Copy, Default)]
+pub struct BoolOptions {
+    /// When true, accepts "yes"/"no" in addition to "true"/"false".
+    /// When false (default), only "true" and "false" are accepted.
+    pub lenient: bool,
+}
+
+impl BoolOptions {
+    /// Create default options (strict mode - only "true"/"false")
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    /// Create options with lenient mode enabled (accepts "yes"/"no")
+    pub fn lenient() -> Self {
+        Self { lenient: true }
+    }
+}
+
 /// Options for list access operations
 ///
 /// Controls how `get_list()` interprets the CCL data structure.
@@ -406,16 +428,55 @@ impl CclObject {
 
     /// Extract a boolean value from the model (no key lookup)
     ///
-    /// Parses the string representation as a boolean
+    /// Parses the string representation as a boolean using strict mode
+    /// (only "true" and "false" accepted).
     pub(crate) fn as_bool(&self) -> Result<bool> {
-        let s = self.as_string()?;
-        s.parse::<bool>()
-            .map_err(|_| Error::ValueError(format!("failed to parse '{}' as bool", s)))
+        self.as_bool_with_options(BoolOptions::new())
     }
 
-    /// Get a boolean value by key
+    /// Extract a boolean value from the model with options (no key lookup)
+    ///
+    /// Parses the string representation as a boolean.
+    /// - Strict mode (default): only "true" and "false" accepted
+    /// - Lenient mode: also accepts "yes" and "no"
+    pub(crate) fn as_bool_with_options(&self, options: BoolOptions) -> Result<bool> {
+        let s = self.as_string()?;
+        if options.lenient {
+            match s {
+                "true" | "yes" => Ok(true),
+                "false" | "no" => Ok(false),
+                _ => Err(Error::ValueError(format!(
+                    "failed to parse '{}' as bool",
+                    s
+                ))),
+            }
+        } else {
+            s.parse::<bool>()
+                .map_err(|_| Error::ValueError(format!("failed to parse '{}' as bool", s)))
+        }
+    }
+
+    /// Get a boolean value by key (strict mode)
+    ///
+    /// Only accepts "true" and "false". For lenient parsing that also
+    /// accepts "yes" and "no", use `get_bool_lenient()`.
     pub fn get_bool(&self, key: &str) -> Result<bool> {
         self.get(key)?.as_bool()
+    }
+
+    /// Get a boolean value by key with options
+    ///
+    /// Allows configuring boolean parsing behavior.
+    pub fn get_bool_with_options(&self, key: &str, options: BoolOptions) -> Result<bool> {
+        self.get(key)?.as_bool_with_options(options)
+    }
+
+    /// Get a boolean value by key (lenient mode)
+    ///
+    /// Accepts "true", "false", "yes", and "no".
+    /// For strict parsing, use `get_bool()`.
+    pub fn get_bool_lenient(&self, key: &str) -> Result<bool> {
+        self.get_bool_with_options(key, BoolOptions::lenient())
     }
 
     /// Extract an integer value from the model (no key lookup)

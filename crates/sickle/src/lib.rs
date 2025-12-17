@@ -92,7 +92,7 @@ pub mod de;
 pub mod ser;
 
 pub use error::{Error, Result};
-pub use model::{CclObject, Entry};
+pub use model::{BoolOptions, CclObject, Entry, ListOptions};
 
 // Re-export options types for crate-internal use
 // ParserOptions is pub(crate) for now until API stabilizes

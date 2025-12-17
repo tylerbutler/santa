@@ -586,20 +586,21 @@ fn test_all_ccl_suites_comprehensive() {
     // Fixed behaviors (compile-time)
     println!("     Fixed (compile-time):");
     println!(
-        "       • Boolean parsing:  {}",
-        config.boolean_behavior.as_str()
-    );
-    println!(
-        "       • CRLF handling:    {}",
-        config.crlf_behavior.as_str()
-    );
-    println!(
         "       • Array ordering:   {}",
         config.array_order_behavior.as_str()
     );
 
-    // Runtime-configurable behaviors
-    println!("     Configurable (runtime via ParserOptions):");
+    // Parse-time configurable behaviors (via ParserOptions)
+    println!("     Parse-time configurable (via ParserOptions):");
+
+    // CRLF
+    let mut crlf: Vec<_> = config
+        .supported_crlf_behaviors
+        .iter()
+        .map(|b| b.as_str())
+        .collect();
+    crlf.sort();
+    println!("       • CRLF handling:    {}", crlf.join(", "));
 
     // Spacing
     let mut spacing: Vec<_> = config
@@ -619,7 +620,19 @@ fn test_all_ccl_suites_comprehensive() {
     tabs.sort();
     println!("       • Tab handling:     {}", tabs.join(", "));
 
-    // List coercion
+    // Access-time configurable behaviors
+    println!("     Access-time configurable:");
+
+    // Boolean parsing (via BoolOptions)
+    let mut boolean: Vec<_> = config
+        .supported_boolean_behaviors
+        .iter()
+        .map(|b| b.as_str())
+        .collect();
+    boolean.sort();
+    println!("       • Boolean parsing:  {}", boolean.join(", "));
+
+    // List coercion (via ListOptions)
     let mut list_coercion: Vec<_> = config
         .supported_list_coercion_behaviors
         .iter()
@@ -1111,8 +1124,13 @@ fn test_all_ccl_suites_comprehensive() {
                             (&model, test.args.first().unwrap())
                         };
 
-                        // Use the typed accessor get_bool()
-                        let bool_result = parent_model.get_bool(key);
+                        // Use get_bool or get_bool_lenient based on test behaviors
+                        let bool_result = if test.behaviors.contains(&"boolean_lenient".to_string())
+                        {
+                            parent_model.get_bool_lenient(key)
+                        } else {
+                            parent_model.get_bool(key)
+                        };
 
                         if test.expected.error.is_some() {
                             assert!(

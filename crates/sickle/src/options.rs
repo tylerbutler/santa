@@ -1,10 +1,13 @@
-//! Runtime configuration options for CCL parsing behavior
+//! Parse-time configuration options for CCL parsing behavior
 //!
 //! This module provides configurable behaviors that affect how CCL text is parsed.
-//! All options have sensible defaults that match the reference implementation.
+//! These options are applied at parse time when calling `parse_with_options()` or
+//! `load_with_options()`. All options have sensible defaults that match the reference
+//! implementation.
 //!
 //! Note: Options that only affect specific APIs (like boolean parsing for `get_bool()`)
-//! are not included here - they belong with those APIs.
+//! are not included here - they belong with those APIs. See `ListOptions` for access-time
+//! configuration.
 
 /// How to handle spacing around the `=` delimiter
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
@@ -38,14 +41,15 @@ pub enum CrlfBehavior {
     NormalizeToLf,
 }
 
-/// Runtime configuration options for CCL parsing
+/// Parse-time configuration options for CCL parsing
 ///
 /// Controls parsing behaviors that can differ between implementations.
 /// All options default to the reference implementation's behavior.
 ///
 /// These options affect how the raw CCL text is tokenized and parsed.
+/// They are applied once at parse time and cannot be changed after parsing.
 /// Options that only affect specific accessor methods (like `get_bool()`)
-/// are configured separately on those methods.
+/// are configured separately on those methods (see `ListOptions` for access-time options).
 #[derive(Debug, Clone, Default)]
 pub struct ParserOptions {
     /// How to handle spacing around `=`
