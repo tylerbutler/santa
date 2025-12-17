@@ -15,10 +15,10 @@ fn options_from_test(test: &TestCase) -> ParserOptions {
     let mut options = ParserOptions::new();
 
     // Check for spacing behavior
-    if test.behaviors.contains(&"loose_spacing".to_string()) {
-        options = options.with_spacing(SpacingBehavior::Loose);
+    // loose_spacing is the default (matches reference implementation)
+    if test.behaviors.contains(&"strict_spacing".to_string()) {
+        options = options.with_spacing(SpacingBehavior::Strict);
     }
-    // strict_spacing is the default, no need to set explicitly
 
     // Check for tab behavior
     if test.behaviors.contains(&"tabs_to_spaces".to_string()) {

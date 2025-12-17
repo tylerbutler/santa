@@ -140,15 +140,40 @@ fn trim_spaces(s: &str) -> &str {
     trim_spaces_end(trim_spaces_start(s))
 }
 
+/// Find the position of a valid `=` delimiter based on spacing options
+///
+/// - Strict spacing: requires ` = ` (space-equals-space), or ` =` at end of line
+/// - Loose spacing: any `=` is valid
+///
+/// Returns the byte position of `=` if found, or None if no valid delimiter exists.
+fn find_delimiter(s: &str, options: &ParserOptions) -> Option<usize> {
+    if options.is_strict_spacing() {
+        // Strict spacing: require ` = ` pattern (space before and after equals)
+        // OR ` =` at the end of the string (for empty values like "key =")
+        if let Some(pos) = s.find(" = ") {
+            return Some(pos + 1);
+        }
+        // Check for ` =` at end of string (space before equals, nothing after)
+        if s.ends_with(" =") {
+            return Some(s.len() - 1);
+        }
+        None
+    } else {
+        // Loose spacing: any `=` is a valid delimiter
+        s.find('=')
+    }
+}
+
 /// Trim whitespace from value based on options
 /// - Strict spacing: trim only spaces (preserve tabs)
-/// - Loose spacing: trim all whitespace
+/// - Loose spacing: trim all whitespace (tabs handled separately by process_tabs)
 fn trim_value(s: &str, options: &ParserOptions) -> String {
     if options.is_strict_spacing() {
         // Strict: trim only spaces, preserve tabs
         trim_spaces(s).to_string()
     } else {
         // Loose: trim all whitespace
+        // Tabs are handled separately by process_tabs in finalize_value
         s.trim().to_string()
     }
 }
@@ -190,7 +215,10 @@ fn parse_entries(input: &str, options: &ParserOptions) -> Vec<Entry> {
         let base = base_indent.unwrap_or(0);
 
         // Check if this line starts a new entry at the base level
-        if indent <= base && trimmed.contains('=') {
+        // A line is an entry if it has a valid delimiter OR contains '=' (even if invalid in strict mode)
+        // This ensures we handle all lines that look like key-value pairs
+        let has_equals = trimmed.contains('=');
+        if indent <= base && has_equals {
             // Save previous entry if exists
             if let Some((key, key_indent)) = current_key.take() {
                 let value = finalize_value(&value_lines.join("\n"), options);
@@ -202,8 +230,9 @@ fn parse_entries(input: &str, options: &ParserOptions) -> Vec<Entry> {
                 value_lines.clear();
             }
 
-            // Parse new key-value pair
-            if let Some(eq_pos) = trimmed.find('=') {
+            // Parse new key-value pair using spacing-aware delimiter detection
+            if let Some(eq_pos) = find_delimiter(trimmed, options) {
+                // Valid delimiter found - split key and value
                 // Trim all whitespace from key (spaces and tabs)
                 let key = trimmed[..eq_pos].trim().to_string();
                 // Trim value based on spacing options
@@ -219,6 +248,11 @@ fn parse_entries(input: &str, options: &ParserOptions) -> Vec<Entry> {
                 } else {
                     value_lines.push(value);
                 }
+            } else {
+                // No valid delimiter (e.g., "key=value" in strict spacing mode)
+                // Treat the entire line as a key with empty value
+                current_key = Some((trimmed.to_string(), indent));
+                value_lines.push(String::new());
             }
         } else if let Some((_, key_indent)) = current_key {
             // Only treat as continuation if indented MORE than the key line

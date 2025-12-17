@@ -579,13 +579,26 @@ impl CclObject {
     /// Get a list of string values by key (with coercion)
     ///
     /// Duplicate keys are coerced into lists, and scalar literals are filtered.
+    /// When multiple entries exist for the same key (e.g., `servers = web1\nservers = web2`),
+    /// all values are collected into a single list.
     ///
     /// For typed access to lists of scalars, use `get_list_typed::<T>()` instead.
     /// For reference-compliant behavior, use `get_list()`.
     pub fn get_list_coerced(&self, key: &str) -> Result<Vec<String>> {
-        Ok(self
-            .get(key)?
-            .as_list_with_options(ListOptions::with_coerce()))
+        let all_values = self.get_all(key)?;
+
+        // Collect string values from all entries for this key
+        // Each entry is a CclObject - extract its keys (which are the actual values)
+        let result: Vec<String> = all_values
+            .iter()
+            .flat_map(|obj| {
+                obj.keys()
+                    .filter(|k| !is_scalar_literal(k))
+                    .cloned()
+            })
+            .collect();
+
+        Ok(result)
     }
 
     /// Get a typed list of values by key

@@ -13,11 +13,12 @@
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum SpacingBehavior {
     /// Strict spacing: requires spaces around `=` (e.g., `key = value`)
-    /// This is the default and matches the reference implementation.
-    #[default]
+    /// When strict, `key=value` is treated as a key with no value.
     Strict,
     /// Loose spacing: allows any whitespace (including tabs) or no whitespace
     /// around `=` (e.g., `key=value`, `key  =  value`, `key\t=\tvalue`)
+    /// This is the default and matches the reference implementation.
+    #[default]
     Loose,
 }
 
@@ -145,7 +146,8 @@ mod tests {
     #[test]
     fn test_default_options() {
         let opts = ParserOptions::new();
-        assert!(opts.is_strict_spacing());
+        // Default is loose spacing (matches reference implementation)
+        assert!(!opts.is_strict_spacing());
         assert!(opts.preserve_tabs());
         assert!(opts.preserve_crlf());
     }
