@@ -41,6 +41,14 @@ struct Cli {
     #[clap(short = 'x', long, global = true)]
     execute: bool,
 
+    /// Show what would happen without executing (dry-run mode)
+    #[clap(short = 'n', long, global = true)]
+    dry_run: bool,
+
+    /// Disable color output (also respects NO_COLOR environment variable)
+    #[clap(long, global = true)]
+    no_color: bool,
+
     /// Script format for safe mode (auto-detects based on platform)
     #[clap(long, global = true, value_enum, default_value = "auto")]
     format: ScriptFormatOption,
@@ -428,6 +436,11 @@ async fn handle_sources_command(
 pub async fn run() -> Result<(), anyhow::Error> {
     let cli = Cli::parse();
 
+    // Handle color output control (respects --no-color flag and NO_COLOR env var)
+    if cli.no_color || std::env::var("NO_COLOR").is_ok() {
+        colored::control::set_override(false);
+    }
+
     // Handle markdown help generation (for documentation)
     if cli.markdown_help {
         clap_markdown::print_help_markdown::<Cli>();
@@ -527,7 +540,11 @@ pub async fn run() -> Result<(), anyhow::Error> {
     let cache: PackageCache = PackageCache::new();
 
     // Determine execution mode based on CLI flags
-    let execution_mode = if cli.execute {
+    let execution_mode = if cli.dry_run {
+        // Dry-run mode always uses Safe to generate scripts without executing
+        info!("Dry-run mode enabled - showing what would happen without execution");
+        ExecutionMode::Safe
+    } else if cli.execute {
         ExecutionMode::Execute
     } else {
         ExecutionMode::Safe
@@ -546,6 +563,9 @@ pub async fn run() -> Result<(), anyhow::Error> {
             source,
         } => {
             debug!("santa status");
+            if cli.dry_run {
+                println!("[DRY RUN] Would check status of all packages");
+            }
             crate::commands::status_command(
                 &mut config,
                 &data,
@@ -558,6 +578,9 @@ pub async fn run() -> Result<(), anyhow::Error> {
             .await?;
         }
         Commands::Install { source: _ } => {
+            if cli.dry_run {
+                println!("[DRY RUN] Would install packages - generating preview scripts only");
+            }
             crate::commands::install_command(
                 &mut config,
                 &data,
