@@ -591,11 +591,7 @@ impl CclObject {
         // Each entry is a CclObject - extract its keys (which are the actual values)
         let result: Vec<String> = all_values
             .iter()
-            .flat_map(|obj| {
-                obj.keys()
-                    .filter(|k| !is_scalar_literal(k))
-                    .cloned()
-            })
+            .flat_map(|obj| obj.keys().filter(|k| !is_scalar_literal(k)).cloned())
             .collect();
 
         Ok(result)
