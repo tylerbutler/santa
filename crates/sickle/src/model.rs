@@ -709,6 +709,91 @@ impl Default for CclObject {
 mod tests {
     use super::*;
 
+    // ========================================================================
+    // BoolOptions tests
+    // ========================================================================
+
+    #[test]
+    fn test_bool_options_default() {
+        let opts = BoolOptions::new();
+        assert!(!opts.lenient);
+    }
+
+    #[test]
+    fn test_bool_options_lenient() {
+        let opts = BoolOptions::lenient();
+        assert!(opts.lenient);
+    }
+
+    #[test]
+    fn test_bool_options_default_trait() {
+        let opts = BoolOptions::default();
+        assert!(!opts.lenient);
+    }
+
+    // ========================================================================
+    // ListOptions tests
+    // ========================================================================
+
+    #[test]
+    fn test_list_options_default() {
+        let opts = ListOptions::new();
+        assert!(!opts.coerce);
+    }
+
+    #[test]
+    fn test_list_options_with_coerce() {
+        let opts = ListOptions::with_coerce();
+        assert!(opts.coerce);
+    }
+
+    #[test]
+    fn test_list_options_default_trait() {
+        let opts = ListOptions::default();
+        assert!(!opts.coerce);
+    }
+
+    // ========================================================================
+    // is_scalar_literal tests
+    // ========================================================================
+
+    #[test]
+    fn test_is_scalar_literal_integers() {
+        assert!(is_scalar_literal("42"));
+        assert!(is_scalar_literal("-17"));
+        assert!(is_scalar_literal("0"));
+        assert!(is_scalar_literal("999999"));
+    }
+
+    #[test]
+    fn test_is_scalar_literal_floats() {
+        assert!(is_scalar_literal("3.14"));
+        assert!(is_scalar_literal("-2.5"));
+        assert!(is_scalar_literal("0.0"));
+        assert!(is_scalar_literal("1e10"));
+    }
+
+    #[test]
+    fn test_is_scalar_literal_booleans() {
+        assert!(is_scalar_literal("true"));
+        assert!(is_scalar_literal("false"));
+        assert!(is_scalar_literal("yes"));
+        assert!(is_scalar_literal("no"));
+    }
+
+    #[test]
+    fn test_is_scalar_literal_not_scalars() {
+        assert!(!is_scalar_literal("hello"));
+        assert!(!is_scalar_literal("web1"));
+        assert!(!is_scalar_literal(""));
+        assert!(!is_scalar_literal("True")); // case-sensitive
+        assert!(!is_scalar_literal("YES"));
+    }
+
+    // ========================================================================
+    // CclObject basic tests
+    // ========================================================================
+
     #[test]
     fn test_empty_model() {
         let model = CclObject::new();

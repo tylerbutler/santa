@@ -2,6 +2,8 @@
 
 mod common;
 
+use colored::Colorize;
+
 use common::{load_all_test_suites, ImplementationConfig, TestCase, TestSuite};
 use sickle::options::{CrlfBehavior, ParserOptions, SpacingBehavior, TabBehavior};
 use sickle::{
@@ -327,17 +329,23 @@ fn test_parsing_suite_basic_tests() {
 
         match test_result {
             Ok(_) => {
-                println!("  ✓ {}", test.name);
+                println!("  {} {}", "[PASS]".green(), test.name);
                 passed += 1;
             }
             Err(e) => {
-                println!("  ✗ {}: {:?}", test.name, e);
+                println!("  {} {}: {:?}", "[FAIL]".red(), test.name, e);
                 failed += 1;
             }
         }
     }
 
-    println!("\nResults: {} passed, {} failed", passed, failed);
+    println!(
+        "\nResults: {} {} passed, {} {} failed",
+        "[PASS]".green(),
+        passed,
+        "[FAIL]".red(),
+        failed
+    );
     assert!(passed > 0, "At least some tests should pass");
 }
 
@@ -387,17 +395,23 @@ fn test_comments_suite() {
 
         match test_result {
             Ok(_) => {
-                println!("  ✓ {}", test.name);
+                println!("  {} {}", "[PASS]".green(), test.name);
                 passed += 1;
             }
             Err(e) => {
-                println!("  ✗ {}: {:?}", test.name, e);
+                println!("  {} {}: {:?}", "[FAIL]".red(), test.name, e);
                 failed += 1;
             }
         }
     }
 
-    println!("\nComments tests: {} passed, {} failed", passed, failed);
+    println!(
+        "\nComments tests: {} {} passed, {} {} failed",
+        "[PASS]".green(),
+        passed,
+        "[FAIL]".red(),
+        failed
+    );
     // Comments feature may not be fully implemented yet
     if failed > 0 && passed == 0 {
         println!("Note: Comments feature may not be fully implemented in sickle yet");
@@ -464,19 +478,22 @@ fn test_typed_access_suite_strings() {
 
         match test_result {
             Ok(_) => {
-                println!("  ✓ {}", test.name);
+                println!("  {} {}", "[PASS]".green(), test.name);
                 passed += 1;
             }
             Err(e) => {
-                println!("  ✗ {}: {:?}", test.name, e);
+                println!("  {} {}: {:?}", "[FAIL]".red(), test.name, e);
                 failed += 1;
             }
         }
     }
 
     println!(
-        "\nString access tests: {} passed, {} failed",
-        passed, failed
+        "\nString access tests: {} {} passed, {} {} failed",
+        "[PASS]".green(),
+        passed,
+        "[FAIL]".red(),
+        failed
     );
     assert!(passed > 0, "At least some string access tests should pass");
 }
@@ -486,7 +503,10 @@ fn test_filter_function() {
     let path = Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/test_data/api_comments.json");
 
     if !path.exists() {
-        println!("⚠️  Skipping test - test data file not found");
+        println!(
+            "{} Skipping test - test data file not found",
+            "[INFO]".yellow()
+        );
         return;
     }
 
@@ -535,19 +555,22 @@ fn test_filter_function() {
 
         match test_result {
             Ok(_) => {
-                println!("  ✓ {}", test.name);
+                println!("  {} {}", "[PASS]".green(), test.name);
                 passed += 1;
             }
             Err(e) => {
-                println!("  ✗ {}: {:?}", test.name, e);
+                println!("  {} {}: {:?}", "[FAIL]".red(), test.name, e);
                 failed += 1;
             }
         }
     }
 
     println!(
-        "\nFilter function tests: {} passed, {} failed",
-        passed, failed
+        "\nFilter function tests: {} {} passed, {} {} failed",
+        "[PASS]".green(),
+        passed,
+        "[FAIL]".red(),
+        failed
     );
     println!("Found {} tests using filter function", filter_tests.len());
     assert!(
@@ -561,11 +584,11 @@ fn test_all_ccl_suites_comprehensive() {
     let suites = load_all_test_suites();
     let config = ImplementationConfig::sickle_current();
 
-    println!("\n🧪 Running comprehensive CCL test suite");
-    println!("📁 Loaded {} test suite files", suites.len());
+    println!("\n{}", "═══ CCL TEST SUITE ═══".bold());
+    println!("Loaded {} test suite files", suites.len());
 
     // Display implementation capabilities
-    println!("\n🔧 Implementation Capabilities");
+    println!("\n{}", "═══ CAPABILITIES ═══".bold());
 
     // Functions
     let mut functions: Vec<_> = config.supported_functions.iter().collect();
@@ -581,12 +604,12 @@ fn test_all_ccl_suites_comprehensive() {
         println!("     {}", row.trim_end());
     }
 
-    println!("   Behaviors:");
+    println!("   {}:", "Behaviors".bold());
 
     // Fixed behaviors (compile-time)
     println!("     Fixed (compile-time):");
     println!(
-        "       • Array ordering:   {}",
+        "       - Array ordering:   {}",
         config.array_order_behavior.as_str()
     );
 
@@ -600,7 +623,7 @@ fn test_all_ccl_suites_comprehensive() {
         .map(|b| b.as_str())
         .collect();
     crlf.sort();
-    println!("       • CRLF handling:    {}", crlf.join(", "));
+    println!("       - CRLF handling:    {}", crlf.join(", "));
 
     // Spacing
     let mut spacing: Vec<_> = config
@@ -609,7 +632,7 @@ fn test_all_ccl_suites_comprehensive() {
         .map(|b| b.as_str())
         .collect();
     spacing.sort();
-    println!("       • Spacing:          {}", spacing.join(", "));
+    println!("       - Spacing:          {}", spacing.join(", "));
 
     // Tabs
     let mut tabs: Vec<_> = config
@@ -618,7 +641,7 @@ fn test_all_ccl_suites_comprehensive() {
         .map(|b| b.as_str())
         .collect();
     tabs.sort();
-    println!("       • Tab handling:     {}", tabs.join(", "));
+    println!("       - Tab handling:     {}", tabs.join(", "));
 
     // Access-time configurable behaviors
     println!("     Access-time configurable:");
@@ -630,7 +653,7 @@ fn test_all_ccl_suites_comprehensive() {
         .map(|b| b.as_str())
         .collect();
     boolean.sort();
-    println!("       • Boolean parsing:  {}", boolean.join(", "));
+    println!("       - Boolean parsing:  {}", boolean.join(", "));
 
     // List coercion (via ListOptions)
     let mut list_coercion: Vec<_> = config
@@ -639,7 +662,7 @@ fn test_all_ccl_suites_comprehensive() {
         .map(|b| b.as_str())
         .collect();
     list_coercion.sort();
-    println!("       • List coercion:    {}", list_coercion.join(", "));
+    println!("       - List coercion:    {}", list_coercion.join(", "));
 
     println!();
 
@@ -678,7 +701,7 @@ fn test_all_ccl_suites_comprehensive() {
 
     for suite_name in suite_names {
         let suite = &suites[suite_name];
-        println!("📋 {}", suite_name);
+        println!("{} {}", "──".dimmed(), suite_name.bold());
 
         let mut suite_passed = 0;
         let mut suite_failed = 0;
@@ -739,12 +762,14 @@ fn test_all_ccl_suites_comprehensive() {
 
             if only_intentional_skips {
                 println!(
-                    "   ℹ️   Skipped {} tests (incompatible with current config)",
+                    "   {} Skipped {} tests (incompatible with current config)",
+                    "[INFO]".yellow(),
                     skipped_by_filter
                 );
             } else {
                 println!(
-                    "   ⚠️   Skipped {} tests due to unsupported capabilities",
+                    "   {} Skipped {} tests due to unsupported capabilities",
+                    "[INFO]".yellow(),
                     skipped_by_filter
                 );
             }
@@ -765,7 +790,8 @@ fn test_all_ccl_suites_comprehensive() {
                 // Detect potential masking: if we have both variant and behavior skips
                 if has_behavior_skips {
                     println!(
-                        "      ⚠️  Note: Variant filtering may mask {} behavior conflict(s)",
+                        "      {} Note: Variant filtering may mask {} behavior conflict(s)",
+                        "[INFO]".yellow(),
                         conflicting_behaviors.len()
                     );
                 }
@@ -1304,32 +1330,48 @@ fn test_all_ccl_suites_comprehensive() {
         total_failed += suite_failed;
         total_skipped += suite_skipped;
 
-        println!(
-            "  ✓ {} passed, ✗ {} failed, ⊘ {} skipped (total: {})\n",
-            suite_passed,
-            suite_failed,
-            skipped_by_filter + suite_skipped,
-            suite.tests.len()
-        );
+        // Build summary parts, omitting zero counts
+        let mut parts = Vec::new();
+        if suite_passed > 0 {
+            parts.push(format!("{} {} passed", "[PASS]".green(), suite_passed));
+        }
+        if suite_failed > 0 {
+            parts.push(format!("{} {} failed", "[FAIL]".red(), suite_failed));
+        }
+        let total_skipped_in_suite = skipped_by_filter + suite_skipped;
+        if total_skipped_in_suite > 0 {
+            parts.push(format!(
+                "{} {} skipped",
+                "[INFO]".yellow(),
+                total_skipped_in_suite
+            ));
+        }
+        println!("   {} (total: {})\n", parts.join(", "), suite.tests.len());
     }
 
     // Restore the default panic hook
     std::panic::set_hook(default_hook);
 
-    println!("════════════════════════════════════════");
-    println!("📊 Overall Results:");
-    println!("  ✓ {} passed", total_passed);
-    println!("  ✗ {} failed", total_failed);
-    println!(
-        "  ⊘ {} skipped (unsupported validation types)",
-        total_skipped
-    );
+    println!("{}", "═══ RESULTS ═══".bold());
+    if total_passed > 0 {
+        println!("  {} {} passed", "[PASS]".green(), total_passed);
+    }
+    if total_failed > 0 {
+        println!("  {} {} failed", "[FAIL]".red(), total_failed);
+    }
+    if total_skipped > 0 {
+        println!(
+            "  {} {} skipped (unsupported validation types)",
+            "[INFO]".yellow(),
+            total_skipped
+        );
+    }
     println!("  Total: {}", total_passed + total_failed + total_skipped);
-    println!("════════════════════════════════════════");
+    println!("{}", "════════════════════════════════════════".dimmed());
 
     // Show skipped validation types
     if !skipped_validations.is_empty() {
-        println!("\n⊘ Skipped Validation Types:");
+        println!("\n{}", "═══ SKIPPED VALIDATION TYPES ═══".bold());
         let mut skip_types: Vec<_> = skipped_validations.iter().collect();
         skip_types.sort_by_key(|(_, count)| std::cmp::Reverse(**count));
         for (val_type, count) in skip_types {
@@ -1339,7 +1381,7 @@ fn test_all_ccl_suites_comprehensive() {
 
     // Show behavior coverage
     if !behavior_coverage.is_empty() {
-        println!("\n🔄 Behavior Coverage:");
+        println!("\n{}", "═══ BEHAVIOR COVERAGE ═══".bold());
         println!("   Note: Some behaviors are mutually exclusive configuration options");
 
         // Group mutually exclusive behaviors
@@ -1358,7 +1400,7 @@ fn test_all_ccl_suites_comprehensive() {
             {
                 let pct1 = if *t1 > 0 { (*p1 * 100) / *t1 } else { 0 };
                 let pct2 = if *t2 > 0 { (*p2 * 100) / *t2 } else { 0 };
-                println!("  ⚙️  {} vs {}", opt1, opt2);
+                println!("  {} vs {}", opt1.bold(), opt2.bold());
                 println!("      {}: {}/{} ({}%)", opt1, p1, t1, pct1);
                 println!("      {}: {}/{} ({}%)", opt2, p2, t2, pct2);
                 shown.insert(opt1.to_string());
@@ -1383,11 +1425,11 @@ fn test_all_ccl_suites_comprehensive() {
                 0
             };
             let status = if *passed == *total {
-                "✅"
+                "[PASS]".green()
             } else if *passed > 0 {
-                "⚠️"
+                "[INFO]".yellow()
             } else {
-                "❌"
+                "[FAIL]".red()
             };
             println!(
                 "  {} {}: {}/{} ({}%)",
@@ -1398,7 +1440,7 @@ fn test_all_ccl_suites_comprehensive() {
 
     // Show function coverage
     if !function_coverage.is_empty() {
-        println!("\n🎯 Function Coverage:");
+        println!("\n{}", "═══ FUNCTION COVERAGE ═══".bold());
         let mut functions: Vec<_> = function_coverage.iter().collect();
         functions.sort_by_key(|(name, _)| *name);
         for (function, (passed, total)) in functions {
@@ -1408,11 +1450,11 @@ fn test_all_ccl_suites_comprehensive() {
                 0
             };
             let status = if *passed == *total {
-                "✅"
+                "[PASS]".green()
             } else if *passed > 0 {
-                "⚠️"
+                "[INFO]".yellow()
             } else {
-                "❌"
+                "[FAIL]".red()
             };
             println!(
                 "  {} {}: {}/{} ({}%)",
@@ -1423,9 +1465,10 @@ fn test_all_ccl_suites_comprehensive() {
 
     // Show failure details (limit to first 20 for readability)
     if !failure_details.is_empty() {
-        println!("\n✗ Failure Details (showing first 20):");
+        println!("\n{}", "═══ FAILURE DETAILS ═══".bold());
+        println!("  (showing first 20)");
         for (suite, test, reason) in failure_details.iter().take(20) {
-            println!("  [{suite}] {test}");
+            println!("  {} [{suite}] {test}", "[FAIL]".red());
             // Extract the key part of the error message
             let clean_reason = if let Some(msg) = reason.split("assertion").nth(1) {
                 format!("    Assertion{}", msg.trim())

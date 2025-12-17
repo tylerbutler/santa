@@ -602,35 +602,22 @@ impl TestSuite {
         }
 
         // PRECEDENCE LEVEL 2b: Behavior choices
-        // If the test specifies any behavior that conflicts with our config, skip it
+        // If the test specifies any behavior that we don't support, skip it
         // Note: Tests may specify multiple behaviors (e.g., both tabs_preserve AND loose_spacing)
-        // We must check ALL behaviors for conflicts, not just require one to match
+        // We must check ALL behaviors - skip only if we don't support a required behavior
         if !test.behaviors.is_empty() {
-            let mutually_exclusive = [
-                ("boolean_strict", "boolean_lenient"),
-                ("crlf_preserve_literal", "crlf_normalize_to_lf"),
-                ("list_coercion_enabled", "list_coercion_disabled"),
-                ("strict_spacing", "loose_spacing"),
-                ("tabs_preserve", "tabs_to_spaces"),
-                ("array_order_insertion", "array_order_lexicographic"),
-            ];
+            let mut unsupported: Vec<String> = Vec::new();
 
-            let mut conflicting: Vec<String> = Vec::new();
-
-            for (opt1, opt2) in &mutually_exclusive {
-                // Check if test requires opt1 but we configured opt2 (or vice versa)
-                if test.behaviors.contains(&opt1.to_string()) && config.supports_behavior(opt2) {
-                    conflicting.push(opt1.to_string());
-                }
-                if test.behaviors.contains(&opt2.to_string()) && config.supports_behavior(opt1) {
-                    conflicting.push(opt2.to_string());
+            for behavior in &test.behaviors {
+                if !config.supports_behavior(behavior) {
+                    unsupported.push(behavior.clone());
                 }
             }
 
-            if !conflicting.is_empty() {
-                conflicting.sort();
-                conflicting.dedup();
-                return Some(SkipReason::ConflictingBehaviors(conflicting));
+            if !unsupported.is_empty() {
+                unsupported.sort();
+                unsupported.dedup();
+                return Some(SkipReason::ConflictingBehaviors(unsupported));
             }
         }
         // Note: Tests without explicit behaviors will run with current config
