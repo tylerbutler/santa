@@ -2,24 +2,28 @@
 
 All notable changes to this project will be documented in this file.
 
-### CI
+## [unreleased]
 
-- Improve codecov configuration for multi-crate workspace (#33)
+No notable changes in this release.
 
-- Use per-crate git-cliff configs for changelog generation (#35)
+## [sickle-v0.1.1] - 2025-12-16
 
+### Bug Fixes
+
+- Parser cleanup and test improvements (#56)
+
+- Filter out comments in filter validation tests (#61)
+
+
+### Features
+
+- Add granular feature flags and serde serialization (#44)
+
+
+## [sickle-v0.1.0] - 2025-12-01
 
 ### Features
 
 - Add CCL parser library and codecov tracking (#26)
 
-
-### Refactoring
-
-- Major Model API redesign with data-driven test framework (#29)
-
-
-### Testing
-
-- Add ccl-test-data test suites (#28)
 

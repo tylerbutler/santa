@@ -2,54 +2,38 @@
 
 All notable changes to this project will be documented in this file.
 
-### CI
+## [unreleased]
 
-- Use per-crate git-cliff configs for changelog generation (#35)
+No notable changes in this release.
 
-- Add semver check
-
-
-### Miscellaneous
-
-- Release v0.1.4 (#25)
-
+## [santa-data-v0.3.0] - 2025-12-16
 
 ### Features
 
-- Enhance workspace configuration and CI for multi-package best practices (#23)
+- Reorganize package data by source (#45)
 
 
-### Miscellaneous
+## [santa-data-v0.2.0] - 2025-12-01
 
-- Release v0.1.3 (#24)
+No notable changes in this release.
 
+## [santa-data-v0.1.4] - 2025-11-17
 
-### Bug Fixes
+No notable changes in this release.
 
-- Make source system extensible without code changes (#19)
+## [santa-data-v0.1.3] - 2025-11-17
 
+No notable changes in this release.
 
-### Miscellaneous
+## [santa-data-v0.1.2] - 2025-11-17
 
-- Release v0.1.2 (#20)
+No notable changes in this release.
 
+## [santa-data-v0.1.1] - 2025-11-17
 
-### Miscellaneous
+No notable changes in this release.
 
-- Release v0.1.1 (#14)
+## [santa-data-v0.1.0] - 2025-11-16
 
-
-### Refactoring
-
-- Remove unused dependencies and fix clippy warnings (#12)
-
-
-### Miscellaneous
-
-- Release (#3)
-
-
-### Refactoring
-
-- Migrate to workspace structure with santa-data crate (#6)
+No notable changes in this release.
 

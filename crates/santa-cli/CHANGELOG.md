@@ -2,6 +2,35 @@
 
 All notable changes to this project will be documented in this file.
 
+## [unreleased]
+
+No notable changes in this release.
+
+## [santa-v0.3.0] - 2025-12-16
+
+### Documentation
+
+- Add comprehensive user documentation (#58)
+
+
+### Features
+
+- Add --markdown-help flag for documentation generation (#39)
+
+- Display data location and use config directory (#42)
+
+- Reorganize package data by source (#45)
+
+
+### Performance
+
+- Optimize release binary size and add size tracking (#48)
+
+- Replace ureq and tera with lighter alternatives (#47)
+
+
+## [santa-v0.2.0] - 2025-12-01
+
 ### Bug Fixes
 
 - Add 32-bit architecture support and remove 32-bit Windows CI targets (#34)
@@ -9,23 +38,15 @@ All notable changes to this project will be documented in this file.
 - Resolve source-specific package names in status check (#31)
 
 
-### CI
+## [santa-v0.1.4] - 2025-11-17
 
-- Use per-crate git-cliff configs for changelog generation (#35)
+No notable changes in this release.
 
-- Add semver check
+## [santa-v0.1.3] - 2025-11-17
 
-- Further split ci jobs
+### Bug Fixes
 
-
-### Miscellaneous
-
-- Release
-
-
-### Miscellaneous
-
-- Release v0.1.4 (#25)
+- Disable GitHub release creation in release-plz (#22)
 
 
 ### Features
@@ -33,65 +54,34 @@ All notable changes to this project will be documented in this file.
 - Enhance workspace configuration and CI for multi-package best practices (#23)
 
 
-### Miscellaneous
-
-- Release v0.1.3 (#24)
-
+## [santa-v0.1.2] - 2025-11-17
 
 ### Bug Fixes
+
+- Use RELEASE_PLZ_TOKEN to trigger release CI
 
 - Make source system extensible without code changes (#19)
 
 
-### Miscellaneous
-
-- Release v0.1.2 (#20)
-
+## [santa-v0.1.1] - 2025-11-17
 
 ### Bug Fixes
 
-- Move templates into santa-cli crate for cargo packaging
+- Add platform-aware source filtering to default config (#4)
 
-
-### Miscellaneous
-
-- Set santa version to 0.1.0
-
-- Release v0.1.1 (#16)
-
-
-### Bug Fixes
+- Add Windows package manager to default config sources (#8)
 
 - Add version requirement for santa-data dependency
 
 - Correct README path in santa-cli Cargo.toml (#9)
 
+- Use RELEASE_PLZ_TOKEN to trigger CI on release PRs (#15)
 
-### Miscellaneous
-
-- Release v0.1.1 (#14)
-
-
-### Refactoring
-
-- Remove unused dependencies and fix clippy warnings (#12)
-
-- Remove unused code (#13)
+- Move templates into santa-cli crate for cargo packaging
 
 
-### Bug Fixes
+### Features
 
-- Add Windows package manager to default config sources (#8)
+- Modernize architecture with security fixes and release automation (#1)
 
-
-### Miscellaneous
-
-- Release (#3)
-
-
-### Refactoring
-
-- Migrate to workspace structure with CCL-only configuration (#5)
-
-- Migrate to workspace structure with santa-data crate (#6)
 

@@ -91,7 +91,7 @@ impl Entry {
 /// Following the OCaml implementation: `type entry_map = value_entry list KeyMap.t`
 ///
 /// A CCL document is a fixed-point recursive structure where:
-/// - Every Model is a map from String to Vec<Model>
+/// - Every Model is a map from String to `Vec<Model>`
 /// - An empty map {} represents a leaf/terminal value
 /// - String values are encoded in the recursive structure
 /// - Lists are represented as multiple entries with the same key
@@ -216,7 +216,7 @@ impl CclObject {
     /// Create a CclObject representing a list using bare list syntax
     ///
     /// In CCL, a list is represented using the same empty key with multiple values.
-    /// Now that we use Vec<CclObject> internally, we can properly support duplicate keys.
+    /// Now that we use `Vec<CclObject>` internally, we can properly support duplicate keys.
     ///
     /// # Example
     ///
@@ -333,7 +333,7 @@ impl CclObject {
         CclObject(result)
     }
 
-    /// Compose two value lists (Vec<CclObject>) into one
+    /// Compose two value lists (`Vec<CclObject>`) into one
     ///
     /// When composing values for the same key, we merge them into a single
     /// composed value by recursively composing each pair.

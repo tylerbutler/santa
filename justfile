@@ -14,7 +14,7 @@ alias ta := test-all
 alias tf := test-fast
 alias l := lint
 alias f := fix
-alias pr := ci
+alias ci := pr
 
 export RUST_BACKTRACE := "1"
 
@@ -233,6 +233,28 @@ docs:
 docs-check:
     RUSTDOCFLAGS="-D warnings" cargo doc --no-deps --document-private-items --workspace
 
+# Changelog Commands
+# ==================
+
+# Regenerate all configs from commit-types.json (single source of truth)
+generate-configs:
+    python3 scripts/generate-cliff-configs.py
+    python3 scripts/generate-commitlint-config.py
+
+# Check that generated configs are in sync with commit-types.json
+check-configs:
+    python3 scripts/check-configs-sync.py
+
+# Regenerate git-cliff config files for all crates
+generate-cliff-configs:
+    python3 scripts/generate-cliff-configs.py
+
+# Generate changelogs for all crates
+changelogs: generate-cliff-configs
+    git-cliff --config crates/sickle/cliff.toml -o crates/sickle/CHANGELOG.md 2>/dev/null
+    git-cliff --config crates/santa-data/cliff.toml -o crates/santa-data/CHANGELOG.md 2>/dev/null
+    git-cliff --config crates/santa-cli/cliff.toml -o crates/santa-cli/CHANGELOG.md 2>/dev/null
+
 # Release Commands
 # ===============
 
@@ -257,13 +279,25 @@ clean:
 # CI/CD Commands (matches GitHub Actions)
 # =====================================
 
-# Run the same checks as CI
-ci:
+# Run PR checks (mimics pr.yml workflow)
+pr:
     just format --check
+    just docs-check
+    just lint
+    just check-configs
+    just test-coverage
+    just audit
+    just build
+    just verify-package
+
+# Run main branch checks (mimics test.yml workflow)
+main:
+    just format --check
+    just docs-check
     just lint
     just test-coverage
-    just build-release
     just audit
+    just build-release
 
 # Binary Size Analysis Commands
 # =============================
@@ -271,8 +305,8 @@ ci:
 # Run cargo-bloated on santa and sickle, save to metrics/ (Linux only)
 [linux]
 bloat:
-    cargo bloated -p santa --output crates | tee metrics/bloat.txt
-    cargo bloated --lib -p sickle --all-features --output crates | tee metrics/bloat-sickle.txt
+    cargo bloated -p santa --bin=santa --output crates | tee metrics/bloat.txt
+    cargo bloated -p sickle --lib --all-features --output crates | tee metrics/bloat-sickle.txt
 
 # Record release binary size to metrics/binary-size.txt
 [linux]
