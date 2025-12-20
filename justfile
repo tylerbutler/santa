@@ -195,6 +195,7 @@ lint *ARGS='':
 # Format code
 format *ARGS='':
     cargo fmt --all -- {{ARGS}}
+    ruff format scripts/
 
 # Auto-fix formatting and simple lint issues
 fix:
