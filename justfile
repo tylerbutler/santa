@@ -93,6 +93,10 @@ verify-packages *ARGS='':
     @echo "✓ Verifying packages..."
     @cargo run --quiet --features dev-tools --bin verify-packages -- {{ARGS}}
 
+# Fetch package name mappings from Repology
+fetch-repology *ARGS='':
+    @cargo run --quiet --features dev-tools --bin fetch-repology -- {{ARGS}}
+
 # Full package discovery pipeline
 pipeline:
     @echo "🚀 Running full package discovery pipeline..."
@@ -100,8 +104,14 @@ pipeline:
     just crossref-packages --top=500
     just verify-packages --limit=500
     just merge-verified
+    just fetch-repology-from-crossref
     just generate-index
     @echo "✅ Pipeline complete"
+
+# Fetch Repology mappings for top packages from crossref results
+fetch-repology-from-crossref limit='100':
+    @echo "Fetching Repology mappings for top {{limit}} crossref packages..."
+    @cargo run --quiet --features dev-tools --bin fetch-repology -- --from-crossref {{limit}} --update
 
 # Build for CI with specific target
 ci-build TARGET='x86_64-unknown-linux-gnu' *ARGS='':

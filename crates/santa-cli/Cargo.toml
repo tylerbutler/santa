@@ -55,7 +55,7 @@ serde-enum-str = "0.4.0"
 serde_json = "1.0"
 
 # HTTP client for package collection (dev-tools only)
-reqwest = { version = "0.12", features = ["json"], optional = true }
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"], optional = true }
 
 # CCL configuration parser with serde support
 sickle = { version = "0.1.1", path = "../sickle", features = ["serde"] }
@@ -160,6 +160,11 @@ required-features = ["dev-tools"]
 [[bin]]
 name = "verify-packages"
 path = "src/bin/verify_packages.rs"
+required-features = ["dev-tools"]
+
+[[bin]]
+name = "fetch-repology"
+path = "src/bin/fetch_repology.rs"
 required-features = ["dev-tools"]
 
 [[bench]]
