@@ -2,6 +2,7 @@
 raw/*.json
 crossref_results.json
 verified_packages.json
+repology_cache.json
 
 # Cache directories
 .cache/

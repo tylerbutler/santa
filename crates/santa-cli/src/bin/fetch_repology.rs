@@ -6,6 +6,7 @@
 use anyhow::{Context, Result};
 use chrono::Utc;
 use clap::{Parser, Subcommand};
+use dialoguer::Confirm;
 use serde::{Deserialize, Serialize};
 use sickle::CclObject;
 use std::collections::{BTreeMap, BTreeSet};
@@ -67,6 +68,10 @@ enum Commands {
         /// Re-validate packages that are already marked as verified
         #[arg(long)]
         force: bool,
+
+        /// Automatically fix mismatched package names in source CCL files
+        #[arg(long)]
+        fix: bool,
     },
 }
 
@@ -349,6 +354,114 @@ async fn build_cache(
     Ok(cache)
 }
 
+/// Apply fixes to source CCL files interactively
+fn apply_source_fixes(sources_dir: &Path, fixes: &[SourceFix]) -> Result<()> {
+    // Track which files need to be written and their modified content
+    let mut pending_writes: BTreeMap<String, Vec<String>> = BTreeMap::new();
+    let mut fix_counts: BTreeMap<String, usize> = BTreeMap::new();
+
+    for fix in fixes {
+        let source_path = sources_dir.join(format!("{}.ccl", fix.source));
+        if !source_path.exists() {
+            println!("  [SKIP] {}.ccl not found", fix.source);
+            continue;
+        }
+
+        // Load file content (from pending writes if already modified, otherwise from disk)
+        let lines: Vec<String> = if let Some(cached) = pending_writes.get(&fix.source) {
+            cached.clone()
+        } else {
+            let content = fs::read_to_string(&source_path)
+                .with_context(|| format!("Failed to read {}", source_path.display()))?;
+            content.lines().map(|s| s.to_string()).collect()
+        };
+
+        // Find the line with the old entry
+        let old_pattern_with_value =
+            format!("{} = {}", fix.old_source_name, fix.canonical_name);
+        let old_pattern_bare = format!("{} =", fix.old_source_name);
+
+        let mut found_idx: Option<usize> = None;
+        let mut old_line = String::new();
+
+        for (idx, line) in lines.iter().enumerate() {
+            let trimmed = line.trim();
+
+            // Check for "old_source_name = canonical_name" format
+            if trimmed == old_pattern_with_value
+                || trimmed.starts_with(&format!("{} ", old_pattern_with_value))
+            {
+                found_idx = Some(idx);
+                old_line = trimmed.to_string();
+                break;
+            }
+
+            // Check for "old_source_name =" bare format
+            if trimmed == old_pattern_bare && fix.old_source_name == fix.canonical_name {
+                found_idx = Some(idx);
+                old_line = trimmed.to_string();
+                break;
+            }
+        }
+
+        let Some(idx) = found_idx else {
+            println!(
+                "  [SKIP] Could not find '{}' in {}.ccl",
+                fix.old_source_name, fix.source
+            );
+            continue;
+        };
+
+        // Determine new format
+        let new_line = if fix.new_source_name == fix.canonical_name {
+            format!("{} =", fix.new_source_name)
+        } else {
+            format!("{} = {}", fix.new_source_name, fix.canonical_name)
+        };
+
+        // Prompt user
+        println!();
+        println!(
+            "  [{}] {} → {}",
+            fix.source, old_line, new_line
+        );
+
+        let confirm = Confirm::new()
+            .with_prompt("  Apply this fix?")
+            .default(true)
+            .interact()?;
+
+        if confirm {
+            let mut updated_lines = lines;
+            updated_lines[idx] = new_line;
+            pending_writes.insert(fix.source.clone(), updated_lines);
+            *fix_counts.entry(fix.source.clone()).or_insert(0) += 1;
+            println!("  ✓ Queued");
+        } else {
+            // Still cache the unmodified lines for next iteration
+            if !pending_writes.contains_key(&fix.source) {
+                pending_writes.insert(fix.source.clone(), lines);
+            }
+            println!("  ✗ Skipped");
+        }
+    }
+
+    // Write all pending changes
+    println!();
+    for (source, lines) in pending_writes {
+        let count = fix_counts.get(&source).copied().unwrap_or(0);
+        if count > 0 {
+            let source_path = sources_dir.join(format!("{}.ccl", source));
+            let new_content = lines.join("\n") + "\n";
+            fs::write(&source_path, new_content)
+                .with_context(|| format!("Failed to write {}", source_path.display()))?;
+            println!("  Updated {}.ccl ({} fixes applied)", source, count);
+        }
+    }
+
+    Ok(())
+}
+
 /// Validate source files using cached Repology data (fast, no API calls)
 fn validate_from_cache(
     cache: &RepologyCache,
@@ -356,6 +469,7 @@ fn validate_from_cache(
     catalog_path: &Path,
     source_names: &[String],
     force: bool,
+    fix: bool,
 ) -> Result<()> {
     // Collect all entries from all source files
     let mut all_entries: Vec<SourceEntry> = Vec::new();
@@ -454,6 +568,7 @@ fn validate_from_cache(
     println!("{}", "=".repeat(60));
 
     let mut stats = ValidationStats::default();
+    let mut fixes: Vec<SourceFix> = Vec::new();
 
     // Group entries by source for organized output
     let mut by_source: BTreeMap<String, Vec<&SourceEntry>> = BTreeMap::new();
@@ -492,6 +607,13 @@ fn validate_from_cache(
                         "  [MISMATCH] {} - expected '{}', Repology says '{}'",
                         entry.canonical_name, expected, actual
                     );
+                    // Collect fix for later application
+                    fixes.push(SourceFix {
+                        source: entry.source.clone(),
+                        canonical_name: entry.canonical_name.clone(),
+                        old_source_name: expected.clone(),
+                        new_source_name: actual.clone(),
+                    });
                 }
                 ValidationResult::Missing { repology_name } => {
                     stats.missing += 1;
@@ -528,6 +650,16 @@ fn validate_from_cache(
     println!("  Missing mappings: {}", stats.missing);
     if !not_in_cache.is_empty() {
         println!("  Skipped (not in cache): {}", not_in_cache.len());
+    }
+
+    // Apply fixes if requested
+    if fix && !fixes.is_empty() {
+        println!("\n{}", "=".repeat(60));
+        println!("Applying {} fixes...", fixes.len());
+        println!("{}", "=".repeat(60));
+        apply_source_fixes(sources_dir, &fixes)?;
+    } else if !fixes.is_empty() {
+        println!("\nRun with --fix to automatically correct {} mismatches", fixes.len());
     }
 
     // Collect validated packages for catalog update
@@ -839,6 +971,19 @@ enum ValidationResult {
     Missing {
         repology_name: String,
     },
+}
+
+/// A fix to apply to a source CCL file
+#[derive(Debug, Clone)]
+struct SourceFix {
+    /// Source file name (e.g., "brew", "aur")
+    source: String,
+    /// Canonical package name
+    canonical_name: String,
+    /// Current (wrong) source name in the CCL file
+    old_source_name: String,
+    /// Correct source name according to Repology
+    new_source_name: String,
 }
 
 /// Validated package info to write to catalog
@@ -1255,6 +1400,7 @@ async fn main() -> Result<()> {
             sources,
             from_cache,
             force,
+            fix,
         } => {
             // Expand "all" to all source files
             let source_names: Vec<String> = if sources.iter().any(|s| s == "all") {
@@ -1273,8 +1419,11 @@ async fn main() -> Result<()> {
                     anyhow::bail!("Cache is empty. Run 'build-cache' first to populate it.");
                 }
                 println!("Using cached data ({} projects)", cache.projects.len());
-                validate_from_cache(&cache, &sources_dir, &catalog_path, &source_names, force)?;
+                validate_from_cache(&cache, &sources_dir, &catalog_path, &source_names, force, fix)?;
             } else {
+                if fix {
+                    anyhow::bail!("--fix requires --from-cache (live API validation doesn't support auto-fix yet)");
+                }
                 let client = reqwest::Client::new();
                 validate_sources(&client, &sources_dir, &catalog_path, &source_names, force).await?;
             }

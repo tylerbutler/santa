@@ -288,5 +288,5 @@ zq =
 
 /= Packages with name mappings to canonical
 fnm-bin = fnm
-oh-my-posh-git = oh-my-posh
-starship-git = starship
+oh-my-posh =
+starship =
