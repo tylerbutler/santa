@@ -1,5 +1,9 @@
 /= Arch packages
+aom =
 binutils =
+boost =
+cairo =
+curl =
 fontconfig =
 gdbm =
 giflib =

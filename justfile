@@ -100,6 +100,7 @@ pipeline:
     @echo "Running full package discovery pipeline..."
     just collect-packages
     just crossref-packages --top=500
+    just verify-packages
     just build-repology-cache --from-crossref 200
     just validate-cached
     just merge-verified

@@ -5,9 +5,10 @@
 //! catalog with descriptions from verified packages.
 
 use anyhow::{Context, Result};
+use santa::catalog::{extract_string_value, load_catalog, save_catalog};
 use serde::Deserialize;
 use sickle::printer::CclPrinter;
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
 use std::path::{Path, PathBuf};
 
@@ -22,13 +23,6 @@ struct VerifiedPackage {
     name: String,
     description: Option<String>,
     verified_sources: BTreeMap<String, String>,
-}
-
-/// Catalog entry for packages.ccl
-#[derive(Debug, Clone, Default)]
-struct CatalogEntry {
-    description: Option<String>,
-    homepage: Option<String>,
 }
 
 /// Entry for a package in a specific source file
@@ -53,101 +47,12 @@ impl SourceEntry {
     }
 }
 
-/// Extract string from CclObject
-fn extract_string_value(obj: &sickle::CclObject) -> Option<String> {
-    if obj.len() == 1 && obj.values().next().unwrap().is_empty() {
-        Some(obj.keys().next().unwrap().clone())
-    } else {
-        None
-    }
-}
-
-/// Load the package catalog (packages.ccl) for metadata
-fn load_catalog(path: &Path) -> Result<BTreeMap<String, CatalogEntry>> {
-    let mut catalog = BTreeMap::new();
-
-    if !path.exists() {
-        return Ok(catalog);
-    }
-
-    let content = fs::read_to_string(path)
-        .with_context(|| format!("Failed to read catalog: {}", path.display()))?;
-
-    let model = sickle::load(&content)
-        .with_context(|| format!("Failed to parse catalog: {}", path.display()))?;
-
-    for key in model.keys() {
-        if key.starts_with('/') || key.is_empty() {
-            continue;
-        }
-
-        let value = model.get(key)?;
-        let mut entry = CatalogEntry::default();
-
-        if !value.is_empty() {
-            if let Ok(desc_obj) = value.get("description") {
-                if let Some(desc) = extract_string_value(desc_obj) {
-                    entry.description = Some(desc);
-                }
-            }
-            if let Ok(homepage_obj) = value.get("homepage") {
-                if let Some(homepage) = extract_string_value(homepage_obj) {
-                    entry.homepage = Some(homepage);
-                }
-            }
-        }
-
-        catalog.insert(key.clone(), entry);
-    }
-
-    Ok(catalog)
-}
-
-/// Save the package catalog to packages.ccl
-fn save_catalog(path: &Path, catalog: &BTreeMap<String, CatalogEntry>) -> Result<()> {
-    let mut obj = sickle::CclObject::new();
-    obj.add_comment("Core package catalog");
-    obj.add_comment("Source of truth for package identity and metadata");
-    obj.add_blank_line();
-
-    let map = obj.inner_mut();
-
-    for (name, entry) in catalog {
-        if entry.description.is_none() && entry.homepage.is_none() {
-            continue;
-        }
-
-        let mut pkg_obj = sickle::CclObject::new();
-        let pkg_map = pkg_obj.inner_mut();
-
-        if let Some(ref desc) = entry.description {
-            pkg_map.insert(
-                "description".to_string(),
-                vec![sickle::CclObject::from_string(desc)],
-            );
-        }
-
-        if let Some(ref homepage) = entry.homepage {
-            pkg_map.insert(
-                "homepage".to_string(),
-                vec![sickle::CclObject::from_string(homepage)],
-            );
-        }
-
-        map.insert(name.clone(), vec![pkg_obj]);
-    }
-
-    let printer = CclPrinter::new();
-    let output = printer.print(&obj);
-    fs::write(path, output).with_context(|| format!("Failed to write: {}", path.display()))?;
-
-    Ok(())
-}
-
 /// Result of loading verified packages
 struct VerifiedData {
     by_source: BTreeMap<String, Vec<SourceEntry>>,
     descriptions: BTreeMap<String, String>,
+    /// Set of package names that have been verified
+    verified_names: BTreeSet<String>,
 }
 
 /// Load verified packages and group by source, also extract descriptions
@@ -160,8 +65,12 @@ fn load_verified_packages(path: &Path) -> Result<VerifiedData> {
 
     let mut by_source: BTreeMap<String, Vec<SourceEntry>> = BTreeMap::new();
     let mut descriptions: BTreeMap<String, String> = BTreeMap::new();
+    let mut verified_names: BTreeSet<String> = BTreeSet::new();
 
     for pkg in data.packages {
+        // Track all verified package names
+        verified_names.insert(pkg.name.clone());
+
         // Collect description if present
         if let Some(ref desc) = pkg.description {
             if !desc.is_empty() {
@@ -184,6 +93,7 @@ fn load_verified_packages(path: &Path) -> Result<VerifiedData> {
     Ok(VerifiedData {
         by_source,
         descriptions,
+        verified_names,
     })
 }
 
@@ -357,31 +267,47 @@ fn main() -> Result<()> {
         verified_data.by_source.keys().collect::<Vec<_>>()
     );
 
-    // Load existing catalog and merge in new descriptions
+    // Load existing catalog and merge in new descriptions + verified status
     println!("Loading package catalog from {}...", catalog_file.display());
     let mut catalog = load_catalog(&catalog_file)?;
     let existing_catalog_count = catalog.len();
+    let today = chrono::Local::now().format("%Y-%m-%d").to_string();
 
     let mut new_descriptions = 0;
-    for (name, desc) in &verified_data.descriptions {
+    let mut newly_verified = 0;
+
+    // Mark all verified packages and add descriptions
+    for name in &verified_data.verified_names {
         let entry = catalog.entry(name.clone()).or_default();
-        if entry.description.is_none() {
-            entry.description = Some(desc.clone());
-            new_descriptions += 1;
+
+        // Add description if we have one and entry doesn't
+        if let Some(desc) = verified_data.descriptions.get(name) {
+            if entry.description.is_none() {
+                entry.description = Some(desc.clone());
+                new_descriptions += 1;
+            }
+        }
+
+        // Mark as verified
+        if !entry.verified {
+            entry.verified = true;
+            entry.verified_date = Some(today.clone());
+            newly_verified += 1;
         }
     }
 
-    if new_descriptions > 0 {
+    if new_descriptions > 0 || newly_verified > 0 {
         println!(
-            "Adding {} new descriptions to catalog ({} total)",
+            "Catalog updates: {} new descriptions, {} newly verified ({} total entries)",
             new_descriptions,
+            newly_verified,
             catalog.len()
         );
         save_catalog(&catalog_file, &catalog)?;
         println!("Updated catalog: {}", catalog_file.display());
     } else {
         println!(
-            "No new descriptions to add (catalog has {} entries)",
+            "No catalog updates needed ({} entries)",
             existing_catalog_count
         );
     }

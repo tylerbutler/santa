@@ -1,1701 +1,2168 @@
 /= Core package catalog
 /= Source of truth for package identity and metadata
 
-gemini =
-  description = A command-line interface (CLI) for Google Gemini.
-
-active-win =
-  description = Get the title/id/etc of the active window.
-
-ain =
-  description = An HTTP API client for the terminal.
-
-alex =
-  description = Catch insensitive, inconsiderate writing, by finding gender favoring, polarizing, race related, or other unequal phrasing in text.
-
-asciinema =
-  description = Terminal session recorder.
-
-beets =
-  description = Beets is the media library management system for obsessive music geeks: catalogs your collection, automatically improving its metadata as it goes.
-
-calcurse =
-  description = A calendar and scheduling application for the command line. It helps keep track of events, appointments and everyday tasks.
-
-cash =
-  description = Convert Currency Rates.
-
-cgasm =
-  description = Pronounced “SeekAzzem”, it is a standalone, offline terminal-based tool with no dependencies that gives me x86 assembly documentation.
-
-clevercli =
-  description = ChatGPT powered CLI utilities. Easily add new prompt types.
-
-cli-fireplace =
-  description = Shows digital fireplace.
-
-cli-mandelbrot =
-  description = A CLI for traversing the Mandelbrot fractal.
-
-clog =
-  description = Creates a changelog automatically from local git metadata.
-
-cmatrix =
-  description = ncurses program that display the scrolling lines found in the movie `The matrix`.
-
-cmus =
-  description = A fast and lightweight audio player with configurable keybindings and playlist support.
-
-cookiecutter =
-  description = A cross-platform command-line utility that creates projects from cookiecutters (project templates), e.g. Python package projects, C projects.
-
-czg =
-  description = Interactively generate standardized commit messages.
-
-decktape =
-  description = DeckTape is a high-quality PDF exporter for HTML presentation frameworks.
-
-del =
-  description = Save deleted files to a .del/ subdirectory in the same directory.
-
-deviceframe =
-  description = Put device frames around mobile/web/progressive app screenshots.
-
-discharge =
-  description = Deploy static websites to Amazon S3.
-
-diskonaut =
-  description = Terminal disk space navigator that traverse the file-system with a TUI interface.
-
-dnote =
-  description = A simple command line notebook for the terminal. It also offers a seamless multi-device sync and a web interface.
-
-doing =
-  description = A command line tool for remembering what you were doing and tracking what you've done.
-
-dwarf fortress =
-  description = A fantasy game using ASCII art graphical representation of the game environment, it features a rich environment with many options and possibilities.
-
-editly =
-  description = A tool and framework for declarative NLE (non-linear video editing) using Node.js and FFmpeg.
-
-entr =
-  description = Event Notify Test Runner - Run an arbitrary command when files change.
-
-file-type =
-  description = Detect the file type of a file or stdin.
-
-fkill =
-  description = Simple cross-platform process killer.
-
-fortune =
-  description = Generates random messages fetched from a quotation database.
-
-fz =
-  description = Fuzzy tab completion for z.
-
-gdb-dashboard =
-  description = Modular visual interface for GDB in Python.
-
-geeknote =
-  description = A command line client for Evernote that can be use on Linux, FreeBSD and OS X.
-
-git commander =
-  description = A git tool with an easy interactive terminal interface.
-
-git-all-branches =
-  description = Improved visualization of git branches (`git branch -a`).
-
-git-stats =
-  description = Local git statistics including GitHub-like contributions calendars.
-
-gitlab =
-  description = Create GitLab merge requests.
-
-givegif =
-  description = GIFs on the command line.
-
-gotty =
-  description = Turn CLI tools into web applications; basically, it runs a command and starts a server so that the output can be displayed in a web page.
-
-groq =
-  description = The CLI tool consumes both JSON and NDJSON documents. You can pass in data from a local file, or from piping to standard input.
-
-gzip-size =
-  description = Get the gzipped size of a file.
-
-happyfinder =
-  description = (another) Fuzzy file finder for the command line.
-
-hget =
-  description = A CLI to convert HTML into plain text. Can be used to fetch a site's HTML version and convert it into plain text, or to deliver plain text versions of your site dynamically.
-
-idea =
-  description = A lightweight tool for keeping ideas in a safe place quick and easy.
-
-iola =
-  description = A command-line socket client with REST API. It helps to work with socket servers using your favorite REST client.
-
-ipfs-deploy =
-  description = Zero-Config CLI to Deploy Static Websites to IPFS [IPFS](https://en.wikipedia.org/wiki/InterPlanetary_File_System).
-
-irssi =
-  description = The most popular IRC client for the command-line; a flexible program, with many options and supporting many protocols.
-
-is-up =
-  description = Check whether a website is up or down using the [isitup.org](https://isitup.org/) API.
-
-kakoune =
-  description = Modal editor, faster as in less keystrokes, multiple selections, orthogonal design.
-
-khal =
-  description = Calendar that can synchronize with CalDAV servers through [vdirsyncer](https://github.com/pimutils/vdirsyncer).
-
-kill-tabs =
-  description = Kill all Chrome tabs to improve performance, decrease battery usage, and save memory.
-
-korkut =
-  description = Quick and simple image processing with the following functions: optimize, convert, crop, resize, rotate, watermark, flip.
-
-ledger =
-  description = A powerful, double-entry accounting system; it uses a simple yet powerful text syntax to specify the items to account.
-
-ll =
-  description = ls with git status.
-
-lolcat =
-  description = Ruby Gem to colorize the output of the cat command.
-
-mapscii =
-  description = A Braille & ASCII world map renderer for your console
-
-mdlt =
-  description = A lightweight command line tool that lets you perform arithmetic and symbolic math operations right from the terminal.
-
-mdp =
-  description = A command-line based Markdown presentation tool.
-
-medium =
-  description = Medium for Hackers - Read [medium.com](https://medium.com/) stories in the terminal.
-
-mklicense =
-  description = CLI tool for easily generating the text of the most common licenses.
-
-moc =
-  description = (music on console) - a powerful and easy to use console audio player, user interface a la Midnight Commander, plenty of features, fully controllable from the keyboard.
-
-moeda =
-  description = A foreign exchange rates and currency conversion using the command line.
-
-movie =
-  description = A CLI for getting information about a movie and comparing two movies.
-
-moviemon =
-  description = A Python program that displays all the information about all your movies in the command line.
-
-mps-youtube =
-  description = A curses player for music tracks from YouTube; it allows searching for songs and playlists; it downloads the video, extracts the audio track and plays it; handles local playlists and many configuration parameters.
-
-ncmpcpp =
-  description = NCurses Music Player Client (Plus Plus) - featureful ncurses based MPD client inspired by ncmpc. Relevant features: tag editor, playlist editor, easy to use search engine, media library, music visualizer, ability to fetch artist info from [last.fm](https://www.last.fm/), new display mode, alternative user interface, ability to browse and add files from outside of MPD music directory.
-
-neomutt =
-  description = Patched and up-to-dated mutt fork.
-
-newsboat =
-  description = An RSS/Atom feed reader for the text console. It's an actively maintained fork of Newsbeuter.
-
-np =
-  description = A better `npm publish`.
-
-o =
-  description = Configuration-free text editor and IDE limited to VT100. Suitable for writing git commit messages, editing Markdown, config files, source code, viewing man pages and for quick edit-compile cycles when programming.
-
-oji =
-  description = Interactive text emoji creator.
-
-pageres =
-  description = Capture screenshots of websites in various resolutions. A good way to make sure your websites are responsive.
-
-pass =
-  description = POSIX password manager that keeps passwords inside GPG encrypted files inside a simple directory tree.
-
-pathpicker =
-  description = A tool from Facebook that parses the output from a command and presents a UI to select files and directories, can be used to apply a command of a interactively selected files or to move across directories.
-
-pdfjuicer =
-  description = CLI tool for converting PDF pages to high-quality images. It features custom image sizing, scaling options, thumbnail generation, and batch processing.
-
-pgcli =
-  description = Postgres CLI with autocompletion and syntax highlighting.
-
-ponysay =
-  description = Pony rewrite of cowsay.
-
-qalculate =
-  description = Multi-purpose calculator with customizable functions, units, arbitrary precision, plotting (it includes a GUI).
-
-radio-active =
-  description = Internet radio player with 40k+ stations.
-
-ramda =
-  description = A tool for processing data with functional pipelines.
-
-ranger =
-  description = File manager with vi key bindings, curses interface with a view on the directory hierarchy, comes with a file launcher that automatically determines which program to use for opening a given file type.
-
-reachable =
-  description = Check if a domain is up.
-
-recoverpy =
-  description = Recover deleted files and overwritten data. It scans every block of the partition. You can even find a string in binary files.
-
-remind =
-  description = Calendar that supports complex rules to define events and used a custom, powerful text-based storage format.
-
-rename =
-  description = Included in `util-linux`, allows bulk rename of files with regex support.
-
-renameutils =
-  description = A set of programs to change file and directory names by editing them in-place, I find `imv` especially useful to edit a filename at the program prompt.
-
-s3cmd =
-  description = Command line tool for managing Amazon S3 and CloudFront services.
-
-saws =
-  description = A supercharged AWS command line interface (CLI).
-
-semantic-git-commit =
-  description = Ensure semantic commits messages. With emoji support.
-
-semantic-release =
-  description = Automates the whole node.js package release workflow including: determining the next version number, generating the release notes, and publishing the package.
-
-shallow-backup =
-  description = Git integrated backup tool.
-
-sharing =
-  description = Sharing is a command-line tool to share directories and files from the CLI to iOS and Android devices without the need of an extra client app.
-
-shbin =
-  description = Upload code snippets, notebooks, images or any other content to a GitHub repository that acts as your internal pastebin, and returns the URL to share it with your team.
-
-shell2http =
-  description = Executing shell commands via HTTP server.
-
-skim =
-  description = Fuzzy Finder in rust.
-
-speedread =
-  description = A simple terminal-based open source Spritz-alike filter that shows input text as a per-word RSVP (rapid serial visual presentation) aligned on optimal reading points.
-
-speedtest-net =
-  description = Test internet connection speed and ping using speedtest.net.
-
-stegcloak =
-  description = Hide secrets with invisible characters in plain text securely using passwords
-
-streamlink =
-  description = Streamlink is a CLI utility which pipes video streams from various services into a video player.
-
-surge =
-  description = Static web publishing on surge.sh CDN.
-
-svgo =
-  description = SVG Optimizer is a Node.js-based tool for optimizing SVG vector graphics files.
-
-taskwarrior =
-  description = Todo manager with advanced features, dedicated synchronization server available, many plugins and related tools, healthy software project.
-
-telert =
-  description = Lightweight CLI and Python utility that sends alerts (Telegram, Slack, Teams, Desktop, Audio) when commands complete.
-
-terminal velocity =
-  description = A fast, cross-platform note-taking application for the UNIX terminal.
-
-terminaltexteffects =
-  description = TerminalTextEffects (TTE) is a terminal visual effects engine, application, and Python library.
-
-the fuck =
-  description = Magnificent app which corrects your previous console command (although I would be extra-cautious at making a program to automatically infer what I was intending).
-
-timewarrior =
-  description = A time tracking utility that offers simple stopwatch features as well as sophisticated calendar-based backfill, along with flexible reporting.
-
-tmate =
-  description = A fork of tmux that allows sharing the terminal with other users. AFAIK, it connects to a centralized server to establish the connection. Someone may see this inconvenient for privacy issues.
-
-transmission =
-  description = Fast, easy and free BitTorrent client.
-
-tre =
-  description = `tree` command improved with git awareness, editor aliasing, and colors.
-
-trino =
-  description = Quick and easy translation of words and phrases entered in the command line.
-
-ttystudio =
-  description = Record your terminal and compile it to a GIF or APNG without any external dependencies, bash scripts, GIF concatenation, etc.
-
-tunnelmole =
-  description = Connect to local servers from anywhere.
-
-ultimate plumber =
-  description = Helps to interactively and incrementally explore textual data in Linux, by making it easier to quickly build complex pipelines, thanks to a fast feedback loop.
-
-underscore =
-  description = Command-line utility-belt for hacking JSON and JavaScript.
-
-unix-permissions =
-  description = Swiss Army knife for Unix permissions.
-
-utt =
-  description = Ultimate Time Tracker - A simple command-line time tracker written in Python.
-
-vdirsyncer =
-  description = CalDAV synchronization program.
-
-viewport-list =
-  description = Return a list of devices and their viewports.
-
-vifm =
-  description = ncurses based file manager with vi like keybindings/modes/options/commands/configuration, which also borrows some useful ideas from mutt"" (cit.).
-
-visidata =
-  description = Interactive multitool for tabular data. It combines the clarity of a spreadsheet, the efficiency of the terminal, and the power of Python, into a lightweight utility which can handle millions of rows with ease.
-
-vj =
-  description = JSON Humanizer makes JSON human-readable by applying visual formatting.
-
-wat =
-  description = Instant, central, community-built docs.
-
-weechat =
-  description = WeeChat is a fast, light and extensible chat client, with a text-based user interface, designed to be light and extensible: a lightweight core with optional plugins.
-
-wopr =
-  description = A simple markup language for creating rich terminal reports, presentations, and infographic.
-
-xplr =
-  description = A hackable, minimal, fast TUI file explorer, stealing ideas from nnn and fzf.
-
-xxh =
-  description = Bring your favorite shell wherever you go through the ssh.
-
-yank =
-  description = Reads input from stdin and display a selection interface that allows a field to be selected and copied to the clipboard.
-
-yosay =
-  description = Like cowsay, but for yeoman.
-
-z =
-  description = Directory changer based on aging and 'frecency'.
-
-speedtest =
-  description = Test internet bandwidth using speedtest.net.
-
 2048 =
   description = A 2048 clone that run in the terminal.
-
 3d-renderer =
   description = A console-based 3D renderer that uses ASCII characters to display and rotate 3D shapes.
-
 abandon =
   description = A text based, double-entry accounting system inspired by Ledger with infinite precision arithmetic. Made in Java. Includes a GUI.
-
 abduco =
   description = abduco provides session management i.e. it allows programs to be run independently of their controlling terminal.
-
 aclock =
   description = Ascii analog clock for text console displays and terminals and terminal emulators.
-
+acmetool =
+  verified = 2025-12-21
+act =
+  verified = 2025-12-20
 act3 =
   description = Glance at the last 3 runs of your Github Actions.
-
+actionlint =
+  verified = 2025-12-20
+active-win =
+  description = Get the title/id/etc of the active window.
+add-gitignore =
+  verified = 2025-12-21
 addrb =
   description = A lightweight CLI / TUI address book that supports CardDAV.
-
 adguardian-term =
   description = A TUI dashboard for monitoring real-time traffic from an AdGuard Home instance.
-
 adless =
   description = Local domains blocker written in Go.
-
 aerc =
   description = A pretty good email client
-
+aewan =
+  verified = 2025-12-21
 ai =
   description = A command-line ChatGPT client in BASH with conversation/completion support.
-
 ai git narrator =
   description = [macOS]: Generate commit messages with AI.
-
+aichat =
+  verified = 2025-12-21
 aider =
   description = aider is AI pair programming in your terminal.
-
 aido =
   description = Looks another interface to online GPT models to execute command through natural language. Very poor documentation and readme, though.
-
 aimssh =
   description = SSH Pomodoro app.
-
+ain =
+  description = An HTTP API client for the terminal.
 aish =
   description = A program that retrieve shell script one-liners, ready to be executed in the terminal.
-
 alacritty =
   description = A GPU-Accelerated terminal emulator that comes with sensible defaults, but allows for extensive configuration.
-
+alder =
+  verified = 2025-12-21
+alex =
+  description = Catch insensitive, inconsiderate writing, by finding gender favoring, polarizing, race related, or other unequal phrasing in text.
 alibaba-cli-scraper =
   description = Create your own Alibaba dataset and interact with it in plain English.
-
+allure =
+  verified = 2025-12-20
 alot =
   description = MUA written in Python using the [NotMuch](https://notmuchmail.org/) backend, MailDir format support.
-
+alpine =
+  verified = 2025-12-21
 alsamixer =
   description = ALSA mixer with curses interfaces.
-
 amdgpu-top =
   description = A tool that display AMD GPU utilization and information, gathered from performance counters (GRBM, GRBM2), sensors, fdinfo, and AMDGPU driver.
-
 amfora =
   description = Amfora aims to be the best looking Gemini client with the most features. It does not support Gopher or other non-Web protocols.
-
 amtui =
   description = A terminal-based user interface (TUI) application that allows you to interact with Prometheus Alertmanager using your terminal. It provides a convenient way to monitor alerts, view silences, and check the status of Alertmanager instances.
-
 amused =
   description = Minimal music player that composes well, or aims to do so, with other tools thought.
-
 analiticcl =
   description = An approximate string matching or fuzzy-matching system for spelling correction, normalisation or post-OCR correction.
-
 anbu =
   description = A swiss army knife for CLI operations catered to devs and security professionals.
-
 ancv =
   description = Renders your (JSON) resume/CV for online & pretty terminal display.
-
+anew =
+  verified = 2025-12-21
 angband =
   description = Angband is a free, single-player dungeon exploration game.
-
 angourimathcli =
   description = CLI calculator based on AngouriMath.
-
 animatrix =
   description = C program that will create some basic animation of ascii-art loaded from a txt file, while rendering the matrix effect in the terminal window.
-
 aniweather =
   description = Aniweather is a simple console weather app featuring cute ASCII art of an anime girl.
-
 anonymine =
   description = Curses mode minesweeper without guessing and other original features.
-
-antiword =
-  description = Reader and converted for the proprietary MS .doc file format.
-
-app =
-  description = A cross-platform package management assistant with super powers.
-
-apparition =
-  description = Apparition allows giving names to paths, so that moving to the specific path can be done by using the name; it also allows managing the list of assigned names.
-
-aptitude =
-  description = A TUI front-end to APT, the Debian package manager.
-
-arbtt =
-  description = (automatic, rule-based time tracker) runs in the background, collecting information regarding open windows, focused ones, etc.; it can be configured to display statistics on the collected data, e.g., figuring out the time spent on one specific window.
-
-arch-wiki =
-  description = Search the Arch Wiki anywhere from the command line.
-
-aretext =
-  description = Minimalist text editor with vim-compatible key bindings.
-
-argbash =
-  description = Bash argument parsing code generator.
-
-argc-completions =
-  description = Autocompletion for any shell and any command.
-
-arsh =
-  description = A statically typed scripting language with shell-like features.
-
-arttime =
-  description = Featureful timer with native desktop notifications and curated ASCII art.
-
-artty =
-  description = Pixel art with optional system info, similar to Neofetch.
-
-ascii saver =
-  description = Screensaver for terminals.
-
-ascii-matrix =
-  description = This script written in the C language, will render the matrix effect in the terminal, while rendering ASCII art loaded from a txt file, at the center of the terminal window.
-
-ascii-movie =
-  description = Allows to play the ASCII art Star War movie locally or it can open a connection to play it over SSH or telnet.
-
-asciicquarium =
-  description = Enjoy the mysteries of the sea from the safety of your own terminal!
-
-asciit =
-  description = A more compact and intuitive ASCII table in your terminal: an alternative to ""man 7 ascii"" and ""ascii"".
-
-aserial =
-  description = A serial monitor with error/warning highlighting and scrollable interface.
-
-ash =
-  description = A simple and clean terminal-based text editor, that aims to be easy to use with modern key-bindings.
-
-asn =
-  description = Server for the following services: ASN, RPKI validity, BGP stats, IPv4v6, Prefix, URL, ASPath, Organization, IP reputation, IP geolocation, IP fingerprinting, Network recon, lookup API server, Web traceroute server.
-
-asterion =
-  description = Find your way through an inifinite maze in this multiplayer ssh game. Beware of the minotaurs!
-
-astroterm =
-  description = A planetarium for your terminal. Explore stars, planets, constellations, and more!
-
-atop =
-  description = Atop is TUI performance monitor for Linux; it reports the activity of all processes (even if processes have finished during the interval), daily logging of system and process activity for long-term analysis, overloaded system resources, etc.
-
-aurras =
-  description = Enhances your music experience with an intuitive TUI and seamless Spotify integration, easily navigate your music library, access playlists, and get recommendations based on your listening habits.
-
-austin-tui =
-  description = The top-like TUI user interface for Austin.
-
-auto-cpufreq =
-  description = Automatic CPU speed and power optimizer for Linux, which allows to dynamically change the settings of the CPU to save energy and extend the battery life on laptops.
-
-autocomplete =
-  description = IDE-style autocomplete for your existing terminal & shell.
-
-autolog =
-  description = Git-based CLI tool for timesheet generation.
-
-automate-git-commands =
-  description = Automates many of the common uses of git, ssh key generation, and ssh configuration.
-
-autorestic =
-  description = A wrapper around the [restic](https://restic.net/) backup tool, with the goal of simplifying the setup and usage through the use of config files.
-
-av =
-  description = A command line tool to manage stacked PRs with Aviator.
-
-avail =
-  description = Find available times between all your calendars.
-
-awesome cli =
-  description = Awesome CLI is a simple command line tool to give you a fancy command line interface to dive into Awesome lists.
-
-awesome finder =
-  description = Search the awesome lists from the command line.
-
-awesome-git-addons =
-  description = Addons that extend git cli.
-
-awk =
-  description = A historical, general-purpose text file processor, implements a domain-specific language designed for text processing and typically used as a data extraction and reporting tool.
-
-baca =
-  description = Lets you indulge in your favorite e-books in the comfort of your terminal.
-
-backdown =
-  description = Safely and ergonomically remove duplicate files
-
-backhub =
-  description = Backhub helps maintain backups of multiple GitHub repos as full local mirrors.
-
-badaboombooks =
-  description = Quickly organize audiobooks using a terminal and web-browser.
-
-bafi =
-  description = Universal JSON, BSON, YAML, CSV, XML translator to ANY format using templates.
-
-ballast =
-  description = A simple API load testing tool that lets you compare performance snapshots of your API.
-
-bash-cache =
-  description = A function memoization / caching library for bash scripts and shells
-
-bash-git-prompt =
-  description = Informative and fancy bash prompt for Git users.
-
-bash_radio_player =
-  description = Terminal Radio Player using mpv and fzf.
-
-bashform =
-  description = Create and share forms in the terminal over SSH.
-
-bashly =
-  description = Bashly is a command line application (written in Ruby) that lets you generate feature-rich bash command line tools.
-
-bashmate =
-  description = CLI tool to learn bash command with your natural language.
-
-bashmount =
-  description = Tool to mount and unmount removable media from the command-line with a nice interface to list the available options..
-
-bashtop =
-  description = Resource monitor that shows usage and stats for processor, memory, disks, network, and processes.
-
-bashtutor =
-  description = Easily extendable utility to interactively showcase or teach CLIs, command line tasks, workflows and Bash itself.
-
-basta! =
-  description = A small amount of GNU Bash code that maintains a scroll-protected status line at the bottom of the terminal.
-
-batfetch =
-  description = A command-line tool that displays detailed information about the battery of your device in a clean and organized way.
-
-battery-level =
-  description = Get current battery level.
-
-bb =
-  description = The portable BB demo of AAlib, with fixes for vax etc.
-
-bbcli =
-  description = Browse BBC News like a hacker.
-
-bbl =
-  description = Read, search Holy Bible in command line.
-
-beachpatrol =
-  description = A CLI tool to replace and automate your everyday web browser.
-
-beancount =
-  description = Double-entry bookkeeping computer language that lets you define financial transaction records in a text file, read them in memory, generate a variety of reports from them, and provides a web interface.
-
-bencher =
-  description = Continuous benchmarking, Bencher allows you to track the performance of your code or binary over time and catch performance regressions before you release.
-
-better curl saul =
-  description = HTTP client with persistent workspace configs and dynamic variables to eliminate API setup repetition.
-
-bevel =
-  description = Command line history in an SQLite database for effective reuse.
-
-bfg repo-cleaner =
-  description = Removes large or troublesome blobs like git-filter-branch does, but faster.
-
-bfs =
-  description = A breadth-first version of the UNIX find command.
-
-bib.awk =
-  description = Bibliography manager written in awk.
-
-bible =
-  description = Read the Holy Bible via the command line.
-
-bible.js cli =
-  description = Bible.
-
-bibman =
-  description = A TUI bibliography manager. It aims to support only the most basis features as a general bibliography manager.
-
-bibtools =
-  description = Command-line bibliography manager.
-
-binary clock =
-  description = Displays a clock where numbers are represented with blue and gray dots with binary encoding.
-
-binsider =
-  description = A TUI for analyzing Linux binaries.
-
-birthday =
-  description = Know when a friend's birthday is coming.
-
-bitly-client =
-  description = Bitly client.
-
-bits =
-  description = CLI tool and pure Python library for Bitcoin.
-
-bitwarden cli =
-  description = Command-line interface for Bitwarden, a multi-platform password manager targeted to companies and enterprises.
-
-bkmr =
-  description = A unified CLI tool for bookmark, snippet, and knowledge management.
-
-bkt =
-  description = bkt is a subprocess caching utility that makes it easy to reuse past invocations of slow commands
-
-blackjack =
-  description = IRC bot to play blackjack.
-
-blaze =
-  description = A customizable and informative prompt for bash, zsh, fish, on linux distributions.
-
-blinkenlights =
-  description = TUI that may be used for debugging x86_64-linux or i8086 programs across platforms.
-
-blockpaint =
-  description = BlockPaint is a painting program that allows you to draw pixel graphics in the terminal using the mouse.
-
-blueutil-tui =
-  description = TUI for Mac to interact with bluetooth devices via blueutil.
-
-bmon =
-  description = A monitoring and debugging tool to capture networking related statistics and prepare them visually in a human friendly way.
-
-boards =
-  description = Recursive kanban boards based around the filesystem.
-
-bob =
-  description = Bob is a cross-platform and easy-to-use Neovim version manager, allowing for easy switching between versions.
-
-bocker =
-  description = Docker implemented in around 100 lines of bash.
-
-bollywood =
-  description = Runs terminal screencasts in multiple panes, resulting in another real-time Hollywood-style real-time hacking terminal.
-
-bookworm =
-  description = LLM-powered bookmark search engine.
-
-bore =
-  description = A simple CLI tool for making tunnels to localhost.
-
-borg =
-  description = Encrypted backups with a clean and simple interface, easy to use and set up, possibility to mount the backup archive with FUSE and inspect it as a regular file system.
-
-bpytop =
-  description = Linux/macOS/FreeBSD resource monitor with a nice interface.
-
-brash =
-  description = Move and restore items from the XDG trash. Written in pure Bash.
-
-brave-bookmarks =
-  description = Command-line script to query Brave's bookmark.
-
-bren =
-  description = Bren is a command line tool for GNU/Linux (and many others). It has support for GNU Guile scripting. Bren is simple, fast, and it's written in C.
-
-brightness =
-  description = Change screen brightness ([windows](https://github.com/sondreb/win-brightness)).
-
-brightnessctl =
-  description = Read and control device brightness. Devices, by default, include backlight and LEDs - searched for in corresponding classes.
-
-brok =
-  description = Find broken links in text documents.
-
-brows =
-  description = CLI GitHub release browser.
-
-browsr =
-  description = A pleasant file explorer that can browse the contents of local and remote filesystems with your keyboard or mouse; remotes include GitHub, over SSH, in AWS S3, Google Cloud Storage, or Azure Blob Storage.
-
-btail =
-  description = Interactive file tail viewer.
-
-btop++ =
-  description = Resource monitor that shows usage and stats for processor, memory, disks, network, and processes. C++ version and continuation of [bashtop](https://github.com/aristocratos/bashtop) and [bpytop](https://github.com/aristocratos/bpytop).
-
-budget =
-  description = Import, de-dupe, categorize, and report on financial transactions.
-
-budget_tracker_tui =
-  description = A simple TUI budget tracker app built in rust. Designed to track income and expenses and help visualize and gather basic insights from your transactions.
-
-bup =
-  description = Very efficient backup system based on the git packfile format, providing fast incremental saves and global deduplication.
-
-bupstash =
-  description = Secure, encrypted backups with efficient deduplication, client-side encryption, offline decryption, search-tagged data protection, strong privacy, robust performance on slow networks, memory-safe security against attacks, incremental backups, and minimal RAM usage for production use.
-
-burf =
-  description = TUI for Google Cloud Storage (GCS).
-
-byobu =
-  description = A text-based window manager and terminal multiplexer; it features enhanced profiles, convenient keybindings, configuration utilities, and toggle-able system status notifications; compatible with `screen` and `tmux`.
-
-c-pipes =
-  description = Program written in the C language that will render random coloured zigzag lines in the terminal, while the font, speed, density and number of lines are fully costumizable. Each line stops once it reaches the edge of the window, only for a new line to begin.
-
-c-squares =
-  description = Program written in C that will render random coloured rectangulars in the terminal, while the font, speed, density, color, ratio and number of the shapes drawn are fully costumizable.
-
-c0admin =
-  description = A terminal-based AI assistant for Linux sysadmins. Uses the Gemini API.
-
-cacaview =
-  description = A library and a program to display JPG, PNG, GIF or BMP images in the terminal using ASCII characters.
-
-cadmus =
-  description = Shell Scripts to Facilitate Effective Note Taking.
-
-cai =
-  description = The fastest CLI tool for prompting LLMs. Including support for prompting several LLMs at once!
-
-calcpy =
-  description = Terminal calculator and advanced math solver using Python, IPython and SymPy.
-
-caldr =
-  description = A lightweight CLI / TUI calendar that supports CalDAV.
-
-calm-garden =
-  description = A small, discreet terminal tool for breath exercises with progression: earn coins, buy plants, and upgrade your garden.
-
-cambd =
-  description = A CLI tool to automate the process to access the Cambridge dictionary.
-
-caniuse-cmd =
-  description = Search [caniuse.com](https://caniuse.com) about browser support of features.
-
-canto curses =
-  description = Curses frontend for [Canto daemon](https://github.com/themoken/canto-next) for RSS feeds.
-
-carapace =
-  description = Carapace provides argument completion for multiple CLI commands and works across multiple POSIX and non-POSIX shells.
-
-carbon-now =
-  description = Generate beautiful images of your code.
-
-carbonyl =
-  description = Chromium running inside your terminal.
-
-cargo-seek =
-  description = A TUI for searching, adding and installing cargo crates.
-
-cat9 =
-  description = Cat9 is a user shell script for LASH - a command-line shell that discriminates against terminal emulators, written in Lua.
-
-cataclysm-dda =
-  description = Turn-based survival game set in a post-apocalyptic world.
-
-cataclysm: dark days ahead =
-  description = Open source turn-based survival RPG development project.
-
-catdir =
-  description = A simple CLI utility that traverses directories and concatenates the contents of all files within a folder and its subfolders, similar to the Unix cat command, but for entire directory trees.
-
-catdoc =
-  description = Convert Microsoft Word files to plain text; output is sent to the standard output.
-
-cations =
-  description = Lightweight, user-friendly habit tracker and productivity tool; terminal-based CLI application.
-
-catnip =
-  description = An Image picker using pure bash (C and Go version in the works) and kittys icat and Chafa's Sixel protocol.
-
-catselector =
-  description = Interactive file selector for concatenating and exporting text files.
-
-cava =
-  description = Cross-platform Audio Visualizer.
-
-ccsum =
-  description = Convenient sha256sum (md5sum, sha1sum, and sha512sum) checksum with improved usability.
-
-ccube =
-  description = Rotating 3d cube in terminal; written in C.
-
-cdwe =
-  description = (cd with env vars) Wrapper of the cd command that sets and unsets env vars when you change dir based on a config file.
-
-cemetery escape =
-  description = A game in which you must escape the cemetery. Search tombstones to find the key. Then head for the door, but watch out for ghosts.
-
-certificate-ripper =
-  description = Extract server certificates.
-
-cfiles =
-  description = ncurses file manager written in C with vim like keybindings
-
-cfonts =
-  description = А command line tool for generating ANSI fonts in the console.
-
-cgdb =
-  description = Console front-end to the GNU debugger.
-
-cgol =
-  description = Conway's Game of Life in C.
-
-cha =
-  description = A simple CLI chat tool to easily interface with OpenAI's models.
-
-chadsay =
-  description = Like cowsay, but pronounced by GigaChad.
-
-chaftrix =
-  description = C program that will render the matrix effect in the terminal window in the background, while rendering an image in the foreground, allowing animation of this image in one or two dimensions.
-
-charfreq =
-  description = Very simple command-line tool that counts (unicode) character frequency from standard input.
-
-chat.sh =
-  description = Pipeable LLM wrapper with code execution (OpenRouter).
-
-chatblade =
-  description = Chatblade is a versatile command-line interface (CLI) tool designed to interact with OpenAI's ChatGPT.
-
-chatdbg =
-  description = AI-assisted debugging. Uses AI to answer 'why'.
-
-chatgpt =
-  description = Simple command line integration to ChatGPT.
-
-chatgpterminator =
-  description = GPTerminator provides a convenient way to interact with OpenAI's chat completion and image generation API's using your command line interface.
-
-chawan =
-  description = A text-mode web browser. It displays websites in your terminal and allows you to navigate on them. It can also be used as a terminal pager.
-
-chdig =
-  description = Dig into ClickHouse with TUI interface.
-
-cheatshh =
-  description = A fzf based cheatsheet to store commands and their descriptions in a place you can look into so you dont have to remember them.
-
-checksum.sh =
-  description = Checksum.sh is a simple way to download, review, and verify install scripts. If the checksum is OK the script will be printed to stdout, which can be piped to sh or elsewhere.
-
-cheezee =
-  description = Chess TUI client built for Linux.
-
-chess-tui =
-  description = Play chess from your terminal.
-
-chet-client =
-  description = Measure your commands to speed up your development.
-
-chiko =
-  description = The ultimate beauty gRPC Client on your Terminal: a simple tool to interact with gRPC services using a beautiful terminal interface.
-
-chimp-type =
-  description = A minimal typing test for terminal written in go.
-
-cho =
-  description = The safe echo & quoting utility you always knew you needed, but were too afraid to ask [for].
-
-chokidar =
-  description = CLI to watch file system changes.
-
-chokidar cli =
-  description = Fast cross-platform command line utility to watch file system changes.
-
-choof =
-  description = Choof is a fast and minimal CLI tool for managing files, built with Bubble Tea for Linux.
-
-chs =
-  description = Play chess against the Stockfish engine in your terminal.
-
-chuckle =
-  description = An application that utilises an API in order to print out jokes in your terminal.
-
-cipher =
-  description = An Ash module that makes it easy to perform aes-256-cbc encryption for files and directories.
-
-clai =
-  description = Command Line AI is a command line integration for openai. It's setup to help you learn new shell commands and construct more complex commands.
-
-classifier =
-  description = Organize files in your current directory, by classifying them into folders of music, PDFs, images, etc.
-
-classis =
-  description = An easy CLI for the terminal fans out there who want to access Open Assistant's API through the terminal or want to use the API in their own applications.
-
-cli co-pilot =
-  description = CLI tool that uses GPT4 to turn natural language commands into their Bash/ZShell/PowerShell equivalents.
-
-cli github =
-  description = Fancy GitHub client.
-
-cli-arxiv =
-  description = CLI tool for exploring arXiv.
-
-cli-chess =
-  description = A highly customizable way to play chess in your terminal. Play online (via Lichess.org) and offline against the Fairy-Stockfish engine. All Lichess variants are supported.
-
-cli-manager =
-  description = Command Line Interface for managing tasks locally on the fly.
-
-cli-tools-info =
-  description = An overview of your CLI tools, if they are installed and what version they are on.
-
-cli-viz =
-  description = An audio visualizer that runs in the linux terminal and reacts to the microphone.
-
-cli_chat_app =
-  description = A end-to-end encrypted chat application.
-
-cligpt =
-  description = ChatGPT but in the terminal.
-
-climenu =
-  description = Compact application for creating shell menus with executable entries. Use it to build straightforward static shortcut menus or dynamically generate advanced menus for more complex programs.
-
-clipper =
-  description = Seamlessly copy file contents to clipboard from command line. Lightweight, cross-platform tool for instant text transfers.
-
-clippy =
-  description = Clipboard tool for interacting with GUI applications.
-
-clipsync =
-  description = Share your clipboard across multiple machines using an MQTT service.
-
-clipy =
-  description = Manage clipboard history.
-
-cloud code usage monitor =
-  description = Real-time Claude Code usage monitor with predictions and warnings.
-
-cloudcash =
-  description = Check your cloud spending from the CLI, from Waybar, and from the macOS menu bar!
-
-clouddrift =
-  description = Soft clouds drifting across your terminal.
-
-cmd-ai =
-  description = Natural language shell command generator and executor powered by AI.
-
-cmdchallenge =
-  description = Presents small shell challenge with user submitted solutions.
-
-cmdcompass =
-  description = Cross-platform terminal command manager/notebook with features like custom collections, tagging, variable substitution, and integrated man page with option highlighting.
-
-cmenu =
-  description = Vaguely dmenu-like minimal TUI menu utility, it reads entries from stdin, creates a selection menu, and writes the selected entry to stdout.
-
-cntui =
-  description = Replay chrome requests from your terminal using curl.
-
-cocommit =
-  description = Cocommit is a command-line tool that works with your HEAD commit and leverages an LLM of your choice to enhance commit quality.
-
-codegrab =
-  description = Interactive CLI tool for selecting and bundling code into a single, LLM-ready output file.
-
-codemancer =
-  description = Code with GPT-4 from your command line.
-
-codemark cli =
-  description = Helps you manage coding assignments and tests; easily initialize the configuration, list assignments, fetch and check your code, submit your code for grading, and get AI-powered error recommendations.
-
-colibri core =
-  description = A software to quickly and efficiently count and extract patterns (n-grams and more) from large corpus data, to extract various statistics on the extracted patterns, and to compute relations between the extracted patterns.
-
-colorls =
-  description = A Ruby script that colorizes the `ls` output with color and icons.
-
-colout =
-  description = colout read lines of text stream on the standard input and output characters matching a given regular expression pattern in given color and style.
-
-commandpilot =
-  description = An assistant which uses ChatGPT to aid in constructing commands for bash.
-
-compsize =
-  description = Find compression type/ratio on a file or set of files on a btrfs file system.
-
-conrad =
-  description = Track conferences and meetups.
-
-console-fun =
-  description = Some console stuff to have a fun and watch some animations with texts, figures, etc.
-
-containerssh =
-  description = An SSH Server that Launches Containers in Kubernetes and Docker on demand.
-
-contributing-generator =
-  description = A generator for the CONTRIBUTING.md, README.md, LICENSE, etc.
-
-conway-screensaver =
-  description = A Conways game of life screensaver for the terminal.
-
-cookcli =
-  description = Full-featured recipe manager.
-
-copytools.sh =
-  description = Tools for copying and pasting in the command line.
-
-corefreq =
-  description = CPU monitoring TUI software designed for the 64-bits Processors.
-
-cosh =
-  description = Concatenative command-line shell.
-
-cotp =
-  description = Trustworthy, encrypted, command-line TOTP/HOTP authenticator app with import functionality.
-
-cowthink =
-  description = Same as `cowsay`, but uses a ""think"" bubble instead of a speech bubble.
-
-cpy =
-  description = Copies files.
-
-crappybird-py =
-  description = Flappy bird.
-
-cream =
-  description = Encrypt and decrypt streams of data with only a master password. The key is derivated from the password + salt combo, and used to encrypt data byte per byte.
-
-createvideomeme =
-  description = Bash tool to add captions to the top of videos.
-
-crestic =
-  description = Configurable Restic Wrapper.
-
-cronboard =
-  description = Dashboard for managing cron jobs.
-
-crush =
-  description = Flexible AI coding agent with a wide range of LLMS, maintains multiple work sessions and contexts per project, works everywhere and extensible.
-
-csope =
-  description = C source code browser - Fork of Cscope version 15,9, with various improvements.
-
-csv-diff =
-  description = Python CLI tool and library for diffing CSV and JSON files
-
-csvkit =
-  description = A suite of command-line tools for converting to and working with CSV, the king of tabular file formats.
-
-csvq =
-  description = SQL-like query language for CSV.
-
-csvsuite =
-  description = A suite of tools to process CSV files, written in C++.
-
-ctree =
-  description = A Christmas tree right from your terminal.
-
-ctune =
-  description = A ncurses based internet radio player written in C for Linux.
-
-cursedtodo =
-  description = A minimalist, terminal base todo manager storing tasks as .ics files for storage.
-
-cute =
-  description = TUI to help build, execute and save curl commands, recursively download from remote sources, test your API endpoints, and mange your keys.
-
-daff =
-  description = Efficient table comparison and alignment, supporting formats like CSV and SQLite, useful for data analysis and synchronization tasks.
-
-daktilo =
-  description = Turn your keyboard into a typewriter adding sounds at each keystroke.
-
-damon =
-  description = TUI interface for Hashicorp Nomad, it provides functionality to observe and interact with Nomad resources such as Jobs, Deployments, or Allocations.
-
-dankcli =
-  description = Add text to meme image templates.
-
-dans-dungeon =
-  description = A dungeon crawler engine written in Python.
-
-dark-mode =
-  description = Toggle dark mode.
-
-darkhttpd =
-  description = Darkhttpd is a simple, fast HTTP 1.1 web server for static content. It does not support PHP or CGI etc but is designed to serve static content, which it does very well.
-
-dash =
-  description = DASH is a POSIX-compliant implementation of /bin/sh that aims to be as small as possible. It does this without sacrificing speed where possible.
-
-dashbrew =
-  description = TUI dashboard builder that lets you visualize data from scripts and APIs.
-
-datasetgpt =
-  description = A command-line interface and a Python library for inferencing Large Language Models to generate textual datasets.
-
-datetimemate =
-  description = Golang package and CLI to compute the difference between date, time or duration.
-
-dateutils =
-  description = Dateutils are a bunch of tools that revolve around fiddling with dates and times in the command line with a strong focus on use cases that arise when dealing with large amounts of financial data.
-
-dawson =
-  description = Track your project's statistics on Hacker News and Github, and get notified on every new interaction.
-
-dbee =
-  description = Fast & Minimalistic Database Browser (MySQL, MariaDB, PostgreSQL).
-
-dblab =
-  description = Interactive client for PostgreSQL, MySQL, SQLite3, Oracle and SQL Server.
-
-ddgr =
-  description = A command line utility to search DuckDuckGo (HTML version) from the terminal.
-
-ddqa =
-  description = Jira TUI to help with software releasestool for users of Jira to perform QA of anticipated releases of code on GitHub.
-
-decompose =
-  description = Reverse-engineering tool for docker environments.
-
-deluge =
-  description = A lightweight, Free Software, cross-platform BitTorrent client; a terminal curses interface, web interface and command line client can connect to a running daemon to manage torrent downloads.
-
-dem =
-  description = Containerized Development Environment Manager for embedded development.
-
-detect-indent =
-  description = Detect the indentation of code.
-
-detox =
-  description = Easily clean up filenames; it replaces characters like spaces with standard equivalents and UTF-8 or Latin-1 (or CP 1252) characters with more handy ones.
-
-dev-time =
-  description = Get the current local time of a GitHub user.
-
-devtodo =
-  description = A hierarchical command-line task manager, with data storage in JSON format.
-
-devzat =
-  description = Custom SSH server that takes you to a chat instead of a shell prompt.
-
-dext =
-  description = (Directories by Extensions) is a script that moves (or copies) files of the same extension into a folder.
-
-dfc =
-  description = Report file system space usage information with style.
-
-diagon =
-  description = Diagon is an interactive interpreter, that transforms Markdown-style expression into an ASCII-art representation.
-
-dino =
-  description = A C++ and ncurses rendering of the popular chrome dinosaur game on the terminal.
-
-dir2txt =
-  description = A blazing-fast CLI tool to export a directory's structure and contents into a neatly formatted `.txt` or `.json` file.
-
-dircrcmd =
-  description = Checksum directory in crc32 and export it into markdown.
-
-dirdiff =
-  description = Efficiently compute the differences between two directories.
-
-discodos =
-  description = A CLI tool for DJ's and record collectors based on the discogs.com collection feature that allows analyzing and organize DJ sets.
-
-discordo =
-  description = A lightweight, secure, and feature-rich Discord terminal client.
-
-dish =
-  description = A lightweight, remotely configurable monitoring service.
-
-diskus =
-  description = Minimal, fast alternative to du -sh.
-
-distrobox =
-  description = Use any Linux distribution inside your terminal as docker or podman containers.
-
-django-tui =
-  description = Inspect and run Django Commands in a text-based user interface (TUI).
-
-dlorg =
-  description = Powerful and intuitive that automatically organizes your cluttered Downloads folder into a neatly structured directory system.
-
-dmidecode =
-  description = System information utility.
-
-dn =
-  description = Daily notes command line tool.
-
-docfd =
-  description = TUI fuzzy document finder that looks for documentation files in Markdown and txt format in the directory tree.
-
-docker-shell =
-  description = A simple interactive prompt for Docker.
-
-dolphie =
-  description = Your single pane of glass (TUI) for real-time analytics into MySQL/MariaDB & ProxySQL.
-
-dooit =
-  description = Todo manager with interactive and beautiful UI, and vim keybindings.
-
-doppelganger =
-  description = Save and load your shell environment to create doppelganger shells!
-
-dotbins =
-  description = Keep updated binaries in your dotfiles.
-
-dotenvhub =
-  description = Terminal App to centrally manage .env files. Written in Python powered by Textual.
-
-downloader =
-  description = A simple downloader written in Python with an awesome customizable progress bar.
-
-dpg =
-  description = The Deterministic Password Generator - Generates passwords based on a master password and the indication of the website/service/username, without the need of storing anything.
-
-draw =
-  description = draw is an simple drawing tool in the terminal. Hold your mouse down and move it across the screen to draw anything you want!
-
-dry =
-  description = A Docker manager for the terminal.
-
-dtui =
-  description = Small TUI for introspecting the state of the system/session dbus.
-
-dug =
-  description = A global DNS propagation checker that gives pretty output.
-
-dummy =
-  description = Generator of static files for testing file upload. It can generate the PNG file of any number of bytes!
-
-dune =
-  description = A customizable shell that aims to be cozy.
-
-dunk =
-  description = Prettier git diffs in the terminal.
-
-duple =
-  description = Find and remove duplicate files.
-
-duplicity =
-  description = Creates GPG encrypted, compressed backups; client-side encryption allows uploading the backup onto untrusted servers.
-
-durak =
-  description = Durak card game for two in a terminal.
-
-durdraw =
-  description = Versatile ASCII and ANSI Art text editor for drawing in the Linux/Unix/macOS terminal, with animation, 256 and 16 colors, Unicode and CP437, and customizable themes.
-
-dvtm =
-  description = Dynamic console window manager that enables dynamic tiling window management for multiple terminal applications.
-
-ecb-rates =
-  description = Fetch exchage rates from the European Central Bank.
-
-echo =
-  description = Speedy API emulation facilitated by a reverse proxy and mock JSON server.
-
-ed =
-  description = GNU ed is a line-oriented text editor. It is used to create, display, modify and otherwise manipulate text files, both interactively and via shell scripts.
-
-eddy =
-  description = Simple, fast CLI file encryption tool.
-
-eget =
-  description = Easily install prebuilt binaries from GitHub.
-
-egit =
-  description = A.I. tools and workflows for Git.
-
-ejabberd =
-  description = ejabberd is an XMPP application server and an MQTT broker, written mainly in the Erlang programming language.
-
-element =
-  description = Periodic table on the command line.
-
-elia =
-  description = A terminal ChatGPT client built with Textual.
-
-elinks =
-  description = Advanced and well-established feature-rich text mode web browser""; started as a fork of `Links`; it supports background download with queueing, some support from CSS, text box editing in external text editor.
-
-emoj =
-  description = Find relevant emoji from text on the command-line.
-
-emoji-finder =
-  description = Quickly find and copy emoji to the clipboard via the command-line.
-
-empiriqa =
-  description = empiriqa (command name is epiq) is a tool for interactively manipulating UNIX pipelines.
-
-empty-trash =
-  description = Empty the trash.
-
-enc =
-  description = A modern and friendly CLI alternative to GnuPG: generate and download keys, encrypt, decrypt, and sign text and files, and more.
-
-encfs =
-  description = Encrypted filesystem in user-space based on [FUSE](https://it.wikipedia.org/wiki/FUSE), mounts an encrypted directory into a clear one.
-
-enhancd =
-  description = A next-generation cd command with your interactive filter.
-
-envio =
-  description = Envio is a command-line tool that simplifies the management of environment variables across multiple profiles. It allows users to easily switch between different configurations and apply them to their current environment.
-
-eon =
-  description = A light, modern editor for your terminal that doesn't want to be vim.
-
-epr =
-  description = epub reader.
-
-epy =
-  description = CLI Ebook (epub2, epub3, fb2, mobi) Reader.
-
-es =
-  description = (extensible shell) shell with first class functions, lexical scope, exceptions, and rich return values, based on Plan9's rc.
-
-escaping-figures-game =
-  description = Count figure's occurrences in the escaping figures matrix.
-
-euporie =
-  description = Allows you to interact with Jupyter kernels, and run Jupyter notebooks - entirely from the terminal.
-
-explainshell =
-  description = Type a snippet to see the help text for each argument.
-
-export pull requests =
-  description = Export pull requests and/or issues to a CSV file. Supports GitHub, GitLab, and Bitbucket.
-
-extrakto =
-  description = extrakto for tmux - quickly select, copy/insert/complete text without a mouse.
-
-extraterm =
-  description = The swiss army chainsaw of terminal emulators.
-
-extundelete =
-  description = Recover deleted files from an ext3 or ext4 partition through its journal.
-
-cargo-update =
-  verified = 2025-12-21
-starship =
-  verified = 2025-12-21
-when-cli =
-  verified = 2025-12-21
-
 ansible =
   verified = 2025-12-21
+ansible-lint =
+  verified = 2025-12-21
+antiword =
+  description = Reader and converted for the proprietary MS .doc file format.
 aom =
   verified = 2025-12-21
+apache-arrow =
+  verified = 2025-12-21
+apktool =
+  verified = 2025-12-21
+app =
+  description = A cross-platform package management assistant with super powers.
+apparition =
+  description = Apparition allows giving names to paths, so that moving to the specific path can be done by using the name; it also allows managing the list of assigned names.
+aptitude =
+  description = A TUI front-end to APT, the Debian package manager.
+arbtt =
+  description = (automatic, rule-based time tracker) runs in the background, collecting information regarding open windows, focused ones, etc.; it can be configured to display statistics on the collected data, e.g., figuring out the time spent on one specific window.
+arch-wiki =
+  description = Search the Arch Wiki anywhere from the command line.
+aretext =
+  description = Minimalist text editor with vim-compatible key bindings.
+argbash =
+  description = Bash argument parsing code generator.
+argc-completions =
+  description = Autocompletion for any shell and any command.
 argocd =
   verified = 2025-12-21
 aria2 =
+  description = Lightweight and easy-to-use download utility; it supports HTTP/HTTPS, FTP, SFTP, BitTorrent, Metalink and multiple sources; cross-platform.
   verified = 2025-12-21
+arsh =
+  description = A statically typed scripting language with shell-like features.
+artem =
+  verified = 2025-12-21
+arttime =
+  description = Featureful timer with native desktop notifications and curated ASCII art.
+artty =
+  description = Pixel art with optional system info, similar to Neofetch.
+as-tree =
+  verified = 2025-12-21
+ascii saver =
+  description = Screensaver for terminals.
+ascii-matrix =
+  description = This script written in the C language, will render the matrix effect in the terminal, while rendering ASCII art loaded from a txt file, at the center of the terminal window.
+ascii-movie =
+  description = Allows to play the ASCII art Star War movie locally or it can open a connection to play it over SSH or telnet.
+asciicquarium =
+  description = Enjoy the mysteries of the sea from the safety of your own terminal!
+asciinema =
+  description = Terminal session recorder.
+asciit =
+  description = A more compact and intuitive ASCII table in your terminal: an alternative to ""man 7 ascii"" and ""ascii"".
+asdf =
+  description = Manage multiple runtime versions with a single CLI tool.
+  verified = 2025-12-20
+aserial =
+  description = A serial monitor with error/warning highlighting and scrollable interface.
+ash =
+  description = A simple and clean terminal-based text editor, that aims to be easy to use with modern key-bindings.
+asn =
+  description = Server for the following services: ASN, RPKI validity, BGP stats, IPv4v6, Prefix, URL, ASPath, Organization, IP reputation, IP geolocation, IP fingerprinting, Network recon, lookup API server, Web traceroute server.
+ast-grep =
+  verified = 2025-12-21
+asterion =
+  description = Find your way through an inifinite maze in this multiplayer ssh game. Beware of the minotaurs!
+astroterm =
+  description = A planetarium for your terminal. Explore stars, planets, constellations, and more!
+asuka =
+  verified = 2025-12-21
+at-spi2-core =
+  verified = 2025-12-21
+ata =
+  verified = 2025-12-21
+atac =
+  verified = 2025-12-21
+atop =
+  description = Atop is TUI performance monitor for Linux; it reports the activity of all processes (even if processes have finished during the interval), daily logging of system and process activity for long-term analysis, overloaded system resources, etc.
 atuin =
   verified = 2025-12-21
+aurras =
+  description = Enhances your music experience with an intuitive TUI and seamless Spotify integration, easily navigate your music library, access playlists, and get recommendations based on your listening habits.
+austin-tui =
+  description = The top-like TUI user interface for Austin.
+auto-cpufreq =
+  description = Automatic CPU speed and power optimizer for Linux, which allows to dynamically change the settings of the CPU to save energy and extend the battery life on laptops.
+autocomplete =
+  description = IDE-style autocomplete for your existing terminal & shell.
+autoconf =
+  verified = 2025-12-20
+autoconf-archive =
+  verified = 2025-12-21
+autojump =
+  verified = 2025-12-21
+autolog =
+  description = Git-based CLI tool for timesheet generation.
 automake =
   verified = 2025-12-21
+automate-git-commands =
+  description = Automates many of the common uses of git, ssh key generation, and ssh configuration.
+autorestic =
+  description = A wrapper around the [restic](https://restic.net/) backup tool, with the goal of simplifying the setup and usage through the use of config files.
+av =
+  description = A command line tool to manage stacked PRs with Aviator.
+avail =
+  description = Find available times between all your calendars.
+awesome cli =
+  description = Awesome CLI is a simple command line tool to give you a fancy command line interface to dive into Awesome lists.
+awesome finder =
+  description = Search the awesome lists from the command line.
+awesome-git-addons =
+  description = Addons that extend git cli.
+awk =
+  description = A historical, general-purpose text file processor, implements a domain-specific language designed for text processing and typically used as a data extraction and reporting tool.
+aws-cdk =
+  verified = 2025-12-21
+aws-sam =
+  verified = 2025-12-20
 awscli =
   verified = 2025-12-21
-bash =
+azure =
+  verified = 2025-12-20
+azure/kubelogin/kubelogin =
+  verified = 2025-12-20
+baca =
+  description = Lets you indulge in your favorite e-books in the comfort of your terminal.
+backdown =
+  description = Safely and ergonomically remove duplicate files
+backhub =
+  description = Backhub helps maintain backups of multiple GitHub repos as full local mirrors.
+badaboombooks =
+  description = Quickly organize audiobooks using a terminal and web-browser.
+bafi =
+  description = Universal JSON, BSON, YAML, CSV, XML translator to ANY format using templates.
+ballast =
+  description = A simple API load testing tool that lets you compare performance snapshots of your API.
+bandwhich =
   verified = 2025-12-21
+bartib =
+  verified = 2025-12-21
+bash =
+  description = (Bourne Again SHell) The most widespread system shell to date.
+  verified = 2025-12-21
+bash-cache =
+  description = A function memoization / caching library for bash scripts and shells
+bash-git-prompt =
+  description = Informative and fancy bash prompt for Git users.
+bash_radio_player =
+  description = Terminal Radio Player using mpv and fzf.
+bashform =
+  description = Create and share forms in the terminal over SSH.
+bashly =
+  description = Bashly is a command line application (written in Ruby) that lets you generate feature-rich bash command line tools.
+bashmate =
+  description = CLI tool to learn bash command with your natural language.
+bashmount =
+  description = Tool to mount and unmount removable media from the command-line with a nice interface to list the available options..
+bashtop =
+  description = Resource monitor that shows usage and stats for processor, memory, disks, network, and processes.
+bashtutor =
+  description = Easily extendable utility to interactively showcase or teach CLIs, command line tasks, workflows and Bash itself.
+basta! =
+  description = A small amount of GNU Bash code that maintains a scroll-protected status line at the bottom of the terminal.
+bastet =
+  verified = 2025-12-21
+bat =
+  description = A cat clone with syntax highlighting and Git integration.
+  verified = 2025-12-20
+batfetch =
+  description = A command-line tool that displays detailed information about the battery of your device in a clean and organized way.
+bats-core =
+  verified = 2025-12-20
+battery-level =
+  description = Get current battery level.
+bazel =
+  verified = 2025-12-21
+bazelisk =
+  verified = 2025-12-21
+bb =
+  description = The portable BB demo of AAlib, with fixes for vax etc.
+bbcli =
+  description = Browse BBC News like a hacker.
+bbl =
+  description = Read, search Holy Bible in command line.
+bcal =
+  verified = 2025-12-21
+beachpatrol =
+  description = A CLI tool to replace and automate your everyday web browser.
+beancount =
+  description = Double-entry bookkeeping computer language that lets you define financial transaction records in a text file, read them in memory, generate a variety of reports from them, and provides a web interface.
+beets =
+  description = Beets is the media library management system for obsessive music geeks: catalogs your collection, automatically improving its metadata as it goes.
+below =
+  verified = 2025-12-21
+bencher =
+  description = Continuous benchmarking, Bencher allows you to track the performance of your code or binary over time and catch performance regressions before you release.
+better curl saul =
+  description = HTTP client with persistent workspace configs and dynamic variables to eliminate API setup repetition.
+bevel =
+  description = Command line history in an SQLite database for effective reuse.
+bfg repo-cleaner =
+  description = Removes large or troublesome blobs like git-filter-branch does, but faster.
+bfs =
+  description = A breadth-first version of the UNIX find command.
+bib.awk =
+  description = Bibliography manager written in awk.
+bible =
+  description = Read the Holy Bible via the command line.
+bible.js cli =
+  description = Bible.
+bibman =
+  description = A TUI bibliography manager. It aims to support only the most basis features as a general bibliography manager.
+bibtools =
+  description = Command-line bibliography manager.
+binary clock =
+  description = Displays a clock where numbers are represented with blue and gray dots with binary encoding.
+binsider =
+  description = A TUI for analyzing Linux binaries.
+binutils =
+  verified = 2025-12-21
+birthday =
+  description = Know when a friend's birthday is coming.
+bison =
+  verified = 2025-12-21
+bitly-client =
+  description = Bitly client.
+bits =
+  description = CLI tool and pure Python library for Bitcoin.
+bitwarden cli =
+  description = Command-line interface for Bitwarden, a multi-platform password manager targeted to companies and enterprises.
+bitwise =
+  verified = 2025-12-21
+bkmr =
+  description = A unified CLI tool for bookmark, snippet, and knowledge management.
+bkt =
+  description = bkt is a subprocess caching utility that makes it easy to reuse past invocations of slow commands
+black =
+  verified = 2025-12-21
+blackjack =
+  description = IRC bot to play blackjack.
+blaze =
+  description = A customizable and informative prompt for bash, zsh, fish, on linux distributions.
+blinkenlights =
+  description = TUI that may be used for debugging x86_64-linux or i8086 programs across platforms.
+blockpaint =
+  description = BlockPaint is a painting program that allows you to draw pixel graphics in the terminal using the mouse.
+bluetuith =
+  verified = 2025-12-21
+blueutil-tui =
+  description = TUI for Mac to interact with bluetooth devices via blueutil.
+bmon =
+  description = A monitoring and debugging tool to capture networking related statistics and prepare them visually in a human friendly way.
+boards =
+  description = Recursive kanban boards based around the filesystem.
+bob =
+  description = Bob is a cross-platform and easy-to-use Neovim version manager, allowing for easy switching between versions.
+bocker =
+  description = Docker implemented in around 100 lines of bash.
+bollywood =
+  description = Runs terminal screencasts in multiple panes, resulting in another real-time Hollywood-style real-time hacking terminal.
+bombadillo =
+  verified = 2025-12-21
+bookworm =
+  description = LLM-powered bookmark search engine.
 boost =
   verified = 2025-12-21
-broot =
+bore =
+  description = A simple CLI tool for making tunnels to localhost.
+borg =
+  description = Encrypted backups with a clean and simple interface, easy to use and set up, possibility to mount the backup archive with FUSE and inspect it as a regular file system.
+bottom =
+  description = Yet another cross-platform graphical process/system monitor.
+  verified = 2025-12-20
+boxes =
   verified = 2025-12-21
+bpytop =
+  description = Linux/macOS/FreeBSD resource monitor with a nice interface.
+brash =
+  description = Move and restore items from the XDG trash. Written in pure Bash.
+brave-bookmarks =
+  description = Command-line script to query Brave's bookmark.
+bren =
+  description = Bren is a command line tool for GNU/Linux (and many others). It has support for GNU Guile scripting. Bren is simple, fast, and it's written in C.
+brightness =
+  description = Change screen brightness ([windows](https://github.com/sondreb/win-brightness)).
+brightnessctl =
+  description = Read and control device brightness. Devices, by default, include backlight and LEDs - searched for in corresponding classes.
+brok =
+  description = Find broken links in text documents.
+broot =
+  description = broot displays an optimized (omitting unnecessary content) tree view of the filesystem, allowing to fuzzy search files and folder, and move to specified directories.
+  verified = 2025-12-21
+brows =
+  description = CLI GitHub release browser.
+browsh =
+  verified = 2025-12-21
+browsr =
+  description = A pleasant file explorer that can browse the contents of local and remote filesystems with your keyboard or mouse; remotes include GitHub, over SSH, in AWS S3, Google Cloud Storage, or Azure Blob Storage.
+btail =
+  description = Interactive file tail viewer.
 btop =
   verified = 2025-12-21
+btop++ =
+  description = Resource monitor that shows usage and stats for processor, memory, disks, network, and processes. C++ version and continuation of [bashtop](https://github.com/aristocratos/bashtop) and [bpytop](https://github.com/aristocratos/bpytop).
+budget =
+  description = Import, de-dupe, categorize, and report on financial transactions.
+budget_tracker_tui =
+  description = A simple TUI budget tracker app built in rust. Designed to track income and expenses and help visualize and gather basic insights from your transactions.
+buf =
+  verified = 2025-12-21
+buku =
+  verified = 2025-12-21
+bup =
+  description = Very efficient backup system based on the git packfile format, providing fast incremental saves and global deduplication.
+bupstash =
+  description = Secure, encrypted backups with efficient deduplication, client-side encryption, offline decryption, search-tagged data protection, strong privacy, robust performance on slow networks, memory-safe security against attacks, incremental backups, and minimal RAM usage for production use.
+burf =
+  description = TUI for Google Cloud Storage (GCS).
+byobu =
+  description = A text-based window manager and terminal multiplexer; it features enhanced profiles, convenient keybindings, configuration utilities, and toggle-able system status notifications; compatible with `screen` and `tmux`.
+c-ares =
+  verified = 2025-12-21
+c-pipes =
+  description = Program written in the C language that will render random coloured zigzag lines in the terminal, while the font, speed, density and number of lines are fully costumizable. Each line stops once it reaches the edge of the window, only for a new line to begin.
+c-squares =
+  description = Program written in C that will render random coloured rectangulars in the terminal, while the font, speed, density, color, ratio and number of the shapes drawn are fully costumizable.
+c0admin =
+  description = A terminal-based AI assistant for Linux sysadmins. Uses the Gemini API.
 ca-certificates =
+  verified = 2025-12-21
+cacaview =
+  description = A library and a program to display JPG, PNG, GIF or BMP images in the terminal using ASCII characters.
+cadmus =
+  description = Shell Scripts to Facilitate Effective Note Taking.
+cai =
+  description = The fastest CLI tool for prompting LLMs. Including support for prompting several LLMs at once!
+cairo =
+  verified = 2025-12-20
+calcpy =
+  description = Terminal calculator and advanced math solver using Python, IPython and SymPy.
+calcure =
+  verified = 2025-12-21
+calcurse =
+  description = A calendar and scheduling application for the command line. It helps keep track of events, appointments and everyday tasks.
+caldr =
+  description = A lightweight CLI / TUI calendar that supports CalDAV.
+calm-garden =
+  description = A small, discreet terminal tool for breath exercises with progression: earn coins, buy plants, and upgrade your garden.
+cambd =
+  description = A CLI tool to automate the process to access the Cambridge dictionary.
+caniuse-cmd =
+  description = Search [caniuse.com](https://caniuse.com) about browser support of features.
+canto curses =
+  description = Curses frontend for [Canto daemon](https://github.com/themoken/canto-next) for RSS feeds.
+carapace =
+  description = Carapace provides argument completion for multiple CLI commands and works across multiple POSIX and non-POSIX shells.
+carbon-now =
+  description = Generate beautiful images of your code.
+carbonyl =
+  description = Chromium running inside your terminal.
+cargo-seek =
+  description = A TUI for searching, adding and installing cargo crates.
+cargo-update =
+  verified = 2025-12-21
+cash =
+  description = Convert Currency Rates.
+cask =
+  verified = 2025-12-21
+castero =
+  verified = 2025-12-21
+cat9 =
+  description = Cat9 is a user shell script for LASH - a command-line shell that discriminates against terminal emulators, written in Lua.
+cataclysm-dda =
+  description = Turn-based survival game set in a post-apocalyptic world.
+cataclysm: dark days ahead =
+  description = Open source turn-based survival RPG development project.
+catdir =
+  description = A simple CLI utility that traverses directories and concatenates the contents of all files within a folder and its subfolders, similar to the Unix cat command, but for entire directory trees.
+catdoc =
+  description = Convert Microsoft Word files to plain text; output is sent to the standard output.
+cations =
+  description = Lightweight, user-friendly habit tracker and productivity tool; terminal-based CLI application.
+catnip =
+  description = An Image picker using pure bash (C and Go version in the works) and kittys icat and Chafa's Sixel protocol.
+catselector =
+  description = Interactive file selector for concatenating and exporting text files.
+cava =
+  description = Cross-platform Audio Visualizer.
+cbonsai =
   verified = 2025-12-21
 ccache =
   verified = 2025-12-21
+ccsum =
+  description = Convenient sha256sum (md5sum, sha1sum, and sha512sum) checksum with improved usability.
+ccube =
+  description = Rotating 3d cube in terminal; written in C.
+cdu =
+  verified = 2025-12-21
+cdwe =
+  description = (cd with env vars) Wrapper of the cd command that sets and unsets env vars when you change dir based on a config file.
+cemetery escape =
+  description = A game in which you must escape the cemetery. Search tombstones to find the key. Then head for the door, but watch out for ghosts.
+certbot =
+  verified = 2025-12-21
+certifi =
+  verified = 2025-12-21
+certificate-ripper =
+  description = Extract server certificates.
+cffi =
+  verified = 2025-12-21
+cfiles =
+  description = ncurses file manager written in C with vim like keybindings
+cfn-lint =
+  verified = 2025-12-21
+cfonts =
+  description = А command line tool for generating ANSI fonts in the console.
+cgasm =
+  description = Pronounced “SeekAzzem”, it is a standalone, offline terminal-based tool with no dependencies that gives me x86 assembly documentation.
+cgdb =
+  description = Console front-end to the GNU debugger.
+cgol =
+  description = Conway's Game of Life in C.
+cha =
+  description = A simple CLI chat tool to easily interface with OpenAI's models.
+chadsay =
+  description = Like cowsay, but pronounced by GigaChad.
+chafa =
+  verified = 2025-12-21
+chaftrix =
+  description = C program that will render the matrix effect in the terminal window in the background, while rendering an image in the foreground, allowing animation of this image in one or two dimensions.
+charfreq =
+  description = Very simple command-line tool that counts (unicode) character frequency from standard input.
+chargepoint/xcparse/xcparse =
+  verified = 2025-12-20
+chars =
+  verified = 2025-12-21
+chat.sh =
+  description = Pipeable LLM wrapper with code execution (OpenRouter).
+chatblade =
+  description = Chatblade is a versatile command-line interface (CLI) tool designed to interact with OpenAI's ChatGPT.
+chatdbg =
+  description = AI-assisted debugging. Uses AI to answer 'why'.
+chatgpt =
+  description = Simple command line integration to ChatGPT.
+chatgpterminator =
+  description = GPTerminator provides a convenient way to interact with OpenAI's chat completion and image generation API's using your command line interface.
+chawan =
+  description = A text-mode web browser. It displays websites in your terminal and allows you to navigate on them. It can also be used as a terminal pager.
+chdig =
+  description = Dig into ClickHouse with TUI interface.
+cheat =
+  verified = 2025-12-21
+cheatshh =
+  description = A fzf based cheatsheet to store commands and their descriptions in a place you can look into so you dont have to remember them.
+checkov =
+  verified = 2025-12-21
+checksum.sh =
+  description = Checksum.sh is a simple way to download, review, and verify install scripts. If the checksum is OK the script will be printed to stdout, which can be piped to sh or elsewhere.
+cheezee =
+  description = Chess TUI client built for Linux.
+chess-tui =
+  description = Play chess from your terminal.
+chet-client =
+  description = Measure your commands to speed up your development.
 chezmoi =
   verified = 2025-12-21
+chibi-scheme =
+  verified = 2025-12-21
+chiko =
+  description = The ultimate beauty gRPC Client on your Terminal: a simple tool to interact with gRPC services using a beautiful terminal interface.
+chimp-type =
+  description = A minimal typing test for terminal written in go.
+cho =
+  description = The safe echo & quoting utility you always knew you needed, but were too afraid to ask [for].
+chokidar =
+  description = CLI to watch file system changes.
+chokidar cli =
+  description = Fast cross-platform command line utility to watch file system changes.
+choof =
+  description = Choof is a fast and minimal CLI tool for managing files, built with Bubble Tea for Linux.
+choose =
+  description = NCurses based token selector with a nice terminal user interface for selecting tokens. Selecting a line from the bash history is only one of its use cases.
+  verified = 2025-12-20
+chs =
+  description = Play chess against the Stockfish engine in your terminal.
+chuckle =
+  description = An application that utilises an API in order to print out jokes in your terminal.
+cipher =
+  description = An Ash module that makes it easy to perform aes-256-cbc encryption for files and directories.
+clai =
+  description = Command Line AI is a command line integration for openai. It's setup to help you learn new shell commands and construct more complex commands.
+clang-format =
+  verified = 2025-12-20
+classifier =
+  description = Organize files in your current directory, by classifying them into folders of music, PDFs, images, etc.
+classis =
+  description = An easy CLI for the terminal fans out there who want to access Open Assistant's API through the terminal or want to use the API in their own applications.
+clevercli =
+  description = ChatGPT powered CLI utilities. Easily add new prompt types.
+cli co-pilot =
+  description = CLI tool that uses GPT4 to turn natural language commands into their Bash/ZShell/PowerShell equivalents.
+cli github =
+  description = Fancy GitHub client.
+cli-arxiv =
+  description = CLI tool for exploring arXiv.
+cli-chess =
+  description = A highly customizable way to play chess in your terminal. Play online (via Lichess.org) and offline against the Fairy-Stockfish engine. All Lichess variants are supported.
+cli-fireplace =
+  description = Shows digital fireplace.
+cli-manager =
+  description = Command Line Interface for managing tasks locally on the fly.
+cli-mandelbrot =
+  description = A CLI for traversing the Mandelbrot fractal.
+cli-tools-info =
+  description = An overview of your CLI tools, if they are installed and what version they are on.
+cli-viz =
+  description = An audio visualizer that runs in the linux terminal and reacts to the microphone.
+cli_chat_app =
+  description = A end-to-end encrypted chat application.
+cliclick =
+  verified = 2025-12-21
+clidle =
+  verified = 2025-12-21
+clifm =
+  verified = 2025-12-21
+cligpt =
+  description = ChatGPT but in the terminal.
+climenu =
+  description = Compact application for creating shell menus with executable entries. Use it to build straightforward static shortcut menus or dynamically generate advanced menus for more complex programs.
+clipboard =
+  verified = 2025-12-21
+clipper =
+  description = Seamlessly copy file contents to clipboard from command line. Lightweight, cross-platform tool for instant text transfers.
+clippy =
+  description = Clipboard tool for interacting with GUI applications.
+clipsync =
+  description = Share your clipboard across multiple machines using an MQTT service.
+clipy =
+  description = Manage clipboard history.
+cloc =
+  verified = 2025-12-21
+clog =
+  description = Creates a changelog automatically from local git metadata.
+cloud code usage monitor =
+  description = Real-time Claude Code usage monitor with predictions and warnings.
+cloudcash =
+  description = Check your cloud spending from the CLI, from Waybar, and from the macOS menu bar!
+clouddrift =
+  description = Soft clouds drifting across your terminal.
 cloudflared =
   verified = 2025-12-21
 cmake =
   verified = 2025-12-21
+cmatrix =
+  description = ncurses program that display the scrolling lines found in the movie `The matrix`.
+cmd-ai =
+  description = Natural language shell command generator and executor powered by AI.
+cmdchallenge =
+  description = Presents small shell challenge with user submitted solutions.
+cmdcompass =
+  description = Cross-platform terminal command manager/notebook with features like custom collections, tagging, variable substitution, and integrated man page with option highlighting.
+cmenu =
+  description = Vaguely dmenu-like minimal TUI menu utility, it reads entries from stdin, creates a selection menu, and writes the selected entry to stdout.
+cmus =
+  description = A fast and lightweight audio player with configurable keybindings and playlist support.
+cntui =
+  description = Replay chrome requests from your terminal using curl.
+cobib =
+  verified = 2025-12-21
 cocoapods =
   verified = 2025-12-21
+cocommit =
+  description = Cocommit is a command-line tool that works with your HEAD commit and leverages an LLM of your choice to enhance commit quality.
+codegrab =
+  description = Interactive CLI tool for selecting and bundling code into a single, LLM-ready output file.
+codemancer =
+  description = Code with GPT-4 from your command line.
+codemark cli =
+  description = Helps you manage coding assignments and tests; easily initialize the configuration, list assignments, fetch and check your code, submit your code for grading, and get AI-powered error recommendations.
+codex =
+  verified = 2025-12-20
+cointop =
+  verified = 2025-12-21
+colibri core =
+  description = A software to quickly and efficiently count and extract patterns (n-grams and more) from large corpus data, to extract various statistics on the extracted patterns, and to compute relations between the extracted patterns.
 colima =
   verified = 2025-12-21
+colorls =
+  description = A Ruby script that colorizes the `ls` output with color and icons.
+colout =
+  description = colout read lines of text stream on the standard input and output characters matching a given regular expression pattern in given color and style.
+commandpilot =
+  description = An assistant which uses ChatGPT to aid in constructing commands for bash.
+composer =
+  verified = 2025-12-20
+compsize =
+  description = Find compression type/ratio on a file or set of files on a btrfs file system.
+conan =
+  verified = 2025-12-21
+config-file-validator =
+  verified = 2025-12-21
+conrad =
+  description = Track conferences and meetups.
+console-fun =
+  description = Some console stuff to have a fun and watch some animations with texts, figures, etc.
+conspy =
+  verified = 2025-12-21
+containerssh =
+  description = An SSH Server that Launches Containers in Kubernetes and Docker on demand.
+contributing-generator =
+  description = A generator for the CONTRIBUTING.md, README.md, LICENSE, etc.
+conway-screensaver =
+  description = A Conways game of life screensaver for the terminal.
+cookcli =
+  description = Full-featured recipe manager.
+cookiecutter =
+  description = A cross-platform command-line utility that creates projects from cookiecutters (project templates), e.g. Python package projects, C projects.
+copytools.sh =
+  description = Tools for copying and pasting in the command line.
+corefreq =
+  description = CPU monitoring TUI software designed for the 64-bits Processors.
 coreutils =
   verified = 2025-12-21
+cosh =
+  description = Concatenative command-line shell.
+cosign =
+  verified = 2025-12-21
+cotp =
+  description = Trustworthy, encrypted, command-line TOTP/HOTP authenticator app with import functionality.
+cowsay =
+  verified = 2025-12-21
+cowthink =
+  description = Same as `cowsay`, but uses a ""think"" bubble instead of a speech bubble.
+cpass =
+  verified = 2025-12-21
+cppcheck =
+  verified = 2025-12-21
+cpy =
+  description = Copies files.
+crappybird-py =
+  description = Flappy bird.
+crawley =
+  verified = 2025-12-21
+cream =
+  description = Encrypt and decrypt streams of data with only a master password. The key is derivated from the password + salt combo, and used to encrypt data byte per byte.
+createvideomeme =
+  description = Bash tool to add captions to the top of videos.
+crestic =
+  description = Configurable Restic Wrapper.
+croc =
+  verified = 2025-12-21
+cronboard =
+  description = Dashboard for managing cron jobs.
+crudini =
+  verified = 2025-12-21
+crush =
+  description = Flexible AI coding agent with a wide range of LLMS, maintains multiple work sessions and contexts per project, works everywhere and extensible.
+cryptography =
+  verified = 2025-12-20
+csope =
+  description = C source code browser - Fork of Cscope version 15,9, with various improvements.
+csv-diff =
+  description = Python CLI tool and library for diffing CSV and JSON files
+csvkit =
+  description = A suite of command-line tools for converting to and working with CSV, the king of tabular file formats.
+csvlens =
+  verified = 2025-12-21
+csvq =
+  description = SQL-like query language for CSV.
+csvsuite =
+  description = A suite of tools to process CSV files, written in C++.
+csvtk =
+  verified = 2025-12-21
+ctree =
+  description = A Christmas tree right from your terminal.
+ctune =
+  description = A ncurses based internet radio player written in C for Linux.
 curl =
+  description = A tool and library for transferring data with URL syntax, supports a lot of protocols.
   verified = 2025-12-21
 curlie =
+  description = The power of curl, the ease of use of httpie.
   verified = 2025-12-21
+cursedtodo =
+  description = A minimalist, terminal base todo manager storing tasks as .ics files for storage.
+cute =
+  description = TUI to help build, execute and save curl commands, recursively download from remote sources, test your API endpoints, and mange your keys.
+czg =
+  description = Interactively generate standardized commit messages.
+czkawka =
+  verified = 2025-12-21
+d2 =
+  description = D2 is a modern diagram scripting language that turns text to diagrams.
+  verified = 2025-12-20
+daff =
+  description = Efficient table comparison and alignment, supporting formats like CSV and SQLite, useful for data analysis and synchronization tasks.
+daktilo =
+  description = Turn your keyboard into a typewriter adding sounds at each keystroke.
+damon =
+  description = TUI interface for Hashicorp Nomad, it provides functionality to observe and interact with Nomad resources such as Jobs, Deployments, or Allocations.
+dankcli =
+  description = Add text to meme image templates.
+dans-dungeon =
+  description = A dungeon crawler engine written in Python.
+dark-mode =
+  description = Toggle dark mode.
+darkhttpd =
+  description = Darkhttpd is a simple, fast HTTP 1.1 web server for static content. It does not support PHP or CGI etc but is designed to serve static content, which it does very well.
+dasel =
+  verified = 2025-12-21
+dash =
+  description = DASH is a POSIX-compliant implementation of /bin/sh that aims to be as small as possible. It does this without sacrificing speed where possible.
+dashbrew =
+  description = TUI dashboard builder that lets you visualize data from scripts and APIs.
+dasht =
+  verified = 2025-12-21
+databricks/tap/databricks =
+  verified = 2025-12-20
+datadash =
+  verified = 2025-12-21
+datasetgpt =
+  description = A command-line interface and a Python library for inferencing Large Language Models to generate textual datasets.
+datetimemate =
+  description = Golang package and CLI to compute the difference between date, time or duration.
+dateutils =
+  description = Dateutils are a bunch of tools that revolve around fiddling with dates and times in the command line with a strong focus on use cases that arise when dealing with large amounts of financial data.
+dawson =
+  description = Track your project's statistics on Hacker News and Github, and get notified on every new interaction.
+dbee =
+  description = Fast & Minimalistic Database Browser (MySQL, MariaDB, PostgreSQL).
+dblab =
+  description = Interactive client for PostgreSQL, MySQL, SQLite3, Oracle and SQL Server.
+dbmate =
+  verified = 2025-12-21
+ddev/ddev/ddev =
+  verified = 2025-12-20
+ddgr =
+  description = A command line utility to search DuckDuckGo (HTML version) from the terminal.
+ddqa =
+  description = Jira TUI to help with software releasestool for users of Jira to perform QA of anticipated releases of code on GitHub.
+deadlink =
+  verified = 2025-12-21
+decktape =
+  description = DeckTape is a high-quality PDF exporter for HTML presentation frameworks.
+decompose =
+  description = Reverse-engineering tool for docker environments.
+del =
+  description = Save deleted files to a .del/ subdirectory in the same directory.
+delta =
+  description = A syntax-highlighter for git and diff output.
+  verified = 2025-12-20
+deluge =
+  description = A lightweight, Free Software, cross-platform BitTorrent client; a terminal curses interface, web interface and command line client can connect to a running daemon to manage torrent downloads.
+dem =
+  description = Containerized Development Environment Manager for embedded development.
 deno =
   verified = 2025-12-21
+derailed/k9s/k9s =
+  verified = 2025-12-20
+detect-indent =
+  description = Detect the indentation of code.
+detox =
+  description = Easily clean up filenames; it replaces characters like spaces with standard equivalents and UTF-8 or Latin-1 (or CP 1252) characters with more handy ones.
+dev-time =
+  description = Get the current local time of a GitHub user.
+devbox =
+  verified = 2025-12-21
+deviceframe =
+  description = Put device frames around mobile/web/progressive app screenshots.
+devtodo =
+  description = A hierarchical command-line task manager, with data storage in JSON format.
+devzat =
+  description = Custom SSH server that takes you to a chat instead of a shell prompt.
+dext =
+  description = (Directories by Extensions) is a script that moves (or copies) files of the same extension into a folder.
+dfc =
+  description = Report file system space usage information with style.
+diagon =
+  description = Diagon is an interactive interpreter, that transforms Markdown-style expression into an ASCII-art representation.
+diakonos =
+  verified = 2025-12-21
+diff-so-fancy =
+  verified = 2025-12-21
+diff2html =
+  verified = 2025-12-21
+difftastic =
+  verified = 2025-12-21
+dijo =
+  verified = 2025-12-21
+dino =
+  description = A C++ and ncurses rendering of the popular chrome dinosaur game on the terminal.
+dir2txt =
+  description = A blazing-fast CLI tool to export a directory's structure and contents into a neatly formatted `.txt` or `.json` file.
+dircrcmd =
+  description = Checksum directory in crc32 and export it into markdown.
+dirdiff =
+  description = Efficiently compute the differences between two directories.
 direnv =
+  description = Loads and unloads environment variables depending on the current directory.
+  verified = 2025-12-21
+discharge =
+  description = Deploy static websites to Amazon S3.
+discodos =
+  description = A CLI tool for DJ's and record collectors based on the discogs.com collection feature that allows analyzing and organize DJ sets.
+discordo =
+  description = A lightweight, secure, and feature-rich Discord terminal client.
+dish =
+  description = A lightweight, remotely configurable monitoring service.
+diskonaut =
+  description = Terminal disk space navigator that traverse the file-system with a TUI interface.
+diskus =
+  description = Minimal, fast alternative to du -sh.
+distrobox =
+  description = Use any Linux distribution inside your terminal as docker or podman containers.
+dive =
+  verified = 2025-12-21
+django-tui =
+  description = Inspect and run Django Commands in a text-based user interface (TUI).
+dlorg =
+  description = Powerful and intuitive that automatically organizes your cluttered Downloads folder into a neatly structured directory system.
+dmidecode =
+  description = System information utility.
+dn =
+  description = Daily notes command line tool.
+dnote =
+  description = A simple command line notebook for the terminal. It also offers a seamless multi-device sync and a web interface.
+dnsmasq =
+  verified = 2025-12-21
+docfd =
+  description = TUI fuzzy document finder that looks for documentation files in Markdown and txt format in the directory tree.
+docker =
+  description = Self-sufficient runtime for containers.
+  verified = 2025-12-20
+docker-buildx =
   verified = 2025-12-21
 docker-compose =
   verified = 2025-12-21
-duf =
+docker-credential-helper =
   verified = 2025-12-21
+docker-machine =
+  verified = 2025-12-21
+docker-pushrm =
+  verified = 2025-12-21
+docker-shell =
+  description = A simple interactive prompt for Docker.
+dockly =
+  verified = 2025-12-21
+doctl =
+  verified = 2025-12-21
+doctoc =
+  verified = 2025-12-21
+docutils =
+  verified = 2025-12-21
+doggo =
+  description = DNS client for humans. Features include: colors, tabular and JSON formats, and reverse DNS lookup.
+  verified = 2025-12-20
+doing =
+  description = A command line tool for remembering what you were doing and tracking what you've done.
+dolphie =
+  description = Your single pane of glass (TUI) for real-time analytics into MySQL/MariaDB & ProxySQL.
+dolt =
+  verified = 2025-12-21
+dooit =
+  description = Todo manager with interactive and beautiful UI, and vim keybindings.
+doppelganger =
+  description = Save and load your shell environment to create doppelganger shells!
+dos2unix =
+  verified = 2025-12-21
+dotbins =
+  description = Keep updated binaries in your dotfiles.
+dotenvhub =
+  description = Terminal App to centrally manage .env files. Written in Python powered by Textual.
+dotnet =
+  verified = 2025-12-21
+downloader =
+  description = A simple downloader written in Python with an awesome customizable progress bar.
+doxygen =
+  verified = 2025-12-21
+dpg =
+  description = The Deterministic Password Generator - Generates passwords based on a master password and the indication of the website/service/username, without the need of storing anything.
+draw =
+  description = draw is an simple drawing tool in the terminal. Hold your mouse down and move it across the screen to draw anything you want!
+dry =
+  description = A Docker manager for the terminal.
+dstask =
+  verified = 2025-12-21
+dtach =
+  verified = 2025-12-21
+dtool =
+  verified = 2025-12-21
+dtrx =
+  verified = 2025-12-21
+dtui =
+  description = Small TUI for introspecting the state of the system/session dbus.
+duckdb =
+  verified = 2025-12-21
+duf =
+  description = Disk Usage/Free Utility.
+  verified = 2025-12-21
+dug =
+  description = A global DNS propagation checker that gives pretty output.
+dummy =
+  description = Generator of static files for testing file upload. It can generate the PNG file of any number of bytes!
+dune =
+  description = A customizable shell that aims to be cozy.
+dunk =
+  description = Prettier git diffs in the terminal.
+duple =
+  description = Find and remove duplicate files.
+duplicity =
+  description = Creates GPG encrypted, compressed backups; client-side encryption allows uploading the backup onto untrusted servers.
+duply =
+  verified = 2025-12-21
+durak =
+  description = Durak card game for two in a terminal.
+durdraw =
+  description = Versatile ASCII and ANSI Art text editor for drawing in the Linux/Unix/macOS terminal, with animation, 256 and 16 colors, Unicode and CP437, and customizable themes.
+dust =
+  description = du + rust = dust. Like du but more intuitive.
+  verified = 2025-12-20
+dutree =
+  verified = 2025-12-21
+dvtm =
+  description = Dynamic console window manager that enables dynamic tiling window management for multiple terminal applications.
+dwarf fortress =
+  description = A fantasy game using ASCII art graphical representation of the game environment, it features a rich environment with many options and possibilities.
+dyff =
+  verified = 2025-12-21
+dysk =
+  verified = 2025-12-21
+dzr =
+  verified = 2025-12-21
+ecb-rates =
+  description = Fetch exchage rates from the European Central Bank.
+echo =
+  description = Speedy API emulation facilitated by a reverse proxy and mock JSON server.
+ed =
+  description = GNU ed is a line-oriented text editor. It is used to create, display, modify and otherwise manipulate text files, both interactively and via shell scripts.
+eddy =
+  description = Simple, fast CLI file encryption tool.
 edencommon =
   verified = 2025-12-21
+editly =
+  description = A tool and framework for declarative NLE (non-linear video editing) using Node.js and FFmpeg.
+eget =
+  description = Easily install prebuilt binaries from GitHub.
+egit =
+  description = A.I. tools and workflows for Git.
+ehh =
+  verified = 2025-12-21
+eigen =
+  verified = 2025-12-21
+ejabberd =
+  description = ejabberd is an XMPP application server and an MQTT broker, written mainly in the Erlang programming language.
+eksctl =
+  verified = 2025-12-21
+element =
+  description = Periodic table on the command line.
+elia =
+  description = A terminal ChatGPT client built with Textual.
+elinks =
+  description = Advanced and well-established feature-rich text mode web browser""; started as a fork of `Links`; it supports background download with queueing, some support from CSS, text box editing in external text editor.
+elixir =
+  verified = 2025-12-21
+elvish =
+  verified = 2025-12-21
 emacs =
+  description = One of the oldest text editors, free long-standing software project, with a huge amount of functionalities and extensions; implemented and extendable with E-Lisp.
+  verified = 2025-12-21
+emoj =
+  description = Find relevant emoji from text on the command-line.
+emoji-finder =
+  description = Quickly find and copy emoji to the clipboard via the command-line.
+empiriqa =
+  description = empiriqa (command name is epiq) is a tool for interactively manipulating UNIX pipelines.
+emplace =
+  verified = 2025-12-21
+empty-trash =
+  description = Empty the trash.
+enc =
+  description = A modern and friendly CLI alternative to GnuPG: generate and download keys, encrypt, decrypt, and sign text and files, and more.
+encfs =
+  description = Encrypted filesystem in user-space based on [FUSE](https://it.wikipedia.org/wiki/FUSE), mounts an encrypted directory into a clear one.
+enhancd =
+  description = A next-generation cd command with your interactive filter.
+entr =
+  description = Event Notify Test Runner - Run an arbitrary command when files change.
+envio =
+  description = Envio is a command-line tool that simplifies the management of environment variables across multiple profiles. It allows users to easily switch between different configurations and apply them to their current environment.
+eon =
+  description = A light, modern editor for your terminal that doesn't want to be vim.
+epr =
+  description = epub reader.
+epy =
+  description = CLI Ebook (epub2, epub3, fb2, mobi) Reader.
+erdtree =
+  verified = 2025-12-21
+erlang =
+  verified = 2025-12-21
+es =
+  description = (extensible shell) shell with first class functions, lexical scope, exceptions, and rich return values, based on Plan9's rc.
+escaping-figures-game =
+  description = Count figure's occurrences in the escaping figures matrix.
+espanso =
+  verified = 2025-12-21
+espeak =
+  verified = 2025-12-21
+euporie =
+  description = Allows you to interact with Jupyter kernels, and run Jupyter notebooks - entirely from the terminal.
+exa =
   verified = 2025-12-21
 exiftool =
   verified = 2025-12-21
+explainshell =
+  description = Type a snippet to see the help text for each argument.
+export pull requests =
+  description = Export pull requests and/or issues to a CSV file. Supports GitHub, GitLab, and Bitbucket.
+extrakto =
+  description = extrakto for tmux - quickly select, copy/insert/complete text without a mouse.
+extraterm =
+  description = The swiss army chainsaw of terminal emulators.
+extundelete =
+  description = Recover deleted files from an ext3 or ext4 partition through its journal.
 eza =
+  description = eza is a modern, _maintained_ replacement for `ls`, built on `exa`.
+  verified = 2025-12-21
+f2 =
   verified = 2025-12-21
 fastfetch =
+  description = Like Neofetch, but much faster because written in C.
   verified = 2025-12-21
 fastlane =
+  verified = 2025-12-21
+fastmod =
   verified = 2025-12-21
 fb303 =
   verified = 2025-12-21
 fbthrift =
   verified = 2025-12-21
+fd =
+  description = A simple, fast, and user-friendly alternative to find. Written in Rust.
+  verified = 2025-12-20
+fff =
+  verified = 2025-12-21
 ffmpeg =
+  description = The Swiss knife of video editing from the command line.
+  verified = 2025-12-21
+ffscreencast =
+  verified = 2025-12-21
+ffsend =
+  verified = 2025-12-21
+figlet =
+  verified = 2025-12-21
+file-type =
+  description = Detect the file type of a file or stdin.
+findutils =
   verified = 2025-12-21
 fish =
+  description = A command line shell for the 90s""; focused on user-friendliness, with powerful autosuggestions, colors, ""sane scripting"" (w.r.t. to Bash).
   verified = 2025-12-21
 fizz =
   verified = 2025-12-21
+fjira =
+  verified = 2025-12-21
+fkill =
+  description = Simple cross-platform process killer.
+fluxcd/tap/flux =
+  verified = 2025-12-20
 flyctl =
+  verified = 2025-12-21
+fnm =
   verified = 2025-12-21
 folly =
   verified = 2025-12-21
+fontconfig =
+  verified = 2025-12-21
+forgit =
+  verified = 2025-12-21
+fortune =
+  description = Generates random messages fetched from a quotation database.
+fossil =
+  verified = 2025-12-21
+foy =
+  verified = 2025-12-21
+freerdp =
+  verified = 2025-12-21
+freesweep =
+  verified = 2025-12-21
 freetds =
   verified = 2025-12-21
+freetype =
+  verified = 2025-12-21
+friendly-find =
+  verified = 2025-12-21
+fx =
+  verified = 2025-12-21
+fz =
+  description = Fuzzy tab completion for z.
 fzf =
+  description = (FuZzy Finder) - a general-purpose command-line finder with fuzzy search/filter capabilities, good integration with `vim`.
+  verified = 2025-12-21
+gameshell =
+  verified = 2025-12-21
+gauche =
+  verified = 2025-12-21
+gawk =
+  verified = 2025-12-21
+gaze =
+  verified = 2025-12-21
+gcalcli =
   verified = 2025-12-21
 gcc =
   verified = 2025-12-21
+gdal =
+  verified = 2025-12-20
+gdb =
+  verified = 2025-12-21
+gdb-dashboard =
+  description = Modular visual interface for GDB in Python.
+gdbm =
+  verified = 2025-12-21
 gdk-pixbuf =
   verified = 2025-12-21
+gdu =
+  verified = 2025-12-21
+geeknote =
+  description = A command line client for Evernote that can be use on Linux, FreeBSD and OS X.
+gemini =
+  description = A command-line interface (CLI) for Google Gemini.
+  verified = 2025-12-20
 gettext =
   verified = 2025-12-21
+ggc =
+  verified = 2025-12-21
+gh =
+  description = GitHub's official tool to manage repos, issues, projects, gists and much more.
+  verified = 2025-12-20
 ghostscript =
   verified = 2025-12-21
+ghq =
+  verified = 2025-12-21
+gifgen =
+  verified = 2025-12-21
+giflib =
+  verified = 2025-12-21
+gifsicle =
+  verified = 2025-12-21
 git =
+  description = The winner across all the existing file versioning tools, distributed versioning, fully controllable from the command-line, plenty of configuration and usage options, behind a number of related project that leverage git as backend.
+  verified = 2025-12-21
+git commander =
+  description = A git tool with an easy interactive terminal interface.
+git-all-branches =
+  description = Improved visualization of git branches (`git branch -a`).
+git-annex =
+  verified = 2025-12-21
+git-crypt =
+  verified = 2025-12-21
+git-delta =
+  verified = 2025-12-21
+git-extras =
+  verified = 2025-12-21
+git-filter-repo =
   verified = 2025-12-21
 git-lfs =
   verified = 2025-12-21
-gitleaks =
+git-secret =
   verified = 2025-12-21
+git-stats =
+  description = Local git statistics including GitHub-like contributions calendars.
+gita =
+  verified = 2025-12-21
+gitea =
+  verified = 2025-12-21
+github-cli =
+  verified = 2025-12-21
+gitlab =
+  description = Create GitLab merge requests.
+gitleaks =
+  description = Tool for detecting and preventing hardcoded secrets like passwords, api keys, and tokens in git repos.
+  verified = 2025-12-21
+gitui =
+  verified = 2025-12-21
+givegif =
+  description = GIFs on the command line.
+glab =
+  verified = 2025-12-20
 glances =
+  description = A comprehensive and detailed system monitor; monitored parameters include: CPU, memory, load, process list, network interfaces, disk I/O, sensors, filesystems, docker, system info, uptime.
+  verified = 2025-12-21
+glfw =
   verified = 2025-12-21
 glib =
   verified = 2025-12-21
+glow =
+  verified = 2025-12-21
+gmp =
+  verified = 2025-12-21
+gnu-tar =
+  verified = 2025-12-20
 gnupg =
+  description = GnuPG is a complete and free implementation of the OpenPGP standard as defined by RFC4880 (also known as PGP).
+  verified = 2025-12-21
+gnuplot =
   verified = 2025-12-21
 gnutls =
   verified = 2025-12-21
 go =
   verified = 2025-12-21
+go-task =
+  verified = 2025-12-20
 gobject-introspection =
+  verified = 2025-12-21
+gof =
+  verified = 2025-12-21
+gojq =
   verified = 2025-12-21
 golangci-lint =
   verified = 2025-12-21
+gomplate =
+  verified = 2025-12-21
+goobook =
+  verified = 2025-12-21
+googler =
+  verified = 2025-12-21
+gotty =
+  description = Turn CLI tools into web applications; basically, it runs a command and starts a server so that the output can be displayed in a web page.
+gpgme =
+  verified = 2025-12-21
+gping =
+  description = Ping, but with a graph.
+  verified = 2025-12-20
 gradle =
   verified = 2025-12-21
 graphicsmagick =
   verified = 2025-12-21
-graphviz =
+graphtage =
   verified = 2025-12-21
+graphviz =
+  description = Graphviz is open source graph visualization software. It contains several command line tools to generate and manipulate graphs.
+  verified = 2025-12-21
+greed =
+  verified = 2025-12-21
+grep =
+  verified = 2025-12-21
+grex =
+  verified = 2025-12-21
+gron =
+  verified = 2025-12-21
+groq =
+  description = The CLI tool consumes both JSON and NDJSON documents. You can pass in data from a local file, or from piping to standard input.
+grpc =
+  verified = 2025-12-20
 grpcurl =
   verified = 2025-12-21
+grv =
+  verified = 2025-12-21
+gstreamer =
+  verified = 2025-12-21
+gsudo =
+  verified = 2025-12-21
+gtop =
+  description = System monitoring dashboard for terminal written in Node.js.
+  verified = 2025-12-20
+gtree =
+  verified = 2025-12-21
+guile =
+  verified = 2025-12-20
+gzip-size =
+  description = Get the gzipped size of a file.
+handbrake =
+  verified = 2025-12-21
+happyfinder =
+  description = (another) Fuzzy file finder for the command line.
 harfbuzz =
   verified = 2025-12-21
+has =
+  verified = 2025-12-21
+hashcat =
+  verified = 2025-12-21
+hashicorp/tap/terraform =
+  verified = 2025-12-20
+hashicorp/tap/vault =
+  verified = 2025-12-20
+haxor-news =
+  verified = 2025-12-21
+hdf5 =
+  verified = 2025-12-21
+helix =
+  description = A Kakoune / Neovim inspired editor, written in Rust. The editing model is very heavily based on Kakoune.
+  verified = 2025-12-20
 hello =
   verified = 2025-12-21
+helm =
+  verified = 2025-12-20
+helmfile =
+  verified = 2025-12-21
+hexyl =
+  verified = 2025-12-21
+hget =
+  description = A CLI to convert HTML into plain text. Can be used to fetch a site's HTML version and convert it into plain text, or to deliver plain text versions of your site dynamically.
+hishtory =
+  verified = 2025-12-21
+hledger =
+  verified = 2025-12-21
+hors =
+  verified = 2025-12-21
+howdoi =
+  verified = 2025-12-21
+hstr =
+  verified = 2025-12-21
 htop =
+  description = An interactive process viewer for Unix; improves the UI of `top`, by adding real-time meters and colors.
   verified = 2025-12-21
 httpie =
+  description = HTTPie for Terminal: human-friendly CLI HTTP client for the API era.
   verified = 2025-12-21
+hub =
+  verified = 2025-12-21
+hugo =
+  description = The world's fastest framework for building websites.
+  verified = 2025-12-20
+huniq =
+  verified = 2025-12-21
+hunter =
+  verified = 2025-12-21
+hyperfine =
+  description = A command-line benchmarking tool.
+  verified = 2025-12-20
+ictree =
+  verified = 2025-12-21
+idea =
+  description = A lightweight tool for keeping ideas in a safe place quick and easy.
 imagemagick =
+  description = Software suite to create, edit, compose, or convert bitmap images; it handles many file formats (including PDF and SVG) and provides processing tools to ""resize, flip, mirror, rotate, distort, shear and transform images, adjust image colors, apply various special effects, or draw text, lines, polygons, ellipses and Bézier curves"".
   verified = 2025-12-21
+imgp =
+  verified = 2025-12-21
+invidtui =
+  verified = 2025-12-21
+iola =
+  description = A command-line socket client with REST API. It helps to work with socket servers using your favorite REST client.
+ios-deploy =
+  verified = 2025-12-21
+iperf3 =
+  verified = 2025-12-21
+ipfs-deploy =
+  description = Zero-Config CLI to Deploy Static Websites to IPFS [IPFS](https://en.wikipedia.org/wiki/InterPlanetary_File_System).
+ipython =
+  verified = 2025-12-21
+iredis =
+  verified = 2025-12-21
+irssi =
+  description = The most popular IRC client for the command-line; a flexible program, with many options and supporting many protocols.
+is-up =
+  description = Check whether a website is up or down using the [isitup.org](https://isitup.org/) API.
+jandedobbeleer/oh-my-posh/oh-my-posh =
+  verified = 2025-12-20
+jasper =
+  verified = 2025-12-21
+jc =
+  verified = 2025-12-21
+jed =
+  verified = 2025-12-21
+jenv =
+  verified = 2025-12-21
+jiq =
+  verified = 2025-12-21
+jo =
+  description = A small utility to create JSON objects from the command line.
+  verified = 2025-12-20
+joe =
+  verified = 2025-12-21
+jpeg =
+  verified = 2025-12-21
+jpeg-xl =
+  verified = 2025-12-20
 jq =
+  description = (JSON Query?) - sed-like processor for JSON data; can be used to process JSON files and data streams and perform operations such as those allowed by `cat`, `sed`, `grep` and `awk` on regular text files.
+  verified = 2025-12-21
+jqp =
   verified = 2025-12-21
 jupyterlab =
   verified = 2025-12-21
 just =
+  description = Handy way to save and run project-specific commands.
+  verified = 2025-12-21
+k6 =
   verified = 2025-12-21
 k9s =
+  description = Kubernetes CLI To Manage Your Clusters In Style!
+  verified = 2025-12-21
+kafka =
+  verified = 2025-12-21
+kakikun =
+  verified = 2025-12-21
+kakoune =
+  description = Modal editor, faster as in less keystrokes, multiple selections, orthogonal design.
+kalker =
+  verified = 2025-12-21
+kcov =
+  verified = 2025-12-21
+keep =
+  verified = 2025-12-21
+khal =
+  description = Calendar that can synchronize with CalDAV servers through [vdirsyncer](https://github.com/pimutils/vdirsyncer).
+kill-tabs =
+  description = Kill all Chrome tabs to improve performance, decrease battery usage, and save memory.
+kind =
+  verified = 2025-12-21
+kirc =
+  verified = 2025-12-21
+kool =
+  verified = 2025-12-21
+korkut =
+  description = Quick and simple image processing with the following functions: optimize, convert, crop, resize, rotate, watermark, flip.
+kotlin =
+  verified = 2025-12-21
+kpcli =
   verified = 2025-12-21
 kubeconform =
   verified = 2025-12-21
+kubectx =
+  verified = 2025-12-21
+kubernetes =
+  verified = 2025-12-20
 kustomize =
   verified = 2025-12-21
+lazydocker =
+  verified = 2025-12-21
 lazygit =
+  description = A simple terminal UI for git commands that simplify the execution of many operations making them interactive.
   verified = 2025-12-21
 lcov =
+  verified = 2025-12-21
+ledger =
+  description = A powerful, double-entry accounting system; it uses a simple yet powerful text syntax to specify the items to account.
+leptonica =
+  verified = 2025-12-21
+lf =
+  verified = 2025-12-21
+lfm =
+  verified = 2025-12-21
+lftp =
+  verified = 2025-12-21
+libarchive =
+  verified = 2025-12-21
+libass =
   verified = 2025-12-21
 libavif =
   verified = 2025-12-21
 libffi =
   verified = 2025-12-21
+libfido2 =
+  verified = 2025-12-21
+libgcrypt =
+  verified = 2025-12-21
+libgit2 =
+  verified = 2025-12-21
 libheif =
   verified = 2025-12-21
+libidn2 =
+  verified = 2025-12-21
+libimobiledevice =
+  verified = 2025-12-21
+libksba =
+  verified = 2025-12-21
+libomp =
+  verified = 2025-12-20
 libpng =
+  verified = 2025-12-21
+libpq =
+  verified = 2025-12-20
+libraw =
+  verified = 2025-12-21
+librist =
   verified = 2025-12-21
 librsvg =
   verified = 2025-12-21
+libssh2 =
+  verified = 2025-12-21
+libtiff =
+  verified = 2025-12-20
 libtool =
+  verified = 2025-12-21
+libusb =
   verified = 2025-12-21
 libxml2 =
   verified = 2025-12-21
+libyaml =
+  verified = 2025-12-21
+libzip =
+  verified = 2025-12-21
+license-eye =
+  verified = 2025-12-21
+lima =
+  verified = 2025-12-20
+linkchecker =
+  verified = 2025-12-21
+links =
+  verified = 2025-12-21
+little-cms2 =
+  verified = 2025-12-20
+ll =
+  description = ls with git status.
 llama.cpp =
   verified = 2025-12-21
+llvm =
+  verified = 2025-12-21
+ln =
+  verified = 2025-12-21
+lolcat =
+  description = Ruby Gem to colorize the output of the cat command.
+lowcharts =
+  verified = 2025-12-21
 lsd =
+  description = This project is a rewrite of GNU ls with lots of added features like colors, icons, tree-view, more formatting options etc. The project is heavily inspired by the super colorls project.
+  verified = 2025-12-21
+lua =
+  verified = 2025-12-20
+luajit =
+  verified = 2025-12-21
+luarocks =
+  verified = 2025-12-21
+luneta =
+  verified = 2025-12-21
+lynx =
+  verified = 2025-12-21
+mabel =
+  verified = 2025-12-21
+mackup =
+  verified = 2025-12-21
+make =
+  verified = 2025-12-21
+mapscii =
+  description = A Braille & ASCII world map renderer for your console
+mariadb =
+  verified = 2025-12-21
+mas =
+  verified = 2025-12-20
+massren =
+  verified = 2025-12-21
+matterhorn =
   verified = 2025-12-21
 maven =
   verified = 2025-12-21
+mazter =
+  verified = 2025-12-21
+mc =
+  verified = 2025-12-21
+mcfly =
+  description = Intelligent context-aware search engine for your shell history with TUI.
+  verified = 2025-12-20
+mdbook =
+  verified = 2025-12-21
+mdlt =
+  description = A lightweight command line tool that lets you perform arithmetic and symbolic math operations right from the terminal.
+mdp =
+  description = A command-line based Markdown presentation tool.
+mdt =
+  verified = 2025-12-21
+medium =
+  description = Medium for Hackers - Read [medium.com](https://medium.com/) stories in the terminal.
+mercurial =
+  verified = 2025-12-21
+meson =
+  verified = 2025-12-20
+micro =
+  verified = 2025-12-21
+midnight-commander =
+  description = A feature rich visual file manager.
+  verified = 2025-12-20
+min =
+  verified = 2025-12-21
+mingw-w64 =
+  verified = 2025-12-21
 minikube =
   verified = 2025-12-21
+minisign =
+  verified = 2025-12-21
+mint =
+  verified = 2025-12-20
 mise =
+  description = A development environment setup tool: dev tools, env vars, and task runner. Like `asdf` + `direnv` + `make`.
   verified = 2025-12-21
 mkcert =
   verified = 2025-12-21
+mklicense =
+  description = CLI tool for easily generating the text of the most common licenses.
+mkvtoolnix =
+  verified = 2025-12-21
+mmv =
+  verified = 2025-12-21
+moc =
+  description = (music on console) - a powerful and easy to use console audio player, user interface a la Midnight Commander, plenty of features, fully controllable from the keyboard.
+moeda =
+  description = A foreign exchange rates and currency conversion using the command line.
+mongodb/brew/mongodb-community =
+  verified = 2025-12-20
 mongosh =
+  verified = 2025-12-21
+mono =
+  verified = 2025-12-21
+moreutils =
+  verified = 2025-12-21
+moro =
   verified = 2025-12-21
 mosh =
   verified = 2025-12-21
+movie =
+  description = A CLI for getting information about a movie and comparing two movies.
+moviemon =
+  description = A Python program that displays all the information about all your movies in the command line.
+mpg123 =
+  verified = 2025-12-21
+mprocs =
+  verified = 2025-12-21
+mps-youtube =
+  description = A curses player for music tracks from YouTube; it allows searching for songs and playlists; it downloads the video, extracts the audio track and plays it; handles local playlists and many configuration parameters.
 mpv =
+  description = A cross-platform media player with many features such as frame timing, MKV chapters and subtitles. It is a responsive video player with minimal layout customizable with themes. A good alternative media player to VLC since it can handle almost all the media formats as VLC, but using much less resources.
+  verified = 2025-12-21
+mpvc =
+  verified = 2025-12-21
+mtr =
+  verified = 2025-12-21
+multitail =
+  verified = 2025-12-21
+musicplayerplus =
+  verified = 2025-12-21
+musikcube =
+  verified = 2025-12-21
+mvfst =
+  verified = 2025-12-21
+mycli =
+  verified = 2025-12-21
+mynav =
+  verified = 2025-12-21
+mysql =
+  verified = 2025-12-21
+mysql-client =
+  verified = 2025-12-20
+mytimer =
+  verified = 2025-12-21
+nano =
+  verified = 2025-12-21
+nasm =
+  verified = 2025-12-21
+nat =
+  verified = 2025-12-21
+navi =
+  verified = 2025-12-21
+nb =
   verified = 2025-12-21
 ncdu =
+  description = A disk usage analyzer with a ncurses interface. It is designed to find space hogs on a remote server where you don't have an entire graphical setup available.
+  verified = 2025-12-21
+ncmpcpp =
+  description = NCurses Music Player Client (Plus Plus) - featureful ncurses based MPD client inspired by ncmpc. Relevant features: tag editor, playlist editor, easy to use search engine, media library, music visualizer, ability to fetch artist info from [last.fm](https://www.last.fm/), new display mode, alternative user interface, ability to browse and add files from outside of MPD music directory.
+neofetch =
+  verified = 2025-12-21
+neomutt =
+  description = Patched and up-to-dated mutt fork.
+neoss =
   verified = 2025-12-21
 neovim =
+  description = A work in progress attempt to improve [vim](http://www.vim.org/), dropping older/unused OS compatibility, improving the codebase readability, modularity, and maintainability; it has chances to become the next choice of vim users.
   verified = 2025-12-21
+netpbm =
+  verified = 2025-12-20
+newsboat =
+  description = An RSS/Atom feed reader for the text console. It's an actively maintained fork of Newsbeuter.
+nghttp2 =
+  verified = 2025-12-20
 nginx =
   verified = 2025-12-21
 ninja =
   verified = 2025-12-21
+nircmd =
+  verified = 2025-12-21
+nmail =
+  verified = 2025-12-21
 nmap =
   verified = 2025-12-21
+nnn =
+  verified = 2025-12-21
+nomino =
+  verified = 2025-12-21
+norwoodj/tap/helm-docs =
+  verified = 2025-12-20
+notesh =
+  verified = 2025-12-21
+noti =
+  verified = 2025-12-21
+np =
+  description = A better `npm publish`.
+npkill =
+  verified = 2025-12-21
+npm-check-updates =
+  verified = 2025-12-21
+nss =
+  verified = 2025-12-20
+numpy =
+  verified = 2025-12-20
+nushell =
+  description = A modern shell written in Rust, where all data is structured.
+  verified = 2025-12-20
 nvm =
+  verified = 2025-12-21
+nvs =
+  verified = 2025-12-21
+o =
+  description = Configuration-free text editor and IDE limited to VT100. Suitable for writing git commit messages, editing Markdown, config files, source code, viewing man pages and for quick edit-compile cycles when programming.
+ocrmypdf =
   verified = 2025-12-21
 oh-my-posh =
   verified = 2025-12-21
+oji =
+  description = Interactive text emoji creator.
 ollama =
+  description = Get up and running with large language models locally.
   verified = 2025-12-21
+openapi-generator =
+  verified = 2025-12-21
+openblas =
+  verified = 2025-12-21
+opencode =
+  verified = 2025-12-21
+opencv =
+  verified = 2025-12-20
 openjdk =
+  verified = 2025-12-21
+openjpeg =
+  verified = 2025-12-20
+openssh =
+  verified = 2025-12-21
+openssl =
+  verified = 2025-12-21
+opentofu =
+  verified = 2025-12-21
+openvino =
+  verified = 2025-12-21
+openvpn =
+  verified = 2025-12-21
+ops =
+  verified = 2025-12-21
+oras =
+  verified = 2025-12-21
+organize =
+  verified = 2025-12-21
+ov =
+  verified = 2025-12-21
+oven-sh/bun/bun =
+  verified = 2025-12-20
+p11-kit =
   verified = 2025-12-21
 p7zip =
   verified = 2025-12-21
+pageres =
+  description = Capture screenshots of websites in various resolutions. A good way to make sure your websites are responsive.
 pandoc =
+  description = Universal document file converter; handles input output from/to a number of formats: HTML, PDF, LaTeX, DOCX, ODT, AsciiDoc, Markdown, Textile, just to mention a few; the quality of conversion strongly depends on the combination of input/output formats.
   verified = 2025-12-21
 pango =
   verified = 2025-12-21
+papis =
+  verified = 2025-12-21
 parallel =
+  verified = 2025-12-21
+pass =
+  description = POSIX password manager that keeps passwords inside GPG encrypted files inside a simple directory tree.
+pathpicker =
+  description = A tool from Facebook that parses the output from a command and presents a UI to select files and directories, can be used to apply a command of a interactively selected files or to move across directories.
+pazi =
+  verified = 2025-12-21
+pbgopy =
+  verified = 2025-12-21
+pcre2 =
+  verified = 2025-12-21
+pdd =
+  verified = 2025-12-21
+pdfjuicer =
+  description = CLI tool for converting PDF pages to high-quality images. It features custom image sizing, scaling options, thumbnail generation, and batch processing.
+percol =
+  verified = 2025-12-21
+percona-toolkit =
+  verified = 2025-12-21
+perl =
+  verified = 2025-12-21
+pgcli =
+  description = Postgres CLI with autocompletion and syntax highlighting.
+pgen =
+  verified = 2025-12-21
+php =
+  verified = 2025-12-21
+pick =
+  verified = 2025-12-21
+pinentry-mac =
+  verified = 2025-12-21
+pingme =
+  verified = 2025-12-21
+pipenv =
+  verified = 2025-12-20
+pipes.sh =
   verified = 2025-12-21
 pipx =
   verified = 2025-12-21
+pixman =
+  verified = 2025-12-21
 pkgconf =
+  verified = 2025-12-21
+plantuml =
   verified = 2025-12-21
 pnpm =
   verified = 2025-12-21
+pockyt =
+  verified = 2025-12-21
 podman =
+  description = Podman is a daemonless, open source, Linux native tool designed to make it easy to find, run, build, share and deploy applications using OCI Containers and Container Images.
+  verified = 2025-12-21
+podman-compose =
   verified = 2025-12-21
 poetry =
   verified = 2025-12-21
+pokeget =
+  verified = 2025-12-21
+pokete =
+  verified = 2025-12-21
+ponysay =
+  description = Pony rewrite of cowsay.
 poppler =
+  verified = 2025-12-21
+portaudio =
+  verified = 2025-12-21
+postgis =
+  verified = 2025-12-21
+postgresql =
+  verified = 2025-12-20
+pre-commit =
+  verified = 2025-12-20
+procs =
+  description = A modern replacement for ps written in Rust.
+  verified = 2025-12-20
+proji =
   verified = 2025-12-21
 protobuf =
   verified = 2025-12-21
+pubs =
+  verified = 2025-12-21
+pueue =
+  verified = 2025-12-21
+pulumi =
+  verified = 2025-12-21
+pup =
+  verified = 2025-12-21
+putty =
+  verified = 2025-12-21
+pv =
+  description = The pv command is used to monitor the progress of data through pipe.
+  verified = 2025-12-20
+pycp =
+  verified = 2025-12-21
+pycparser =
+  verified = 2025-12-21
 pyenv =
+  verified = 2025-12-21
+pyenv-virtualenv =
   verified = 2025-12-21
 python =
   verified = 2025-12-21
+python-setuptools =
+  verified = 2025-12-20
+qalculate =
+  description = Multi-purpose calculator with customizable functions, units, arbitrary precision, plotting (it includes a GUI).
 qemu =
+  description = A generic machine & userspace emulator and virtualizer.
   verified = 2025-12-21
+qpdf =
+  verified = 2025-12-21
+qrcp =
+  verified = 2025-12-21
+qt =
+  verified = 2025-12-20
+quickserve =
+  verified = 2025-12-21
+r =
+  verified = 2025-12-21
+radio-active =
+  description = Internet radio player with 40k+ stations.
+ramda =
+  description = A tool for processing data with functional pipelines.
+ranger =
+  description = File manager with vi key bindings, curses interface with a view on the directory hierarchy, comes with a file launcher that automatically determines which program to use for opening a given file type.
 rbenv =
   verified = 2025-12-21
 rclone =
+  description = Manage file synchronization on cloud storage.
   verified = 2025-12-21
+reachable =
+  description = Check if a domain is up.
+readline =
+  verified = 2025-12-20
+readme-md-generator =
+  verified = 2025-12-21
+rebound =
+  verified = 2025-12-21
+recoverpy =
+  description = Recover deleted files and overwritten data. It scans every block of the partition. You can even find a string in binary files.
 redis =
   verified = 2025-12-21
+release-it =
+  verified = 2025-12-21
+remind =
+  description = Calendar that supports complex rules to define events and used a custom, powerful text-based storage format.
+rename =
+  description = Included in `util-linux`, allows bulk rename of files with regex support.
+renameutils =
+  description = A set of programs to change file and directory names by editing them in-place, I find `imv` especially useful to edit a filename at the program prompt.
 ripgrep =
+  description = Recursively searches directories for a regex pattern.
+  verified = 2025-12-21
+rmlint =
+  verified = 2025-12-21
+rnr =
   verified = 2025-12-21
 rsync =
+  verified = 2025-12-21
+rtop =
   verified = 2025-12-21
 ruby =
   verified = 2025-12-21
 ruby-build =
   verified = 2025-12-21
+ruff =
+  verified = 2025-12-20
 rust =
+  verified = 2025-12-21
+rust-analyzer =
+  verified = 2025-12-21
+rustcat =
+  verified = 2025-12-21
+rustup =
+  verified = 2025-12-21
+s =
+  verified = 2025-12-21
+s3cmd =
+  description = Command line tool for managing Amazon S3 and CloudFront services.
+sad =
+  verified = 2025-12-21
+sake =
+  verified = 2025-12-21
+saws =
+  description = A supercharged AWS command line interface (CLI).
+sbt =
+  verified = 2025-12-21
+sc-im =
+  verified = 2025-12-21
+scala =
+  verified = 2025-12-21
+scons =
   verified = 2025-12-21
 scrcpy =
   verified = 2025-12-21
+screen =
+  verified = 2025-12-21
+sd =
+  description = s[earch] & d[isplace] - An intuitive find & replace CLI a possible replacement for sed.
+  verified = 2025-12-20
 sdl2 =
   verified = 2025-12-21
+semantic-git-commit =
+  description = Ensure semantic commits messages. With emoji support.
+semantic-release =
+  description = Automates the whole node.js package release workflow including: determining the next version number, generating the release notes, and publishing the package.
+semgrep =
+  verified = 2025-12-21
+sent =
+  verified = 2025-12-21
+serve =
+  verified = 2025-12-21
+shallow-backup =
+  description = Git integrated backup tool.
+sharing =
+  description = Sharing is a command-line tool to share directories and files from the CLI to iOS and Android devices without the need of an extra client app.
+shbin =
+  description = Upload code snippets, notebooks, images or any other content to a GitHub repository that acts as your internal pastebin, and returns the URL to share it with your team.
+shell2http =
+  description = Executing shell commands via HTTP server.
+shellcheck =
+  verified = 2025-12-20
+shfmt =
+  verified = 2025-12-21
+sift =
+  verified = 2025-12-21
+siren =
+  verified = 2025-12-21
+sitecopy =
+  verified = 2025-12-21
+skim =
+  description = Fuzzy Finder in rust.
+smartmontools =
+  verified = 2025-12-21
+smem =
+  verified = 2025-12-21
+snallygaster =
+  verified = 2025-12-21
+sncli =
+  verified = 2025-12-21
+so =
+  verified = 2025-12-21
+socat =
+  verified = 2025-12-21
+socli =
+  verified = 2025-12-21
 sops =
+  description = SOPS (Secrets OPerationS) is a simple and flexible tool for managing secrets, sops is an editor of encrypted files that supports YAML, JSON, ENV, INI and BINARY formats, encrypting the values but not the keys.
+  verified = 2025-12-21
+soul =
   verified = 2025-12-21
 sourcekitten =
   verified = 2025-12-21
+sourcery =
+  verified = 2025-12-21
+speedread =
+  description = A simple terminal-based open source Spritz-alike filter that shows input text as a per-word RSVP (rapid serial visual presentation) aligned on optimal reading points.
+speedtest =
+  description = Test internet bandwidth using speedtest.net.
+speedtest-net =
+  description = Test internet connection speed and ping using speedtest.net.
+speki =
+  verified = 2025-12-21
+spotify-player =
+  verified = 2025-12-21
 sqlite =
+  verified = 2025-12-21
+srt =
+  verified = 2025-12-21
+ssh-chat =
+  verified = 2025-12-21
+sshuttle =
+  description = Transparent proxy server that works as a poor man's VPN. Forwards over ssh. Doesn't require admin. Works with Linux and macOS. Supports DNS tunneling.
+  verified = 2025-12-20
+sst/tap/opencode =
+  verified = 2025-12-20
+starship =
+  description = The cross-shell prompt for astronauts.
+  verified = 2025-12-21
+stegcloak =
+  description = Hide secrets with invisible characters in plain text securely using passwords
+stern =
+  verified = 2025-12-21
+stew =
+  verified = 2025-12-21
+stftp =
+  verified = 2025-12-21
+stig =
+  verified = 2025-12-21
+streamlink =
+  description = Streamlink is a CLI utility which pipes video streams from various services into a video player.
+subversion =
+  verified = 2025-12-20
+supabase/tap/supabase =
+  verified = 2025-12-20
+superfile =
+  verified = 2025-12-21
+surge =
+  description = Static web publishing on surge.sh CDN.
+svgo =
+  description = SVG Optimizer is a Node.js-based tool for optimizing SVG vector graphics files.
+swift-sh =
   verified = 2025-12-21
 swiftformat =
   verified = 2025-12-21
@@ -1703,35 +2170,251 @@ swiftgen =
   verified = 2025-12-21
 swiftlint =
   verified = 2025-12-21
+swig =
+  verified = 2025-12-21
+syncthing =
+  verified = 2025-12-21
 tailscale =
+  verified = 2025-12-21
+taskbook =
+  verified = 2025-12-21
+taskell =
+  verified = 2025-12-21
+taskwarrior =
+  description = Todo manager with advanced features, dedicated synchronization server available, many plugins and related tools, healthy software project.
+tcl-tk =
+  verified = 2025-12-20
+tealdeer =
+  verified = 2025-12-21
+teapot =
+  verified = 2025-12-21
+teip =
+  verified = 2025-12-21
+telert =
+  description = Lightweight CLI and Python utility that sends alerts (Telegram, Slack, Teams, Desktop, Audio) when commands complete.
+telescope =
   verified = 2025-12-21
 television =
   verified = 2025-12-21
+telnet =
+  verified = 2025-12-20
+tera =
+  verified = 2025-12-21
+tere =
+  verified = 2025-12-21
+terminal velocity =
+  description = A fast, cross-platform note-taking application for the UNIX terminal.
+terminaltexteffects =
+  description = TerminalTextEffects (TTE) is a terminal visual effects engine, application, and Python library.
+termusic =
+  verified = 2025-12-21
+termv =
+  verified = 2025-12-21
+ternimal =
+  verified = 2025-12-21
+terraform =
+  verified = 2025-12-20
+terraform-docs =
+  verified = 2025-12-21
 terragrunt =
+  verified = 2025-12-21
+tesseract =
+  verified = 2025-12-20
+tesseract-lang =
+  verified = 2025-12-21
+texel =
   verified = 2025-12-21
 tfenv =
   verified = 2025-12-21
 tflint =
   verified = 2025-12-21
-tmux =
+tfsec =
   verified = 2025-12-21
+the fuck =
+  description = Magnificent app which corrects your previous console command (although I would be extra-cautious at making a program to automatically infer what I was intending).
+the_silver_searcher =
+  verified = 2025-12-20
+thefuck =
+  verified = 2025-12-21
+thokr =
+  verified = 2025-12-21
+tig =
+  verified = 2025-12-21
+tilde =
+  verified = 2025-12-21
+tilt =
+  verified = 2025-12-21
+timetrap =
+  verified = 2025-12-21
+timewarrior =
+  description = A time tracking utility that offers simple stopwatch features as well as sophisticated calendar-based backfill, along with flexible reporting.
+tldr =
+  description = Client for tldr pages, a community effort to simplify the beloved man pages with practical examples.
+  verified = 2025-12-20
+tmate =
+  description = A fork of tmux that allows sharing the terminal with other users. AFAIK, it connects to a centralized server to establish the connection. Someone may see this inconvenient for privacy issues.
+tmpmail =
+  verified = 2025-12-21
+tmsu =
+  verified = 2025-12-21
+tmux =
+  description = Terminal multiplexer; born to improve `screen`; client-server architecture, `vi` and `emacs` key-bindings, search in window feature and many more.
+  verified = 2025-12-21
+toipe =
+  verified = 2025-12-21
+tokei =
+  verified = 2025-12-21
+topalias =
+  verified = 2025-12-21
+topgrade =
+  verified = 2025-12-21
+tpp =
+  verified = 2025-12-21
+transmission =
+  description = Fast, easy and free BitTorrent client.
+trash =
+  verified = 2025-12-21
+tre =
+  description = `tree` command improved with git awareness, editor aliasing, and colors.
+tre-command =
+  verified = 2025-12-21
+tree =
+  description = Recursive directory listing command that produces a depth indented list of files.
+  verified = 2025-12-20
+tree-sitter =
+  verified = 2025-12-21
+trino =
+  description = Quick and easy translation of words and phrases entered in the command line.
 trivy =
+  verified = 2025-12-21
+trufflehog =
+  verified = 2025-12-21
+tsung =
+  verified = 2025-12-21
+ttygif =
+  verified = 2025-12-21
+ttyload =
+  verified = 2025-12-21
+ttystudio =
+  description = Record your terminal and compile it to a GIF or APNG without any external dependencies, bash scripts, GIF concatenation, etc.
+tudu =
+  verified = 2025-12-21
+tunnelmole =
+  description = Connect to local servers from anywhere.
+typespeed =
+  verified = 2025-12-21
+uacme =
+  verified = 2025-12-21
+ugrep =
+  verified = 2025-12-21
+ultimate plumber =
+  description = Helps to interactively and incrementally explore textual data in Linux, by making it easier to quickly build complex pipelines, thanks to a fast feedback loop.
+ultralist =
+  verified = 2025-12-21
+unar =
   verified = 2025-12-21
 unbound =
   verified = 2025-12-21
+underscore =
+  description = Command-line utility-belt for hacking JSON and JavaScript.
+unison =
+  verified = 2025-12-21
+universal-ctags =
+  verified = 2025-12-21
+unix-permissions =
+  description = Swiss Army knife for Unix permissions.
+unixodbc =
+  verified = 2025-12-21
+unzip =
+  verified = 2025-12-21
+updo =
+  verified = 2025-12-21
+utt =
+  description = Ultimate Time Tracker - A simple command-line time tracker written in Python.
+uutils-coreutils =
+  verified = 2025-12-20
 uutils-findutils =
   verified = 2025-12-21
 uv =
   verified = 2025-12-21
+vale =
+  verified = 2025-12-21
+vdirsyncer =
+  description = CalDAV synchronization program.
+vgrep =
+  verified = 2025-12-21
+vhs =
+  verified = 2025-12-21
+viddy =
+  verified = 2025-12-21
+viewport-list =
+  description = Return a list of devices and their viewports.
+vifm =
+  description = ncurses based file manager with vi like keybindings/modes/options/commands/configuration, which also borrows some useful ideas from mutt"" (cit.).
 vim =
+  description = Historically one of the preferred text editors, behavior based on editing modes, plenty of plugins and tips to address every possible editing problem.
+  verified = 2025-12-21
+vips =
+  verified = 2025-12-21
+virtualenv =
+  verified = 2025-12-20
+visidata =
+  description = Interactive multitool for tabular data. It combines the clarity of a spreadsheet, the efficiency of the terminal, and the power of Python, into a lightweight utility which can handle millions of rows with ease.
+viu =
+  verified = 2025-12-21
+vizex =
+  verified = 2025-12-21
+vj =
+  description = JSON Humanizer makes JSON human-readable by applying visual formatting.
+vtk =
+  verified = 2025-12-21
+vy =
   verified = 2025-12-21
 wangle =
   verified = 2025-12-21
+wat =
+  description = Instant, central, community-built docs.
 watch =
+  verified = 2025-12-21
+watchexec =
   verified = 2025-12-21
 watchman =
   verified = 2025-12-21
+weather =
+  verified = 2025-12-21
+webp =
+  verified = 2025-12-20
+weechat =
+  description = WeeChat is a fast, light and extensible chat client, with a text-based user interface, designed to be light and extensible: a lightweight core with optional plugins.
 wget =
+  verified = 2025-12-21
+when-cli =
+  verified = 2025-12-21
+which =
+  verified = 2025-12-21
+wifi-password =
+  verified = 2025-12-21
+wimlib =
+  verified = 2025-12-21
+winetricks =
+  verified = 2025-12-21
+wireguard-tools =
+  verified = 2025-12-21
+wireshark =
+  verified = 2025-12-21
+wishlist =
+  verified = 2025-12-21
+wix/brew/applesimutils =
+  verified = 2025-12-20
+wopr =
+  description = A simple markup language for creating rich terminal reports, presentations, and infographic.
+wordgrinder =
+  verified = 2025-12-21
+wutag =
+  verified = 2025-12-21
+wyrd =
+  verified = 2025-12-21
+x-cmd =
   verified = 2025-12-21
 xcbeautify =
   verified = 2025-12-21
@@ -1739,19 +2422,87 @@ xclogparser =
   verified = 2025-12-21
 xcodegen =
   verified = 2025-12-21
+xcodes =
+  verified = 2025-12-21
+xcp =
+  verified = 2025-12-21
 xcresultparser =
   verified = 2025-12-21
+xctesthtmlreport =
+  verified = 2025-12-20
+xh =
+  description = xh is a friendly and fast tool for sending HTTP requests. It reimplements as much as possible of HTTPie's excellent design.
+  verified = 2025-12-20
+xiringuito =
+  verified = 2025-12-21
+xmlstarlet =
+  verified = 2025-12-21
+xplr =
+  description = A hackable, minimal, fast TUI file explorer, stealing ideas from nnn and fzf.
+xxh =
+  description = Bring your favorite shell wherever you go through the ssh.
 xz =
   verified = 2025-12-21
+yai =
+  verified = 2025-12-21
+yamllint =
+  verified = 2025-12-21
+yank =
+  description = Reads input from stdin and display a selection interface that allows a field to be selected and copied to the clipboard.
 yarn =
   verified = 2025-12-21
 yazi =
+  description = Blazing fast terminal file manager written in Rust, based on async I/O.
+  verified = 2025-12-21
+ydiff =
+  verified = 2025-12-21
+yokadi =
+  verified = 2025-12-21
+yosay =
+  description = Like cowsay, but for yeoman.
+youtube-dl =
+  verified = 2025-12-21
+youtube-viewer =
+  verified = 2025-12-21
+yq =
+  description = Portable command-line YAML processor.
+  verified = 2025-12-20
+yt-audio =
   verified = 2025-12-21
 yt-dlp =
+  description = A youtube-dl fork with additional features and fixes.
+  verified = 2025-12-21
+ytmdl =
+  verified = 2025-12-21
+z =
+  description = Directory changer based on aging and 'frecency'.
+z.lua =
+  verified = 2025-12-21
+zbackup =
+  verified = 2025-12-21
+zeitkatze =
+  verified = 2025-12-21
+zellij =
+  verified = 2025-12-21
+zfxtop =
+  verified = 2025-12-21
+zig =
+  verified = 2025-12-21
+zizmor =
   verified = 2025-12-21
 zlib =
   verified = 2025-12-21
 zoxide =
+  description = It remembers which directories you use most frequently, so you can ""jump"" to them in just a few keystrokes.
+  verified = 2025-12-21
+zq =
   verified = 2025-12-21
 zsh =
+  description = Alternative shell designed for interactive use.
   verified = 2025-12-21
+zsh-autosuggestions =
+  verified = 2025-12-21
+zsh-syntax-highlighting =
+  verified = 2025-12-21
+zstd =
+  verified = 2025-12-20

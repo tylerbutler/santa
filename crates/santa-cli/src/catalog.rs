@@ -5,6 +5,7 @@
 //! - `sources/*.ccl` - Per-source package definitions
 
 use anyhow::{Context, Result};
+use sickle::printer::CclPrinter;
 use sickle::CclObject;
 use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
@@ -117,6 +118,56 @@ pub fn load_catalog(path: &Path) -> Result<BTreeMap<String, CatalogEntry>> {
     }
 
     Ok(catalog)
+}
+
+/// Save the package catalog to packages.ccl
+pub fn save_catalog(path: &Path, catalog: &BTreeMap<String, CatalogEntry>) -> Result<()> {
+    let mut obj = CclObject::new();
+    obj.add_comment("Core package catalog");
+    obj.add_comment("Source of truth for package identity and metadata");
+    obj.add_blank_line();
+
+    let map = obj.inner_mut();
+
+    for (name, entry) in catalog {
+        // Skip entries with no metadata at all
+        if entry.description.is_none() && entry.homepage.is_none() && !entry.verified {
+            continue;
+        }
+
+        let mut pkg_obj = CclObject::new();
+        let pkg_map = pkg_obj.inner_mut();
+
+        if let Some(ref desc) = entry.description {
+            pkg_map.insert(
+                "description".to_string(),
+                vec![CclObject::from_string(desc)],
+            );
+        }
+
+        if let Some(ref homepage) = entry.homepage {
+            pkg_map.insert(
+                "homepage".to_string(),
+                vec![CclObject::from_string(homepage)],
+            );
+        }
+
+        if entry.verified {
+            let date = entry
+                .verified_date
+                .clone()
+                .unwrap_or_else(|| chrono::Local::now().format("%Y-%m-%d").to_string());
+            pkg_map.insert("verified".to_string(), vec![CclObject::from_string(&date)]);
+        }
+
+        map.insert(name.clone(), vec![pkg_obj]);
+    }
+
+    let printer = CclPrinter::new();
+    let output = printer.print(&obj);
+    fs::write(path, output).with_context(|| format!("Failed to write: {}", path.display()))?;
+
+    Ok(())
 }
 
 /// Get set of verified package names from the catalog
@@ -236,8 +287,11 @@ mod tests {
 
     #[test]
     fn test_source_entry_with_override() {
-        let entry =
-            SourceEntry::with_override("gh".to_string(), "github-cli".to_string(), "brew".to_string());
+        let entry = SourceEntry::with_override(
+            "gh".to_string(),
+            "github-cli".to_string(),
+            "brew".to_string(),
+        );
         assert_eq!(entry.source_name, "gh");
         assert_eq!(entry.canonical_name, "github-cli");
         assert_eq!(entry.source, "brew");

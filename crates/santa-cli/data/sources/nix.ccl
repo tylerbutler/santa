@@ -1,6 +1,7 @@
 /= Nix packages
 atuin =
 bat =
+bottom =
 chezmoi =
 cmake =
 curl =
@@ -9,6 +10,7 @@ difftastic =
 direnv =
 docker =
 docker-compose =
+dust =
 eza =
 fd =
 ffmpeg =
@@ -55,9 +57,10 @@ topgrade =
 tree =
 vim =
 viu =
+wget =
 zellij =
 zoxide =
 zsh =
 
-/= Packages with name mappings to canonical
+/= Packages with overrides or config
 bottom-rs = bottom

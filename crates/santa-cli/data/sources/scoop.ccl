@@ -82,6 +82,7 @@ erdtree =
 erlang =
 espanso =
 exiftool =
+eza =
 f2 =
 fastfetch =
 fd =
@@ -313,10 +314,7 @@ zig =
 zoxide =
 zstd =
 
-/= Packages with name mappings to canonical
+/= Packages with overrides or config
 fnm-bin = fnm
-delta = git-delta
 nodejs = node
-
-/= Packages with custom install URLs
 oh-my-posh = https://github.com/JanDeDobbeleer/oh-my-posh/releases/latest/download/oh-my-posh.json

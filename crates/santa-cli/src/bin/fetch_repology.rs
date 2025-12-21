@@ -377,8 +377,7 @@ fn apply_source_fixes(sources_dir: &Path, fixes: &[SourceFix]) -> Result<()> {
         };
 
         // Find the line with the old entry
-        let old_pattern_with_value =
-            format!("{} = {}", fix.old_source_name, fix.canonical_name);
+        let old_pattern_with_value = format!("{} = {}", fix.old_source_name, fix.canonical_name);
         let old_pattern_bare = format!("{} =", fix.old_source_name);
 
         let mut found_idx: Option<usize> = None;
@@ -421,10 +420,7 @@ fn apply_source_fixes(sources_dir: &Path, fixes: &[SourceFix]) -> Result<()> {
 
         // Prompt user
         println!();
-        println!(
-            "  [{}] {} → {}",
-            fix.source, old_line, new_line
-        );
+        println!("  [{}] {} → {}", fix.source, old_line, new_line);
 
         let confirm = Confirm::new()
             .with_prompt("  Apply this fix?")
@@ -659,7 +655,10 @@ fn validate_from_cache(
         println!("{}", "=".repeat(60));
         apply_source_fixes(sources_dir, &fixes)?;
     } else if !fixes.is_empty() {
-        println!("\nRun with --fix to automatically correct {} mismatches", fixes.len());
+        println!(
+            "\nRun with --fix to automatically correct {} mismatches",
+            fixes.len()
+        );
     }
 
     // Collect validated packages for catalog update
@@ -964,13 +963,8 @@ fn read_source_ccl(path: &Path, source_name: &str) -> Result<Vec<SourceEntry>> {
 enum ValidationResult {
     Ok,
     NotFound,
-    Mismatch {
-        expected: String,
-        actual: String,
-    },
-    Missing {
-        repology_name: String,
-    },
+    Mismatch { expected: String, actual: String },
+    Missing { repology_name: String },
 }
 
 /// A fix to apply to a source CCL file
@@ -1049,7 +1043,10 @@ async fn validate_sources(
     }
 
     if unique_canonicals.is_empty() {
-        println!("\nNo packages to validate (all {} are already verified)", skipped_count);
+        println!(
+            "\nNo packages to validate (all {} are already verified)",
+            skipped_count
+        );
         return Ok(());
     }
 
@@ -1184,7 +1181,10 @@ async fn validate_sources(
 
     // Update catalog with verified status
     if !validated.is_empty() {
-        println!("\nUpdating catalog with {} verified packages...", validated.len());
+        println!(
+            "\nUpdating catalog with {} verified packages...",
+            validated.len()
+        );
         update_catalog_verified(catalog_path, &validated)?;
         println!("Catalog updated: {}", catalog_path.display());
     }
@@ -1369,7 +1369,10 @@ async fn main() -> Result<()> {
     let catalog_path = manifest_dir.join("data").join("packages.ccl");
 
     match cli.command {
-        Commands::BuildCache { from_crossref, force } => {
+        Commands::BuildCache {
+            from_crossref,
+            force,
+        } => {
             let client = reqwest::Client::new();
 
             let projects: Vec<String> = if let Some(limit) = from_crossref {
@@ -1419,13 +1422,21 @@ async fn main() -> Result<()> {
                     anyhow::bail!("Cache is empty. Run 'build-cache' first to populate it.");
                 }
                 println!("Using cached data ({} projects)", cache.projects.len());
-                validate_from_cache(&cache, &sources_dir, &catalog_path, &source_names, force, fix)?;
+                validate_from_cache(
+                    &cache,
+                    &sources_dir,
+                    &catalog_path,
+                    &source_names,
+                    force,
+                    fix,
+                )?;
             } else {
                 if fix {
                     anyhow::bail!("--fix requires --from-cache (live API validation doesn't support auto-fix yet)");
                 }
                 let client = reqwest::Client::new();
-                validate_sources(&client, &sources_dir, &catalog_path, &source_names, force).await?;
+                validate_sources(&client, &sources_dir, &catalog_path, &source_names, force)
+                    .await?;
             }
         }
 
