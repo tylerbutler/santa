@@ -113,6 +113,10 @@ fetch-repology-from-crossref limit='100':
     @echo "Fetching Repology mappings for top {{limit}} crossref packages..."
     @cargo run --quiet --features dev-tools --bin fetch-repology -- --from-crossref {{limit}} --update
 
+# Validate source CCL files against Repology (use 'all' for all sources)
+validate-sources *SOURCES='all':
+    @cargo run --quiet --features dev-tools --bin fetch-repology -- --validate {{SOURCES}}
+
 # Build for CI with specific target
 ci-build TARGET='x86_64-unknown-linux-gnu' *ARGS='':
     @echo "🔨 Building for CI target: {{TARGET}}"

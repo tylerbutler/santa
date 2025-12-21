@@ -1444,3 +1444,9 @@ extraterm =
 extundelete =
   description = Recover deleted files from an ext3 or ext4 partition through its journal.
 
+cargo-update =
+  verified = 2025-12-21
+starship =
+  verified = 2025-12-21
+when-cli =
+  verified = 2025-12-21
