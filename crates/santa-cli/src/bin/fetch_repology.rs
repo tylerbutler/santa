@@ -2,20 +2,76 @@
 //!
 //! Queries the Repology API to discover how a package is named across
 //! different package managers, and optionally updates source CCL files.
-//!
-//! Usage:
-//!   fetch-repology <project-name>           # Query and display mappings
-//!   fetch-repology <project-name> --update  # Update source CCL files
-//!   fetch-repology --batch packages.txt     # Process multiple packages
 
 use anyhow::{Context, Result};
 use chrono::Utc;
-use serde::Deserialize;
+use clap::{Parser, Subcommand};
+use serde::{Deserialize, Serialize};
 use sickle::CclObject;
 use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::time::Duration;
+
+/// Fetch package name mappings from Repology
+#[derive(Parser)]
+#[command(name = "fetch-repology")]
+#[command(about = "Query Repology for cross-platform package name mappings")]
+struct Cli {
+    #[command(subcommand)]
+    command: Commands,
+}
+
+#[derive(Subcommand)]
+enum Commands {
+    /// Query Repology for package name mappings
+    Query {
+        /// Project name to query (e.g., "ripgrep", "github-cli")
+        #[arg(required_unless_present_any = ["batch", "from_crossref"])]
+        project: Option<String>,
+
+        /// Process multiple packages from a file (one per line)
+        #[arg(long, value_name = "FILE", conflicts_with = "project")]
+        batch: Option<PathBuf>,
+
+        /// Process top N packages from crossref_results.json
+        #[arg(long, value_name = "LIMIT", conflicts_with_all = ["project", "batch"])]
+        from_crossref: Option<usize>,
+
+        /// Update source CCL files with discovered mappings
+        #[arg(long)]
+        update: bool,
+    },
+
+    /// Build local cache of Repology data for fast validation
+    BuildCache {
+        /// Build cache from top N packages in crossref_results.json
+        #[arg(long, value_name = "LIMIT")]
+        from_crossref: Option<usize>,
+
+        /// Refresh all cached entries (ignore existing cache)
+        #[arg(long)]
+        force: bool,
+    },
+
+    /// Validate source CCL files against Repology data
+    Validate {
+        /// Source files to validate (e.g., "brew", "apt", "nix", or "all")
+        #[arg(default_value = "all")]
+        sources: Vec<String>,
+
+        /// Use cached Repology data instead of live API (fast)
+        #[arg(long)]
+        from_cache: bool,
+
+        /// Re-validate packages that are already marked as verified
+        #[arg(long)]
+        force: bool,
+    },
+}
+
+/// Cache file for Repology data
+const CACHE_FILENAME: &str = "repology_cache.json";
 
 /// Rate limit: 1 request per second per Repology guidelines
 const RATE_LIMIT_MS: u64 = 1100;
@@ -63,13 +119,32 @@ struct RepologyPackage {
 }
 
 /// Resolved package info for a source
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 struct SourceMapping {
     #[allow(dead_code)]
     source: String,
     package_name: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
     version: Option<String>,
     is_newest: bool,
+}
+
+/// Cached entry for a single project
+#[derive(Debug, Clone, Serialize, Deserialize)]
+struct CachedProject {
+    /// Mappings from source name to package info
+    mappings: BTreeMap<String, SourceMapping>,
+    /// When this entry was last updated
+    last_updated: String,
+}
+
+/// The full Repology cache
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+struct RepologyCache {
+    /// Version for future cache format changes
+    version: u32,
+    /// Map of canonical project name to cached data
+    projects: BTreeMap<String, CachedProject>,
 }
 
 /// Query Repology for a project and return package mappings
@@ -164,6 +239,323 @@ fn map_to_sources(packages: Vec<RepologyPackage>) -> BTreeMap<String, SourceMapp
     }
 
     mappings
+}
+
+/// Load the Repology cache from disk
+fn load_cache(cache_path: &Path) -> Result<RepologyCache> {
+    if !cache_path.exists() {
+        return Ok(RepologyCache::default());
+    }
+
+    let content = fs::read_to_string(cache_path)
+        .with_context(|| format!("Failed to read cache: {}", cache_path.display()))?;
+
+    let cache: RepologyCache = serde_json::from_str(&content)
+        .with_context(|| format!("Failed to parse cache: {}", cache_path.display()))?;
+
+    Ok(cache)
+}
+
+/// Save the Repology cache to disk
+fn save_cache(cache_path: &Path, cache: &RepologyCache) -> Result<()> {
+    let content = serde_json::to_string_pretty(cache)?;
+    fs::write(cache_path, content)?;
+    Ok(())
+}
+
+/// Build or update the cache for a list of projects
+async fn build_cache(
+    client: &reqwest::Client,
+    cache_path: &Path,
+    projects: &[String],
+    force: bool,
+) -> Result<RepologyCache> {
+    let mut cache = load_cache(cache_path)?;
+    let today = Utc::now().format("%Y-%m-%d").to_string();
+
+    // Filter out already cached projects unless force is set
+    let to_fetch: Vec<&String> = if force {
+        projects.iter().collect()
+    } else {
+        projects
+            .iter()
+            .filter(|p| !cache.projects.contains_key(*p))
+            .collect()
+    };
+
+    if to_fetch.is_empty() {
+        println!(
+            "All {} projects already cached (use --force to refresh)",
+            projects.len()
+        );
+        return Ok(cache);
+    }
+
+    println!(
+        "Fetching {} projects from Repology (skipping {} cached)...",
+        to_fetch.len(),
+        projects.len() - to_fetch.len()
+    );
+
+    let mut not_found = Vec::new();
+
+    for (i, project) in to_fetch.iter().enumerate() {
+        if i > 0 {
+            tokio::time::sleep(Duration::from_millis(RATE_LIMIT_MS)).await;
+        }
+
+        print!("[{}/{}] {} ... ", i + 1, to_fetch.len(), project);
+
+        match fetch_repology_project(client, project).await {
+            Ok(packages) => {
+                if packages.is_empty() {
+                    println!("not found");
+                    not_found.push((*project).clone());
+                    // Store empty entry so we don't retry
+                    cache.projects.insert(
+                        (*project).clone(),
+                        CachedProject {
+                            mappings: BTreeMap::new(),
+                            last_updated: today.clone(),
+                        },
+                    );
+                } else {
+                    let mappings = map_to_sources(packages);
+                    println!("found in {} sources", mappings.len());
+                    cache.projects.insert(
+                        (*project).clone(),
+                        CachedProject {
+                            mappings,
+                            last_updated: today.clone(),
+                        },
+                    );
+                }
+            }
+            Err(e) => {
+                println!("error: {}", e);
+            }
+        }
+    }
+
+    // Save updated cache
+    save_cache(cache_path, &cache)?;
+    println!(
+        "\nCache updated: {} total projects ({} new, {} not found)",
+        cache.projects.len(),
+        to_fetch.len() - not_found.len(),
+        not_found.len()
+    );
+
+    Ok(cache)
+}
+
+/// Validate source files using cached Repology data (fast, no API calls)
+fn validate_from_cache(
+    cache: &RepologyCache,
+    sources_dir: &Path,
+    catalog_path: &Path,
+    source_names: &[String],
+    force: bool,
+) -> Result<()> {
+    // Collect all entries from all source files
+    let mut all_entries: Vec<SourceEntry> = Vec::new();
+
+    for source_name in source_names {
+        let source_path = sources_dir.join(format!("{}.ccl", source_name));
+        if !source_path.exists() {
+            println!("[WARN] Source file not found: {}.ccl", source_name);
+            continue;
+        }
+
+        let entries = read_source_ccl(&source_path, source_name)?;
+        println!("Loaded {} entries from {}.ccl", entries.len(), source_name);
+        all_entries.extend(entries);
+    }
+
+    if all_entries.is_empty() {
+        println!("No entries to validate");
+        return Ok(());
+    }
+
+    // Get unique canonical names
+    let mut unique_canonicals: BTreeSet<String> = all_entries
+        .iter()
+        .map(|e| e.canonical_name.clone())
+        .collect();
+
+    // Filter out already-verified packages unless force is set
+    let mut skipped_count = 0;
+    if !force {
+        let already_verified = get_verified_packages(catalog_path)?;
+        let before_count = unique_canonicals.len();
+        unique_canonicals.retain(|name| !already_verified.contains(name));
+        skipped_count = before_count - unique_canonicals.len();
+        all_entries.retain(|e| unique_canonicals.contains(&e.canonical_name));
+
+        if skipped_count > 0 {
+            println!(
+                "Skipping {} already-verified packages (use --force to re-validate)",
+                skipped_count
+            );
+        }
+    }
+
+    if unique_canonicals.is_empty() {
+        println!(
+            "\nNo packages to validate (all {} are already verified)",
+            skipped_count
+        );
+        return Ok(());
+    }
+
+    // Check which packages are in the cache
+    let mut in_cache = 0;
+    let mut not_in_cache = Vec::new();
+
+    for canonical in &unique_canonicals {
+        if cache.projects.contains_key(canonical) {
+            in_cache += 1;
+        } else {
+            not_in_cache.push(canonical.clone());
+        }
+    }
+
+    println!(
+        "\nValidating {} packages ({} from cache, {} not cached)",
+        unique_canonicals.len(),
+        in_cache,
+        not_in_cache.len()
+    );
+
+    if !not_in_cache.is_empty() {
+        println!(
+            "Note: {} packages not in cache will be skipped. Run --build-cache first.",
+            not_in_cache.len()
+        );
+    }
+
+    // Build lookup from cache
+    let mut repology_cache: BTreeMap<String, BTreeMap<String, SourceMapping>> = BTreeMap::new();
+    let mut not_found_in_repology: BTreeSet<String> = BTreeSet::new();
+
+    for canonical in &unique_canonicals {
+        if let Some(cached) = cache.projects.get(canonical) {
+            if cached.mappings.is_empty() {
+                not_found_in_repology.insert(canonical.clone());
+            } else {
+                repology_cache.insert(canonical.clone(), cached.mappings.clone());
+            }
+        }
+    }
+
+    // Now validate each entry
+    println!("\n{}", "=".repeat(60));
+    println!("Validation Results (from cache)");
+    println!("{}", "=".repeat(60));
+
+    let mut stats = ValidationStats::default();
+
+    // Group entries by source for organized output
+    let mut by_source: BTreeMap<String, Vec<&SourceEntry>> = BTreeMap::new();
+    for entry in &all_entries {
+        by_source
+            .entry(entry.source.clone())
+            .or_default()
+            .push(entry);
+    }
+
+    for (source, entries) in &by_source {
+        println!("\n{}:", source);
+
+        for entry in entries {
+            // Skip entries not in cache
+            if not_in_cache.contains(&entry.canonical_name) {
+                continue;
+            }
+
+            let result = validate_entry(entry, &repology_cache, &not_found_in_repology);
+
+            match &result {
+                ValidationResult::Ok => {
+                    stats.ok += 1;
+                }
+                ValidationResult::NotFound => {
+                    stats.not_found += 1;
+                    println!(
+                        "  [NOT FOUND] {} (canonical: {})",
+                        entry.source_name, entry.canonical_name
+                    );
+                }
+                ValidationResult::Mismatch { expected, actual } => {
+                    stats.mismatch += 1;
+                    println!(
+                        "  [MISMATCH] {} - expected '{}', Repology says '{}'",
+                        entry.canonical_name, expected, actual
+                    );
+                }
+                ValidationResult::Missing { repology_name } => {
+                    stats.missing += 1;
+                    println!(
+                        "  [MISSING] {} should be '{}' (per Repology)",
+                        entry.canonical_name, repology_name
+                    );
+                }
+            }
+        }
+
+        // Count OK for this source
+        let ok_count = entries
+            .iter()
+            .filter(|e| {
+                !not_in_cache.contains(&e.canonical_name)
+                    && matches!(
+                        validate_entry(e, &repology_cache, &not_found_in_repology),
+                        ValidationResult::Ok
+                    )
+            })
+            .count();
+        if ok_count > 0 {
+            println!("  [{} OK]", ok_count);
+        }
+    }
+
+    // Summary
+    println!("\n{}", "=".repeat(60));
+    println!("Summary:");
+    println!("  OK: {}", stats.ok);
+    println!("  Not found in Repology: {}", stats.not_found);
+    println!("  Name mismatches: {}", stats.mismatch);
+    println!("  Missing mappings: {}", stats.missing);
+    if !not_in_cache.is_empty() {
+        println!("  Skipped (not in cache): {}", not_in_cache.len());
+    }
+
+    // Collect validated packages for catalog update
+    let today = Utc::now().format("%Y-%m-%d").to_string();
+    let mut validated: BTreeMap<String, ValidatedPackage> = BTreeMap::new();
+
+    for canonical in repology_cache.keys() {
+        validated.insert(
+            canonical.clone(),
+            ValidatedPackage {
+                canonical_name: canonical.clone(),
+                repology_project: None,
+                verified_date: today.clone(),
+            },
+        );
+    }
+
+    // Update catalog with verified status
+    if !validated.is_empty() {
+        println!(
+            "\nUpdating catalog with {} verified packages...",
+            validated.len()
+        );
+        update_catalog_verified(catalog_path, &validated)?;
+        println!("Catalog updated: {}", catalog_path.display());
+    }
+
+    Ok(())
 }
 
 /// Format package mappings for display
@@ -822,155 +1214,150 @@ fn update_catalog_verified(
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    let args: Vec<String> = std::env::args().collect();
-
-    if args.len() < 2 {
-        eprintln!("Usage:");
-        eprintln!(
-            "  {} <project-name>             Query and display mappings",
-            args[0]
-        );
-        eprintln!(
-            "  {} <project-name> --update    Update source CCL files",
-            args[0]
-        );
-        eprintln!(
-            "  {} --batch <file>             Process multiple packages",
-            args[0]
-        );
-        eprintln!(
-            "  {} --from-crossref [limit]    Process top packages from crossref_results.json",
-            args[0]
-        );
-        eprintln!(
-            "  {} --validate <sources...>    Validate source files against Repology",
-            args[0]
-        );
-        eprintln!("                                  (e.g., --validate all, --validate brew apt)");
-        eprintln!(
-            "  {} --validate all --force     Re-validate all packages (ignore verified status)",
-            args[0]
-        );
-        std::process::exit(1);
-    }
+    let cli = Cli::parse();
 
     let manifest_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
     let sources_dir = manifest_dir.join("data").join("sources");
-    let crossref_path = manifest_dir
-        .join("data")
-        .join("discovery")
-        .join("crossref_results.json");
+    let discovery_dir = manifest_dir.join("data").join("discovery");
+    let crossref_path = discovery_dir.join("crossref_results.json");
+    let cache_path = discovery_dir.join(CACHE_FILENAME);
+    let catalog_path = manifest_dir.join("data").join("packages.ccl");
 
-    let is_batch = args.iter().any(|a| a == "--batch");
-    let is_crossref = args.iter().any(|a| a == "--from-crossref");
-    let is_validate = args.iter().any(|a| a == "--validate");
-    let do_update = args.iter().any(|a| a == "--update");
-    let force = args.iter().any(|a| a == "--force");
+    match cli.command {
+        Commands::BuildCache { from_crossref, force } => {
+            let client = reqwest::Client::new();
 
-    // Handle validation mode
-    if is_validate {
-        let validate_pos = args.iter().position(|a| a == "--validate").unwrap();
-        let mut source_names: Vec<String> = args[validate_pos + 1..]
-            .iter()
-            .filter(|a| !a.starts_with('-'))
-            .cloned()
-            .collect();
+            let projects: Vec<String> = if let Some(limit) = from_crossref {
+                read_crossref_packages(&crossref_path, limit)?
+            } else {
+                // Get all unique canonical names from all source files
+                let source_names = get_all_source_names(&sources_dir)?;
+                let mut all_canonicals: BTreeSet<String> = BTreeSet::new();
 
-        // If "all" is specified, get all source files
-        if source_names.iter().any(|s| s == "all") {
-            source_names = get_all_source_names(&sources_dir)?;
-        }
-
-        if source_names.is_empty() {
-            eprintln!("--validate requires at least one source name (e.g., brew, apt, nix) or 'all'");
-            std::process::exit(1);
-        }
-
-        let client = reqwest::Client::new();
-        let catalog_path = manifest_dir.join("data").join("packages.ccl");
-        return validate_sources(&client, &sources_dir, &catalog_path, &source_names, force).await;
-    }
-
-    // Collect projects to process
-    let projects: Vec<String> = if is_crossref {
-        // Get optional limit argument after --from-crossref
-        let limit = args
-            .iter()
-            .position(|a| a == "--from-crossref")
-            .and_then(|i| args.get(i + 1))
-            .and_then(|s| s.parse::<usize>().ok())
-            .unwrap_or(100);
-        read_crossref_packages(&crossref_path, limit)?
-    } else if is_batch {
-        let file_arg = args
-            .iter()
-            .position(|a| a == "--batch")
-            .and_then(|i| args.get(i + 1))
-            .ok_or_else(|| anyhow::anyhow!("--batch requires a file path"))?;
-        read_package_list(&PathBuf::from(file_arg))?
-    } else {
-        vec![args[1].clone()]
-    };
-
-    if projects.is_empty() {
-        println!("No packages to process");
-        return Ok(());
-    }
-
-    println!("Querying Repology for {} package(s)...", projects.len());
-    if do_update {
-        println!("Will update source files in: {}", sources_dir.display());
-    }
-
-    let client = reqwest::Client::new();
-    let mut total_updated = 0;
-    let mut not_found: Vec<String> = Vec::new();
-
-    for (i, project) in projects.iter().enumerate() {
-        if i > 0 {
-            // Rate limiting
-            tokio::time::sleep(Duration::from_millis(RATE_LIMIT_MS)).await;
-        }
-
-        print!("[{}/{}] {} ... ", i + 1, projects.len(), project);
-
-        match fetch_repology_project(&client, project).await {
-            Ok(packages) => {
-                if packages.is_empty() {
-                    println!("not found");
-                    not_found.push(project.clone());
-                    continue;
+                for source_name in &source_names {
+                    let source_path = sources_dir.join(format!("{}.ccl", source_name));
+                    if source_path.exists() {
+                        let entries = read_source_ccl(&source_path, source_name)?;
+                        for entry in entries {
+                            all_canonicals.insert(entry.canonical_name);
+                        }
+                    }
                 }
 
-                let mappings = map_to_sources(packages);
-                println!("found in {} sources", mappings.len());
+                all_canonicals.into_iter().collect()
+            };
 
-                if !is_batch && !is_crossref {
-                    display_mappings(project, &mappings);
-                }
+            println!("Building cache for {} projects...", projects.len());
+            build_cache(&client, &cache_path, &projects, force).await?;
+        }
 
-                if do_update && !mappings.is_empty() {
-                    let updated = update_source_files(&sources_dir, project, &mappings)?;
-                    total_updated += updated.len();
-                }
+        Commands::Validate {
+            sources,
+            from_cache,
+            force,
+        } => {
+            // Expand "all" to all source files
+            let source_names: Vec<String> = if sources.iter().any(|s| s == "all") {
+                get_all_source_names(&sources_dir)?
+            } else {
+                sources
+            };
+
+            if source_names.is_empty() {
+                anyhow::bail!("No source files to validate");
             }
-            Err(e) => {
-                println!("error: {:?}", e);
+
+            if from_cache {
+                let cache = load_cache(&cache_path)?;
+                if cache.projects.is_empty() {
+                    anyhow::bail!("Cache is empty. Run 'build-cache' first to populate it.");
+                }
+                println!("Using cached data ({} projects)", cache.projects.len());
+                validate_from_cache(&cache, &sources_dir, &catalog_path, &source_names, force)?;
+            } else {
+                let client = reqwest::Client::new();
+                validate_sources(&client, &sources_dir, &catalog_path, &source_names, force).await?;
             }
         }
-    }
 
-    // Summary
-    println!("\n{}", "=".repeat(60));
-    println!("Summary:");
-    println!("  Processed: {} packages", projects.len());
-    if !not_found.is_empty() {
-        println!("  Not found: {} ({:?})", not_found.len(), not_found);
-    }
-    if do_update {
-        println!("  Files updated: {}", total_updated);
-        if total_updated > 0 {
-            println!("\nRun 'just generate-index' to regenerate known_packages.ccl");
+        Commands::Query {
+            project,
+            batch,
+            from_crossref,
+            update,
+        } => {
+            let projects: Vec<String> = if let Some(limit) = from_crossref {
+                read_crossref_packages(&crossref_path, limit)?
+            } else if let Some(batch_file) = batch {
+                read_package_list(&batch_file)?
+            } else if let Some(proj) = project {
+                vec![proj]
+            } else {
+                anyhow::bail!("No project specified");
+            };
+
+            if projects.is_empty() {
+                println!("No packages to process");
+                return Ok(());
+            }
+
+            let is_batch_mode = from_crossref.is_some() || projects.len() > 1;
+
+            println!("Querying Repology for {} package(s)...", projects.len());
+            if update {
+                println!("Will update source files in: {}", sources_dir.display());
+            }
+
+            let client = reqwest::Client::new();
+            let mut total_updated = 0;
+            let mut not_found: Vec<String> = Vec::new();
+
+            for (i, proj) in projects.iter().enumerate() {
+                if i > 0 {
+                    tokio::time::sleep(Duration::from_millis(RATE_LIMIT_MS)).await;
+                }
+
+                print!("[{}/{}] {} ... ", i + 1, projects.len(), proj);
+
+                match fetch_repology_project(&client, proj).await {
+                    Ok(packages) => {
+                        if packages.is_empty() {
+                            println!("not found");
+                            not_found.push(proj.clone());
+                            continue;
+                        }
+
+                        let mappings = map_to_sources(packages);
+                        println!("found in {} sources", mappings.len());
+
+                        if !is_batch_mode {
+                            display_mappings(proj, &mappings);
+                        }
+
+                        if update && !mappings.is_empty() {
+                            let updated = update_source_files(&sources_dir, proj, &mappings)?;
+                            total_updated += updated.len();
+                        }
+                    }
+                    Err(e) => {
+                        println!("error: {:?}", e);
+                    }
+                }
+            }
+
+            // Summary
+            println!("\n{}", "=".repeat(60));
+            println!("Summary:");
+            println!("  Processed: {} packages", projects.len());
+            if !not_found.is_empty() {
+                println!("  Not found: {} ({:?})", not_found.len(), not_found);
+            }
+            if update {
+                println!("  Files updated: {}", total_updated);
+                if total_updated > 0 {
+                    println!("\nRun 'just generate-index' to regenerate known_packages.ccl");
+                }
+            }
         }
     }
 

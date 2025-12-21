@@ -99,23 +99,30 @@ fetch-repology *ARGS='':
 
 # Full package discovery pipeline
 pipeline:
-    @echo "🚀 Running full package discovery pipeline..."
+    @echo "Running full package discovery pipeline..."
     just collect-packages
     just crossref-packages --top=500
-    just verify-packages --limit=500
+    just build-repology-cache --from-crossref 200
+    just validate-cached
     just merge-verified
-    just fetch-repology-from-crossref
     just generate-index
-    @echo "✅ Pipeline complete"
+    @echo "Pipeline complete"
 
-# Fetch Repology mappings for top packages from crossref results
+# Query Repology for top packages from crossref and update source files
 fetch-repology-from-crossref limit='100':
-    @echo "Fetching Repology mappings for top {{limit}} crossref packages..."
-    @cargo run --quiet --features dev-tools --bin fetch-repology -- --from-crossref {{limit}} --update
+    @cargo run --quiet --features dev-tools --bin fetch-repology -- query --from-crossref {{limit}} --update
 
-# Validate source CCL files against Repology (use 'all' for all sources)
+# Build Repology cache from crossref or source files
+build-repology-cache *ARGS='':
+    @cargo run --quiet --features dev-tools --bin fetch-repology -- build-cache {{ARGS}}
+
+# Validate source CCL files using cached Repology data (fast)
+validate-cached *ARGS='all':
+    @cargo run --quiet --features dev-tools --bin fetch-repology -- validate {{ARGS}} --from-cache
+
+# Validate source CCL files against Repology live API (slow)
 validate-sources *SOURCES='all':
-    @cargo run --quiet --features dev-tools --bin fetch-repology -- --validate {{SOURCES}}
+    @cargo run --quiet --features dev-tools --bin fetch-repology -- validate {{SOURCES}}
 
 # Build for CI with specific target
 ci-build TARGET='x86_64-unknown-linux-gnu' *ARGS='':
