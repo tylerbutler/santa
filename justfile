@@ -60,11 +60,9 @@ build *ARGS='':
 build-release *ARGS='':
     cargo build --release {{ARGS}}
 
-# Generate package index from source files
-generate-index:
-    @echo "📋 Generating package index from source files..."
-    @cargo run --quiet --features dev-tools --bin generate-index
-    @echo "✅ Package index generated at crates/santa-cli/data/known_packages.ccl"
+# Generate package index from source files (verified packages only)
+generate-index *ARGS='':
+    @cargo run --quiet --features dev-tools --bin generate-index -- {{ARGS}}
 
 # Migrate packages from known_packages.ccl to source files
 migrate-sources:
