@@ -61,7 +61,7 @@ jobs:
 
       - name: Install git-cliff
         if: steps.release-plz.outputs.prs_created == 'true'
-        uses: taiki-e/install-action@d850aa816998e5cf15f67a78c7b933f2a5033f8a # ratchet:taiki-e/install-action@v2
+        uses: taiki-e/install-action@bfc291e1e39400b67eda124e4a7b4380e93b3390 # ratchet:taiki-e/install-action@v2
         with:
           tool: git-cliff
 
@@ -87,7 +87,7 @@ jobs:
 
       - name: Install cargo-bloated
         if: steps.release-plz.outputs.prs_created == 'true'
-        uses: taiki-e/install-action@d850aa816998e5cf15f67a78c7b933f2a5033f8a # ratchet:taiki-e/install-action@v2
+        uses: taiki-e/install-action@bfc291e1e39400b67eda124e4a7b4380e93b3390 # ratchet:taiki-e/install-action@v2
         with:
           tool: cargo-bloated
 
