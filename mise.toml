@@ -2,4 +2,4 @@
 just = "latest"
 ruff = "latest"
 
-"ubi:cargo-bins/cargo-binstall" = "1"  # Latest 1.x
+"github:cargo-bins/cargo-binstall" = "1"  # Latest 1.x
