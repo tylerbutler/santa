@@ -376,7 +376,7 @@
     },
     {
       "behaviors": [
-        "tabs_preserve"
+        "tabs_as_content"
       ],
       "expected": {
         "count": 1,
@@ -403,7 +403,7 @@
     },
     {
       "behaviors": [
-        "tabs_preserve"
+        "tabs_as_content"
       ],
       "expected": {
         "count": 1,
@@ -456,14 +456,14 @@
     },
     {
       "behaviors": [
-        "tabs_preserve"
+        "tabs_as_content"
       ],
       "expected": {
         "count": 1,
         "entries": [
           {
             "key": "text",
-            "value": "First\n    four spaces\n\ttab preserved"
+            "value": "First\n   four spaces\n\ttab preserved"
           }
         ]
       },
@@ -474,7 +474,7 @@
         "parse_indented"
       ],
       "inputs": [
-        "text = First\n    four spaces\n\ttab preserved"
+        "text = First\n    four spaces\n \ttab preserved"
       ],
       "name": "spaces_vs_tabs_continuation_parse_indented",
       "source_test": "spaces_vs_tabs_continuation",
@@ -483,14 +483,14 @@
     },
     {
       "behaviors": [
-        "tabs_preserve"
+        "tabs_as_content"
       ],
       "expected": {
         "count": 1,
         "entries": [
           {
             "key": "text",
-            "value": "First\n    four spaces\n tab preserved"
+            "value": "First\n   four spaces\n\ttab preserved"
           }
         ]
       },
@@ -501,7 +501,7 @@
         "parse_indented"
       ],
       "inputs": [
-        "text = First\n    four spaces\n\ttab preserved"
+        "text = First\n    four spaces\n \ttab preserved"
       ],
       "name": "spaces_vs_tabs_continuation_ocaml_reference_parse_indented",
       "source_test": "spaces_vs_tabs_continuation_ocaml_reference",
