@@ -97,7 +97,8 @@ jobs:
 
       - uses: ./.github/actions/install-tools
         with:
-          tools: just,cargo-audit,cargo-deny
+          # cargo-deny 0.18.6+ required for CVSS 4.0 support
+          tools: just,cargo-audit,cargo-deny@0.18.9
 
       - name: Security audit
         run: just audit
