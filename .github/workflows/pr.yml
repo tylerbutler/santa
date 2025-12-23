@@ -24,6 +24,11 @@ jobs:
         with:
           tools: just
 
+      - name: Install ruff
+        uses: astral-sh/ruff-action@57714a7c8a2e59f32539362ba31877a1957dded1 # ratchet:astral-sh/ruff-action@v3
+        with:
+          args: "--version"
+
       - name: Check formatting
         run: just format --check
 
@@ -92,7 +97,8 @@ jobs:
 
       - uses: ./.github/actions/install-tools
         with:
-          tools: just,cargo-audit,cargo-deny
+          # cargo-deny 0.18.6+ required for CVSS 4.0 support
+          tools: just,cargo-audit,cargo-deny@0.18.9
 
       - name: Security audit
         run: just audit

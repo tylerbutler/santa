@@ -9,9 +9,9 @@ The test files are the source of truth for all supported features and behaviors.
 
 ## Overview
 
-- **Functions**: 11 distinct functions tested
-- **Behaviors**: 8 distinct behaviors tested
-- **Total test cases**: 345
+- **Functions**: 14 distinct functions tested
+- **Behaviors**: 11 distinct behaviors tested
+- **Total test cases**: 379
 
 ## Functions
 
@@ -19,57 +19,49 @@ Core Model API methods and operations covered by the test suite:
 
 | Function | Test Cases | Description |
 |----------|------------|-------------|
-| `build_hierarchy` | 73 | Validation type: `build_hierarchy` |
-| `canonical_format` | 14 | Validation type: `canonical_format` |
+| `build_hierarchy` | 83 | Validation type: `build_hierarchy` |
+| `canonical_format` | 11 | Validation type: `canonical_format` |
+| `compose_associative` | 3 | Validation type: `compose_associative` |
 | `filter` | 3 | Validation type: `filter` |
 | `get_bool` | 12 | Validation type: `get_bool` |
 | `get_float` | 6 | Validation type: `get_float` |
 | `get_int` | 11 | Validation type: `get_int` |
-| `get_list` | 38 | Validation type: `get_list` |
-| `get_string` | 7 | Validation type: `get_string` |
-| `parse` | 159 | Validation type: `parse` |
-| `parse_indented` | 10 | Validation type: `parse_indented` |
+| `get_list` | 43 | Validation type: `get_list` |
+| `get_string` | 11 | Validation type: `get_string` |
+| `identity_left` | 3 | Validation type: `identity_left` |
+| `identity_right` | 3 | Validation type: `identity_right` |
+| `parse` | 166 | Validation type: `parse` |
+| `parse_indented` | 12 | Validation type: `parse_indented` |
 | `round_trip` | 12 | Validation type: `round_trip` |
 
 ### Function Examples
 
 #### `build_hierarchy`
 
-**Test coverage**: 73 test cases
+**Test coverage**: 83 test cases
 
 **Example usage from tests**:
 
-- **basic_list_from_duplicates_build_hierarchy** (`api_list_access.json`)
-  ```ccl
-  servers = web1
-servers = web2
-servers = web3
-  ```
-- **large_list_build_hierarchy** (`api_list_access.json`)
-  ```ccl
-  items = item01
-items = item02
-items = item03
-items = item04
-items = item05
-items = item06
-items = it...
-  ```
+- **spacing_loose_multiline_various_build_hierarchy** (`api_whitespace_behaviors.json`)
+- **tabs_preserve_in_value_build_hierarchy** (`api_whitespace_behaviors.json`)
 
 #### `canonical_format`
 
-**Test coverage**: 14 test cases
+**Test coverage**: 11 test cases
 
 **Example usage from tests**:
 
-- **canonical_format_empty_values_canonical_format** (`api_proposed_behavior.json`)
-  ```ccl
-  empty_key =
-  ```
-- **canonical_format_tab_preservation_canonical_format** (`api_proposed_behavior.json`)
-  ```ccl
-  value_with_tabs = text		with	tabs	
-  ```
+- **spacing_canonical_format_normalizes_loose_canonical_format** (`api_whitespace_behaviors.json`)
+- **tabs_canonical_format_preserve_canonical_format** (`api_whitespace_behaviors.json`)
+
+#### `compose_associative`
+
+**Test coverage**: 3 test cases
+
+**Example usage from tests**:
+
+- **semigroup_associativity_basic_compose_associative** (`property_algebraic.json`)
+- **semigroup_associativity_nested_compose_associative** (`property_algebraic.json`)
 
 #### `filter`
 
@@ -78,17 +70,7 @@ items = it...
 **Example usage from tests**:
 
 - **comment_extension_filter** (`api_comments.json`)
-  ```ccl
-  /= This is an environment section
-port = 8080
-serve = index.html
-/= Database section
-mode = in-memor...
-  ```
 - **comment_syntax_slash_equals_filter** (`api_comments.json`)
-  ```ccl
-  /= this is a comment
-  ```
 
 #### `get_bool`
 
@@ -97,13 +79,7 @@ mode = in-memor...
 **Example usage from tests**:
 
 - **parse_boolean_true_get_bool** (`api_typed_access.json`)
-  ```ccl
-  enabled = true
-  ```
 - **parse_boolean_yes_get_bool** (`api_typed_access.json`)
-  ```ccl
-  active = yes
-  ```
 
 #### `get_float`
 
@@ -112,15 +88,7 @@ mode = in-memor...
 **Example usage from tests**:
 
 - **parse_basic_float_get_float** (`api_typed_access.json`)
-  ```ccl
-  temperature = 98.6
-  ```
 - **parse_zero_values_get_float** (`api_typed_access.json`)
-  ```ccl
-  count = 0
-distance = 0.0
-disabled = no
-  ```
 
 #### `get_int`
 
@@ -129,97 +97,61 @@ disabled = no
 **Example usage from tests**:
 
 - **parse_basic_integer_get_int** (`api_typed_access.json`)
-  ```ccl
-  port = 8080
-  ```
 - **parse_negative_integer_get_int** (`api_typed_access.json`)
-  ```ccl
-  offset = -42
-  ```
 
 #### `get_list`
 
-**Test coverage**: 38 test cases
+**Test coverage**: 43 test cases
 
 **Example usage from tests**:
 
 - **basic_list_from_duplicates_get_list** (`api_list_access.json`)
-  ```ccl
-  servers = web1
-servers = web2
-servers = web3
-  ```
 - **large_list_get_list** (`api_list_access.json`)
-  ```ccl
-  items = item01
-items = item02
-items = item03
-items = item04
-items = item05
-items = item06
-items = it...
-  ```
 
 #### `get_string`
 
-**Test coverage**: 7 test cases
+**Test coverage**: 11 test cases
 
 **Example usage from tests**:
 
-- **parse_string_fallback_get_string** (`api_typed_access.json`)
-  ```ccl
-  name = Alice
-  ```
-- **parse_mixed_types_get_string** (`api_typed_access.json`)
-  ```ccl
-  host = localhost
-port = 8080
-ssl = true
-timeout = 30.5
-debug = off
-  ```
+- **tabs_preserve_in_value_get_string** (`api_whitespace_behaviors.json`)
+- **tabs_preserve_leading_tab_get_string** (`api_whitespace_behaviors.json`)
+
+#### `identity_left`
+
+**Test coverage**: 3 test cases
+
+**Example usage from tests**:
+
+- **monoid_left_identity_basic_identity_left** (`property_algebraic.json`)
+- **monoid_left_identity_nested_identity_left** (`property_algebraic.json`)
+
+#### `identity_right`
+
+**Test coverage**: 3 test cases
+
+**Example usage from tests**:
+
+- **monoid_right_identity_basic_identity_right** (`property_algebraic.json`)
+- **monoid_right_identity_nested_identity_right** (`property_algebraic.json`)
 
 #### `parse`
 
-**Test coverage**: 159 test cases
+**Test coverage**: 166 test cases
 
 **Example usage from tests**:
 
-- **basic_list_from_duplicates_parse** (`api_list_access.json`)
-  ```ccl
-  servers = web1
-servers = web2
-servers = web3
-  ```
-- **large_list_parse** (`api_list_access.json`)
-  ```ccl
-  items = item01
-items = item02
-items = item03
-items = item04
-items = item05
-items = item06
-items = it...
-  ```
+- **spacing_strict_standard_format_parse** (`api_whitespace_behaviors.json`)
+- **spacing_loose_no_spaces_parse** (`api_whitespace_behaviors.json`)
 
 #### `parse_indented`
 
-**Test coverage**: 10 test cases
+**Test coverage**: 12 test cases
 
 **Example usage from tests**:
 
 - **multiline_section_header_value_parse_indented** (`api_proposed_behavior.json`)
-  ```ccl
-  == Section Header =
-  This continues the header
-key = value
-  ```
 - **unindented_multiline_becomes_continuation_parse_indented** (`api_proposed_behavior.json`)
-  ```ccl
-  == Section Header =
-This continues the header
-key = value
-  ```
 
 #### `round_trip`
 
@@ -228,19 +160,7 @@ key = value
 **Example usage from tests**:
 
 - **round_trip_property_basic_round_trip** (`property_algebraic.json`)
-  ```ccl
-  key = value
-another = test
-  ```
 - **round_trip_property_nested_round_trip** (`property_algebraic.json`)
-  ```ccl
-  config =
-  host = localhost
-  port = 8080
-  db =
-    name = mydb
-    user = admin
-  ```
 
 ## Behaviors
 
@@ -248,152 +168,117 @@ Parser behaviors and configuration options tested by the suite:
 
 | Behavior | Test Cases |
 |----------|------------|
-| `boolean_lenient` | 24 |
-| `boolean_strict` | 27 |
-| `crlf_normalize_to_lf` | 4 |
-| `crlf_preserve_literal` | 4 |
-| `list_coercion_disabled` | 14 |
-| `list_coercion_enabled` | 24 |
-| `strict_spacing` | 3 |
-| `tabs_preserve` | 7 |
+| `array_order_insertion` | 9 |
+| `array_order_lexicographic` | 25 |
+| `boolean_lenient` | 6 |
+| `boolean_strict` | 7 |
+| `crlf_preserve_literal` | 2 |
+| `list_coercion_disabled` | 12 |
+| `list_coercion_enabled` | 18 |
+| `loose_spacing` | 11 |
+| `strict_spacing` | 1 |
+| `tabs_preserve` | 11 |
+| `tabs_to_spaces` | 7 |
 
 ### Behavior Examples
 
+#### `array_order_insertion`
+
+**Test coverage**: 9 test cases
+
+**Example usage from tests**:
+
+- **list_with_comments_build_hierarchy** (`api_list_access.json`)
+- **list_with_comments_get_list** (`api_list_access.json`)
+
+#### `array_order_lexicographic`
+
+**Test coverage**: 25 test cases
+
+**Example usage from tests**:
+
+- **list_with_comments_lexicographic_build_hierarchy** (`api_list_access.json`)
+- **list_with_comments_lexicographic_get_list** (`api_list_access.json`)
+
 #### `boolean_lenient`
 
-**Test coverage**: 24 test cases
+**Test coverage**: 6 test cases
 
 **Example usage from tests**:
 
-- **parse_boolean_true_parse** (`api_typed_access.json`)
-  ```ccl
-  enabled = true
-  ```
-- **parse_boolean_true_build_hierarchy** (`api_typed_access.json`)
-  ```ccl
-  enabled = true
-  ```
+- **parse_boolean_true_get_bool** (`api_typed_access.json`)
+- **parse_boolean_yes_get_bool** (`api_typed_access.json`)
 
 #### `boolean_strict`
-
-**Test coverage**: 27 test cases
-
-**Example usage from tests**:
-
-- **parse_boolean_true_parse** (`api_typed_access.json`)
-  ```ccl
-  enabled = true
-  ```
-- **parse_boolean_true_build_hierarchy** (`api_typed_access.json`)
-  ```ccl
-  enabled = true
-  ```
-
-#### `crlf_normalize_to_lf`
-
-**Test coverage**: 4 test cases
-
-**Example usage from tests**:
-
-- **crlf_normalize_to_lf_proposed_parse** (`api_proposed_behavior.json`)
-  ```ccl
-  key1 = value1
-key2 = value2
-
-  ```
-- **crlf_normalize_to_lf_proposed_canonical_format** (`api_proposed_behavior.json`)
-  ```ccl
-  key1 = value1
-key2 = value2
-
-  ```
-
-#### `crlf_preserve_literal`
-
-**Test coverage**: 4 test cases
-
-**Example usage from tests**:
-
-- **canonical_format_line_endings_proposed_parse** (`api_proposed_behavior.json`)
-  ```ccl
-  key1 = value1
-key2 = value2
-
-  ```
-- **canonical_format_line_endings_proposed_canonical_format** (`api_proposed_behavior.json`)
-  ```ccl
-  key1 = value1
-key2 = value2
-
-  ```
-
-#### `list_coercion_disabled`
-
-**Test coverage**: 14 test cases
-
-**Example usage from tests**:
-
-- **single_item_as_list_reference_parse** (`api_reference_compliant.json`)
-  ```ccl
-  item = single
-  ```
-- **single_item_as_list_reference_build_hierarchy** (`api_reference_compliant.json`)
-  ```ccl
-  item = single
-  ```
-
-#### `list_coercion_enabled`
-
-**Test coverage**: 24 test cases
-
-**Example usage from tests**:
-
-- **basic_list_from_duplicates_parse** (`api_list_access.json`)
-  ```ccl
-  servers = web1
-servers = web2
-servers = web3
-  ```
-- **basic_list_from_duplicates_build_hierarchy** (`api_list_access.json`)
-  ```ccl
-  servers = web1
-servers = web2
-servers = web3
-  ```
-
-#### `strict_spacing`
-
-**Test coverage**: 3 test cases
-
-**Example usage from tests**:
-
-- **canonical_format_consistent_spacing_parse** (`api_proposed_behavior.json`)
-  ```ccl
-  key1=value1
-key2  =  value2
-key3	=	value3
-  ```
-- **canonical_format_consistent_spacing_canonical_format** (`api_proposed_behavior.json`)
-  ```ccl
-  key1=value1
-key2  =  value2
-key3	=	value3
-  ```
-
-#### `tabs_preserve`
 
 **Test coverage**: 7 test cases
 
 **Example usage from tests**:
 
-- **canonical_format_tab_preservation_parse** (`api_proposed_behavior.json`)
-  ```ccl
-  value_with_tabs = text		with	tabs	
-  ```
-- **canonical_format_tab_preservation_canonical_format** (`api_proposed_behavior.json`)
-  ```ccl
-  value_with_tabs = text		with	tabs	
-  ```
+- **parse_boolean_true_get_bool** (`api_typed_access.json`)
+- **parse_boolean_yes_strict_literal_get_bool** (`api_typed_access.json`)
+
+#### `crlf_preserve_literal`
+
+**Test coverage**: 2 test cases
+
+**Example usage from tests**:
+
+- **canonical_format_line_endings_reference_behavior_parse** (`api_reference_compliant.json`)
+- **canonical_format_line_endings_reference_behavior_canonical_format** (`api_reference_compliant.json`)
+
+#### `list_coercion_disabled`
+
+**Test coverage**: 12 test cases
+
+**Example usage from tests**:
+
+- **bare_list_error_not_a_list_get_list** (`api_list_access.json`)
+- **single_item_as_list_reference_get_list** (`api_reference_compliant.json`)
+
+#### `list_coercion_enabled`
+
+**Test coverage**: 18 test cases
+
+**Example usage from tests**:
+
+- **basic_list_from_duplicates_get_list** (`api_list_access.json`)
+- **large_list_get_list** (`api_list_access.json`)
+
+#### `loose_spacing`
+
+**Test coverage**: 11 test cases
+
+**Example usage from tests**:
+
+- **spacing_strict_standard_format_parse** (`api_whitespace_behaviors.json`)
+- **spacing_loose_no_spaces_parse** (`api_whitespace_behaviors.json`)
+
+#### `strict_spacing`
+
+**Test coverage**: 1 test cases
+
+**Example usage from tests**:
+
+- **spacing_strict_standard_format_parse** (`api_whitespace_behaviors.json`)
+
+#### `tabs_preserve`
+
+**Test coverage**: 11 test cases
+
+**Example usage from tests**:
+
+- **tabs_preserve_in_value_parse** (`api_whitespace_behaviors.json`)
+- **tabs_preserve_in_value_build_hierarchy** (`api_whitespace_behaviors.json`)
+
+#### `tabs_to_spaces`
+
+**Test coverage**: 7 test cases
+
+**Example usage from tests**:
+
+- **tabs_to_spaces_in_value_parse** (`api_whitespace_behaviors.json`)
+- **tabs_to_spaces_in_value_build_hierarchy** (`api_whitespace_behaviors.json`)
 
 ## Running Tests
 

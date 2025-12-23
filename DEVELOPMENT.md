@@ -36,153 +36,200 @@ just fix        # Auto-fix issues
 
 ## Package Data Pipeline
 
-Santa uses a **source-organized architecture** for package data, separating maintainable source files from the runtime index.
+Santa uses a **source-organized architecture** for package data, with automated discovery via external APIs and Repology for cross-platform name validation.
 
-### Architecture Overview
+### Pipeline Overview
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                    Package Data Pipeline                     │
-└─────────────────────────────────────────────────────────────┘
+just pipeline
+```
 
-1. COLLECTION (Optional - discover new packages)
-   scripts/collect-packages.py
-   └─> generated_sources/*.ccl
-
-2. CURATION (Manual - review and edit)
-   Review generated files
-   Add overrides/configs
-   └─> crates/santa-cli/data/sources/*.ccl
-
-3. INDEX GENERATION (Build step)
-   just generate-index
-   └─> crates/santa-cli/data/known_packages.ccl
-
-4. RUNTIME (What santa uses)
-   Santa loads known_packages.ccl at runtime
+```
+┌─────────────────┐     ┌──────────────────┐     ┌─────────────────────┐
+│ collect-packages│────▶│ crossref-packages│────▶│ build-repology-cache│
+└─────────────────┘     └──────────────────┘     └─────────────────────┘
+                                                           │
+┌─────────────────┐     ┌──────────────────┐     ┌────────▼────────────┐
+│  generate-index │◀────│   merge-verified │◀────│   validate-cached   │
+└─────────────────┘     └──────────────────┘     └─────────────────────┘
 ```
 
 ### File Organization
 
 ```
-santa/
-├── scripts/
-│   └── collect-packages.py           # Package discovery tool
+crates/santa-cli/data/
+├── sources/                      # SOURCE OF TRUTH (editable)
+│   ├── brew.ccl                  # Homebrew packages
+│   ├── apt.ccl                   # APT packages
+│   ├── scoop.ccl                 # Scoop packages
+│   ├── nix.ccl                   # Nix packages
+│   ├── pacman.ccl                # Pacman packages
+│   ├── aur.ccl                   # AUR packages
+│   ├── cargo.ccl                 # Cargo crates
+│   └── npm.ccl                   # NPM packages
 │
-├── crates/santa-cli/
-│   ├── data/
-│   │   ├── sources/                  # SOURCE OF TRUTH (editable)
-│   │   │   ├── brew.ccl              # Homebrew packages
-│   │   │   ├── scoop.ccl             # Scoop packages
-│   │   │   ├── pacman.ccl            # Pacman packages
-│   │   │   ├── nix.ccl               # Nix packages
-│   │   │   ├── cargo.ccl             # Cargo crates
-│   │   │   ├── npm.ccl               # NPM packages
-│   │   │   ├── apt.ccl               # APT packages
-│   │   │   └── aur.ccl               # AUR packages
-│   │   │
-│   │   ├── known_packages.ccl        # GENERATED INDEX (runtime)
-│   │   └── known_packages.ccl.old    # Original format (reference)
-│   │
-│   └── src/
-│       └── bin/
-│           └── generate_index.rs     # Index generator
+├── discovery/                    # Pipeline intermediate data
+│   ├── raw/                      # Raw API responses
+│   ├── crossref_results.json     # Ranked package candidates
+│   ├── repology_cache.json       # Cached Repology mappings
+│   └── verified_packages.json    # Packages ready to merge
+│
+├── packages.ccl                  # Catalog (descriptions, verified status)
+├── known_packages.ccl            # GENERATED INDEX (runtime)
+└── sources.ccl                   # Package manager definitions
 ```
 
-### Workflow Details
+### Pipeline Stages
 
-#### 1. Package Discovery (Optional)
+#### Stage 1: `collect-packages`
 
-Discover new packages using the collection script:
+**Purpose:** Fetch raw package data from external sources
+
+**Data Sources (APIs):**
+- Homebrew analytics API (popularity/install counts)
+- Scoop bucket listings
+- AUR RPC API
+- Curated lists (toolleeo CLI tools, modern-unix, awesome-cli-apps)
+
+**Outputs:** `data/discovery/raw/*.json`
+
+#### Stage 2: `crossref-packages --top=500`
+
+**Purpose:** Cross-reference packages across sources and rank by popularity
+
+**Inputs:**
+- `data/discovery/raw/*.json` - Raw collected data
+- `data/sources/*.ccl` - Existing packages (to filter duplicates)
+
+**Logic:**
+- Normalizes package names for matching
+- Scores by: Homebrew rank, curated list presence, source count
+- Filters packages already in source CCL files
+
+**Outputs:** `data/discovery/crossref_results.json`
+
+#### Stage 3: `build-repology-cache --from-crossref 200`
+
+**Purpose:** Query Repology API to cache cross-platform name mappings
+
+**Inputs:** `data/discovery/crossref_results.json` (top 200)
+
+**Logic:**
+- Queries [Repology API](https://repology.org/api) for each package (1 req/sec)
+- Maps Repology repos → our sources (homebrew→brew, debian_12→apt, etc.)
+- Caches results to avoid repeated API calls
+
+**Outputs:** `data/discovery/repology_cache.json`
+
+#### Stage 4: `validate-cached`
+
+**Purpose:** Validate source entries against cached Repology data (fast, no API)
+
+**Inputs:**
+- `data/sources/*.ccl` - Package definitions
+- `data/discovery/repology_cache.json` - Cached mappings
+- `data/packages.ccl` - Catalog (skip already-verified)
+
+**Logic:**
+- Compares our name mappings against Repology's
+- Identifies: OK, NOT_FOUND, MISMATCH, MISSING
+- Updates catalog with `verified = YYYY-MM-DD`
+
+**Outputs:** `data/packages.ccl` (updated verified timestamps)
+
+#### Stage 5: `merge-verified`
+
+**Purpose:** Merge verified packages into source CCL files
+
+**Inputs:** `data/discovery/verified_packages.json`
+
+**Outputs:**
+- `data/sources/*.ccl` - New package entries
+- `data/packages.ccl` - Descriptions from verified data
+
+#### Stage 6: `generate-index`
+
+**Purpose:** Generate unified runtime index from all sources
+
+**Inputs:**
+- `data/sources/*.ccl` - All source definitions
+- `data/packages.ccl` - Catalog metadata
+
+**Outputs:** `data/known_packages.ccl` - Runtime index
+
+### Repology Tool
+
+The `fetch-repology` binary provides direct Repology integration:
 
 ```bash
-cd scripts
-python3 collect-packages.py 50  # Check first 50 tools
+# Query a single package
+just fetch-repology query ripgrep
+
+# Build cache from top crossref packages
+just fetch-repology build-cache --from-crossref 200
+
+# Validate using cached data (fast)
+just fetch-repology validate --from-cache
+
+# Validate using live API (slow, 1 req/sec)
+just fetch-repology validate brew apt
+
+# See all options
+just fetch-repology --help
 ```
 
-**Output:**
-- `cli_tools_with_installs.json` - Analysis data
-- `generated_sources/*.ccl` - Generated CCL files per manager
+### Manual Package Curation
 
-**Note:** The collection script uses isolated CCL writing functions marked with:
-```python
-# ============================================================================
-# CCL Writing Functions (TODO: Replace with proper sickle library integration)
-# ============================================================================
-```
-This allows future replacement with proper sickle library integration.
-
-#### 2. Package Curation (Manual)
-
-Review and edit source files in `crates/santa-cli/data/sources/`:
+Source files in `data/sources/*.ccl` can be edited directly:
 
 **Simple packages:**
 ```ccl
 /= Homebrew packages
 bat =
 fd =
-ripgrep = rg
 ```
 
-**Packages with overrides:**
+**Name overrides (source name differs from canonical):**
 ```ccl
-github-cli = gh              # Name override
-go = golang                  # Different name in brew
+gh = github-cli
+rg = ripgrep
 ```
 
-**Packages with complex config:**
+**Complex config:**
 ```ccl
 oh-my-posh =
   pre = brew tap jandedobbeleer/oh-my-posh
 ```
 
-#### 3. Index Generation (Required)
-
-After editing source files, regenerate the index:
-
+After editing, regenerate the index:
 ```bash
 just generate-index
 ```
 
-This runs the Rust binary at `crates/santa-cli/src/bin/generate_index.rs` which:
-- Reads all `data/sources/*.ccl` files
-- Filters comment lines (keys starting with `/`)
-- Merges packages across sources
-- Separates simple packages from those with overrides
-- Writes `data/known_packages.ccl`
+### Key Data Files
 
-**Generated index format:**
-```ccl
-/= Generated package index
-/= DO NOT EDIT - Generated from data/sources/*.ccl
-/= Run: just generate-index to regenerate
+| File | Purpose |
+|------|---------|
+| `sources/*.ccl` | Per-source package definitions (editable) |
+| `packages.ccl` | Catalog: descriptions, homepages, verified status |
+| `known_packages.ccl` | Generated unified index for santa runtime |
+| `discovery/crossref_results.json` | Ranked package candidates |
+| `discovery/repology_cache.json` | Cached Repology name mappings |
 
-/= Packages with simple format (no source-specific overrides)
-bat =
-  = brew
-  = scoop
-  = pacman
-
-/= Packages with complex format (have source-specific overrides)
-github-cli =
-  brew = gh
-  _sources =
-    = apt
-    = scoop
-```
-
-#### 4. Testing & Validation
+### Testing & Validation
 
 ```bash
 # Run all tests
 just test
 
-# Run specific package
-cargo run -- install bat
+# Validate sources against Repology (cached)
+just validate-cached
 
-# Lint and fix
-just lint
-just fix
+# Validate specific sources (live API)
+just validate-sources brew apt
+
+# Test specific package
+cargo run -- install bat
 ```
 
 ## Key Principles

@@ -60,11 +60,68 @@ build *ARGS='':
 build-release *ARGS='':
     cargo build --release {{ARGS}}
 
-# Generate package index from source files
-generate-index:
-    @echo "📋 Generating package index from source files..."
-    cargo run --bin generate-index
-    @echo "✅ Package index generated at crates/santa-cli/data/known_packages.ccl"
+# Generate package index from source files (verified packages only)
+generate-index *ARGS='':
+    @cargo run --quiet --features dev-tools --bin generate-index -- {{ARGS}}
+
+# Migrate packages from known_packages.ccl to source files
+migrate-sources:
+    @echo "📋 Migrating packages to source files..."
+    @cargo run --quiet --features dev-tools --bin migrate-sources
+    @echo "✅ Packages migrated to crates/santa-cli/data/sources/"
+
+# Merge verified packages into source files
+merge-verified:
+    @echo "📋 Merging verified packages into source files..."
+    @cargo run --quiet --features dev-tools --bin merge-verified
+    @echo "✅ Verified packages merged"
+
+# Collect packages from all sources
+collect-packages *ARGS='':
+    @echo "📦 Collecting packages from sources..."
+    @cargo run --quiet --features dev-tools --bin collect-packages -- {{ARGS}}
+
+# Cross-reference and score packages
+crossref-packages *ARGS='':
+    @echo "🔗 Cross-referencing packages..."
+    @cargo run --quiet --features dev-tools --bin crossref-packages -- {{ARGS}}
+
+# Verify package availability
+verify-packages *ARGS='':
+    @echo "✓ Verifying packages..."
+    @cargo run --quiet --features dev-tools --bin verify-packages -- {{ARGS}}
+
+# Fetch package name mappings from Repology
+fetch-repology *ARGS='':
+    @cargo run --quiet --features dev-tools --bin fetch-repology -- {{ARGS}}
+
+# Full package discovery pipeline
+pipeline:
+    @echo "Running full package discovery pipeline..."
+    just collect-packages
+    just crossref-packages --top=500
+    just verify-packages
+    just build-repology-cache --from-crossref 200
+    just validate-cached
+    just merge-verified
+    just generate-index
+    @echo "Pipeline complete"
+
+# Query Repology for top packages from crossref and update source files
+fetch-repology-from-crossref limit='100':
+    @cargo run --quiet --features dev-tools --bin fetch-repology -- query --from-crossref {{limit}} --update
+
+# Build Repology cache from crossref or source files
+build-repology-cache *ARGS='':
+    @cargo run --quiet --features dev-tools --bin fetch-repology -- build-cache {{ARGS}}
+
+# Validate source CCL files using cached Repology data (fast)
+validate-cached *ARGS='all':
+    @cargo run --quiet --features dev-tools --bin fetch-repology -- validate {{ARGS}} --from-cache
+
+# Validate source CCL files against Repology live API (slow)
+validate-sources *SOURCES='all':
+    @cargo run --quiet --features dev-tools --bin fetch-repology -- validate {{SOURCES}}
 
 # Build for CI with specific target
 ci-build TARGET='x86_64-unknown-linux-gnu' *ARGS='':
@@ -158,6 +215,7 @@ lint *ARGS='':
 # Format code
 format *ARGS='':
     cargo fmt --all -- {{ARGS}}
+    ruff format scripts/
 
 # Auto-fix formatting and simple lint issues
 fix:

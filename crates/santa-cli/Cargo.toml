@@ -17,6 +17,8 @@ default-run = "santa"
 [features]
 default = []
 bench = []
+# Enable development tools (collect-packages, crossref-packages, verify-packages, etc.)
+dev-tools = ["dep:regex", "dep:reqwest"]
 
 [dependencies]
 # Error handling with context and chaining
@@ -48,6 +50,12 @@ serde = { version = "1.0.228", features = ["derive"] }
 
 # String-based enum serialization for configuration
 serde-enum-str = "0.4.0"
+
+# JSON serialization for verified packages
+serde_json = "1.0"
+
+# HTTP client for package collection (dev-tools only)
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"], optional = true }
 
 # CCL configuration parser with serde support
 sickle = { version = "0.1.1", path = "../sickle", features = ["serde"] }
@@ -98,6 +106,9 @@ thiserror = "2.0.17"
 # HTTP client for fetching remote sources (lightweight, minimal deps)
 minreq = { version = "2.14.1", features = ["https-rustls"] }
 
+# Regular expressions for parsing (dev-tools only)
+regex = { version = "1", optional = true }
+
 [dev-dependencies]
 # Parameterized testing framework with fixtures
 rstest = "0.18"
@@ -124,6 +135,37 @@ path = "src/main.rs"
 [[bin]]
 name = "generate-index"
 path = "src/bin/generate_index.rs"
+required-features = ["dev-tools"]
+
+[[bin]]
+name = "migrate-sources"
+path = "src/bin/migrate_sources.rs"
+required-features = ["dev-tools"]
+
+[[bin]]
+name = "merge-verified"
+path = "src/bin/merge_verified.rs"
+required-features = ["dev-tools"]
+
+[[bin]]
+name = "collect-packages"
+path = "src/bin/collect_packages.rs"
+required-features = ["dev-tools"]
+
+[[bin]]
+name = "crossref-packages"
+path = "src/bin/crossref_packages.rs"
+required-features = ["dev-tools"]
+
+[[bin]]
+name = "verify-packages"
+path = "src/bin/verify_packages.rs"
+required-features = ["dev-tools"]
+
+[[bin]]
+name = "fetch-repology"
+path = "src/bin/fetch_repology.rs"
+required-features = ["dev-tools"]
 
 [[bench]]
 name = "subprocess_performance"
