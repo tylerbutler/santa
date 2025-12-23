@@ -18,6 +18,28 @@ pub(crate) type CclMap = IndexMap<String, Vec<CclObject>>;
 /// Iterator over key-value pairs where value is the full Vec.
 pub(crate) type CclMapIter<'a> = indexmap::map::Iter<'a, String, Vec<CclObject>>;
 
+/// Options for boolean access operations
+///
+/// Controls how `get_bool()` interprets string values as booleans.
+#[derive(Debug, Clone, Copy, Default)]
+pub struct BoolOptions {
+    /// When true, accepts "yes"/"no" in addition to "true"/"false".
+    /// When false (default), only "true" and "false" are accepted.
+    pub lenient: bool,
+}
+
+impl BoolOptions {
+    /// Create default options (strict mode - only "true"/"false")
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    /// Create options with lenient mode enabled (accepts "yes"/"no")
+    pub fn lenient() -> Self {
+        Self { lenient: true }
+    }
+}
+
 /// Options for list access operations
 ///
 /// Controls how `get_list()` interprets the CCL data structure.
@@ -406,16 +428,55 @@ impl CclObject {
 
     /// Extract a boolean value from the model (no key lookup)
     ///
-    /// Parses the string representation as a boolean
+    /// Parses the string representation as a boolean using strict mode
+    /// (only "true" and "false" accepted).
     pub(crate) fn as_bool(&self) -> Result<bool> {
-        let s = self.as_string()?;
-        s.parse::<bool>()
-            .map_err(|_| Error::ValueError(format!("failed to parse '{}' as bool", s)))
+        self.as_bool_with_options(BoolOptions::new())
     }
 
-    /// Get a boolean value by key
+    /// Extract a boolean value from the model with options (no key lookup)
+    ///
+    /// Parses the string representation as a boolean.
+    /// - Strict mode (default): only "true" and "false" accepted
+    /// - Lenient mode: also accepts "yes" and "no"
+    pub(crate) fn as_bool_with_options(&self, options: BoolOptions) -> Result<bool> {
+        let s = self.as_string()?;
+        if options.lenient {
+            match s {
+                "true" | "yes" => Ok(true),
+                "false" | "no" => Ok(false),
+                _ => Err(Error::ValueError(format!(
+                    "failed to parse '{}' as bool",
+                    s
+                ))),
+            }
+        } else {
+            s.parse::<bool>()
+                .map_err(|_| Error::ValueError(format!("failed to parse '{}' as bool", s)))
+        }
+    }
+
+    /// Get a boolean value by key (strict mode)
+    ///
+    /// Only accepts "true" and "false". For lenient parsing that also
+    /// accepts "yes" and "no", use `get_bool_lenient()`.
     pub fn get_bool(&self, key: &str) -> Result<bool> {
         self.get(key)?.as_bool()
+    }
+
+    /// Get a boolean value by key with options
+    ///
+    /// Allows configuring boolean parsing behavior.
+    pub fn get_bool_with_options(&self, key: &str, options: BoolOptions) -> Result<bool> {
+        self.get(key)?.as_bool_with_options(options)
+    }
+
+    /// Get a boolean value by key (lenient mode)
+    ///
+    /// Accepts "true", "false", "yes", and "no".
+    /// For strict parsing, use `get_bool()`.
+    pub fn get_bool_lenient(&self, key: &str) -> Result<bool> {
+        self.get_bool_with_options(key, BoolOptions::lenient())
     }
 
     /// Extract an integer value from the model (no key lookup)
@@ -518,13 +579,22 @@ impl CclObject {
     /// Get a list of string values by key (with coercion)
     ///
     /// Duplicate keys are coerced into lists, and scalar literals are filtered.
+    /// When multiple entries exist for the same key (e.g., `servers = web1\nservers = web2`),
+    /// all values are collected into a single list.
     ///
     /// For typed access to lists of scalars, use `get_list_typed::<T>()` instead.
     /// For reference-compliant behavior, use `get_list()`.
     pub fn get_list_coerced(&self, key: &str) -> Result<Vec<String>> {
-        Ok(self
-            .get(key)?
-            .as_list_with_options(ListOptions::with_coerce()))
+        let all_values = self.get_all(key)?;
+
+        // Collect string values from all entries for this key
+        // Each entry is a CclObject - extract its keys (which are the actual values)
+        let result: Vec<String> = all_values
+            .iter()
+            .flat_map(|obj| obj.keys().filter(|k| !is_scalar_literal(k)).cloned())
+            .collect();
+
+        Ok(result)
     }
 
     /// Get a typed list of values by key
@@ -647,6 +717,91 @@ impl Default for CclObject {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    // ========================================================================
+    // BoolOptions tests
+    // ========================================================================
+
+    #[test]
+    fn test_bool_options_default() {
+        let opts = BoolOptions::new();
+        assert!(!opts.lenient);
+    }
+
+    #[test]
+    fn test_bool_options_lenient() {
+        let opts = BoolOptions::lenient();
+        assert!(opts.lenient);
+    }
+
+    #[test]
+    fn test_bool_options_default_trait() {
+        let opts = BoolOptions::default();
+        assert!(!opts.lenient);
+    }
+
+    // ========================================================================
+    // ListOptions tests
+    // ========================================================================
+
+    #[test]
+    fn test_list_options_default() {
+        let opts = ListOptions::new();
+        assert!(!opts.coerce);
+    }
+
+    #[test]
+    fn test_list_options_with_coerce() {
+        let opts = ListOptions::with_coerce();
+        assert!(opts.coerce);
+    }
+
+    #[test]
+    fn test_list_options_default_trait() {
+        let opts = ListOptions::default();
+        assert!(!opts.coerce);
+    }
+
+    // ========================================================================
+    // is_scalar_literal tests
+    // ========================================================================
+
+    #[test]
+    fn test_is_scalar_literal_integers() {
+        assert!(is_scalar_literal("42"));
+        assert!(is_scalar_literal("-17"));
+        assert!(is_scalar_literal("0"));
+        assert!(is_scalar_literal("999999"));
+    }
+
+    #[test]
+    fn test_is_scalar_literal_floats() {
+        assert!(is_scalar_literal("3.14"));
+        assert!(is_scalar_literal("-2.5"));
+        assert!(is_scalar_literal("0.0"));
+        assert!(is_scalar_literal("1e10"));
+    }
+
+    #[test]
+    fn test_is_scalar_literal_booleans() {
+        assert!(is_scalar_literal("true"));
+        assert!(is_scalar_literal("false"));
+        assert!(is_scalar_literal("yes"));
+        assert!(is_scalar_literal("no"));
+    }
+
+    #[test]
+    fn test_is_scalar_literal_not_scalars() {
+        assert!(!is_scalar_literal("hello"));
+        assert!(!is_scalar_literal("web1"));
+        assert!(!is_scalar_literal(""));
+        assert!(!is_scalar_literal("True")); // case-sensitive
+        assert!(!is_scalar_literal("YES"));
+    }
+
+    // ========================================================================
+    // CclObject basic tests
+    // ========================================================================
 
     #[test]
     fn test_empty_model() {

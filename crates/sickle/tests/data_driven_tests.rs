@@ -2,8 +2,38 @@
 
 mod common;
 
-use common::{load_all_test_suites, ImplementationConfig, TestSuite};
-use sickle::{build_hierarchy, load, parse, parse_indented, CclPrinter};
+use colored::Colorize;
+
+use common::{load_all_test_suites, ImplementationConfig, TestCase, TestSuite};
+use sickle::options::{CrlfBehavior, ParserOptions, SpacingBehavior, TabBehavior};
+use sickle::{
+    build_hierarchy, load_with_options, parse_indented_with_options, parse_with_options, CclPrinter,
+};
+
+/// Build ParserOptions from test case behaviors
+fn options_from_test(test: &TestCase) -> ParserOptions {
+    let mut options = ParserOptions::new();
+
+    // Check for spacing behavior
+    // loose_spacing is the default (matches reference implementation)
+    if test.behaviors.contains(&"strict_spacing".to_string()) {
+        options = options.with_spacing(SpacingBehavior::Strict);
+    }
+
+    // Check for tab behavior
+    if test.behaviors.contains(&"tabs_to_spaces".to_string()) {
+        options = options.with_tabs(TabBehavior::ToSpaces);
+    }
+    // tabs_preserve is the default, no need to set explicitly
+
+    // Check for CRLF behavior
+    if test.behaviors.contains(&"crlf_normalize_to_lf".to_string()) {
+        options = options.with_crlf(CrlfBehavior::NormalizeToLf);
+    }
+    // crlf_preserve is the default, no need to set explicitly
+
+    options
+}
 use std::path::Path;
 
 /// Helper to navigate nested paths in a Model (e.g., ["config", "database", "port"])
@@ -253,8 +283,9 @@ fn test_parsing_suite_basic_tests() {
 
     for test in parse_tests {
         let test_result = std::panic::catch_unwind(|| {
-            // Parse and build hierarchy
-            let result = load(test.input());
+            // Parse and build hierarchy with options from test behaviors
+            let options = options_from_test(test);
+            let result = load_with_options(test.input(), &options);
 
             // Check that parse succeeds or fails appropriately
             if test.expected.error.is_some() {
@@ -298,17 +329,23 @@ fn test_parsing_suite_basic_tests() {
 
         match test_result {
             Ok(_) => {
-                println!("  ✓ {}", test.name);
+                println!("  {} {}", "[PASS]".green(), test.name);
                 passed += 1;
             }
             Err(e) => {
-                println!("  ✗ {}: {:?}", test.name, e);
+                println!("  {} {}: {:?}", "[FAIL]".red(), test.name, e);
                 failed += 1;
             }
         }
     }
 
-    println!("\nResults: {} passed, {} failed", passed, failed);
+    println!(
+        "\nResults: {} {} passed, {} {} failed",
+        "[PASS]".green(),
+        passed,
+        "[FAIL]".red(),
+        failed
+    );
     assert!(passed > 0, "At least some tests should pass");
 }
 
@@ -329,7 +366,8 @@ fn test_comments_suite() {
 
     for test in comment_tests {
         let test_result = std::panic::catch_unwind(|| {
-            let result = load(test.input());
+            let options = options_from_test(test);
+            let result = load_with_options(test.input(), &options);
 
             if test.expected.error.is_some() {
                 assert!(
@@ -357,17 +395,23 @@ fn test_comments_suite() {
 
         match test_result {
             Ok(_) => {
-                println!("  ✓ {}", test.name);
+                println!("  {} {}", "[PASS]".green(), test.name);
                 passed += 1;
             }
             Err(e) => {
-                println!("  ✗ {}: {:?}", test.name, e);
+                println!("  {} {}: {:?}", "[FAIL]".red(), test.name, e);
                 failed += 1;
             }
         }
     }
 
-    println!("\nComments tests: {} passed, {} failed", passed, failed);
+    println!(
+        "\nComments tests: {} {} passed, {} {} failed",
+        "[PASS]".green(),
+        passed,
+        "[FAIL]".red(),
+        failed
+    );
     // Comments feature may not be fully implemented yet
     if failed > 0 && passed == 0 {
         println!("Note: Comments feature may not be fully implemented in sickle yet");
@@ -393,8 +437,9 @@ fn test_typed_access_suite_strings() {
 
     for test in string_tests {
         let test_result = std::panic::catch_unwind(|| {
-            // Parse the input
-            let model = load(test.input()).unwrap_or_else(|e| {
+            // Parse the input with options from test behaviors
+            let options = options_from_test(test);
+            let model = load_with_options(test.input(), &options).unwrap_or_else(|e| {
                 panic!("Test '{}' failed to parse: {}", test.name, e);
             });
 
@@ -433,19 +478,22 @@ fn test_typed_access_suite_strings() {
 
         match test_result {
             Ok(_) => {
-                println!("  ✓ {}", test.name);
+                println!("  {} {}", "[PASS]".green(), test.name);
                 passed += 1;
             }
             Err(e) => {
-                println!("  ✗ {}: {:?}", test.name, e);
+                println!("  {} {}: {:?}", "[FAIL]".red(), test.name, e);
                 failed += 1;
             }
         }
     }
 
     println!(
-        "\nString access tests: {} passed, {} failed",
-        passed, failed
+        "\nString access tests: {} {} passed, {} {} failed",
+        "[PASS]".green(),
+        passed,
+        "[FAIL]".red(),
+        failed
     );
     assert!(passed > 0, "At least some string access tests should pass");
 }
@@ -455,7 +503,10 @@ fn test_filter_function() {
     let path = Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/test_data/api_comments.json");
 
     if !path.exists() {
-        println!("⚠️  Skipping test - test data file not found");
+        println!(
+            "{} Skipping test - test data file not found",
+            "[INFO]".yellow()
+        );
         return;
     }
 
@@ -469,8 +520,9 @@ fn test_filter_function() {
 
     for test in &filter_tests {
         let test_result = std::panic::catch_unwind(|| {
-            // Parse the input
-            let model = load(test.input()).unwrap_or_else(|e| {
+            // Parse the input with options from test behaviors
+            let options = options_from_test(test);
+            let model = load_with_options(test.input(), &options).unwrap_or_else(|e| {
                 panic!("Test '{}' failed to parse: {}", test.name, e);
             });
 
@@ -503,19 +555,22 @@ fn test_filter_function() {
 
         match test_result {
             Ok(_) => {
-                println!("  ✓ {}", test.name);
+                println!("  {} {}", "[PASS]".green(), test.name);
                 passed += 1;
             }
             Err(e) => {
-                println!("  ✗ {}: {:?}", test.name, e);
+                println!("  {} {}: {:?}", "[FAIL]".red(), test.name, e);
                 failed += 1;
             }
         }
     }
 
     println!(
-        "\nFilter function tests: {} passed, {} failed",
-        passed, failed
+        "\nFilter function tests: {} {} passed, {} {} failed",
+        "[PASS]".green(),
+        passed,
+        "[FAIL]".red(),
+        failed
     );
     println!("Found {} tests using filter function", filter_tests.len());
     assert!(
@@ -529,40 +584,87 @@ fn test_all_ccl_suites_comprehensive() {
     let suites = load_all_test_suites();
     let config = ImplementationConfig::sickle_current();
 
-    println!("\n🧪 Running comprehensive CCL test suite");
-    println!("📁 Loaded {} test suite files", suites.len());
-    println!("🔧 Implementation capabilities:");
+    println!("\n{}", "═══ CCL TEST SUITE ═══".bold());
+    println!("Loaded {} test suite files", suites.len());
 
+    // Display implementation capabilities
+    println!("\n{}", "═══ CAPABILITIES ═══".bold());
+
+    // Functions
     let mut functions: Vec<_> = config.supported_functions.iter().collect();
     functions.sort();
-    println!(
-        "   Functions: {}",
-        functions
+    println!("   Functions ({}):", functions.len());
+    // Display functions in rows of 4 for better readability
+    for chunk in functions.chunks(4) {
+        let row = chunk
             .iter()
-            .map(|s| s.as_str())
+            .map(|s| format!("{:<18}", s))
             .collect::<Vec<_>>()
-            .join(", ")
-    );
+            .join("");
+        println!("     {}", row.trim_end());
+    }
 
-    // Display type-safe behavior choices
-    println!("   Behaviors (type-safe configuration):");
-    println!("      Boolean: {}", config.boolean_behavior.as_str());
-    println!("      CRLF: {}", config.crlf_behavior.as_str());
+    println!("   {}:", "Behaviors".bold());
+
+    // Fixed behaviors (compile-time)
+    println!("     Fixed (compile-time):");
     println!(
-        "      List Coercion: {} (runtime configurable)",
-        config
-            .supported_list_coercion_behaviors
-            .iter()
-            .map(|b| b.as_str())
-            .collect::<Vec<_>>()
-            .join(", ")
-    );
-    println!("      Spacing: {}", config.spacing_behavior.as_str());
-    println!("      Tabs: {}", config.tab_behavior.as_str());
-    println!(
-        "      Array Order: {}\n",
+        "       - Array ordering:   {}",
         config.array_order_behavior.as_str()
     );
+
+    // Parse-time configurable behaviors (via ParserOptions)
+    println!("     Parse-time configurable (via ParserOptions):");
+
+    // CRLF
+    let mut crlf: Vec<_> = config
+        .supported_crlf_behaviors
+        .iter()
+        .map(|b| b.as_str())
+        .collect();
+    crlf.sort();
+    println!("       - CRLF handling:    {}", crlf.join(", "));
+
+    // Spacing
+    let mut spacing: Vec<_> = config
+        .supported_spacing_behaviors
+        .iter()
+        .map(|b| b.as_str())
+        .collect();
+    spacing.sort();
+    println!("       - Spacing:          {}", spacing.join(", "));
+
+    // Tabs
+    let mut tabs: Vec<_> = config
+        .supported_tab_behaviors
+        .iter()
+        .map(|b| b.as_str())
+        .collect();
+    tabs.sort();
+    println!("       - Tab handling:     {}", tabs.join(", "));
+
+    // Access-time configurable behaviors
+    println!("     Access-time configurable:");
+
+    // Boolean parsing (via BoolOptions)
+    let mut boolean: Vec<_> = config
+        .supported_boolean_behaviors
+        .iter()
+        .map(|b| b.as_str())
+        .collect();
+    boolean.sort();
+    println!("       - Boolean parsing:  {}", boolean.join(", "));
+
+    // List coercion (via ListOptions)
+    let mut list_coercion: Vec<_> = config
+        .supported_list_coercion_behaviors
+        .iter()
+        .map(|b| b.as_str())
+        .collect();
+    list_coercion.sort();
+    println!("       - List coercion:    {}", list_coercion.join(", "));
+
+    println!();
 
     let mut total_passed = 0;
     let mut total_failed = 0;
@@ -599,7 +701,7 @@ fn test_all_ccl_suites_comprehensive() {
 
     for suite_name in suite_names {
         let suite = &suites[suite_name];
-        println!("📋 {}", suite_name);
+        println!("{} {}", "──".dimmed(), suite_name.bold());
 
         let mut suite_passed = 0;
         let mut suite_failed = 0;
@@ -660,12 +762,14 @@ fn test_all_ccl_suites_comprehensive() {
 
             if only_intentional_skips {
                 println!(
-                    "   ℹ️   Skipped {} tests (incompatible with current config)",
+                    "   {} Skipped {} tests (incompatible with current config)",
+                    "[INFO]".yellow(),
                     skipped_by_filter
                 );
             } else {
                 println!(
-                    "   ⚠️   Skipped {} tests due to unsupported capabilities",
+                    "   {} Skipped {} tests due to unsupported capabilities",
+                    "[INFO]".yellow(),
                     skipped_by_filter
                 );
             }
@@ -686,7 +790,8 @@ fn test_all_ccl_suites_comprehensive() {
                 // Detect potential masking: if we have both variant and behavior skips
                 if has_behavior_skips {
                     println!(
-                        "      ⚠️  Note: Variant filtering may mask {} behavior conflict(s)",
+                        "      {} Note: Variant filtering may mask {} behavior conflict(s)",
+                        "[INFO]".yellow(),
                         conflicting_behaviors.len()
                     );
                 }
@@ -724,14 +829,17 @@ fn test_all_ccl_suites_comprehensive() {
             panic_messages.lock().unwrap().clear();
 
             let test_result = std::panic::catch_unwind(|| {
-                // Parse the input based on validation type
+                // Build options from test behaviors
+                let options = options_from_test(test);
+
+                // Parse the input based on validation type, using behavior-aware options
                 let (entries, model_result) =
                     if test.validation == "parse_dedented" || test.validation == "parse_indented" {
-                        let e = parse_indented(test.input());
+                        let e = parse_indented_with_options(test.input(), &options);
                         let m = e.as_ref().ok().map(|entries| build_hierarchy(entries));
                         (e, m)
                     } else {
-                        let e = parse(test.input());
+                        let e = parse_with_options(test.input(), &options);
                         let m = e.as_ref().ok().map(|entries| build_hierarchy(entries));
                         (e, m)
                     };
@@ -1042,8 +1150,13 @@ fn test_all_ccl_suites_comprehensive() {
                             (&model, test.args.first().unwrap())
                         };
 
-                        // Use the typed accessor get_bool()
-                        let bool_result = parent_model.get_bool(key);
+                        // Use get_bool or get_bool_lenient based on test behaviors
+                        let bool_result = if test.behaviors.contains(&"boolean_lenient".to_string())
+                        {
+                            parent_model.get_bool_lenient(key)
+                        } else {
+                            parent_model.get_bool(key)
+                        };
 
                         if test.expected.error.is_some() {
                             assert!(
@@ -1134,7 +1247,7 @@ fn test_all_ccl_suites_comprehensive() {
                     }
                     "canonical_format" => {
                         // Parse input and convert to canonical format
-                        let model = load(test.input()).unwrap_or_else(|e| {
+                        let model = load_with_options(test.input(), &options).unwrap_or_else(|e| {
                             panic!("Test '{}' failed to load: {}", test.name, e);
                         });
 
@@ -1217,32 +1330,48 @@ fn test_all_ccl_suites_comprehensive() {
         total_failed += suite_failed;
         total_skipped += suite_skipped;
 
-        println!(
-            "  ✓ {} passed, ✗ {} failed, ⊘ {} skipped (total: {})\n",
-            suite_passed,
-            suite_failed,
-            skipped_by_filter + suite_skipped,
-            suite.tests.len()
-        );
+        // Build summary parts, omitting zero counts
+        let mut parts = Vec::new();
+        if suite_passed > 0 {
+            parts.push(format!("{} {} passed", "[PASS]".green(), suite_passed));
+        }
+        if suite_failed > 0 {
+            parts.push(format!("{} {} failed", "[FAIL]".red(), suite_failed));
+        }
+        let total_skipped_in_suite = skipped_by_filter + suite_skipped;
+        if total_skipped_in_suite > 0 {
+            parts.push(format!(
+                "{} {} skipped",
+                "[INFO]".yellow(),
+                total_skipped_in_suite
+            ));
+        }
+        println!("   {} (total: {})\n", parts.join(", "), suite.tests.len());
     }
 
     // Restore the default panic hook
     std::panic::set_hook(default_hook);
 
-    println!("════════════════════════════════════════");
-    println!("📊 Overall Results:");
-    println!("  ✓ {} passed", total_passed);
-    println!("  ✗ {} failed", total_failed);
-    println!(
-        "  ⊘ {} skipped (unsupported validation types)",
-        total_skipped
-    );
+    println!("{}", "═══ RESULTS ═══".bold());
+    if total_passed > 0 {
+        println!("  {} {} passed", "[PASS]".green(), total_passed);
+    }
+    if total_failed > 0 {
+        println!("  {} {} failed", "[FAIL]".red(), total_failed);
+    }
+    if total_skipped > 0 {
+        println!(
+            "  {} {} skipped (unsupported validation types)",
+            "[INFO]".yellow(),
+            total_skipped
+        );
+    }
     println!("  Total: {}", total_passed + total_failed + total_skipped);
-    println!("════════════════════════════════════════");
+    println!("{}", "════════════════════════════════════════".dimmed());
 
     // Show skipped validation types
     if !skipped_validations.is_empty() {
-        println!("\n⊘ Skipped Validation Types:");
+        println!("\n{}", "═══ SKIPPED VALIDATION TYPES ═══".bold());
         let mut skip_types: Vec<_> = skipped_validations.iter().collect();
         skip_types.sort_by_key(|(_, count)| std::cmp::Reverse(**count));
         for (val_type, count) in skip_types {
@@ -1252,7 +1381,7 @@ fn test_all_ccl_suites_comprehensive() {
 
     // Show behavior coverage
     if !behavior_coverage.is_empty() {
-        println!("\n🔄 Behavior Coverage:");
+        println!("\n{}", "═══ BEHAVIOR COVERAGE ═══".bold());
         println!("   Note: Some behaviors are mutually exclusive configuration options");
 
         // Group mutually exclusive behaviors
@@ -1271,7 +1400,7 @@ fn test_all_ccl_suites_comprehensive() {
             {
                 let pct1 = if *t1 > 0 { (*p1 * 100) / *t1 } else { 0 };
                 let pct2 = if *t2 > 0 { (*p2 * 100) / *t2 } else { 0 };
-                println!("  ⚙️  {} vs {}", opt1, opt2);
+                println!("  {} vs {}", opt1.bold(), opt2.bold());
                 println!("      {}: {}/{} ({}%)", opt1, p1, t1, pct1);
                 println!("      {}: {}/{} ({}%)", opt2, p2, t2, pct2);
                 shown.insert(opt1.to_string());
@@ -1296,11 +1425,11 @@ fn test_all_ccl_suites_comprehensive() {
                 0
             };
             let status = if *passed == *total {
-                "✅"
+                "[PASS]".green()
             } else if *passed > 0 {
-                "⚠️"
+                "[INFO]".yellow()
             } else {
-                "❌"
+                "[FAIL]".red()
             };
             println!(
                 "  {} {}: {}/{} ({}%)",
@@ -1311,7 +1440,7 @@ fn test_all_ccl_suites_comprehensive() {
 
     // Show function coverage
     if !function_coverage.is_empty() {
-        println!("\n🎯 Function Coverage:");
+        println!("\n{}", "═══ FUNCTION COVERAGE ═══".bold());
         let mut functions: Vec<_> = function_coverage.iter().collect();
         functions.sort_by_key(|(name, _)| *name);
         for (function, (passed, total)) in functions {
@@ -1321,11 +1450,11 @@ fn test_all_ccl_suites_comprehensive() {
                 0
             };
             let status = if *passed == *total {
-                "✅"
+                "[PASS]".green()
             } else if *passed > 0 {
-                "⚠️"
+                "[INFO]".yellow()
             } else {
-                "❌"
+                "[FAIL]".red()
             };
             println!(
                 "  {} {}: {}/{} ({}%)",
@@ -1336,9 +1465,10 @@ fn test_all_ccl_suites_comprehensive() {
 
     // Show failure details (limit to first 20 for readability)
     if !failure_details.is_empty() {
-        println!("\n✗ Failure Details (showing first 20):");
+        println!("\n{}", "═══ FAILURE DETAILS ═══".bold());
+        println!("  (showing first 20)");
         for (suite, test, reason) in failure_details.iter().take(20) {
-            println!("  [{suite}] {test}");
+            println!("  {} [{suite}] {test}", "[FAIL]".red());
             // Extract the key part of the error message
             let clean_reason = if let Some(msg) = reason.split("assertion").nth(1) {
                 format!("    Assertion{}", msg.trim())
