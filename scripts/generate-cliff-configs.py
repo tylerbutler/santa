@@ -1,31 +1,36 @@
 #!/usr/bin/env python3
-"""Generate git-cliff config files for each crate with scope-based filtering.
-
-Reads commit types from commit-types.json (single source of truth).
-"""
+"""Generate cliff.toml configs from commit-types.json (single source of truth)."""
 
 import json
 import sys
 from pathlib import Path
 
+# Crate configurations: name, scope pattern for commit parsers, include unscoped commits
+CRATE_CONFIGS = [
+    {
+        "name": "sickle",
+        "path": "crates/sickle/cliff.toml",
+        "tag_pattern": "sickle-v.*",
+        "scope_pattern": "sickle",
+        "include_unscoped": False,
+    },
+    {
+        "name": "santa-data",
+        "path": "crates/santa-data/cliff.toml",
+        "tag_pattern": "santa-data-v.*",
+        "scope_pattern": "santa-data",
+        "include_unscoped": False,
+    },
+    {
+        "name": "santa",
+        "path": "crates/santa-cli/cliff.toml",
+        "tag_pattern": "santa-v.*",
+        "scope_pattern": "santa|santa-cli",
+        "include_unscoped": True,
+    },
+]
 
-def load_commit_types(root: Path) -> dict:
-    """Load commit types from the shared config file."""
-    config_path = root / "commit-types.json"
-    with open(config_path) as f:
-        return json.load(f)
-
-
-def get_changelog_types(config: dict) -> list[tuple[str, str]]:
-    """Extract types that should appear in changelogs (have a changelog_group)."""
-    return [
-        (type_name, type_info["changelog_group"])
-        for type_name, type_info in config["types"].items()
-        if type_info.get("changelog_group")
-    ]
-
-
-TEMPLATE = '''# git-cliff config for {name}
+CHANGELOG_TEMPLATE = '''# git-cliff config for {name}
 # Auto-generated - edit generate-cliff-configs.py and commit-types.json instead
 
 [changelog]
@@ -57,57 +62,71 @@ conventional_commits = true
 filter_unconventional = true
 tag_pattern = "{tag_pattern}"
 commit_parsers = [
-{parsers}    {{ message = ".*", group = "_ignored" }},
+{commit_parsers}
 ]
 '''
 
 
-def generate_config(
-    name: str,
-    scopes: list[str],
-    tag_pattern: str,
-    commit_types: list[tuple[str, str]],
-    include_unscoped: bool = True,
+def generate_commit_parsers(
+    types: dict, scope_pattern: str, include_unscoped: bool
 ) -> str:
-    parsers = ""
-    # Build alternation pattern for multiple scopes: (santa|santa-cli)
-    scope_pattern = "|".join(scopes) if len(scopes) > 1 else scopes[0]
-    for type_name, group_name in commit_types:
-        # Match scoped commits for this crate
-        parsers += f'    {{ message = "^{type_name}\\\\({scope_pattern}\\\\)", group = "{group_name}" }},\n'
+    """Generate commit_parsers array entries from types config."""
+    lines = []
+
+    # Scoped commits
+    for type_name, type_config in types.items():
+        group = type_config.get("changelog_group")
+        if group:
+            lines.append(
+                f'    {{ message = "^{type_name}\\\\({scope_pattern}\\\\)", group = "{group}" }},'
+            )
+
+    # Unscoped commits (for santa-cli which is the main package)
     if include_unscoped:
-        for type_name, group_name in commit_types:
-            # Match unscoped commits (apply to all crates)
-            parsers += f'    {{ message = "^{type_name}:", group = "{group_name}" }},\n'
-    return TEMPLATE.format(name=name, parsers=parsers, tag_pattern=tag_pattern)
+        for type_name, type_config in types.items():
+            group = type_config.get("changelog_group")
+            if group:
+                lines.append(f'    {{ message = "^{type_name}:", group = "{group}" }},')
+
+    # Catch-all for ignored commits
+    lines.append('    { message = ".*", group = "_ignored" },')
+
+    return "\n".join(lines)
+
+
+def generate_cliff_config(crate_config: dict, types: dict) -> str:
+    """Generate a complete cliff.toml for a crate."""
+    commit_parsers = generate_commit_parsers(
+        types, crate_config["scope_pattern"], crate_config["include_unscoped"]
+    )
+
+    return CHANGELOG_TEMPLATE.format(
+        name=crate_config["name"],
+        tag_pattern=crate_config["tag_pattern"],
+        commit_parsers=commit_parsers,
+    )
 
 
 def main():
-    # (name, path, scopes, tag_pattern, include_unscoped) - scopes are conventional commit scopes to include
-    # tag_pattern is a regex to match only tags for this crate
-    # include_unscoped: whether to include unscoped commits (e.g., "feat:" without a scope)
-    crates = [
-        ("sickle", "crates/sickle", ["sickle"], "sickle-v.*", False),
-        ("santa-data", "crates/santa-data", ["santa-data"], "santa-data-v.*", False),
-        ("santa", "crates/santa-cli", ["santa", "santa-cli"], "santa-v.*", True),
-    ]
-
     root = Path(__file__).parent.parent
+    config_path = root / "commit-types.json"
 
-    # Load commit types from shared config
-    config = load_commit_types(root)
-    commit_types = get_changelog_types(config)
+    with open(config_path) as f:
+        config = json.load(f)
 
-    for name, crate_path, scopes, tag_pattern, include_unscoped in crates:
-        cliff_config = generate_config(name, scopes, tag_pattern, commit_types, include_unscoped)
-        out_path = root / crate_path / "cliff.toml"
+    types = config["types"]
+    dry_run = "--dry-run" in sys.argv
 
-        if "--dry-run" in sys.argv:
-            print(f"=== {out_path} ===")
-            print(cliff_config)
+    for crate_config in CRATE_CONFIGS:
+        output_path = root / crate_config["path"]
+        content = generate_cliff_config(crate_config, types)
+
+        if dry_run:
+            print(f"=== {output_path} ===")
+            print(content)
         else:
-            out_path.write_text(cliff_config)
-            print(f"Wrote {out_path}")
+            output_path.write_text(content)
+            print(f"Wrote {output_path}")
 
 
 if __name__ == "__main__":

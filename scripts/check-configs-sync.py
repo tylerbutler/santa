@@ -28,7 +28,9 @@ def main():
 
     # Check commitlint config
     commitlint_path = root / ".commitlintrc.json"
-    expected_commitlint = get_generated_content(root / "scripts" / "generate-commitlint-config.py")
+    expected_commitlint = get_generated_content(
+        root / "scripts" / "generate-commitlint-config.py"
+    )
     actual_commitlint = commitlint_path.read_text()
 
     if expected_commitlint.strip() != actual_commitlint.strip():
@@ -55,7 +57,11 @@ def main():
             start = expected_output.index(marker) + len(marker) + 1
             # Find the next marker or end
             next_marker = expected_output.find("=== /", start)
-            expected = expected_output[start:next_marker].strip() if next_marker != -1 else expected_output[start:].strip()
+            expected = (
+                expected_output[start:next_marker].strip()
+                if next_marker != -1
+                else expected_output[start:].strip()
+            )
 
             if expected != actual.strip():
                 errors.append(

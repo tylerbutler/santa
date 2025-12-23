@@ -2,12 +2,28 @@
 //!
 //! This binary reads all CCL files in data/sources/ and generates a unified
 //! package index that maps package names to their available sources.
+//! It also reads packages.ccl catalog for descriptions and other metadata.
+//!
+//! By default, only verified packages are included in the output.
+//! Use --include-unverified to include all packages.
 
 use anyhow::{Context, Result};
+use clap::Parser;
+use santa::catalog::{self, CatalogEntry};
 use sickle::printer::CclPrinter;
 use std::collections::BTreeMap;
 use std::fs;
 use std::path::{Path, PathBuf};
+
+/// Generate unified package index from source files
+#[derive(Parser)]
+#[command(name = "generate-index")]
+#[command(about = "Generate known_packages.ccl from source files")]
+struct Cli {
+    /// Include packages that haven't been verified against Repology
+    #[arg(long)]
+    include_unverified: bool,
+}
 
 /// Configuration for a package from a specific source
 #[derive(Debug, Clone)]
@@ -58,13 +74,9 @@ impl PackageData {
     }
 }
 
-/// Extract string from CclObject using the pattern from basic_parsing example
+/// Re-export for local use
 fn extract_string_value(obj: &sickle::CclObject) -> Option<String> {
-    if obj.len() == 1 && obj.values().next().unwrap().is_empty() {
-        Some(obj.keys().next().unwrap().clone())
-    } else {
-        None
-    }
+    catalog::extract_string_value(obj)
 }
 
 /// Parsed package info from a source file
@@ -138,7 +150,11 @@ fn parse_source_file(path: &Path) -> Result<BTreeMap<String, ParsedPackage>> {
     Ok(packages)
 }
 
-fn generate_index(sources_dir: &Path) -> Result<String> {
+fn generate_index(
+    sources_dir: &Path,
+    catalog: &BTreeMap<String, CatalogEntry>,
+    include_unverified: bool,
+) -> Result<(String, usize, usize)> {
     let mut all_packages: BTreeMap<String, PackageData> = BTreeMap::new();
     let mut index = sickle::CclObject::new();
 
@@ -163,21 +179,54 @@ fn generate_index(sources_dir: &Path) -> Result<String> {
 
             for (package_name, parsed) in packages {
                 let pkg_data = all_packages
-                    .entry(package_name)
+                    .entry(package_name.clone())
                     .or_insert_with(PackageData::new);
                 pkg_data.add_source(source_name.clone(), parsed.config);
+
+                // Use source description if provided
                 if let Some(desc) = parsed.description {
                     pkg_data.set_description(desc);
+                }
+
+                // Fall back to catalog description if no source description
+                if pkg_data.description.is_none() {
+                    if let Some(catalog_entry) = catalog.get(&package_name) {
+                        if let Some(ref desc) = catalog_entry.description {
+                            pkg_data.set_description(desc.clone());
+                        }
+                    }
                 }
             }
         }
     }
+
+    let total_packages = all_packages.len();
+
+    // Filter to only verified packages unless include_unverified is set
+    let filtered_packages: BTreeMap<String, PackageData> = if include_unverified {
+        all_packages
+    } else {
+        all_packages
+            .into_iter()
+            .filter(|(name, _)| {
+                catalog
+                    .get(name)
+                    .map(|entry| entry.verified)
+                    .unwrap_or(false)
+            })
+            .collect()
+    };
+
+    let included_packages = filtered_packages.len();
 
     // Build CCL structure using sickle's builder API
     // Add header comments
     index.add_comment("Generated package index");
     index.add_comment("DO NOT EDIT - Generated from data/sources/*.ccl");
     index.add_comment("Run: just generate-index to regenerate");
+    if !include_unverified {
+        index.add_comment("Only verified packages are included");
+    }
     index.add_blank_line();
     index.add_comment("Packages with simple format (no source-specific overrides)");
 
@@ -187,7 +236,7 @@ fn generate_index(sources_dir: &Path) -> Result<String> {
     let mut simple_packages = Vec::new();
     let mut complex_packages = Vec::new();
 
-    for (name, data) in &all_packages {
+    for (name, data) in &filtered_packages {
         if data.is_simple() {
             simple_packages.push(name);
         } else {
@@ -197,7 +246,7 @@ fn generate_index(sources_dir: &Path) -> Result<String> {
 
     // Add simple packages
     for package_name in simple_packages {
-        let data = &all_packages[package_name];
+        let data = &filtered_packages[package_name];
         let sources: Vec<String> = data.sources.keys().cloned().collect();
         map.insert(
             package_name.clone(),
@@ -217,7 +266,7 @@ fn generate_index(sources_dir: &Path) -> Result<String> {
         );
 
         for package_name in complex_packages {
-            let data = &all_packages[package_name];
+            let data = &filtered_packages[package_name];
             let mut package_obj = sickle::CclObject::new();
             let package_map = package_obj.inner_mut();
 
@@ -274,27 +323,45 @@ fn generate_index(sources_dir: &Path) -> Result<String> {
 
     // Use CclPrinter to generate the final CCL text
     let printer = CclPrinter::new();
-    Ok(printer.print(&index))
+    Ok((printer.print(&index), total_packages, included_packages))
 }
 
 fn main() -> Result<()> {
+    let cli = Cli::parse();
+
     let manifest_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
     let sources_dir = manifest_dir.join("data").join("sources");
+    let catalog_file = manifest_dir.join("data").join("packages.ccl");
     let output_file = manifest_dir.join("data").join("known_packages.ccl");
 
     if !sources_dir.exists() {
         anyhow::bail!("Sources directory not found: {}", sources_dir.display());
     }
 
+    // Load the package catalog for metadata
+    println!("Loading package catalog from: {}", catalog_file.display());
+    let catalog = catalog::load_catalog(&catalog_file)?;
+    println!("Loaded {} packages from catalog", catalog.len());
+
     println!("Reading source files from: {}", sources_dir.display());
 
-    // Generate index
-    let index_content = generate_index(&sources_dir)?;
+    // Generate index with catalog metadata
+    let (index_content, total, included) =
+        generate_index(&sources_dir, &catalog, cli.include_unverified)?;
 
     // Write output
-    fs::write(&output_file, index_content).context("Failed to write output file")?;
+    fs::write(&output_file, &index_content).context("Failed to write output file")?;
 
     println!("Generated package index: {}", output_file.display());
+    if cli.include_unverified {
+        println!("Included all {} packages", total);
+    } else {
+        println!(
+            "Included {} verified packages (excluded {} unverified)",
+            included,
+            total - included
+        );
+    }
 
     Ok(())
 }
@@ -539,8 +606,9 @@ oh-my-posh =
         writeln!(scoop_file, "bat =").unwrap();
         writeln!(scoop_file, "ripgrep = rg").unwrap();
 
-        // Generate the index
-        let result = generate_index(temp_dir.path()).unwrap();
+        // Generate the index with empty catalog
+        let catalog = BTreeMap::new();
+        let (result, _, _) = generate_index(temp_dir.path(), &catalog, true).unwrap();
 
         // Verify the output contains expected content
         assert!(result.contains("/= Generated package index"));
@@ -562,7 +630,8 @@ oh-my-posh =
         writeln!(source_file, "simple-pkg =").unwrap();
         writeln!(source_file, "complex-pkg = override-name").unwrap();
 
-        let result = generate_index(temp_dir.path()).unwrap();
+        let catalog = BTreeMap::new();
+        let (result, _, _) = generate_index(temp_dir.path(), &catalog, true).unwrap();
 
         // Simple packages should appear before the complex section header
         assert!(result.contains("/= Packages with simple format"));
@@ -581,7 +650,8 @@ oh-my-posh =
         writeln!(source_file, "bat =").unwrap();
         writeln!(source_file, "  _description = A cat clone with wings").unwrap();
 
-        let result = generate_index(temp_dir.path()).unwrap();
+        let catalog = BTreeMap::new();
+        let (result, _, _) = generate_index(temp_dir.path(), &catalog, true).unwrap();
 
         assert!(result.contains("_description = A cat clone with wings"));
     }
@@ -597,7 +667,8 @@ oh-my-posh =
         let mut source_file = fs::File::create(&source_path).unwrap();
         writeln!(source_file, "ripgrep = rg").unwrap();
 
-        let result = generate_index(temp_dir.path()).unwrap();
+        let catalog = BTreeMap::new();
+        let (result, _, _) = generate_index(temp_dir.path(), &catalog, true).unwrap();
 
         assert!(result.contains("ripgrep ="));
         assert!(result.contains("brew = rg"));
@@ -608,7 +679,8 @@ oh-my-posh =
         use tempfile::tempdir;
 
         let temp_dir = tempdir().unwrap();
-        let result = generate_index(temp_dir.path()).unwrap();
+        let catalog = BTreeMap::new();
+        let (result, _, _) = generate_index(temp_dir.path(), &catalog, true).unwrap();
 
         // Should still produce valid output with headers
         assert!(result.contains("/= Generated package index"));
@@ -631,9 +703,40 @@ oh-my-posh =
         let mut txt_file = fs::File::create(&txt_path).unwrap();
         writeln!(txt_file, "This should be ignored").unwrap();
 
-        let result = generate_index(temp_dir.path()).unwrap();
+        let catalog = BTreeMap::new();
+        let (result, _, _) = generate_index(temp_dir.path(), &catalog, true).unwrap();
 
         assert!(result.contains("bat ="));
         assert!(!result.contains("readme"));
+    }
+
+    #[test]
+    fn test_generate_index_uses_catalog_descriptions() {
+        use std::io::Write;
+        use tempfile::tempdir;
+
+        let temp_dir = tempdir().unwrap();
+
+        // Create a source file with a simple package
+        let source_path = temp_dir.path().join("brew.ccl");
+        let mut source_file = fs::File::create(&source_path).unwrap();
+        writeln!(source_file, "bat =").unwrap();
+
+        // Create a catalog with a description
+        let mut catalog = BTreeMap::new();
+        catalog.insert(
+            "bat".to_string(),
+            CatalogEntry {
+                description: Some("A cat clone with syntax highlighting".to_string()),
+                homepage: None,
+                verified: true,
+                verified_date: None,
+            },
+        );
+
+        let (result, _, _) = generate_index(temp_dir.path(), &catalog, true).unwrap();
+
+        // The package should now be complex due to the description
+        assert!(result.contains("_description = A cat clone with syntax highlighting"));
     }
 }

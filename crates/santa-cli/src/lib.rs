@@ -92,6 +92,10 @@ pub mod source_layers;
 pub mod sources;
 pub mod traits;
 
+/// Catalog utilities for dev-tools binaries
+#[cfg(feature = "dev-tools")]
+pub mod catalog;
+
 // Re-export commonly used types
 pub use configuration::SantaConfig;
 pub use data::{KnownSources, PackageData, SantaData};
