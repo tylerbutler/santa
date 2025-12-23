@@ -172,7 +172,7 @@ test-watch:
 
 # Run tests with coverage (outputs lcov.info)
 test-coverage:
-    cargo llvm-cov nextest --all-features --workspace --lcov --output-path lcov.info
+    cargo llvm-cov nextest --all-features --workspace --lcov --output-path lcov.info --clean
 
 # Generate HTML coverage report (run after test-coverage)
 coverage-report:
