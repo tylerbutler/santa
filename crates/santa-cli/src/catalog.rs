@@ -266,6 +266,7 @@ pub fn get_all_source_names(sources_dir: &Path) -> Result<Vec<String>> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use tempfile::TempDir;
 
     #[test]
     fn test_catalog_entry_default() {
@@ -309,5 +310,250 @@ mod tests {
         let model = sickle::load("test =\n  nested = value").unwrap();
         let value = model.get("test").unwrap();
         assert_eq!(extract_string_value(value), None);
+    }
+
+    #[test]
+    fn test_extract_string_value_empty_object() {
+        let obj = CclObject::new();
+        assert_eq!(extract_string_value(&obj), None);
+    }
+
+    #[test]
+    fn test_load_catalog_nonexistent_file() {
+        let dir = TempDir::new().unwrap();
+        let path = dir.path().join("nonexistent.ccl");
+        let catalog = load_catalog(&path).unwrap();
+        assert!(catalog.is_empty());
+    }
+
+    #[test]
+    fn test_load_catalog_with_metadata() {
+        let dir = TempDir::new().unwrap();
+        let path = dir.path().join("packages.ccl");
+        let content = r#"
+bat =
+  description = A cat clone with wings
+  homepage = https://github.com/sharkdp/bat
+  verified = 2024-01-15
+ripgrep =
+  description = Fast grep
+"#;
+        fs::write(&path, content).unwrap();
+
+        let catalog = load_catalog(&path).unwrap();
+        assert_eq!(catalog.len(), 2);
+
+        let bat = catalog.get("bat").unwrap();
+        assert_eq!(bat.description, Some("A cat clone with wings".to_string()));
+        assert_eq!(
+            bat.homepage,
+            Some("https://github.com/sharkdp/bat".to_string())
+        );
+        assert!(bat.verified);
+        assert_eq!(bat.verified_date, Some("2024-01-15".to_string()));
+
+        let rg = catalog.get("ripgrep").unwrap();
+        assert_eq!(rg.description, Some("Fast grep".to_string()));
+        assert!(!rg.verified);
+    }
+
+    #[test]
+    fn test_load_catalog_skips_comments() {
+        let dir = TempDir::new().unwrap();
+        let path = dir.path().join("packages.ccl");
+        let content = r#"
+/= This is a comment
+bat =
+  description = A cat clone
+"#;
+        fs::write(&path, content).unwrap();
+
+        let catalog = load_catalog(&path).unwrap();
+        assert_eq!(catalog.len(), 1);
+        assert!(catalog.contains_key("bat"));
+        assert!(!catalog.contains_key("/= This is a comment"));
+    }
+
+    #[test]
+    fn test_save_and_load_catalog_roundtrip() {
+        let dir = TempDir::new().unwrap();
+        let path = dir.path().join("packages.ccl");
+
+        let mut catalog = BTreeMap::new();
+        catalog.insert(
+            "bat".to_string(),
+            CatalogEntry {
+                description: Some("A cat clone".to_string()),
+                homepage: Some("https://example.com".to_string()),
+                verified: true,
+                verified_date: Some("2024-06-01".to_string()),
+            },
+        );
+        catalog.insert(
+            "ripgrep".to_string(),
+            CatalogEntry {
+                description: Some("Fast grep".to_string()),
+                homepage: None,
+                verified: false,
+                verified_date: None,
+            },
+        );
+
+        save_catalog(&path, &catalog).unwrap();
+        let loaded = load_catalog(&path).unwrap();
+
+        // bat should round-trip fully
+        let bat = loaded.get("bat").unwrap();
+        assert_eq!(bat.description, Some("A cat clone".to_string()));
+        assert_eq!(bat.homepage, Some("https://example.com".to_string()));
+        assert!(bat.verified);
+        assert_eq!(bat.verified_date, Some("2024-06-01".to_string()));
+
+        // ripgrep should round-trip (description only)
+        let rg = loaded.get("ripgrep").unwrap();
+        assert_eq!(rg.description, Some("Fast grep".to_string()));
+        assert!(!rg.verified);
+    }
+
+    #[test]
+    fn test_save_catalog_skips_empty_entries() {
+        let dir = TempDir::new().unwrap();
+        let path = dir.path().join("packages.ccl");
+
+        let mut catalog = BTreeMap::new();
+        catalog.insert("bat".to_string(), CatalogEntry::default());
+        catalog.insert(
+            "ripgrep".to_string(),
+            CatalogEntry {
+                description: Some("Fast grep".to_string()),
+                ..Default::default()
+            },
+        );
+
+        save_catalog(&path, &catalog).unwrap();
+        let loaded = load_catalog(&path).unwrap();
+
+        // Empty entry should be skipped
+        assert!(!loaded.contains_key("bat"));
+        assert!(loaded.contains_key("ripgrep"));
+    }
+
+    #[test]
+    fn test_get_verified_packages() {
+        let dir = TempDir::new().unwrap();
+        let path = dir.path().join("packages.ccl");
+        let content = r#"
+bat =
+  verified = 2024-01-01
+ripgrep =
+  description = Fast grep
+fd =
+  verified = 2024-02-01
+"#;
+        fs::write(&path, content).unwrap();
+
+        let verified = get_verified_packages(&path).unwrap();
+        assert_eq!(verified.len(), 2);
+        assert!(verified.contains("bat"));
+        assert!(verified.contains("fd"));
+        assert!(!verified.contains("ripgrep"));
+    }
+
+    #[test]
+    fn test_read_source_file_simple_entries() {
+        let dir = TempDir::new().unwrap();
+        let path = dir.path().join("brew.ccl");
+        let content = r#"
+bat =
+ripgrep =
+"#;
+        fs::write(&path, content).unwrap();
+
+        let entries = read_source_file(&path, "brew").unwrap();
+        assert_eq!(entries.len(), 2);
+
+        let bat = entries.iter().find(|e| e.source_name == "bat").unwrap();
+        assert_eq!(bat.canonical_name, "bat");
+        assert_eq!(bat.source, "brew");
+
+        let rg = entries.iter().find(|e| e.source_name == "ripgrep").unwrap();
+        assert_eq!(rg.canonical_name, "ripgrep");
+    }
+
+    #[test]
+    fn test_read_source_file_with_name_override() {
+        let dir = TempDir::new().unwrap();
+        let path = dir.path().join("brew.ccl");
+        let content = "gh = github-cli\n";
+        fs::write(&path, content).unwrap();
+
+        let entries = read_source_file(&path, "brew").unwrap();
+        assert_eq!(entries.len(), 1);
+
+        let gh = &entries[0];
+        assert_eq!(gh.source_name, "gh");
+        assert_eq!(gh.canonical_name, "github-cli");
+    }
+
+    #[test]
+    fn test_read_source_file_with_nested_config() {
+        let dir = TempDir::new().unwrap();
+        let path = dir.path().join("apt.ccl");
+        let content = r#"
+python3-pip =
+  _canonical = pip
+  pre_install = apt update
+"#;
+        fs::write(&path, content).unwrap();
+
+        let entries = read_source_file(&path, "apt").unwrap();
+        assert_eq!(entries.len(), 1);
+
+        let entry = &entries[0];
+        assert_eq!(entry.source_name, "python3-pip");
+        assert_eq!(entry.canonical_name, "pip");
+        assert_eq!(
+            entry.config.get("pre_install"),
+            Some(&"apt update".to_string())
+        );
+        // _canonical should be removed from config
+        assert!(!entry.config.contains_key("_canonical"));
+    }
+
+    #[test]
+    fn test_read_source_file_skips_description() {
+        let dir = TempDir::new().unwrap();
+        let path = dir.path().join("brew.ccl");
+        let content = r#"
+bat =
+  _description = A cat clone
+  tap = sharkdp/bat
+"#;
+        fs::write(&path, content).unwrap();
+
+        let entries = read_source_file(&path, "brew").unwrap();
+        let entry = &entries[0];
+        // _description should not be in config
+        assert!(!entry.config.contains_key("_description"));
+        assert_eq!(entry.config.get("tap"), Some(&"sharkdp/bat".to_string()));
+    }
+
+    #[test]
+    fn test_get_all_source_names() {
+        let dir = TempDir::new().unwrap();
+        fs::write(dir.path().join("brew.ccl"), "bat =\n").unwrap();
+        fs::write(dir.path().join("apt.ccl"), "bat =\n").unwrap();
+        fs::write(dir.path().join("cargo.ccl"), "bat =\n").unwrap();
+        fs::write(dir.path().join("readme.txt"), "ignore me").unwrap();
+
+        let names = get_all_source_names(dir.path()).unwrap();
+        assert_eq!(names, vec!["apt", "brew", "cargo"]);
+    }
+
+    #[test]
+    fn test_get_all_source_names_empty_dir() {
+        let dir = TempDir::new().unwrap();
+        let names = get_all_source_names(dir.path()).unwrap();
+        assert!(names.is_empty());
     }
 }
