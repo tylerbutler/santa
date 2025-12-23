@@ -31,9 +31,6 @@ jobs:
       - name: Run tests with coverage
         run: just test-coverage
 
-      - name: Generate HTML coverage report
-        run: just coverage-report
-
       - name: Upload to Codecov
         uses: codecov/codecov-action@b9fd7d16f6d7d1b5d2bec1a2887e65ceed900238 # ratchet:codecov/codecov-action@v4
         with:
@@ -45,6 +42,4 @@ jobs:
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # ratchet:actions/upload-artifact@v4
         with:
           name: coverage-report
-          path: |
-            lcov.info
-            target/llvm-cov/html/
+          path: lcov.info
