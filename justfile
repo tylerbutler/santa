@@ -193,17 +193,35 @@ test-coverage-sickle:
 coverage-report:
     cargo llvm-cov report --html --output-dir target/llvm-cov/html
 
-# Download CCL test data from ccl-test-data repository
+# Download CCL test data from latest ccl-test-data release
 download-ccl-tests:
-    @echo "📥 Downloading CCL test data from ccl-test-data repository..."
-    @echo "Cloning repository to temporary location..."
-    @rm -rf /tmp/ccl-test-data
-    @git clone --depth 1 --quiet https://github.com/tylerbutler/ccl-test-data.git /tmp/ccl-test-data
-    @mkdir -p crates/sickle/tests/test_data
-    @echo "Copying test files..."
-    @cp /tmp/ccl-test-data/generated_tests/*.json crates/sickle/tests/test_data/
-    @rm -rf /tmp/ccl-test-data
-    @echo "✅ Downloaded all test files to crates/sickle/tests/test_data/"
+    #!/usr/bin/env bash
+    set -euo pipefail
+    echo "📥 Downloading CCL test data from latest release..."
+    echo "Fetching latest release information..."
+    mkdir -p crates/sickle/tests/test_data
+    VERSION=$(curl -sL https://api.github.com/repos/CatConfLang/ccl-test-data/releases/latest | jq -r '.tag_name')
+    echo "Downloading generated test data zip from $VERSION release..."
+    
+    # Get the zip file URL for generated tests
+    ZIP_URL=$(curl -sL https://api.github.com/repos/CatConfLang/ccl-test-data/releases/latest | \
+    jq -r '.assets[] | select(.name | contains("generated")) | .browser_download_url')
+    
+    # Create temporary directory for extraction
+    TEMP_DIR=$(mktemp -d)
+    trap "rm -rf $TEMP_DIR" EXIT
+    
+    # Download and extract the zip file
+    echo "Downloading $ZIP_URL..."
+    curl -sL "$ZIP_URL" -o "$TEMP_DIR/generated-tests.zip"
+    echo "Extracting test files..."
+    unzip -q "$TEMP_DIR/generated-tests.zip" -d "$TEMP_DIR/"
+    
+    # Copy JSON files to test data directory
+    echo "Copying test files to crates/sickle/tests/test_data/"
+    find "$TEMP_DIR" -name "*.json" -exec cp {} crates/sickle/tests/test_data/ \;
+    
+    echo "✅ Downloaded and extracted all test files to crates/sickle/tests/test_data/"
 
 # Run CCL test suites with detailed results from all JSON test files
 test-ccl:
