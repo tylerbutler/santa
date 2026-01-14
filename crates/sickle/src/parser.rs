@@ -5,6 +5,7 @@
 //! 2. Build hierarchy through recursive processing
 
 use crate::error::Result;
+use crate::options::ParserOptions;
 use indexmap::IndexMap;
 
 /// A parsed CCL entry (key-value pair)
@@ -24,8 +25,13 @@ struct Entry {
 /// Important: A line without '=' following a complete `key = value` line should NOT
 /// be joined with subsequent lines. It should be treated as a standalone key with
 /// empty value.
-fn normalize_multiline_keys(input: &str) -> String {
-    let lines: Vec<&str> = input.lines().collect();
+fn normalize_multiline_keys(input: &str, preserve_cr: bool) -> String {
+    // Use split('\n') to preserve \r when needed, otherwise use lines() for standard behavior
+    let lines: Vec<&str> = if preserve_cr {
+        input.split('\n').collect()
+    } else {
+        input.lines().collect()
+    };
     let mut result = String::new();
     let mut i = 0;
     let mut base_indent: Option<usize> = None;
@@ -129,33 +135,100 @@ fn trim_spaces_start(s: &str) -> &str {
     s.trim_start_matches(' ')
 }
 
-/// Trim only spaces (not tabs) from the end of a string
-fn trim_spaces_end(s: &str) -> &str {
-    s.trim_end_matches(' ')
+/// Trim whitespace from a string, optionally preserving CR
+/// When preserve_cr is true, only trims spaces and tabs (not \r)
+fn trim_with_cr_option(s: &str, preserve_cr: bool) -> &str {
+    if preserve_cr {
+        // Only trim spaces and tabs, preserving \r
+        s.trim_matches([' ', '\t'])
+    } else {
+        s.trim()
+    }
 }
 
-/// Trim only spaces (not tabs) from both ends of a string
-fn trim_spaces(s: &str) -> &str {
-    trim_spaces_end(trim_spaces_start(s))
+/// Trim leading whitespace, optionally preserving CR
+fn trim_start_with_cr_option(s: &str, preserve_cr: bool) -> &str {
+    if preserve_cr {
+        s.trim_start_matches([' ', '\t'])
+    } else {
+        s.trim_start()
+    }
+}
+
+/// Find the position of a valid `=` delimiter based on spacing options
+///
+/// - Strict spacing: requires ` = ` (space-equals-space), or ` =` at end of line
+/// - Loose spacing: any `=` is valid
+///
+/// Returns the byte position of `=` if found, or None if no valid delimiter exists.
+fn find_delimiter(s: &str, options: &ParserOptions) -> Option<usize> {
+    if options.is_strict_spacing() {
+        // Strict spacing: require ` = ` pattern (space before and after equals)
+        // OR ` =` at the end of the string (for empty values like "key =")
+        if let Some(pos) = s.find(" = ") {
+            return Some(pos + 1);
+        }
+        // Check for ` =` at end of string (space before equals, nothing after)
+        if s.ends_with(" =") {
+            return Some(s.len() - 1);
+        }
+        None
+    } else {
+        // Loose spacing: any `=` is a valid delimiter
+        s.find('=')
+    }
+}
+
+/// Trim leading whitespace from value on the same line as the key
+///
+/// The behavior depends on tab options:
+/// - With tabs_preserve: only trim spaces, tabs are value content
+/// - With tabs_to_spaces: trim all leading whitespace (tabs are delimiter whitespace)
+///
+/// Examples:
+/// - `key = value` → value = `value` (space trimmed)
+/// - `key = \tvalue` with tabs_preserve → value = `\tvalue` (tab is content)
+/// - `key\t=\tdata` with tabs_to_spaces → value = `data` (tab trimmed)
+fn trim_value(s: &str, options: &ParserOptions) -> String {
+    if options.preserve_tabs() {
+        // Only trim spaces, tabs are value content
+        trim_spaces_start(s).to_string()
+    } else {
+        // Trim all whitespace - tabs are delimiter whitespace (converted later)
+        s.trim_start().to_string()
+    }
 }
 
 /// Parse CCL text into a flat list of entries
 ///
 /// This respects indentation - lines at the base level start new entries,
 /// lines indented further become part of the current entry's value
-fn parse_entries(input: &str) -> Vec<Entry> {
+fn parse_entries(input: &str, options: &ParserOptions) -> Vec<Entry> {
+    // Pre-process input based on options
+    let input = options.process_crlf(input);
+
     // First normalize multiline keys
-    let normalized = normalize_multiline_keys(input);
+    let normalized = normalize_multiline_keys(&input, options.preserve_crlf());
 
     let mut entries = Vec::new();
     let mut current_key: Option<(String, usize)> = None;
     let mut value_lines: Vec<String> = Vec::new();
     let mut base_indent: Option<usize> = None;
 
-    for line in normalized.lines() {
+    // Use split('\n') to preserve \r characters when crlf_preserve_literal is set
+    // lines() would strip \r, but we want to keep them in values when preserving
+    let lines_iter: Box<dyn Iterator<Item = &str>> = if options.preserve_crlf() {
+        Box::new(normalized.split('\n'))
+    } else {
+        Box::new(normalized.lines())
+    };
+
+    let preserve_cr = options.preserve_crlf();
+
+    for line in lines_iter {
         // Count leading whitespace (spaces and tabs)
-        let indent = line.len() - line.trim_start().len();
-        let trimmed = line.trim();
+        let indent = line.len() - trim_start_with_cr_option(line, preserve_cr).len();
+        let trimmed = trim_with_cr_option(line, preserve_cr);
 
         // Skip empty lines
         if trimmed.is_empty() {
@@ -173,10 +246,13 @@ fn parse_entries(input: &str) -> Vec<Entry> {
         let base = base_indent.unwrap_or(0);
 
         // Check if this line starts a new entry at the base level
-        if indent <= base && trimmed.contains('=') {
+        // A line is an entry if it has a valid delimiter OR contains '=' (even if invalid in strict mode)
+        // This ensures we handle all lines that look like key-value pairs
+        let has_equals = trimmed.contains('=');
+        if indent <= base && has_equals {
             // Save previous entry if exists
             if let Some((key, key_indent)) = current_key.take() {
-                let value = value_lines.join("\n").trim_end().to_string();
+                let value = finalize_value(&value_lines.join("\n"), options);
                 entries.push(Entry {
                     key,
                     value,
@@ -185,13 +261,14 @@ fn parse_entries(input: &str) -> Vec<Entry> {
                 value_lines.clear();
             }
 
-            // Parse new key-value pair
-            if let Some(eq_pos) = trimmed.find('=') {
+            // Parse new key-value pair using spacing-aware delimiter detection
+            if let Some(eq_pos) = find_delimiter(trimmed, options) {
+                // Valid delimiter found - split key and value
                 // Trim all whitespace from key (spaces and tabs)
                 let key = trimmed[..eq_pos].trim().to_string();
-                // Trim only spaces from value start, preserve tabs for tabs_preserve behavior
+                // Trim value based on spacing options
                 let value_raw = &trimmed[eq_pos + 1..];
-                let value = trim_spaces(value_raw).to_string();
+                let value = trim_value(value_raw, options);
 
                 current_key = Some((key, indent));
                 if value.is_empty() {
@@ -202,17 +279,22 @@ fn parse_entries(input: &str) -> Vec<Entry> {
                 } else {
                     value_lines.push(value);
                 }
+            } else {
+                // No valid delimiter (e.g., "key=value" in strict spacing mode)
+                // Treat the entire line as a key with empty value
+                current_key = Some((trimmed.to_string(), indent));
+                value_lines.push(String::new());
             }
         } else if let Some((_, key_indent)) = current_key {
             // Only treat as continuation if indented MORE than the key line
             if indent > key_indent {
                 // This line is indented relative to the key - it's part of the current value
-                // Preserve the full line for nested structures
+                // Preserve the full line for nested structures (tabs processed later)
                 value_lines.push(line.to_string());
             } else {
                 // Not indented more than key - save current entry and start new one
                 let (key, key_indent_final) = current_key.take().unwrap();
-                let value = value_lines.join("\n").trim_end().to_string();
+                let value = finalize_value(&value_lines.join("\n"), options);
                 entries.push(Entry {
                     key,
                     value,
@@ -228,7 +310,7 @@ fn parse_entries(input: &str) -> Vec<Entry> {
 
     // Don't forget the last entry
     if let Some((key, key_indent)) = current_key {
-        let value = value_lines.join("\n").trim_end().to_string();
+        let value = finalize_value(&value_lines.join("\n"), options);
         entries.push(Entry {
             key,
             value,
@@ -237,6 +319,17 @@ fn parse_entries(input: &str) -> Vec<Entry> {
     }
 
     entries
+}
+
+/// Finalize a value by trimming trailing whitespace and processing tabs
+fn finalize_value(value: &str, options: &ParserOptions) -> String {
+    // Trim trailing whitespace, but preserve \r if crlf_preserve_literal is set
+    let trimmed = if options.preserve_crlf() {
+        value.trim_end_matches([' ', '\t', '\n'])
+    } else {
+        value.trim_end()
+    };
+    options.process_tabs(trimmed).into_owned()
 }
 
 /// Remove common leading whitespace from all lines while preserving relative indentation
@@ -277,8 +370,11 @@ fn dedent(s: &str) -> String {
 }
 
 /// Build hierarchical structure from flat entries
-pub(crate) fn parse_to_map(input: &str) -> Result<IndexMap<String, Vec<String>>> {
-    let entries = parse_entries(input);
+pub(crate) fn parse_to_map(
+    input: &str,
+    options: &ParserOptions,
+) -> Result<IndexMap<String, Vec<String>>> {
+    let entries = parse_entries(input, options);
     let mut result: IndexMap<String, Vec<String>> = IndexMap::new();
 
     for entry in entries {

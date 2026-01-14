@@ -50,6 +50,10 @@ reference_compliant = []
 # All features enabled
 full = ["serde", "printer", "intern"]
 
+# Unstable APIs - exposes internal functions for testing/experimentation
+# These APIs may change without notice
+unstable = []
+
 # Advanced parsing features (future)
 # section-headers = []      # Support == Section == style headers
 # typed-access = []         # Convenience methods: get_string, get_int, get_bool
@@ -70,11 +74,12 @@ string-interner = { version = "0.19.0", optional = true }
 # Testing framework
 serde.workspace = true
 serde_json.workspace = true
+colored.workspace = true
 
 # Enable all features for tests
 [dev-dependencies.sickle]
 path = "."
-features = ["full"]
+features = ["full", "unstable"]
 
 [[example]]
 name = "basic_parsing"

@@ -162,17 +162,32 @@ test-unit:
 test-integration:
     cargo test --test '*'
 
-# Run tests with all features enabled
+# Run tests with all features enabled (excluding reference_compliant)
 test-all *ARGS='':
-    cargo test --all-features {{ARGS}}
+    @echo "🧪 Running tests with all features..."
+    cargo test --features full,unstable {{ARGS}}
 
 # Run tests in watch mode
 test-watch:
     cargo watch -x test
 
-# Run tests with coverage (outputs lcov.info)
+# Run tests with coverage reporting (uses nextest for speed)
 test-coverage:
-    cargo llvm-cov nextest --all-features --workspace --lcov --output-path lcov.info
+    @echo "🧪 Running tests with coverage (nextest + llvm-cov)..."
+    cargo llvm-cov nextest --features full,unstable --workspace --lcov --output-path coverage/lcov.info
+    cargo llvm-cov report --html --output-dir coverage/html
+    @echo "📊 Coverage reports generated:"
+    @echo "  - LCOV: coverage/lcov.info"
+    @echo "  - HTML: coverage/html/index.html"
+
+# Run sickle data-driven tests with coverage
+test-coverage-sickle:
+    @echo "🧪 Running sickle data-driven tests with coverage..."
+    cargo llvm-cov nextest -p sickle --features full,unstable \
+      --lcov --output-path coverage/sickle-lcov.info \
+      -E 'binary(data_driven_tests)'
+    cargo llvm-cov report --html --output-dir coverage/sickle-html
+    @echo "📊 Sickle coverage: coverage/sickle-html/index.html"
 
 # Generate HTML coverage report (run after test-coverage)
 coverage-report:

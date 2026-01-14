@@ -1013,7 +1013,7 @@
     },
     {
       "behaviors": [
-        "tabs_preserve"
+        "tabs_as_content"
       ],
       "expected": {
         "count": 1,
