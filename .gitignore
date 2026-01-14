@@ -8,6 +8,7 @@
 
 # Coverage outputs
 coverage/
+!coverage/.gitkeep
 lcov.info
 *.profraw
 *.profdata
