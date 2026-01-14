@@ -7,7 +7,7 @@
 *.cdx.json
 
 # Coverage outputs
-coverage/
+coverage/*
 !coverage/.gitkeep
 lcov.info
 *.profraw
