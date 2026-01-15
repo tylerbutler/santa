@@ -4,7 +4,15 @@ All notable changes to this project will be documented in this file.
 
 ## [unreleased]
 
-No notable changes in this release.
+### Bug Fixes
+
+- Support Vec<Struct> serde roundtrip serialization
+
+
+### Features
+
+- Add configurable parser options (#53)
+
 
 ## [sickle-v0.1.1] - 2025-12-16
 

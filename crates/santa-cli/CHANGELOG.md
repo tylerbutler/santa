@@ -4,14 +4,17 @@ All notable changes to this project will be documented in this file.
 
 ## [unreleased]
 
-No notable changes in this release.
+### Bug Fixes
+
+- Resolve clippy dead code warnings in schemas.rs
+
+
+### Features
+
+- Package discovery pipeline with Repology integration (#46)
+
 
 ## [santa-v0.3.0] - 2025-12-16
-
-### Documentation
-
-- Add comprehensive user documentation (#58)
-
 
 ### Features
 
@@ -23,8 +26,6 @@ No notable changes in this release.
 
 
 ### Performance
-
-- Optimize release binary size and add size tracking (#48)
 
 - Replace ureq and tera with lighter alternatives (#47)
 
@@ -44,11 +45,6 @@ No notable changes in this release.
 
 ## [santa-v0.1.3] - 2025-11-17
 
-### Bug Fixes
-
-- Disable GitHub release creation in release-plz (#22)
-
-
 ### Features
 
 - Enhance workspace configuration and CI for multi-package best practices (#23)
@@ -58,8 +54,6 @@ No notable changes in this release.
 
 ### Bug Fixes
 
-- Use RELEASE_PLZ_TOKEN to trigger release CI
-
 - Make source system extensible without code changes (#19)
 
 
@@ -67,21 +61,12 @@ No notable changes in this release.
 
 ### Bug Fixes
 
-- Add platform-aware source filtering to default config (#4)
-
 - Add Windows package manager to default config sources (#8)
 
 - Add version requirement for santa-data dependency
 
 - Correct README path in santa-cli Cargo.toml (#9)
 
-- Use RELEASE_PLZ_TOKEN to trigger CI on release PRs (#15)
-
 - Move templates into santa-cli crate for cargo packaging
-
-
-### Features
-
-- Modernize architecture with security fixes and release automation (#1)
 
 
