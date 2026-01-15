@@ -365,9 +365,9 @@ impl<'a> ser::Serializer for &'a mut Serializer {
 /// Serializer for sequences (Vec, arrays, etc.)
 pub struct SeqSerializer<'a> {
     ser: &'a mut Serializer,
-    /// Simple string items (for Vec<String>, Vec<i32>, etc.)
+    /// Simple string items (for `Vec<String>`, `Vec<i32>`, etc.)
     items: Vec<String>,
-    /// Complex nested items (for Vec<Struct>, Vec<HashMap>, etc.)
+    /// Complex nested items (for `Vec<Struct>`, `Vec<HashMap>`, etc.)
     nested_items: Vec<CclObject>,
 }
 
