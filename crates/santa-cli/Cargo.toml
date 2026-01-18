@@ -58,8 +58,8 @@ serde_json = "1.0"
 reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"], optional = true }
 
 # CCL configuration parser with serde support
-sickle = { version = "0.1.1", path = "../sickle", features = ["serde"] }
-santa-data = { version = "0.3.0", path = "../santa-data" }
+sickle = { version = "0.1.2", path = "../sickle", features = ["serde"] }
+santa-data = { version = "0.3.1", path = "../santa-data" }
 
 # Structured logging and tracing
 tracing = "0.1.43"

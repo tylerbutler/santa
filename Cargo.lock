@@ -1976,7 +1976,7 @@ dependencies = [
 
 [[package]]
 name = "santa"
-version = "0.3.0"
+version = "0.3.1"
 dependencies = [
  "anyhow",
  "assert_cmd",
@@ -2018,7 +2018,7 @@ dependencies = [
 
 [[package]]
 name = "santa-data"
-version = "0.3.0"
+version = "0.3.1"
 dependencies = [
  "anyhow",
  "derive_builder",
@@ -2206,7 +2206,7 @@ checksum = "0fda2ff0d084019ba4d7c6f371c95d8fd75ce3524c3cb8fb653a3023f6323e64"
 
 [[package]]
 name = "sickle"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "colored",
  "indexmap",
