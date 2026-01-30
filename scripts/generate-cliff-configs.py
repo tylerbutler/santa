@@ -39,12 +39,12 @@ header = """# Changelog
 All notable changes to this project will be documented in this file.
 """
 body = """
-## {{% if version %}}[{{{{ version | trim_start_matches(pat="v") }}}}] - {{{{ timestamp | date(format="%Y-%m-%d") }}}}{{% else %}}[unreleased]{{% endif %}}
 {{% set visible_commits = commits | filter(attribute="group", value="_ignored") | length %}}\\
 {{% set total_commits = commits | length %}}\\
-{{% if visible_commits == total_commits %}}
-No notable changes in this release.
-{{% else %}}\\
+{{% set has_visible_commits = visible_commits != total_commits %}}\\
+{{% if version or has_visible_commits %}}\\
+## {{% if version %}}[{{{{ version | trim_start_matches(pat="v") }}}}] - {{{{ timestamp | date(format="%Y-%m-%d") }}}}{{% else %}}[unreleased]{{% endif %}}
+{{% if has_visible_commits %}}\\
 {{% for group, group_commits in commits | group_by(attribute="group") %}}\\
 {{% if group != "_ignored" %}}
 ### {{{{ group | upper_first }}}}
@@ -53,7 +53,10 @@ No notable changes in this release.
 {{% endfor %}}
 {{% endif %}}\\
 {{% endfor %}}\\
-{{% endif %}}
+{{% else %}}
+No notable changes in this release.
+{{% endif %}}\\
+{{% endif %}}\\
 """
 trim = false
 
