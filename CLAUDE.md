@@ -3,7 +3,7 @@
 ## Project Overview
 Santa is a Rust-based package manager meta-tool that provides unified interfaces across different package managers. The project has evolved to focus on safe script generation rather than direct command execution, with comprehensive CCL-based configuration and robust error handling.
 
-## Current Architecture (September 2024)
+## Architecture
 The project has implemented significant architectural improvements:
 
 ### Script Generation Model
@@ -69,8 +69,7 @@ The project has implemented significant architectural improvements:
 - `scripts/` - Python-based package collection and analysis tools
 - `justfile` - Task runner with build, test, and deployment commands
 
-## Current State (September 2024)
-- **Lines of Code**: ~8,100 Rust lines
+## Project Status
 - **Architecture**: Mature script-generation model with security focus
 - **Configuration**: CCL-based with migration support
 - **Dependencies**: Clean, well-documented dependency tree
@@ -114,7 +113,5 @@ When working on this project:
 - **Error Handling**: `anyhow` (context), `thiserror` (structured errors)
 - **Testing**: `rstest` (fixtures), `proptest` (property-based), `mockall` (mocking)
 
----
-*This configuration reflects the current state as of September 2024. Update as new architectural patterns emerge.*
 - The CCL format is documented at ccl.tylerbutler.com.
 - When creating PRs, be succinct in the descriptions. Complete, yes, but succinct. No need to include lots of detsil about testing or implementation choices.
