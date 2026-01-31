@@ -72,17 +72,26 @@ jobs:
           git fetch origin ${{ fromJson(steps.release-plz.outputs.pr).head_branch }}
           git checkout ${{ fromJson(steps.release-plz.outputs.pr).head_branch }}
 
-          # Generate changelog for each crate using its specific config
+          # Extract versions from Cargo.toml files (release-plz has already bumped them)
+          SICKLE_VERSION=$(grep -m1 '^version' crates/sickle/Cargo.toml | sed 's/.*"\(.*\)".*/\1/')
+          SANTA_DATA_VERSION=$(grep -m1 '^version' crates/santa-data/Cargo.toml | sed 's/.*"\(.*\)".*/\1/')
+          # santa-cli uses workspace version
+          SANTA_VERSION=$(grep -m1 '^version' Cargo.toml | sed 's/.*"\(.*\)".*/\1/')
+
+          # Generate changelog for each crate with the correct new version tag
           git cliff --config crates/sickle/cliff.toml \
             --include-path "crates/sickle/**" \
+            --tag "sickle-v${SICKLE_VERSION}" \
             --output crates/sickle/CHANGELOG.md
 
           git cliff --config crates/santa-data/cliff.toml \
             --include-path "crates/santa-data/**" \
+            --tag "santa-data-v${SANTA_DATA_VERSION}" \
             --output crates/santa-data/CHANGELOG.md
 
           git cliff --config crates/santa-cli/cliff.toml \
             --include-path "crates/santa-cli/**" \
+            --tag "santa-v${SANTA_VERSION}" \
             --output crates/santa-cli/CHANGELOG.md
 
       - name: Install cargo-bloated

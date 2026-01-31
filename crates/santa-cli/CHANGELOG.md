@@ -2,7 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
-## [unreleased]
+## [santa-v0.3.2] - 2026-01-31
+
+### Documentation
+
+- Remove stale dates and stats from CLAUDE.md (#72)
+
+
+
+## [santa-v0.3.1] - 2026-01-18
 
 ### Bug Fixes
 
@@ -12,6 +20,7 @@ All notable changes to this project will be documented in this file.
 ### Features
 
 - Package discovery pipeline with Repology integration (#46)
+
 
 
 ## [santa-v0.3.0] - 2025-12-16
@@ -30,6 +39,7 @@ All notable changes to this project will be documented in this file.
 - Replace ureq and tera with lighter alternatives (#47)
 
 
+
 ## [santa-v0.2.0] - 2025-12-01
 
 ### Bug Fixes
@@ -39,9 +49,11 @@ All notable changes to this project will be documented in this file.
 - Resolve source-specific package names in status check (#31)
 
 
+
 ## [santa-v0.1.4] - 2025-11-17
 
 No notable changes in this release.
+
 
 ## [santa-v0.1.3] - 2025-11-17
 
@@ -50,11 +62,13 @@ No notable changes in this release.
 - Enhance workspace configuration and CI for multi-package best practices (#23)
 
 
+
 ## [santa-v0.1.2] - 2025-11-17
 
 ### Bug Fixes
 
 - Make source system extensible without code changes (#19)
+
 
 
 ## [santa-v0.1.1] - 2025-11-17
@@ -68,5 +82,6 @@ No notable changes in this release.
 - Correct README path in santa-cli Cargo.toml (#9)
 
 - Move templates into santa-cli crate for cargo packaging
+
 
 
