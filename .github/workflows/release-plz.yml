@@ -27,7 +27,7 @@ jobs:
       - uses: ./.github/actions/setup-rust
 
       - name: Run release-plz release
-        uses: release-plz/action@487eb7b5c085a664d5c5ca05f4159bd9b591182a # ratchet:release-plz/action@v0.5
+        uses: release-plz/action@e592230ad39e3ec735402572601fc621aa24355c # ratchet:release-plz/action@v0.5
         with:
           command: release
         env:
@@ -52,7 +52,7 @@ jobs:
 
       - name: Run release-plz release-pr
         id: release-plz
-        uses: release-plz/action@487eb7b5c085a664d5c5ca05f4159bd9b591182a # ratchet:release-plz/action@v0.5
+        uses: release-plz/action@e592230ad39e3ec735402572601fc621aa24355c # ratchet:release-plz/action@v0.5
         with:
           command: release-pr
         env:
@@ -61,7 +61,7 @@ jobs:
 
       - name: Install git-cliff
         if: steps.release-plz.outputs.prs_created == 'true'
-        uses: taiki-e/install-action@50cee16bd6b97b2579572f83cfa1c0a721b1e336 # ratchet:taiki-e/install-action@v2
+        uses: taiki-e/install-action@a362280ea100b5bb920cf9040c038ce9a50c7943 # ratchet:taiki-e/install-action@v2
         with:
           tool: git-cliff
 
@@ -87,7 +87,7 @@ jobs:
 
       - name: Install cargo-bloated
         if: steps.release-plz.outputs.prs_created == 'true'
-        uses: taiki-e/install-action@50cee16bd6b97b2579572f83cfa1c0a721b1e336 # ratchet:taiki-e/install-action@v2
+        uses: taiki-e/install-action@a362280ea100b5bb920cf9040c038ce9a50c7943 # ratchet:taiki-e/install-action@v2
         with:
           tool: cargo-bloated
 
