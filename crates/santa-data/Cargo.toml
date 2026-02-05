@@ -28,4 +28,4 @@ derive_more = { workspace = true }
 # Configuration loading dependencies
 derive_builder = "0.20.2"
 validator = { version = "0.20", features = ["derive"] }
-tracing = "0.1.43"
+tracing = "0.1.44"

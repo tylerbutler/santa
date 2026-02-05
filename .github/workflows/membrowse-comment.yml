@@ -1,0 +1,34 @@
+name: Membrowse PR Comment
+
+on:
+  workflow_run:
+    workflows: [Membrowse Memory Report]
+    types: [completed]
+
+permissions:
+  contents: read
+  actions: read
+  pull-requests: write
+
+jobs:
+  comment:
+    runs-on: ubuntu-22.04
+    if: github.event.workflow_run.event == 'pull_request' && github.event.workflow_run.conclusion == 'success'
+    steps:
+      - name: Download report artifacts
+        id: download-reports
+        uses: dawidd6/action-download-artifact@v14
+        with:
+          run_id: ${{ github.event.workflow_run.id }}
+          name: membrowse-report-.*
+          name_is_regexp: true
+          path: reports
+          if_no_artifact_found: warn
+
+      - name: Post combined PR comment
+        if: steps.download-reports.outputs.found_artifact == 'true'
+        uses: membrowse/membrowse-action/comment-action@v1
+        with:
+          json_files: "reports/*.json"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -1,0 +1,12 @@
+[
+  {
+    "target_name": "santa-linux-amd64",
+    "port": "linux",
+    "board": "x86_64",
+    "setup_cmd": "echo 'Rust setup handled by composite action'",
+    "build_cmd": "cargo build --locked --release",
+    "elf": "target/release/santa",
+    "ld": "",
+    "linker_vars": ""
+  }
+]
