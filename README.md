@@ -6,6 +6,7 @@ This repository contains the Santa package manager and its supporting libraries.
 
 [![Build Status](https://github.com/tylerbutler/santa/workflows/CI/badge.svg)](https://github.com/tylerbutler/santa/actions)
 [![codecov](https://codecov.io/gh/tylerbutler/santa/branch/main/graph/badge.svg)](https://codecov.io/gh/tylerbutler/santa)
+[![MemBrowse](https://membrowse.com/badge.svg)](https://membrowse.com/public/tylerbutler/santa)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ## Workspace Structure
