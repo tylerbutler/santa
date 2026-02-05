@@ -109,41 +109,9 @@ jobs:
         id: binary-size
         if: steps.release-plz.outputs.prs_created == 'true'
         run: |
-          # Get previous size from metrics file
-          PREV_SIZE=$(tail -1 metrics/binary-size.txt | grep -v '^#' | awk '{print $3}' || echo "0")
-
           cargo build --release
-          SIZE=$(stat --format="%s" target/release/santa)
-          HUMAN=$(numfmt --to=iec --suffix=B "$SIZE")
-          DATE=$(date +%Y-%m-%d)
-          echo "$DATE santa $SIZE $HUMAN" >> metrics/binary-size.txt
-          echo "Recorded binary size: $SIZE ($HUMAN)"
-
-          # Generate bloat reports
+          just binary-size-record target/release/santa
           just bloat
-
-          # Calculate diff
-          if [ "$PREV_SIZE" != "0" ] && [ -n "$PREV_SIZE" ]; then
-            DIFF=$((SIZE - PREV_SIZE))
-            DIFF_HUMAN=$(numfmt --to=iec --suffix=B -- "$DIFF" | sed 's/^-/-/')
-            PREV_HUMAN=$(numfmt --to=iec --suffix=B "$PREV_SIZE")
-            if [ "$DIFF" -gt 0 ]; then
-              DIFF_HUMAN="+$DIFF_HUMAN"
-            fi
-            PERCENT=$(awk "BEGIN {printf \"%.1f\", ($DIFF / $PREV_SIZE) * 100}")
-            if [ "$DIFF" -gt 0 ]; then
-              PERCENT="+$PERCENT"
-            fi
-            echo "size=$HUMAN" >> "$GITHUB_OUTPUT"
-            echo "prev_size=$PREV_HUMAN" >> "$GITHUB_OUTPUT"
-            echo "diff=$DIFF_HUMAN" >> "$GITHUB_OUTPUT"
-            echo "diff_bytes=$DIFF" >> "$GITHUB_OUTPUT"
-            echo "percent=$PERCENT%" >> "$GITHUB_OUTPUT"
-            echo "changed=$( [ "$DIFF" -ne 0 ] && echo true || echo false )" >> "$GITHUB_OUTPUT"
-          else
-            echo "size=$HUMAN" >> "$GITHUB_OUTPUT"
-            echo "changed=false" >> "$GITHUB_OUTPUT"
-          fi
 
       - name: Commit changelog and metrics updates
         if: steps.release-plz.outputs.prs_created == 'true'
