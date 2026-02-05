@@ -17,7 +17,14 @@ use santa::script_generator::{ExecutionMode, ScriptFormat};
 use santa::sources::PackageCache;
 
 /// Check for updates and print a message if one is available.
+///
+/// Respects `DO_NOT_TRACK=1` to disable update checks (consoledonottrack.com).
 fn check_for_updates() {
+    // Respect DO_NOT_TRACK standard (https://consoledonottrack.com)
+    if std::env::var("DO_NOT_TRACK").is_ok_and(|v| v == "1") {
+        return;
+    }
+
     use std::time::Duration;
     use tiny_update_check::UpdateChecker;
 
