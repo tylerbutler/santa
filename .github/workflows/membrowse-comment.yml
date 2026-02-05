@@ -16,11 +16,11 @@ jobs:
     if: github.event.workflow_run.event == 'pull_request' && github.event.workflow_run.conclusion == 'success'
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # ratchet:actions/checkout@v6
 
       - name: Download report artifacts
         id: download-reports
-        uses: dawidd6/action-download-artifact@v14
+        uses: dawidd6/action-download-artifact@5c98f0b039f36ef966fdb7dfa9779262785ecb05 # ratchet:dawidd6/action-download-artifact@v14
         with:
           run_id: ${{ github.event.workflow_run.id }}
           name: membrowse-report-.*
@@ -30,7 +30,7 @@ jobs:
 
       - name: Post combined PR comment
         if: steps.download-reports.outputs.found_artifact == 'true'
-        uses: membrowse/membrowse-action/comment-action@v1
+        uses: membrowse/membrowse-action/comment-action@de0c81afbe88ee846c7c64bd3578c10b7ed9bf25 # ratchet:membrowse/membrowse-action/comment-action@v1
         with:
           json_files: "reports/**/*.json"
         env:
