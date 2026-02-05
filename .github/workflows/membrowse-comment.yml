@@ -29,6 +29,6 @@ jobs:
         if: steps.download-reports.outputs.found_artifact == 'true'
         uses: membrowse/membrowse-action/comment-action@v1
         with:
-          json_files: "reports/*.json"
+          json_files: "reports/**/*.json"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
