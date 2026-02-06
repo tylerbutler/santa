@@ -1,5 +1,11 @@
 # Santa Package Manager - Claude Code Configuration
 
+## Quick Reference
+
+- **Development guide**: [DEV.md](DEV.md) - build commands, testing, CI, release process
+- **Architecture**: [ARCHITECTURE.md](ARCHITECTURE.md) - crate structure, data flows, design decisions
+- **Pipeline details**: [DEVELOPMENT.md](DEVELOPMENT.md) - package data pipeline documentation
+
 ## Project Overview
 Santa is a Rust-based package manager meta-tool that provides unified interfaces across different package managers. The project has evolved to focus on safe script generation rather than direct command execution, with comprehensive CCL-based configuration and robust error handling.
 
