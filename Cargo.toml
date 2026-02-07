@@ -76,3 +76,7 @@ strip = true
 [profile.dist]
 inherits = "release"
 lto = "thin"
+
+[profile.bloat]
+inherits = "release"
+panic = "unwind"
