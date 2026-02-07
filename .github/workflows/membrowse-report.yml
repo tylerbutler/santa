@@ -29,7 +29,7 @@ jobs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # ratchet:actions/checkout@v6
 
       - name: Load target matrix
         id: set-matrix
@@ -45,7 +45,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # ratchet:actions/checkout@v6
         with:
           fetch-depth: 0
 
@@ -57,7 +57,7 @@ jobs:
       - name: Run Membrowse PR Action
         id: analyze
         continue-on-error: true
-        uses: membrowse/membrowse-action@v1
+        uses: membrowse/membrowse-action@de0c81afbe88ee846c7c64bd3578c10b7ed9bf25 # ratchet:membrowse/membrowse-action@v1
         with:
           target_name: ${{ matrix.target_name }}
           elf: ${{ matrix.elf }}
@@ -69,7 +69,7 @@ jobs:
 
       - name: Upload report artifact
         if: ${{ steps.analyze.outcome == 'success' }}
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # ratchet:actions/upload-artifact@v6
         with:
           name: membrowse-report-${{ matrix.target_name }}
           path: ${{ steps.analyze.outputs.report_path }}
