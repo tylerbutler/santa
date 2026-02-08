@@ -25,7 +25,7 @@ jobs:
           - {rust: stable, os: macos-latest}
           - {rust: stable, os: windows-latest}
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # ratchet:actions/checkout@v4
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # ratchet:actions/checkout@v6
 
       - uses: ./.github/actions/setup-rust
         with:
@@ -48,7 +48,7 @@ jobs:
         include:
           - {rust: stable-x86_64-gnu, os: windows-latest}
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # ratchet:actions/checkout@v4
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # ratchet:actions/checkout@v6
 
       - uses: ./.github/actions/setup-rust
         with:
@@ -75,7 +75,7 @@ jobs:
           # 32-bit x86
           - i686-unknown-linux-gnu
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # ratchet:actions/checkout@v4
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # ratchet:actions/checkout@v6
 
       - uses: ./.github/actions/setup-rust
 

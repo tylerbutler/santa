@@ -19,7 +19,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # ratchet:actions/checkout@v5
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # ratchet:actions/checkout@v6
         with:
           fetch-depth: 0
           persist-credentials: false
@@ -27,7 +27,7 @@ jobs:
       - uses: ./.github/actions/setup-rust
 
       - name: Run release-plz release
-        uses: release-plz/action@e592230ad39e3ec735402572601fc621aa24355c # ratchet:release-plz/action@v0.5
+        uses: release-plz/action@20b23932963f7971bdff386c3542f07fbec45f42 # ratchet:release-plz/action@v0.5.125
         with:
           command: release
         env:
@@ -43,7 +43,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # ratchet:actions/checkout@v5
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # ratchet:actions/checkout@v6
         with:
           fetch-depth: 0
           token: ${{ secrets.RELEASE_PLZ_TOKEN }}
@@ -52,7 +52,7 @@ jobs:
 
       - name: Run release-plz release-pr
         id: release-plz
-        uses: release-plz/action@e592230ad39e3ec735402572601fc621aa24355c # ratchet:release-plz/action@v0.5
+        uses: release-plz/action@20b23932963f7971bdff386c3542f07fbec45f42 # ratchet:release-plz/action@v0.5
         with:
           command: release-pr
         env:
@@ -61,7 +61,7 @@ jobs:
 
       - name: Install git-cliff
         if: steps.release-plz.outputs.prs_created == 'true'
-        uses: taiki-e/install-action@a362280ea100b5bb920cf9040c038ce9a50c7943 # ratchet:taiki-e/install-action@v2
+        uses: taiki-e/install-action@7c40b3573dcb8b05d44e41e0311df2007b230d2e # ratchet:taiki-e/install-action@v2
         with:
           tool: git-cliff
 
@@ -96,7 +96,7 @@ jobs:
 
       - name: Install cargo-bloated
         if: steps.release-plz.outputs.prs_created == 'true'
-        uses: taiki-e/install-action@a362280ea100b5bb920cf9040c038ce9a50c7943 # ratchet:taiki-e/install-action@v2
+        uses: taiki-e/install-action@7c40b3573dcb8b05d44e41e0311df2007b230d2e # ratchet:taiki-e/install-action@v2
         with:
           tool: cargo-bloated
 

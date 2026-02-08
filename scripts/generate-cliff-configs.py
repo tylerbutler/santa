@@ -55,10 +55,8 @@ body = """
 {{% endfor %}}\\
 {{% else %}}
 No notable changes in this release.
-
 {{% endif %}}\\
 {{% endif %}}\\
-
 """
 trim = false
 

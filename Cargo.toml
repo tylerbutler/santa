@@ -19,11 +19,11 @@ readme = "README.md"
 
 [workspace.dependencies]
 # Error handling
-anyhow = "1.0.99"
+anyhow = "1.0.101"
 thiserror = "1.0"
 
 # Serialization
-serde = { version = "1.0.219", features = ["derive"] }
+serde = { version = "1.0.228", features = ["derive"] }
 serde_json = "1.0"
 serde-enum-str = "0.2.5"
 
@@ -34,7 +34,7 @@ colored = "3"
 dialoguer = "0.11.0"
 
 # Async
-tokio = { version = "1.47", features = ["process", "rt-multi-thread", "macros", "time", "sync"] }
+tokio = { version = "1.49", features = ["process", "rt-multi-thread", "macros", "time", "sync"] }
 futures = "0.3"
 
 # Logging
@@ -58,14 +58,14 @@ powershell_script = "1.1"
 chrono = { version = "0.4", features = ["serde"] }
 
 # HTTP client (lightweight, minimal deps)
-minreq = { version = "2.12", features = ["https-rustls"] }
+minreq = { version = "2.14", features = ["https-rustls"] }
 
 # Dev dependencies
 rstest = "0.18"
-tempfile = "3.21"
-proptest = "1.7"
+tempfile = "3.24"
+proptest = "1.8"
 mockall = "0.12"
-assert_cmd = "2.0"
+assert_cmd = "2.1"
 predicates = "3.1"
 criterion = { version = "0.5", features = ["html_reports", "async_tokio"] }
 
@@ -76,3 +76,7 @@ strip = true
 [profile.dist]
 inherits = "release"
 lto = "thin"
+
+[profile.bloat]
+inherits = "release"
+panic = "unwind"

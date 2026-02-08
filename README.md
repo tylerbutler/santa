@@ -4,8 +4,9 @@
 
 This repository contains the Santa package manager and its supporting libraries. Santa helps developers install and manage packages across multiple platforms and package managers with a single command.
 
-[![Build Status](https://github.com/tylerbutler/santa/workflows/CI/badge.svg)](https://github.com/tylerbutler/santa/actions)
+[![Build Status](https://github.com/tylerbutler/santa/actions/workflows/test.yml/badge.svg)](https://github.com/tylerbutler/santa/actions/workflows/test.yml)
 [![codecov](https://codecov.io/gh/tylerbutler/santa/branch/main/graph/badge.svg)](https://codecov.io/gh/tylerbutler/santa)
+[![MemBrowse](https://membrowse.com/badge.svg)](https://membrowse.com/public/tylerbutler/santa)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ## Workspace Structure
