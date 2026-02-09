@@ -2,13 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [sickle-v0.1.4] - 2026-02-09
+
+No notable changes in this release.
 ## [sickle-v0.1.3] - 2026-01-31
 
 ### Bug Fixes
 
 - Support panic=abort in downstream crates (#75)
-
-
 
 ## [sickle-v0.1.2] - 2026-01-18
 
@@ -20,8 +21,6 @@ All notable changes to this project will be documented in this file.
 ### Features
 
 - Add configurable parser options (#53)
-
-
 
 ## [sickle-v0.1.1] - 2025-12-16
 
@@ -36,13 +35,9 @@ All notable changes to this project will be documented in this file.
 
 - Add granular feature flags and serde serialization (#44)
 
-
-
 ## [sickle-v0.1.0] - 2025-12-01
 
 ### Features
 
 - Add CCL parser library and codecov tracking (#26)
-
-
 

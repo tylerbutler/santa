@@ -1,42 +1,42 @@
   File  .text    Size  Crate
- 67.8%  98.3% 3.90MiB  *
- 13.9%  20.2%  821KiB  minijinja
-  6.8%   9.8%  398KiB  clap_builder
+ 67.8%  98.3% 3.89MiB  *
+ 14.0%  20.3%  821KiB  minijinja
+  6.8%   9.9%  402KiB  clap_builder
   5.3%   7.6%  309KiB  rustls
-  4.3%   6.2%  251KiB  santa
-  4.2%   6.2%  250KiB  ?
-  3.7%   5.3%  217KiB  moka
+  4.3%   6.2%  253KiB  santa
+  4.3%   6.2%  250KiB  ?
+  3.6%   5.2%  210KiB  moka
   3.3%   4.8%  195KiB  regex_syntax
-  3.2%   4.6%  188KiB  tokio
+  3.2%   4.6%  185KiB  tokio
   2.9%   4.3%  173KiB  regex_automata
-  2.8%   4.1%  166KiB  santa
+  2.8%   4.0%  163KiB  santa
   2.0%   2.9%  117KiB  tracing_subscriber
-  1.9%   2.7%  111KiB  sickle
-  1.6%   2.3% 92.6KiB  clap_complete
-  1.6%   2.3% 91.4KiB  alloc
-  1.5%   2.2% 89.9KiB  std
-  1.4%   2.0% 80.6KiB  santa_data
-  1.1%   1.6% 66.1KiB  ring
-  0.8%   1.2% 47.9KiB  minreq
+  1.9%   2.8%  112KiB  sickle
+  1.6%   2.3% 92.8KiB  clap_complete
+  1.6%   2.3% 91.3KiB  alloc
+  1.5%   2.2% 90.6KiB  std
+  1.4%   2.0% 80.2KiB  santa_data
+  1.1%   1.6% 66.3KiB  ring
+  0.8%   1.2% 47.8KiB  minreq
   0.4%   0.6% 25.0KiB  chrono
+  0.4%   0.6% 23.7KiB  std
   0.4%   0.6% 23.7KiB  webpki
-  0.4%   0.6% 23.6KiB  std
-  0.4%   0.6% 22.8KiB  core
   0.4%   0.5% 21.0KiB  clap_markdown
+  0.3%   0.5% 20.0KiB  core
   0.3%   0.5% 18.7KiB  alloc
   0.3%   0.4% 15.8KiB  tracing_core
   0.3%   0.4% 15.7KiB  anyhow
-  0.2%   0.4% 14.5KiB  signal_hook_registry
   0.2%   0.3% 13.5KiB  console
   0.2%   0.3% 12.8KiB  core
   0.2%   0.3% 12.0KiB  tabular
   0.2%   0.3% 11.3KiB  parking_lot
-  0.2%   0.2% 9.57KiB  crossbeam_channel
-  0.2%   0.2% 9.20KiB  colored
+  0.2%   0.2% 9.73KiB  colored
+  0.2%   0.2% 9.59KiB  crossbeam_channel
   0.1%   0.2% 8.27KiB  dialoguer
+  0.1%   0.2% 7.46KiB  signal_hook_registry
   0.1%   0.2% 7.36KiB  crossbeam_epoch
   0.1%   0.2% 7.12KiB  serde_core
-  0.1%   0.1% 5.83KiB  which
+  0.1%   0.1% 5.91KiB  which
   0.1%   0.1% 5.09KiB  hashbrown
   0.1%   0.1% 4.00KiB  indexmap
   0.1%   0.1% 3.50KiB  clap_lex
@@ -73,5 +73,6 @@
   0.0%   0.0%   96  B  futures_util
   0.0%   0.0%   82  B  tagptr
   0.0%   0.0%   63  B  untrusted
+  0.0%   0.0%   24  B  errno
   0.0%   0.0%    8  B  colorchoice
 
