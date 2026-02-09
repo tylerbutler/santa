@@ -34,4 +34,4 @@ runs:
         targets: ${{ inputs.targets }}
         cache-targets: ${{ inputs.cache-targets }}
         cache-on-failure: ${{ inputs.cache-on-failure }}
-        install-just: 'false'
+        install-just: false
