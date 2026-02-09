@@ -16,7 +16,7 @@ jobs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # ratchet:actions/checkout@v6
 
       - name: Load target matrix
         id: set-matrix
@@ -32,14 +32,14 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # ratchet:actions/checkout@v6
         with:
           fetch-depth: 0
 
       - uses: ./.github/actions/setup-rust
 
       - name: Run Membrowse Onboard Action
-        uses: membrowse/membrowse-action/onboard-action@v1
+        uses: membrowse/membrowse-action/onboard-action@de0c81afbe88ee846c7c64bd3578c10b7ed9bf25 # ratchet:membrowse/membrowse-action/onboard-action@v1
         with:
           target_name: ${{ matrix.target_name }}
           num_commits: ${{ github.event.inputs.num_commits }}
