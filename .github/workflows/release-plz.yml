@@ -61,7 +61,7 @@ jobs:
 
       - name: Install git-cliff
         if: steps.release-plz.outputs.prs_created == 'true'
-        uses: tylerbutler/actions/install-tools@v1
+        uses: tylerbutler/actions/install-tools@main
         with:
           tools: git-cliff
 
@@ -96,7 +96,7 @@ jobs:
 
       - name: Install cargo-bloated
         if: steps.release-plz.outputs.prs_created == 'true'
-        uses: tylerbutler/actions/install-tools@v1
+        uses: tylerbutler/actions/install-tools@main
         with:
           tools: cargo-bloated
 

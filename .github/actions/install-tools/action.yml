@@ -11,6 +11,6 @@ runs:
   using: composite
   steps:
     - name: Install Tools
-      uses: tylerbutler/actions/install-tools@v1
+      uses: tylerbutler/actions/install-tools@main
       with:
         tools: ${{ inputs.tools }}
