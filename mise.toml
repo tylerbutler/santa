@@ -1,5 +1,6 @@
 [tools]
 just = "latest"
+python = "3"  # For scripts (binary-size-diff.py, etc.)
 ruff = "latest"
 
 "github:cargo-bins/cargo-binstall" = "1"  # Latest 1.x

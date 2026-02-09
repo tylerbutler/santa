@@ -364,8 +364,27 @@ bloat:
     cargo rustc -p sickle --lib --all-features --release --crate-type=dylib
     cargo bloated -p sickle --lib --all-features --output crates | tee metrics/bloat-sickle.txt
 
-# Record release binary size to metrics/binary-size.txt
-[linux]
+# Get size of a binary in bytes (for CI)
+[unix]
+binary-size binary:
+    @python3 scripts/binary-size-diff.py size "{{binary}}"
+
+# Compare two binary sizes and output to GITHUB_OUTPUT (for PR CI)
+[unix]
+binary-size-compare current_size baseline_size:
+    python3 scripts/binary-size-diff.py compare "{{current_size}}" "{{baseline_size}}" --github-output "$GITHUB_OUTPUT"
+
+# Record binary size to metrics and output diff to GITHUB_OUTPUT (for release CI)
+[unix]
+binary-size-record binary:
+    python3 scripts/binary-size-diff.py record \
+        --binary "{{binary}}" \
+        --metrics metrics/binary-size.txt \
+        --label santa \
+        --github-output "$GITHUB_OUTPUT"
+
+# Record release binary size to metrics/binary-size.txt (local use)
+[unix]
 record-size:
     #!/usr/bin/env bash
     set -euo pipefail
@@ -374,9 +393,61 @@ record-size:
         echo "Release binary not found. Run 'just build-release' first."
         exit 1
     fi
-    VERSION=$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[] | select(.name == "santa") | .version')
-    SIZE=$(stat --format="%s" "$BINARY")
-    HUMAN=$(numfmt --to=iec --suffix=B "$SIZE")
-    DATE=$(date +%Y-%m-%d)
-    echo "$DATE v$VERSION $SIZE $HUMAN" >> metrics/binary-size.txt
-    echo "Recorded: $DATE v$VERSION $SIZE ($HUMAN)"
+    python3 scripts/binary-size-diff.py record \
+        --binary "$BINARY" \
+        --metrics metrics/binary-size.txt \
+        --label santa
+
+# Compare current binary size against last recorded size in metrics (local use)
+[unix]
+size-diff:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    echo "📦 Building release binary..."
+    cargo build --release --quiet
+    python3 scripts/binary-size-diff.py compare \
+        --binary target/release/santa \
+        --metrics metrics/binary-size.txt
+
+# Compare binary size against main by building both (slower but accurate)
+[unix]
+size-diff-full:
+    #!/usr/bin/env bash
+    set -euo pipefail
+
+    # Save current branch
+    CURRENT_BRANCH=$(git branch --show-current)
+    if [ -z "$CURRENT_BRANCH" ]; then
+        CURRENT_BRANCH=$(git rev-parse HEAD)
+    fi
+
+    echo "📦 Building release binary for current branch ($CURRENT_BRANCH)..."
+    cargo build --release --quiet
+    PR_BINARY=$(mktemp)
+    cp target/release/santa "$PR_BINARY"
+
+    # Stash any uncommitted changes
+    STASH_NEEDED=false
+    if ! git diff --quiet || ! git diff --cached --quiet; then
+        echo "Stashing uncommitted changes..."
+        git stash push -m "size-diff-full temporary stash"
+        STASH_NEEDED=true
+    fi
+
+    # Build main
+    echo "📦 Building release binary for main..."
+    git checkout main --quiet
+    cargo build --release --quiet
+
+    # Compare and cleanup
+    echo ""
+    python3 scripts/binary-size-diff.py compare \
+        --binary "$PR_BINARY" \
+        --baseline target/release/santa
+
+    # Restore original branch
+    git checkout "$CURRENT_BRANCH" --quiet
+    if [ "$STASH_NEEDED" = true ]; then
+        git stash pop --quiet
+    fi
+    rm -f "$PR_BINARY"
