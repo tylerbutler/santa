@@ -110,7 +110,7 @@ minreq = { version = "2.14.1", features = ["https-rustls"] }
 regex = { version = "1", optional = true }
 
 # Update checking for crates.io releases (minimal deps with rustls)
-tiny-update-check = { version = "0.1", features = ["rustls"] }
+tiny-update-check = { version = "1", features = ["rustls"] }
 
 [dev-dependencies]
 # Parameterized testing framework with fixtures
