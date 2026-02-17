@@ -2027,7 +2027,6 @@ version = "0.23.35"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "533f54bc6a7d4f647e46ad909549eda97bf5afc1585190ef692b4286b198bd8f"
 dependencies = [
- "log",
  "once_cell",
  "ring",
  "rustls-pki-types",
@@ -2818,12 +2817,10 @@ dependencies = [
  "log",
  "native-tls",
  "percent-encoding",
- "rustls 0.23.35",
  "rustls-pki-types",
  "ureq-proto",
  "utf-8",
  "webpki-root-certs",
- "webpki-roots 1.0.4",
 ]
 
 [[package]]
