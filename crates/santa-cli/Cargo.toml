@@ -10,7 +10,7 @@ repository.workspace = true
 rust-version.workspace = true
 categories.workspace = true
 keywords.workspace = true
-readme.workspace = true
+readme = "README.md"
 publish = true
 default-run = "santa"
 
