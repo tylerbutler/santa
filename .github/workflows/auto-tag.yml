@@ -1,0 +1,51 @@
+name: Auto-tag release
+
+on:
+  pull_request:
+    types: [closed]
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  tag:
+    if: github.event.pull_request.merged && contains(github.event.pull_request.labels.*.name, 'release')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Install changie
+        uses: miniscruff/changie-action@v2.0.0
+
+      - name: Create tags for released projects
+        run: |
+          CREATED_TAGS=""
+          for project in santa santa-data sickle; do
+            version=$(changie latest --project "$project" 2>/dev/null || true)
+            if [ -z "$version" ]; then
+              echo "Could not resolve version for $project, skipping"
+              continue
+            fi
+            if git tag -l "$version" | grep -q .; then
+              echo "Tag $version already exists, skipping"
+              continue
+            fi
+            git tag "$version"
+            CREATED_TAGS="${CREATED_TAGS:+$CREATED_TAGS }$version"
+            echo "Created tag: $version"
+          done
+
+          if [ -n "$CREATED_TAGS" ]; then
+            git push origin --tags
+            echo "### Tags Created" >> "$GITHUB_STEP_SUMMARY"
+            echo "" >> "$GITHUB_STEP_SUMMARY"
+            for tag in $CREATED_TAGS; do
+              echo "- \`$tag\`" >> "$GITHUB_STEP_SUMMARY"
+            done
+          else
+            echo "No new tags needed"
+            echo "### No New Tags" >> "$GITHUB_STEP_SUMMARY"
+          fi

@@ -1,4 +1,5 @@
 [tools]
+changie = "latest"
 just = "latest"
 ruff = "latest"
 
