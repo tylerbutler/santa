@@ -1,5 +1,5 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$schema": "https://raw.githubusercontent.com/CatConfLang/ccl-test-data/v0.5.0/schemas/generated-format.json",
   "tests": [
     {
       "behaviors": [],
@@ -53,6 +53,24 @@
       "behaviors": [],
       "expected": {
         "count": 1,
+        "value": "name = Alice\nage = 42"
+      },
+      "features": [],
+      "functions": [
+        "print"
+      ],
+      "inputs": [
+        "name = Alice\nage = 42"
+      ],
+      "name": "basic_object_construction_print",
+      "source_test": "basic_object_construction",
+      "validation": "print",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
         "entries": [
           {
             "key": "server",
@@ -98,6 +116,24 @@
       "name": "deep_nested_objects_build_hierarchy",
       "source_test": "deep_nested_objects",
       "validation": "build_hierarchy",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "value": "server = \n  database =\n    host = localhost\n    port = 5432\n  cache =\n    enabled = true"
+      },
+      "features": [],
+      "functions": [
+        "print"
+      ],
+      "inputs": [
+        "server =\n  database =\n    host = localhost\n    port = 5432\n  cache =\n    enabled = true"
+      ],
+      "name": "deep_nested_objects_print",
+      "source_test": "deep_nested_objects",
+      "validation": "print",
       "variants": []
     },
     {
@@ -159,6 +195,24 @@
       "behaviors": [],
       "expected": {
         "count": 1,
+        "value": "item = first\nitem = second\nitem = third"
+      },
+      "features": [],
+      "functions": [
+        "print"
+      ],
+      "inputs": [
+        "item = first\nitem = second\nitem = third"
+      ],
+      "name": "duplicate_keys_to_lists_print",
+      "source_test": "duplicate_keys_to_lists",
+      "validation": "print",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
         "entries": [
           {
             "key": "config",
@@ -202,6 +256,24 @@
       "name": "nested_duplicate_keys_build_hierarchy",
       "source_test": "nested_duplicate_keys",
       "validation": "build_hierarchy",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "value": "config = \n  server = web1\n  server = web2\n  port = 80"
+      },
+      "features": [],
+      "functions": [
+        "print"
+      ],
+      "inputs": [
+        "config =\n  server = web1\n  server = web2\n  port = 80"
+      ],
+      "name": "nested_duplicate_keys_print",
+      "source_test": "nested_duplicate_keys",
+      "validation": "print",
       "variants": []
     },
     {
@@ -264,6 +336,24 @@
       "behaviors": [],
       "expected": {
         "count": 1,
+        "value": "name = Alice\nconfig = \n  debug = true\n  timeout = 30\nversion = 1.0"
+      },
+      "features": [],
+      "functions": [
+        "print"
+      ],
+      "inputs": [
+        "name = Alice\nconfig =\n  debug = true\n  timeout = 30\nversion = 1.0"
+      ],
+      "name": "mixed_flat_and_nested_print",
+      "source_test": "mixed_flat_and_nested",
+      "validation": "print",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
         "entries": [
           {
             "key": "environments",
@@ -313,6 +403,116 @@
       "name": "nested_objects_with_lists_build_hierarchy",
       "source_test": "nested_objects_with_lists",
       "validation": "build_hierarchy",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "value": "environments = \n  prod =\n    server = web1\n    server = web2\n    port = 80\n  dev =\n    server = localhost\n    port = 3000"
+      },
+      "features": [],
+      "functions": [
+        "print"
+      ],
+      "inputs": [
+        "environments =\n  prod =\n    server = web1\n    server = web2\n    port = 80\n  dev =\n    server = localhost\n    port = 3000"
+      ],
+      "name": "nested_objects_with_lists_print",
+      "source_test": "nested_objects_with_lists",
+      "validation": "print",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "entries": [
+          {
+            "key": "config",
+            "value": "\n  environments =\n    production =\n      servers = web1\n      servers = web2\n      servers = api1"
+          }
+        ]
+      },
+      "features": [],
+      "functions": [
+        "parse"
+      ],
+      "inputs": [
+        "config =\n  environments =\n    production =\n      servers = web1\n      servers = web2\n      servers = api1"
+      ],
+      "name": "deeply_nested_list_parse",
+      "source_test": "deeply_nested_list",
+      "validation": "parse",
+      "variants": []
+    },
+    {
+      "behaviors": [
+        "array_order_lexicographic"
+      ],
+      "conflicts": {
+        "behaviors": [
+          "array_order_insertion"
+        ]
+      },
+      "expected": {
+        "count": 1,
+        "object": {
+          "config": {
+            "environments": {
+              "production": {
+                "servers": [
+                  "api1",
+                  "web1",
+                  "web2"
+                ]
+              }
+            }
+          }
+        }
+      },
+      "features": [],
+      "functions": [
+        "build_hierarchy"
+      ],
+      "inputs": [
+        "config =\n  environments =\n    production =\n      servers = web1\n      servers = web2\n      servers = api1"
+      ],
+      "name": "deeply_nested_list_build_hierarchy",
+      "source_test": "deeply_nested_list",
+      "validation": "build_hierarchy",
+      "variants": []
+    },
+    {
+      "args": [
+        "config",
+        "environments",
+        "production",
+        "servers"
+      ],
+      "behaviors": [
+        "list_coercion_disabled",
+        "array_order_lexicographic"
+      ],
+      "conflicts": {
+        "behaviors": [
+          "array_order_insertion",
+          "list_coercion_enabled"
+        ]
+      },
+      "expected": {
+        "count": 0
+      },
+      "features": [],
+      "functions": [
+        "get_list"
+      ],
+      "inputs": [
+        "config =\n  environments =\n    production =\n      servers = web1\n      servers = web2\n      servers = api1"
+      ],
+      "name": "deeply_nested_list_get_list",
+      "source_test": "deeply_nested_list",
+      "validation": "get_list",
       "variants": []
     }
   ]

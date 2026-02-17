@@ -1,5 +1,5 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$schema": "https://raw.githubusercontent.com/CatConfLang/ccl-test-data/v0.5.0/schemas/generated-format.json",
   "tests": [
     {
       "behaviors": [],
@@ -63,6 +63,11 @@
       "behaviors": [
         "list_coercion_enabled"
       ],
+      "conflicts": {
+        "behaviors": [
+          "list_coercion_disabled"
+        ]
+      },
       "expected": {
         "count": 3,
         "list": [
@@ -230,6 +235,11 @@
       "behaviors": [
         "list_coercion_enabled"
       ],
+      "conflicts": {
+        "behaviors": [
+          "list_coercion_disabled"
+        ]
+      },
       "expected": {
         "count": 20,
         "list": [
@@ -312,6 +322,11 @@
       "behaviors": [
         "array_order_insertion"
       ],
+      "conflicts": {
+        "behaviors": [
+          "array_order_lexicographic"
+        ]
+      },
       "expected": {
         "count": 1,
         "object": {
@@ -348,6 +363,12 @@
         "list_coercion_enabled",
         "array_order_insertion"
       ],
+      "conflicts": {
+        "behaviors": [
+          "array_order_lexicographic",
+          "list_coercion_disabled"
+        ]
+      },
       "expected": {
         "count": 3,
         "list": [
@@ -415,6 +436,11 @@
       "behaviors": [
         "array_order_lexicographic"
       ],
+      "conflicts": {
+        "behaviors": [
+          "array_order_insertion"
+        ]
+      },
       "expected": {
         "count": 1,
         "object": {
@@ -451,6 +477,12 @@
         "list_coercion_enabled",
         "array_order_lexicographic"
       ],
+      "conflicts": {
+        "behaviors": [
+          "array_order_insertion",
+          "list_coercion_disabled"
+        ]
+      },
       "expected": {
         "count": 3,
         "list": [
@@ -830,6 +862,11 @@
       "behaviors": [
         "array_order_insertion"
       ],
+      "conflicts": {
+        "behaviors": [
+          "array_order_lexicographic"
+        ]
+      },
       "expected": {
         "count": 1,
         "object": {
@@ -866,6 +903,11 @@
       "behaviors": [
         "array_order_insertion"
       ],
+      "conflicts": {
+        "behaviors": [
+          "array_order_lexicographic"
+        ]
+      },
       "expected": {
         "count": 3,
         "list": [
@@ -917,6 +959,11 @@
       "behaviors": [
         "array_order_lexicographic"
       ],
+      "conflicts": {
+        "behaviors": [
+          "array_order_insertion"
+        ]
+      },
       "expected": {
         "count": 1,
         "object": {
@@ -953,6 +1000,11 @@
       "behaviors": [
         "array_order_lexicographic"
       ],
+      "conflicts": {
+        "behaviors": [
+          "array_order_insertion"
+        ]
+      },
       "expected": {
         "count": 3,
         "list": [
@@ -1005,6 +1057,11 @@
       "behaviors": [
         "array_order_insertion"
       ],
+      "conflicts": {
+        "behaviors": [
+          "array_order_lexicographic"
+        ]
+      },
       "expected": {
         "count": 1,
         "object": {
@@ -1040,6 +1097,11 @@
       "behaviors": [
         "array_order_insertion"
       ],
+      "conflicts": {
+        "behaviors": [
+          "array_order_lexicographic"
+        ]
+      },
       "expected": {
         "count": 3,
         "list": [
@@ -1093,6 +1155,11 @@
       "behaviors": [
         "array_order_lexicographic"
       ],
+      "conflicts": {
+        "behaviors": [
+          "array_order_insertion"
+        ]
+      },
       "expected": {
         "count": 1,
         "object": {
@@ -1128,6 +1195,11 @@
       "behaviors": [
         "array_order_lexicographic"
       ],
+      "conflicts": {
+        "behaviors": [
+          "array_order_insertion"
+        ]
+      },
       "expected": {
         "count": 3,
         "list": [
@@ -1180,6 +1252,11 @@
       "behaviors": [
         "array_order_insertion"
       ],
+      "conflicts": {
+        "behaviors": [
+          "array_order_lexicographic"
+        ]
+      },
       "expected": {
         "count": 1,
         "object": {
@@ -1222,6 +1299,11 @@
       "behaviors": [
         "array_order_insertion"
       ],
+      "conflicts": {
+        "behaviors": [
+          "array_order_lexicographic"
+        ]
+      },
       "expected": {
         "count": 3,
         "list": [
@@ -1273,6 +1355,11 @@
       "behaviors": [
         "array_order_lexicographic"
       ],
+      "conflicts": {
+        "behaviors": [
+          "array_order_insertion"
+        ]
+      },
       "expected": {
         "count": 1,
         "object": {
@@ -1315,6 +1402,11 @@
       "behaviors": [
         "array_order_lexicographic"
       ],
+      "conflicts": {
+        "behaviors": [
+          "array_order_insertion"
+        ]
+      },
       "expected": {
         "count": 3,
         "list": [
@@ -1473,6 +1565,11 @@
       "behaviors": [
         "list_coercion_disabled"
       ],
+      "conflicts": {
+        "behaviors": [
+          "list_coercion_enabled"
+        ]
+      },
       "expected": {
         "count": 0
       },
@@ -1486,6 +1583,425 @@
       "name": "bare_list_error_not_a_list_get_list",
       "source_test": "bare_list_error_not_a_list",
       "validation": "get_list",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "entries": [
+          {
+            "key": "items",
+            "value": "\n  =\n    name = first\n    value = 1\n  =\n    name = second\n    value = 2"
+          }
+        ]
+      },
+      "features": [
+        "empty_keys"
+      ],
+      "functions": [
+        "parse"
+      ],
+      "inputs": [
+        "items =\n  =\n    name = first\n    value = 1\n  =\n    name = second\n    value = 2"
+      ],
+      "name": "bare_list_nested_objects_basic_parse",
+      "source_test": "bare_list_nested_objects_basic",
+      "validation": "parse",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "items": {
+            "": [
+              {
+                "name": "first",
+                "value": "1"
+              },
+              {
+                "name": "second",
+                "value": "2"
+              }
+            ]
+          }
+        }
+      },
+      "features": [
+        "empty_keys"
+      ],
+      "functions": [
+        "build_hierarchy"
+      ],
+      "inputs": [
+        "items =\n  =\n    name = first\n    value = 1\n  =\n    name = second\n    value = 2"
+      ],
+      "name": "bare_list_nested_objects_basic_build_hierarchy",
+      "source_test": "bare_list_nested_objects_basic",
+      "validation": "build_hierarchy",
+      "variants": []
+    },
+    {
+      "args": [
+        "items"
+      ],
+      "behaviors": [],
+      "expected": {
+        "count": 2,
+        "list": [
+          {
+            "name": "first",
+            "value": "1"
+          },
+          {
+            "name": "second",
+            "value": "2"
+          }
+        ]
+      },
+      "features": [
+        "empty_keys"
+      ],
+      "functions": [
+        "get_list"
+      ],
+      "inputs": [
+        "items =\n  =\n    name = first\n    value = 1\n  =\n    name = second\n    value = 2"
+      ],
+      "name": "bare_list_nested_objects_basic_get_list",
+      "source_test": "bare_list_nested_objects_basic",
+      "validation": "get_list",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "entries": [
+          {
+            "key": "items",
+            "value": "\n  =\n    name = only\n    value = 42"
+          }
+        ]
+      },
+      "features": [
+        "empty_keys"
+      ],
+      "functions": [
+        "parse"
+      ],
+      "inputs": [
+        "items =\n  =\n    name = only\n    value = 42"
+      ],
+      "name": "bare_list_nested_objects_single_item_parse",
+      "source_test": "bare_list_nested_objects_single_item",
+      "validation": "parse",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "items": {
+            "": [
+              {
+                "name": "only",
+                "value": "42"
+              }
+            ]
+          }
+        }
+      },
+      "features": [
+        "empty_keys"
+      ],
+      "functions": [
+        "build_hierarchy"
+      ],
+      "inputs": [
+        "items =\n  =\n    name = only\n    value = 42"
+      ],
+      "name": "bare_list_nested_objects_single_item_build_hierarchy",
+      "source_test": "bare_list_nested_objects_single_item",
+      "validation": "build_hierarchy",
+      "variants": []
+    },
+    {
+      "args": [
+        "items"
+      ],
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "list": [
+          {
+            "name": "only",
+            "value": "42"
+          }
+        ]
+      },
+      "features": [
+        "empty_keys"
+      ],
+      "functions": [
+        "get_list"
+      ],
+      "inputs": [
+        "items =\n  =\n    name = only\n    value = 42"
+      ],
+      "name": "bare_list_nested_objects_single_item_get_list",
+      "source_test": "bare_list_nested_objects_single_item",
+      "validation": "get_list",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "entries": [
+          {
+            "key": "items",
+            "value": "\n  =\n    name = first\n  =\n    name = second"
+          }
+        ]
+      },
+      "features": [
+        "empty_keys"
+      ],
+      "functions": [
+        "parse"
+      ],
+      "inputs": [
+        "items =\n  =\n    name = first\n  =\n    name = second"
+      ],
+      "name": "bare_list_nested_objects_minimal_parse",
+      "source_test": "bare_list_nested_objects_minimal",
+      "validation": "parse",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "items": {
+            "": [
+              {
+                "name": "first"
+              },
+              {
+                "name": "second"
+              }
+            ]
+          }
+        }
+      },
+      "features": [
+        "empty_keys"
+      ],
+      "functions": [
+        "build_hierarchy"
+      ],
+      "inputs": [
+        "items =\n  =\n    name = first\n  =\n    name = second"
+      ],
+      "name": "bare_list_nested_objects_minimal_build_hierarchy",
+      "source_test": "bare_list_nested_objects_minimal",
+      "validation": "build_hierarchy",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "entries": [
+          {
+            "key": "items",
+            "value": "\n  =\n    config =\n      host = localhost\n      port = 8080\n  =\n    config =\n      host = example.com\n      port = 443"
+          }
+        ]
+      },
+      "features": [
+        "empty_keys"
+      ],
+      "functions": [
+        "parse"
+      ],
+      "inputs": [
+        "items =\n  =\n    config =\n      host = localhost\n      port = 8080\n  =\n    config =\n      host = example.com\n      port = 443"
+      ],
+      "name": "bare_list_nested_objects_deeply_nested_parse",
+      "source_test": "bare_list_nested_objects_deeply_nested",
+      "validation": "parse",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "items": {
+            "": [
+              {
+                "config": {
+                  "host": "localhost",
+                  "port": "8080"
+                }
+              },
+              {
+                "config": {
+                  "host": "example.com",
+                  "port": "443"
+                }
+              }
+            ]
+          }
+        }
+      },
+      "features": [
+        "empty_keys"
+      ],
+      "functions": [
+        "build_hierarchy"
+      ],
+      "inputs": [
+        "items =\n  =\n    config =\n      host = localhost\n      port = 8080\n  =\n    config =\n      host = example.com\n      port = 443"
+      ],
+      "name": "bare_list_nested_objects_deeply_nested_build_hierarchy",
+      "source_test": "bare_list_nested_objects_deeply_nested",
+      "validation": "build_hierarchy",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "entries": [
+          {
+            "key": "items",
+            "value": "\n  = simple_string\n  =\n    name = nested\n    value = obj\n  = another_string"
+          }
+        ]
+      },
+      "features": [
+        "empty_keys"
+      ],
+      "functions": [
+        "parse"
+      ],
+      "inputs": [
+        "items =\n  = simple_string\n  =\n    name = nested\n    value = obj\n  = another_string"
+      ],
+      "name": "bare_list_nested_objects_mixed_with_strings_parse",
+      "source_test": "bare_list_nested_objects_mixed_with_strings",
+      "validation": "parse",
+      "variants": []
+    },
+    {
+      "behaviors": [
+        "array_order_insertion"
+      ],
+      "conflicts": {
+        "behaviors": [
+          "array_order_lexicographic"
+        ]
+      },
+      "expected": {
+        "count": 1,
+        "object": {
+          "items": {
+            "": [
+              "simple_string",
+              {
+                "name": "nested",
+                "value": "obj"
+              },
+              "another_string"
+            ]
+          }
+        }
+      },
+      "features": [
+        "empty_keys"
+      ],
+      "functions": [
+        "build_hierarchy"
+      ],
+      "inputs": [
+        "items =\n  = simple_string\n  =\n    name = nested\n    value = obj\n  = another_string"
+      ],
+      "name": "bare_list_nested_objects_mixed_with_strings_build_hierarchy",
+      "source_test": "bare_list_nested_objects_mixed_with_strings",
+      "validation": "build_hierarchy",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "entries": [
+          {
+            "key": "items",
+            "value": "\n  =\n    name = first\n    value = 1\n  =\n    name = second\n    value = 2"
+          }
+        ]
+      },
+      "features": [
+        "empty_keys"
+      ],
+      "functions": [
+        "parse"
+      ],
+      "inputs": [
+        "items =\n  =\n    name = first\n    value = 1\n  =\n    name = second\n    value = 2"
+      ],
+      "name": "bare_list_nested_objects_round_trip_parse",
+      "source_test": "bare_list_nested_objects_round_trip",
+      "validation": "parse",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "value": "items =\n  =\n    name = first\n    value = 1\n  =\n    name = second\n    value = 2"
+      },
+      "features": [
+        "empty_keys"
+      ],
+      "functions": [
+        "print"
+      ],
+      "inputs": [
+        "items =\n  =\n    name = first\n    value = 1\n  =\n    name = second\n    value = 2"
+      ],
+      "name": "bare_list_nested_objects_round_trip_print",
+      "source_test": "bare_list_nested_objects_round_trip",
+      "validation": "print",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "value": true
+      },
+      "features": [
+        "empty_keys"
+      ],
+      "functions": [
+        "parse",
+        "print"
+      ],
+      "inputs": [
+        "items =\n  =\n    name = first\n    value = 1\n  =\n    name = second\n    value = 2"
+      ],
+      "name": "bare_list_nested_objects_round_trip_round_trip",
+      "source_test": "bare_list_nested_objects_round_trip",
+      "validation": "round_trip",
       "variants": []
     }
   ]

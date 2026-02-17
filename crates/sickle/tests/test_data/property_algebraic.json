@@ -1,5 +1,5 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$schema": "https://raw.githubusercontent.com/CatConfLang/ccl-test-data/v0.5.0/schemas/generated-format.json",
   "tests": [
     {
       "behaviors": [],
@@ -212,11 +212,30 @@
       "behaviors": [],
       "expected": {
         "count": 1,
+        "value": "key = value\nanother = test"
+      },
+      "features": [],
+      "functions": [
+        "print"
+      ],
+      "inputs": [
+        "key = value\nanother = test"
+      ],
+      "name": "round_trip_property_basic_print",
+      "source_test": "round_trip_property_basic",
+      "validation": "print",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
         "value": true
       },
       "features": [],
       "functions": [
-        "round_trip"
+        "parse",
+        "print"
       ],
       "inputs": [
         "key = value\nanother = test"
@@ -253,11 +272,30 @@
       "behaviors": [],
       "expected": {
         "count": 1,
+        "value": "config = \n  host = localhost\n  port = 8080\n  db =\n    name = mydb\n    user = admin"
+      },
+      "features": [],
+      "functions": [
+        "print"
+      ],
+      "inputs": [
+        "config =\n  host = localhost\n  port = 8080\n  db =\n    name = mydb\n    user = admin"
+      ],
+      "name": "round_trip_property_nested_print",
+      "source_test": "round_trip_property_nested",
+      "validation": "print",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
         "value": true
       },
       "features": [],
       "functions": [
-        "round_trip"
+        "parse",
+        "print"
       ],
       "inputs": [
         "config =\n  host = localhost\n  port = 8080\n  db =\n    name = mydb\n    user = admin"
@@ -308,13 +346,34 @@
       "behaviors": [],
       "expected": {
         "count": 1,
+        "value": " = item1\n = item2\nconfig = \n  nested =\n    deep = value\n  list =\n    = a\n    = b\n    = c\nfinal = end"
+      },
+      "features": [
+        "empty_keys"
+      ],
+      "functions": [
+        "print"
+      ],
+      "inputs": [
+        "= item1\n= item2\nconfig =\n  nested =\n    deep = value\n  list =\n    = a\n    = b\n    = c\nfinal = end"
+      ],
+      "name": "round_trip_property_complex_print",
+      "source_test": "round_trip_property_complex",
+      "validation": "print",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
         "value": true
       },
       "features": [
         "empty_keys"
       ],
       "functions": [
-        "round_trip"
+        "parse",
+        "print"
       ],
       "inputs": [
         "= item1\n= item2\nconfig =\n  nested =\n    deep = value\n  list =\n    = a\n    = b\n    = c\nfinal = end"

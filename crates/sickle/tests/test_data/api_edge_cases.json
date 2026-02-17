@@ -1,5 +1,5 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$schema": "https://raw.githubusercontent.com/CatConfLang/ccl-test-data/v0.5.0/schemas/generated-format.json",
   "tests": [
     {
       "behaviors": [],
@@ -378,6 +378,11 @@
       "behaviors": [
         "tabs_as_content"
       ],
+      "conflicts": {
+        "behaviors": [
+          "tabs_as_whitespace"
+        ]
+      },
       "expected": {
         "count": 1,
         "entries": [
@@ -405,6 +410,11 @@
       "behaviors": [
         "tabs_as_content"
       ],
+      "conflicts": {
+        "behaviors": [
+          "tabs_as_whitespace"
+        ]
+      },
       "expected": {
         "count": 1,
         "entries": [
@@ -426,7 +436,9 @@
       "name": "key_with_tabs_ocaml_reference_parse",
       "source_test": "key_with_tabs_ocaml_reference",
       "validation": "parse",
-      "variants": []
+      "variants": [
+        "reference_compliant"
+      ]
     },
     {
       "behaviors": [],
@@ -458,6 +470,11 @@
       "behaviors": [
         "tabs_as_content"
       ],
+      "conflicts": {
+        "behaviors": [
+          "tabs_as_whitespace"
+        ]
+      },
       "expected": {
         "count": 1,
         "entries": [
@@ -485,6 +502,11 @@
       "behaviors": [
         "tabs_as_content"
       ],
+      "conflicts": {
+        "behaviors": [
+          "tabs_as_whitespace"
+        ]
+      },
       "expected": {
         "count": 1,
         "entries": [
@@ -922,6 +944,489 @@
       "name": "ocaml_stress_test_original_get_string",
       "source_test": "ocaml_stress_test_original",
       "validation": "get_string",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "entries": [
+          {
+            "key": "mappings",
+            "value": "\n  config/settings.json = .vscode/settings.json\n  src/template.env = .env"
+          }
+        ]
+      },
+      "features": [],
+      "functions": [
+        "parse"
+      ],
+      "inputs": [
+        "mappings =\n  config/settings.json = .vscode/settings.json\n  src/template.env = .env"
+      ],
+      "name": "forward_slashes_in_map_keys_parse",
+      "source_test": "forward_slashes_in_map_keys",
+      "validation": "parse",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "mappings": {
+            "config/settings.json": ".vscode/settings.json",
+            "src/template.env": ".env"
+          }
+        }
+      },
+      "features": [],
+      "functions": [
+        "build_hierarchy"
+      ],
+      "inputs": [
+        "mappings =\n  config/settings.json = .vscode/settings.json\n  src/template.env = .env"
+      ],
+      "name": "forward_slashes_in_map_keys_build_hierarchy",
+      "source_test": "forward_slashes_in_map_keys",
+      "validation": "build_hierarchy",
+      "variants": []
+    },
+    {
+      "args": [
+        "mappings",
+        "config/settings.json"
+      ],
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "value": ".vscode/settings.json"
+      },
+      "features": [],
+      "functions": [
+        "get_string"
+      ],
+      "inputs": [
+        "mappings =\n  config/settings.json = .vscode/settings.json\n  src/template.env = .env"
+      ],
+      "name": "forward_slashes_in_map_keys_get_string",
+      "source_test": "forward_slashes_in_map_keys",
+      "validation": "get_string",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "entries": [
+          {
+            "key": "paths",
+            "value": "\n  C:\\Users\\config = user_settings\n  D:\\data\\file.txt = backup"
+          }
+        ]
+      },
+      "features": [],
+      "functions": [
+        "parse"
+      ],
+      "inputs": [
+        "paths =\n  C:\\Users\\config = user_settings\n  D:\\data\\file.txt = backup"
+      ],
+      "name": "backslashes_in_map_keys_parse",
+      "source_test": "backslashes_in_map_keys",
+      "validation": "parse",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "paths": {
+            "C:\\Users\\config": "user_settings",
+            "D:\\data\\file.txt": "backup"
+          }
+        }
+      },
+      "features": [],
+      "functions": [
+        "build_hierarchy"
+      ],
+      "inputs": [
+        "paths =\n  C:\\Users\\config = user_settings\n  D:\\data\\file.txt = backup"
+      ],
+      "name": "backslashes_in_map_keys_build_hierarchy",
+      "source_test": "backslashes_in_map_keys",
+      "validation": "build_hierarchy",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "entries": [
+          {
+            "key": "timestamps",
+            "value": "\n  12:30:45 = morning\n  23:59:59 = midnight"
+          }
+        ]
+      },
+      "features": [],
+      "functions": [
+        "parse"
+      ],
+      "inputs": [
+        "timestamps =\n  12:30:45 = morning\n  23:59:59 = midnight"
+      ],
+      "name": "colons_in_map_keys_parse",
+      "source_test": "colons_in_map_keys",
+      "validation": "parse",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "timestamps": {
+            "12:30:45": "morning",
+            "23:59:59": "midnight"
+          }
+        }
+      },
+      "features": [],
+      "functions": [
+        "build_hierarchy"
+      ],
+      "inputs": [
+        "timestamps =\n  12:30:45 = morning\n  23:59:59 = midnight"
+      ],
+      "name": "colons_in_map_keys_build_hierarchy",
+      "source_test": "colons_in_map_keys",
+      "validation": "build_hierarchy",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "entries": [
+          {
+            "key": "packages",
+            "value": "\n  my-package-name = 1.0.0\n  another-lib = 2.3.4"
+          }
+        ]
+      },
+      "features": [],
+      "functions": [
+        "parse"
+      ],
+      "inputs": [
+        "packages =\n  my-package-name = 1.0.0\n  another-lib = 2.3.4"
+      ],
+      "name": "hyphens_in_map_keys_parse",
+      "source_test": "hyphens_in_map_keys",
+      "validation": "parse",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "packages": {
+            "another-lib": "2.3.4",
+            "my-package-name": "1.0.0"
+          }
+        }
+      },
+      "features": [],
+      "functions": [
+        "build_hierarchy"
+      ],
+      "inputs": [
+        "packages =\n  my-package-name = 1.0.0\n  another-lib = 2.3.4"
+      ],
+      "name": "hyphens_in_map_keys_build_hierarchy",
+      "source_test": "hyphens_in_map_keys",
+      "validation": "build_hierarchy",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "entries": [
+          {
+            "key": "emails",
+            "value": "\n  user@example.com = primary\n  admin@test.org = secondary"
+          }
+        ]
+      },
+      "features": [],
+      "functions": [
+        "parse"
+      ],
+      "inputs": [
+        "emails =\n  user@example.com = primary\n  admin@test.org = secondary"
+      ],
+      "name": "at_signs_in_map_keys_parse",
+      "source_test": "at_signs_in_map_keys",
+      "validation": "parse",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "emails": {
+            "admin@test.org": "secondary",
+            "user@example.com": "primary"
+          }
+        }
+      },
+      "features": [],
+      "functions": [
+        "build_hierarchy"
+      ],
+      "inputs": [
+        "emails =\n  user@example.com = primary\n  admin@test.org = secondary"
+      ],
+      "name": "at_signs_in_map_keys_build_hierarchy",
+      "source_test": "at_signs_in_map_keys",
+      "validation": "build_hierarchy",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "entries": [
+          {
+            "key": "issues",
+            "value": "\n  issue#123 = open\n  bug#456 = closed"
+          }
+        ]
+      },
+      "features": [],
+      "functions": [
+        "parse"
+      ],
+      "inputs": [
+        "issues =\n  issue#123 = open\n  bug#456 = closed"
+      ],
+      "name": "hash_in_map_keys_parse",
+      "source_test": "hash_in_map_keys",
+      "validation": "parse",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "issues": {
+            "bug#456": "closed",
+            "issue#123": "open"
+          }
+        }
+      },
+      "features": [],
+      "functions": [
+        "build_hierarchy"
+      ],
+      "inputs": [
+        "issues =\n  issue#123 = open\n  bug#456 = closed"
+      ],
+      "name": "hash_in_map_keys_build_hierarchy",
+      "source_test": "hash_in_map_keys",
+      "validation": "build_hierarchy",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "entries": [
+          {
+            "key": "arrays",
+            "value": "\n  items[0] = first\n  items[1] = second"
+          }
+        ]
+      },
+      "features": [],
+      "functions": [
+        "parse"
+      ],
+      "inputs": [
+        "arrays =\n  items[0] = first\n  items[1] = second"
+      ],
+      "name": "brackets_in_map_keys_parse",
+      "source_test": "brackets_in_map_keys",
+      "validation": "parse",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "arrays": {
+            "items[0]": "first",
+            "items[1]": "second"
+          }
+        }
+      },
+      "features": [],
+      "functions": [
+        "build_hierarchy"
+      ],
+      "inputs": [
+        "arrays =\n  items[0] = first\n  items[1] = second"
+      ],
+      "name": "brackets_in_map_keys_build_hierarchy",
+      "source_test": "brackets_in_map_keys",
+      "validation": "build_hierarchy",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "entries": [
+          {
+            "key": "functions",
+            "value": "\n  init() = setup\n  run(args) = execute"
+          }
+        ]
+      },
+      "features": [],
+      "functions": [
+        "parse"
+      ],
+      "inputs": [
+        "functions =\n  init() = setup\n  run(args) = execute"
+      ],
+      "name": "parentheses_in_map_keys_parse",
+      "source_test": "parentheses_in_map_keys",
+      "validation": "parse",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "functions": {
+            "init()": "setup",
+            "run(args)": "execute"
+          }
+        }
+      },
+      "features": [],
+      "functions": [
+        "build_hierarchy"
+      ],
+      "inputs": [
+        "functions =\n  init() = setup\n  run(args) = execute"
+      ],
+      "name": "parentheses_in_map_keys_build_hierarchy",
+      "source_test": "parentheses_in_map_keys",
+      "validation": "build_hierarchy",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "entries": [
+          {
+            "key": "complex",
+            "value": "\n  user@host:8080/api = endpoint\n  file#v1.2.3 = release\n  path\\to\\[item] = location"
+          }
+        ]
+      },
+      "features": [],
+      "functions": [
+        "parse"
+      ],
+      "inputs": [
+        "complex =\n  user@host:8080/api = endpoint\n  file#v1.2.3 = release\n  path\\to\\[item] = location"
+      ],
+      "name": "mixed_special_chars_in_keys_parse",
+      "source_test": "mixed_special_chars_in_keys",
+      "validation": "parse",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "complex": {
+            "file#v1.2.3": "release",
+            "path\\to\\[item]": "location",
+            "user@host:8080/api": "endpoint"
+          }
+        }
+      },
+      "features": [],
+      "functions": [
+        "build_hierarchy"
+      ],
+      "inputs": [
+        "complex =\n  user@host:8080/api = endpoint\n  file#v1.2.3 = release\n  path\\to\\[item] = location"
+      ],
+      "name": "mixed_special_chars_in_keys_build_hierarchy",
+      "source_test": "mixed_special_chars_in_keys",
+      "validation": "build_hierarchy",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "entries": [
+          {
+            "key": "endpoints",
+            "value": "\n  https://api.example.com/v1 = production\n  http://localhost:3000/test = development"
+          }
+        ]
+      },
+      "features": [],
+      "functions": [
+        "parse"
+      ],
+      "inputs": [
+        "endpoints =\n  https://api.example.com/v1 = production\n  http://localhost:3000/test = development"
+      ],
+      "name": "url_like_keys_parse",
+      "source_test": "url_like_keys",
+      "validation": "parse",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "endpoints": {
+            "http://localhost:3000/test": "development",
+            "https://api.example.com/v1": "production"
+          }
+        }
+      },
+      "features": [],
+      "functions": [
+        "build_hierarchy"
+      ],
+      "inputs": [
+        "endpoints =\n  https://api.example.com/v1 = production\n  http://localhost:3000/test = development"
+      ],
+      "name": "url_like_keys_build_hierarchy",
+      "source_test": "url_like_keys",
+      "validation": "build_hierarchy",
       "variants": []
     }
   ]
