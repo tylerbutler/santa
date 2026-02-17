@@ -16,6 +16,29 @@ use santa::data_layers::DataLayerManager;
 use santa::script_generator::{ExecutionMode, ScriptFormat};
 use santa::sources::PackageCache;
 
+/// Check for updates and print a message if one is available.
+///
+/// Respects `DO_NOT_TRACK=1` to disable update checks (consoledonottrack.com).
+fn check_for_updates() {
+    use std::time::Duration;
+    use tiny_update_check::UpdateChecker;
+
+    let checker = UpdateChecker::new(env!("CARGO_PKG_NAME"), env!("CARGO_PKG_VERSION"))
+        .cache_duration(Duration::from_secs(24 * 60 * 60))
+        .timeout(Duration::from_secs(5));
+
+    if let Ok(Some(update)) = checker.check() {
+        use colored::Colorize;
+        eprintln!();
+        eprintln!(
+            "{} {} -> {} (run `cargo install santa` to update)",
+            "Update available:".yellow().bold(),
+            update.current.to_string().dimmed(),
+            update.latest.to_string().green()
+        );
+    }
+}
+
 #[cfg(test)]
 mod tests;
 
@@ -624,6 +647,9 @@ pub async fn run() -> Result<(), anyhow::Error> {
             handle_sources_command(sources_cmd, &config).await?;
         }
     }
+
+    // Check for updates after command completes (non-blocking, cached for 24h)
+    check_for_updates();
 
     Ok(())
 }

@@ -109,6 +109,9 @@ minreq = { version = "2.14.1", features = ["https-rustls"] }
 # Regular expressions for parsing (dev-tools only)
 regex = { version = "1", optional = true }
 
+# Update checking for crates.io releases
+tiny-update-check = "1"
+
 [dev-dependencies]
 # Parameterized testing framework with fixtures
 rstest = "0.18"
