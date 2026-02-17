@@ -221,8 +221,10 @@ jobs:
 
       - name: Get main binary size
         id: main-size
+        # Use stat directly instead of `just binary-size` because the main
+        # branch may not have the binary-size recipe in its justfile yet.
         run: |
-          SIZE=$(just binary-size target/release/santa)
+          SIZE=$(stat -c%s target/release/santa)
           echo "bytes=$SIZE" >> "$GITHUB_OUTPUT"
           echo "Main binary size: $SIZE bytes"
 
