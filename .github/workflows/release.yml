@@ -1,0 +1,115 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Install changie
+        uses: miniscruff/changie-action@v2.0.0
+
+      - name: Check for unreleased changes
+        id: check
+        run: |
+          FRAGMENT_COUNT=$(find .changes/unreleased -maxdepth 1 -name '*.yaml' 2>/dev/null | wc -l)
+          if [ "$FRAGMENT_COUNT" -eq 0 ]; then
+            echo "No unreleased change fragments found"
+            echo "skipped=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "Found $FRAGMENT_COUNT unreleased change fragment(s)"
+            echo "skipped=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Batch changelogs per project
+        if: steps.check.outputs.skipped != 'true'
+        run: |
+          for project in santa santa-data sickle; do
+            if changie batch auto --project "$project" 2>/dev/null; then
+              echo "Batched $project"
+            else
+              echo "No unreleased changes for $project, skipping"
+            fi
+          done
+
+      - name: Merge changelogs
+        if: steps.check.outputs.skipped != 'true'
+        run: changie merge
+
+      - name: Resolve versions
+        if: steps.check.outputs.skipped != 'true'
+        id: versions
+        run: |
+          VERSIONS=""
+          BODY=""
+          for project in santa santa-data sickle; do
+            ver=$(changie latest --project "$project" 2>/dev/null || true)
+            if [ -z "$ver" ]; then
+              continue
+            fi
+            # Check if this version already has a git tag (i.e. it's not new)
+            if git tag -l "$ver" | grep -q .; then
+              echo "$ver already tagged, not a new release"
+              continue
+            fi
+            VERSIONS="${VERSIONS:+$VERSIONS, }$ver"
+            # Read the version changelog file
+            ver_file=".changes/$project/${ver#"$project"-}.md"
+            if [ -f "$ver_file" ]; then
+              BODY="${BODY}### $project\n$(cat "$ver_file")\n\n"
+            fi
+          done
+
+          if [ -z "$VERSIONS" ]; then
+            echo "No new versions to release"
+            echo "skipped=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "versions=$VERSIONS" >> "$GITHUB_OUTPUT"
+            echo "skipped=false" >> "$GITHUB_OUTPUT"
+            {
+              echo "body<<EOF_BODY"
+              echo -e "$BODY"
+              echo "EOF_BODY"
+            } >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Create release pull request
+        if: steps.check.outputs.skipped != 'true' && steps.versions.outputs.skipped != 'true'
+        uses: peter-evans/create-pull-request@v8
+        with:
+          title: "Release ${{ steps.versions.outputs.versions }}"
+          branch: release/next
+          commit-message: "chore(release): ${{ steps.versions.outputs.versions }}"
+          labels: release
+          delete-branch: true
+          body: |
+            ## Release
+
+            ${{ steps.versions.outputs.body }}
+
+      - name: Summary
+        if: steps.check.outputs.skipped != 'true' && steps.versions.outputs.skipped != 'true'
+        env:
+          VERSIONS: ${{ steps.versions.outputs.versions }}
+        run: |
+          echo "### Release PR Created" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "- **Versions:** $VERSIONS" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Skipped
+        if: steps.check.outputs.skipped == 'true' || steps.versions.outputs.skipped == 'true'
+        run: |
+          echo "### Release Skipped" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "No unreleased change fragments found." >> "$GITHUB_STEP_SUMMARY"

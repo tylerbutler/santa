@@ -1,0 +1,49 @@
+changesDir: .changes
+unreleasedDir: unreleased
+headerPath: ""
+changelogPath: CHANGELOG.md
+versionHeaderPath: ""
+versionFooterPath: ""
+versionExt: md
+envPrefix: CHANGIE
+
+projectsVersionSeparator: "-"
+
+projects:
+    - label: Santa CLI
+      key: santa
+      changelog: crates/santa-cli/CHANGELOG.md
+    - label: Santa Data
+      key: santa-data
+      changelog: crates/santa-data/CHANGELOG.md
+    - label: Sickle
+      key: sickle
+      changelog: crates/sickle/CHANGELOG.md
+
+versionFormat: '## {{.Version}} - {{.Time.Format "2006-01-02"}}'
+kindFormat: '### {{.Kind}}'
+changeFormat: '- {{.Body}}'
+
+kinds:
+    - label: Added
+      auto: minor
+    - label: Fixed
+      auto: patch
+    - label: Performance
+      auto: patch
+    - label: Changed
+      auto: patch
+    - label: Reverted
+      auto: patch
+    - label: Dependencies
+      auto: patch
+    - label: Security
+      auto: patch
+
+newlines:
+    afterChangelogHeader: 1
+    afterChangelogVersion: 1
+    afterKind: 1
+    afterVersion: 1
+    beforeKind: 1
+    endOfVersion: 1

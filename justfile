@@ -290,6 +290,14 @@ docs-check:
 # Changelog Commands
 # ==================
 
+# Create a new changelog entry
+change:
+    changie new
+
+# Preview the next version changelog
+changelog-preview:
+    changie batch auto --dry-run
+
 # Regenerate all configs from commit-types.json (single source of truth)
 generate-configs:
     python3 scripts/generate-cliff-configs.py
@@ -298,16 +306,6 @@ generate-configs:
 # Check that generated configs are in sync with commit-types.json
 check-configs:
     python3 scripts/check-configs-sync.py
-
-# Regenerate git-cliff config files for all crates
-generate-cliff-configs:
-    python3 scripts/generate-cliff-configs.py
-
-# Generate changelogs for all crates
-changelogs: generate-cliff-configs
-    git-cliff --config crates/sickle/cliff.toml -o crates/sickle/CHANGELOG.md 2>/dev/null
-    git-cliff --config crates/santa-data/cliff.toml -o crates/santa-data/CHANGELOG.md 2>/dev/null
-    git-cliff --config crates/santa-cli/cliff.toml -o crates/santa-cli/CHANGELOG.md 2>/dev/null
 
 # Release Commands
 # ===============
