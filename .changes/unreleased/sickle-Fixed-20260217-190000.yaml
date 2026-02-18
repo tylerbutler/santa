@@ -1,4 +1,0 @@
-project: sickle
-kind: Fixed
-body: Use lexical sort instead of reverse for duplicate keys in reference_compliant mode
-time: 2026-02-17T19:00:00.000000-08:00
