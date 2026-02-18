@@ -146,8 +146,11 @@ fn model_to_value(model: &sickle::CclObject) -> Result<Value> {
 /// assert!(packages.contains_key("bat"));
 /// ```
 pub fn parse_ccl_to<T: DeserializeOwned>(ccl_content: &str) -> Result<T> {
-    // Use sickle's deserializer directly instead of going through JSON
-    sickle::from_str(ccl_content).context("Failed to deserialize parsed CCL")
+    // Normalize CRLF to LF for cross-platform compatibility (e.g. Windows checkouts)
+    let options = sickle::ParserOptions::default()
+        .with_crlf(sickle::options::CrlfBehavior::NormalizeToLf);
+    sickle::from_str_with_options(ccl_content, &options)
+        .context("Failed to deserialize parsed CCL")
 }
 
 #[cfg(test)]

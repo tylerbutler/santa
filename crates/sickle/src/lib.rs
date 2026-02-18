@@ -533,7 +533,7 @@ fn load_with_options_internal(input: &str, options: &ParserOptions) -> Result<Cc
 }
 
 #[cfg(feature = "serde-deserialize")]
-pub use de::from_str;
+pub use de::{from_str, from_str_with_options};
 
 #[cfg(feature = "serde-serialize")]
 pub use ser::to_string;
