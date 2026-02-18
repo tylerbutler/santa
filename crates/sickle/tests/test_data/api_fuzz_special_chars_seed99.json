@@ -1,0 +1,1910 @@
+{
+  "$schema": "https://raw.githubusercontent.com/CatConfLang/ccl-test-data/v0.5.0/schemas/generated-format.json",
+  "tests": [
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "entries": [
+          {
+            "key": "_",
+            "value": "val35"
+          }
+        ]
+      },
+      "features": [],
+      "functions": [
+        "parse"
+      ],
+      "inputs": [
+        "_ = val35"
+      ],
+      "name": "s99_fuzz_single_underscore_parse",
+      "source_test": "s99_fuzz_single_underscore",
+      "validation": "parse",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "entries": [
+          {
+            "key": "\\",
+            "value": "val524"
+          }
+        ]
+      },
+      "features": [],
+      "functions": [
+        "parse"
+      ],
+      "inputs": [
+        "\\ = val524"
+      ],
+      "name": "s99_fuzz_single_backslash_parse",
+      "source_test": "s99_fuzz_single_backslash",
+      "validation": "parse",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "entries": [
+          {
+            "key": "%",
+            "value": "val196"
+          }
+        ]
+      },
+      "features": [],
+      "functions": [
+        "parse"
+      ],
+      "inputs": [
+        "% = val196"
+      ],
+      "name": "s99_fuzz_single_percent_parse",
+      "source_test": "s99_fuzz_single_percent",
+      "validation": "parse",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "entries": [
+          {
+            "key": "\"",
+            "value": "val52"
+          }
+        ]
+      },
+      "features": [],
+      "functions": [
+        "parse"
+      ],
+      "inputs": [
+        "\" = val52"
+      ],
+      "name": "s99_fuzz_single_dquote_parse",
+      "source_test": "s99_fuzz_single_dquote",
+      "validation": "parse",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "entries": [
+          {
+            "key": "|",
+            "value": "val653"
+          }
+        ]
+      },
+      "features": [],
+      "functions": [
+        "parse"
+      ],
+      "inputs": [
+        "| = val653"
+      ],
+      "name": "s99_fuzz_single_pipe_parse",
+      "source_test": "s99_fuzz_single_pipe",
+      "validation": "parse",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "entries": [
+          {
+            "key": "?",
+            "value": "val143"
+          }
+        ]
+      },
+      "features": [],
+      "functions": [
+        "parse"
+      ],
+      "inputs": [
+        "? = val143"
+      ],
+      "name": "s99_fuzz_single_question_parse",
+      "source_test": "s99_fuzz_single_question",
+      "validation": "parse",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "entries": [
+          {
+            "key": "}",
+            "value": "val623"
+          }
+        ]
+      },
+      "features": [],
+      "functions": [
+        "parse"
+      ],
+      "inputs": [
+        "} = val623"
+      ],
+      "name": "s99_fuzz_single_rbrace_parse",
+      "source_test": "s99_fuzz_single_rbrace",
+      "validation": "parse",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "entries": [
+          {
+            "key": "-",
+            "value": "val645"
+          }
+        ]
+      },
+      "features": [],
+      "functions": [
+        "parse"
+      ],
+      "inputs": [
+        "- = val645"
+      ],
+      "name": "s99_fuzz_single_hyphen_parse",
+      "source_test": "s99_fuzz_single_hyphen",
+      "validation": "parse",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "entries": [
+          {
+            "key": "(",
+            "value": "val220"
+          }
+        ]
+      },
+      "features": [],
+      "functions": [
+        "parse"
+      ],
+      "inputs": [
+        "( = val220"
+      ],
+      "name": "s99_fuzz_single_lparen_parse",
+      "source_test": "s99_fuzz_single_lparen",
+      "validation": "parse",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "entries": [
+          {
+            "key": "/",
+            "value": "val115"
+          }
+        ]
+      },
+      "features": [],
+      "functions": [
+        "parse"
+      ],
+      "inputs": [
+        "/ = val115"
+      ],
+      "name": "s99_fuzz_single_slash_parse",
+      "source_test": "s99_fuzz_single_slash",
+      "validation": "parse",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "entries": [
+          {
+            "key": "!",
+            "value": "val103"
+          }
+        ]
+      },
+      "features": [],
+      "functions": [
+        "parse"
+      ],
+      "inputs": [
+        "! = val103"
+      ],
+      "name": "s99_fuzz_single_bang_parse",
+      "source_test": "s99_fuzz_single_bang",
+      "validation": "parse",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "entries": [
+          {
+            "key": "#",
+            "value": "val874"
+          }
+        ]
+      },
+      "features": [],
+      "functions": [
+        "parse"
+      ],
+      "inputs": [
+        "# = val874"
+      ],
+      "name": "s99_fuzz_single_hash_parse",
+      "source_test": "s99_fuzz_single_hash",
+      "validation": "parse",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "entries": [
+          {
+            "key": "&",
+            "value": "val520"
+          }
+        ]
+      },
+      "features": [],
+      "functions": [
+        "parse"
+      ],
+      "inputs": [
+        "& = val520"
+      ],
+      "name": "s99_fuzz_single_ampersand_parse",
+      "source_test": "s99_fuzz_single_ampersand",
+      "validation": "parse",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "entries": [
+          {
+            "key": "$",
+            "value": "val921"
+          }
+        ]
+      },
+      "features": [],
+      "functions": [
+        "parse"
+      ],
+      "inputs": [
+        "$ = val921"
+      ],
+      "name": "s99_fuzz_single_dollar_parse",
+      "source_test": "s99_fuzz_single_dollar",
+      "validation": "parse",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "entries": [
+          {
+            "key": ":",
+            "value": "val671"
+          }
+        ]
+      },
+      "features": [],
+      "functions": [
+        "parse"
+      ],
+      "inputs": [
+        ": = val671"
+      ],
+      "name": "s99_fuzz_single_colon_parse",
+      "source_test": "s99_fuzz_single_colon",
+      "validation": "parse",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "entries": [
+          {
+            "key": "[*>",
+            "value": "combo828"
+          }
+        ]
+      },
+      "features": [],
+      "functions": [
+        "parse"
+      ],
+      "inputs": [
+        "[*> = combo828"
+      ],
+      "name": "s99_fuzz_combo_lbracket_asterisk_gt_parse",
+      "source_test": "s99_fuzz_combo_lbracket_asterisk_gt",
+      "validation": "parse",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "entries": [
+          {
+            "key": "%;'",
+            "value": "combo983"
+          }
+        ]
+      },
+      "features": [],
+      "functions": [
+        "parse"
+      ],
+      "inputs": [
+        "%;' = combo983"
+      ],
+      "name": "s99_fuzz_combo_percent_semicolon_squote_parse",
+      "source_test": "s99_fuzz_combo_percent_semicolon_squote",
+      "validation": "parse",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "entries": [
+          {
+            "key": "'_)'",
+            "value": "combo857"
+          }
+        ]
+      },
+      "features": [],
+      "functions": [
+        "parse"
+      ],
+      "inputs": [
+        "'_)' = combo857"
+      ],
+      "name": "s99_fuzz_combo_squote_underscore_rparen_squote_parse",
+      "source_test": "s99_fuzz_combo_squote_underscore_rparen_squote",
+      "validation": "parse",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "entries": [
+          {
+            "key": "_[<\\",
+            "value": "combo602"
+          }
+        ]
+      },
+      "features": [],
+      "functions": [
+        "parse"
+      ],
+      "inputs": [
+        "_[<\\ = combo602"
+      ],
+      "name": "s99_fuzz_combo_underscore_lbracket_lt_backslash_parse",
+      "source_test": "s99_fuzz_combo_underscore_lbracket_lt_backslash",
+      "validation": "parse",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "entries": [
+          {
+            "key": "&(\"",
+            "value": "combo48"
+          }
+        ]
+      },
+      "features": [],
+      "functions": [
+        "parse"
+      ],
+      "inputs": [
+        "&(\" = combo48"
+      ],
+      "name": "s99_fuzz_combo_ampersand_lparen_dquote_parse",
+      "source_test": "s99_fuzz_combo_ampersand_lparen_dquote",
+      "validation": "parse",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "entries": [
+          {
+            "key": ")|(#",
+            "value": "combo531"
+          }
+        ]
+      },
+      "features": [],
+      "functions": [
+        "parse"
+      ],
+      "inputs": [
+        ")|(# = combo531"
+      ],
+      "name": "s99_fuzz_combo_rparen_pipe_lparen_hash_parse",
+      "source_test": "s99_fuzz_combo_rparen_pipe_lparen_hash",
+      "validation": "parse",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "entries": [
+          {
+            "key": "~*@?",
+            "value": "combo716"
+          }
+        ]
+      },
+      "features": [],
+      "functions": [
+        "parse"
+      ],
+      "inputs": [
+        "~*@? = combo716"
+      ],
+      "name": "s99_fuzz_combo_tilde_asterisk_at_question_parse",
+      "source_test": "s99_fuzz_combo_tilde_asterisk_at_question",
+      "validation": "parse",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "entries": [
+          {
+            "key": "_*?",
+            "value": "combo909"
+          }
+        ]
+      },
+      "features": [],
+      "functions": [
+        "parse"
+      ],
+      "inputs": [
+        "_*? = combo909"
+      ],
+      "name": "s99_fuzz_combo_underscore_asterisk_question_parse",
+      "source_test": "s99_fuzz_combo_underscore_asterisk_question",
+      "validation": "parse",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "entries": [
+          {
+            "key": "!'",
+            "value": "combo182"
+          }
+        ]
+      },
+      "features": [],
+      "functions": [
+        "parse"
+      ],
+      "inputs": [
+        "!' = combo182"
+      ],
+      "name": "s99_fuzz_combo_bang_squote_parse",
+      "source_test": "s99_fuzz_combo_bang_squote",
+      "validation": "parse",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "entries": [
+          {
+            "key": "?_\"",
+            "value": "combo211"
+          }
+        ]
+      },
+      "features": [],
+      "functions": [
+        "parse"
+      ],
+      "inputs": [
+        "?_\" = combo211"
+      ],
+      "name": "s99_fuzz_combo_question_underscore_dquote_parse",
+      "source_test": "s99_fuzz_combo_question_underscore_dquote",
+      "validation": "parse",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "entries": [
+          {
+            "key": "%item",
+            "value": "pos832"
+          }
+        ]
+      },
+      "features": [],
+      "functions": [
+        "parse"
+      ],
+      "inputs": [
+        "%item = pos832"
+      ],
+      "name": "s99_fuzz_pos_start_percent_item_parse",
+      "source_test": "s99_fuzz_pos_start_percent_item",
+      "validation": "parse",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "entries": [
+          {
+            "key": "da]ta",
+            "value": "pos418"
+          }
+        ]
+      },
+      "features": [],
+      "functions": [
+        "parse"
+      ],
+      "inputs": [
+        "da]ta = pos418"
+      ],
+      "name": "s99_fuzz_pos_middle_rbracket_data_parse",
+      "source_test": "s99_fuzz_pos_middle_rbracket_data",
+      "validation": "parse",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "entries": [
+          {
+            "key": "delta>",
+            "value": "pos239"
+          }
+        ]
+      },
+      "features": [],
+      "functions": [
+        "parse"
+      ],
+      "inputs": [
+        "delta> = pos239"
+      ],
+      "name": "s99_fuzz_pos_end_gt_delta_parse",
+      "source_test": "s99_fuzz_pos_end_gt_delta",
+      "validation": "parse",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "entries": [
+          {
+            "key": ")port",
+            "value": "pos895"
+          }
+        ]
+      },
+      "features": [],
+      "functions": [
+        "parse"
+      ],
+      "inputs": [
+        ")port = pos895"
+      ],
+      "name": "s99_fuzz_pos_start_rparen_port_parse",
+      "source_test": "s99_fuzz_pos_start_rparen_port",
+      "validation": "parse",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "entries": [
+          {
+            "key": "al_pha",
+            "value": "pos195"
+          }
+        ]
+      },
+      "features": [],
+      "functions": [
+        "parse"
+      ],
+      "inputs": [
+        "al_pha = pos195"
+      ],
+      "name": "s99_fuzz_pos_middle_underscore_alpha_parse",
+      "source_test": "s99_fuzz_pos_middle_underscore_alpha",
+      "validation": "parse",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "entries": [
+          {
+            "key": "epsilon{",
+            "value": "pos824"
+          }
+        ]
+      },
+      "features": [],
+      "functions": [
+        "parse"
+      ],
+      "inputs": [
+        "epsilon{ = pos824"
+      ],
+      "name": "s99_fuzz_pos_end_lbrace_epsilon_parse",
+      "source_test": "s99_fuzz_pos_end_lbrace_epsilon",
+      "validation": "parse",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "entries": [
+          {
+            "key": "<alpha",
+            "value": "pos633"
+          }
+        ]
+      },
+      "features": [],
+      "functions": [
+        "parse"
+      ],
+      "inputs": [
+        "<alpha = pos633"
+      ],
+      "name": "s99_fuzz_pos_start_lt_alpha_parse",
+      "source_test": "s99_fuzz_pos_start_lt_alpha",
+      "validation": "parse",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "entries": [
+          {
+            "key": "ho%st",
+            "value": "pos14"
+          }
+        ]
+      },
+      "features": [],
+      "functions": [
+        "parse"
+      ],
+      "inputs": [
+        "ho%st = pos14"
+      ],
+      "name": "s99_fuzz_pos_middle_percent_host_parse",
+      "source_test": "s99_fuzz_pos_middle_percent_host",
+      "validation": "parse",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "entries": [
+          {
+            "key": "item|",
+            "value": "pos19"
+          }
+        ]
+      },
+      "features": [],
+      "functions": [
+        "parse"
+      ],
+      "inputs": [
+        "item| = pos19"
+      ],
+      "name": "s99_fuzz_pos_end_pipe_item_parse",
+      "source_test": "s99_fuzz_pos_end_pipe_item",
+      "validation": "parse",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "entries": [
+          {
+            "key": "%server",
+            "value": "pos981"
+          }
+        ]
+      },
+      "features": [],
+      "functions": [
+        "parse"
+      ],
+      "inputs": [
+        "%server = pos981"
+      ],
+      "name": "s99_fuzz_pos_start_percent_server_parse",
+      "source_test": "s99_fuzz_pos_start_percent_server",
+      "validation": "parse",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "entries": [
+          {
+            "key": "path",
+            "value": "data'x66"
+          }
+        ]
+      },
+      "features": [
+        "optional_typed_accessors"
+      ],
+      "functions": [
+        "parse"
+      ],
+      "inputs": [
+        "path = data'x66"
+      ],
+      "name": "s99_fuzz_val_path_0_parse",
+      "source_test": "s99_fuzz_val_path_0",
+      "validation": "parse",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "path": "data'x66"
+        }
+      },
+      "features": [
+        "optional_typed_accessors"
+      ],
+      "functions": [
+        "build_hierarchy"
+      ],
+      "inputs": [
+        "path = data'x66"
+      ],
+      "name": "s99_fuzz_val_path_0_build_hierarchy",
+      "source_test": "s99_fuzz_val_path_0",
+      "validation": "build_hierarchy",
+      "variants": []
+    },
+    {
+      "args": [
+        "path"
+      ],
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "value": "data'x66"
+      },
+      "features": [
+        "optional_typed_accessors"
+      ],
+      "functions": [
+        "get_string"
+      ],
+      "inputs": [
+        "path = data'x66"
+      ],
+      "name": "s99_fuzz_val_path_0_get_string",
+      "source_test": "s99_fuzz_val_path_0",
+      "validation": "get_string",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "entries": [
+          {
+            "key": "item",
+            "value": "data]x41!x78"
+          }
+        ]
+      },
+      "features": [
+        "optional_typed_accessors"
+      ],
+      "functions": [
+        "parse"
+      ],
+      "inputs": [
+        "item = data]x41!x78"
+      ],
+      "name": "s99_fuzz_val_item_1_parse",
+      "source_test": "s99_fuzz_val_item_1",
+      "validation": "parse",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "item": "data]x41!x78"
+        }
+      },
+      "features": [
+        "optional_typed_accessors"
+      ],
+      "functions": [
+        "build_hierarchy"
+      ],
+      "inputs": [
+        "item = data]x41!x78"
+      ],
+      "name": "s99_fuzz_val_item_1_build_hierarchy",
+      "source_test": "s99_fuzz_val_item_1",
+      "validation": "build_hierarchy",
+      "variants": []
+    },
+    {
+      "args": [
+        "item"
+      ],
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "value": "data]x41!x78"
+      },
+      "features": [
+        "optional_typed_accessors"
+      ],
+      "functions": [
+        "get_string"
+      ],
+      "inputs": [
+        "item = data]x41!x78"
+      ],
+      "name": "s99_fuzz_val_item_1_get_string",
+      "source_test": "s99_fuzz_val_item_1",
+      "validation": "get_string",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "entries": [
+          {
+            "key": "server",
+            "value": "data[x73;x54!x24"
+          }
+        ]
+      },
+      "features": [
+        "optional_typed_accessors"
+      ],
+      "functions": [
+        "parse"
+      ],
+      "inputs": [
+        "server = data[x73;x54!x24"
+      ],
+      "name": "s99_fuzz_val_server_2_parse",
+      "source_test": "s99_fuzz_val_server_2",
+      "validation": "parse",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "server": "data[x73;x54!x24"
+        }
+      },
+      "features": [
+        "optional_typed_accessors"
+      ],
+      "functions": [
+        "build_hierarchy"
+      ],
+      "inputs": [
+        "server = data[x73;x54!x24"
+      ],
+      "name": "s99_fuzz_val_server_2_build_hierarchy",
+      "source_test": "s99_fuzz_val_server_2",
+      "validation": "build_hierarchy",
+      "variants": []
+    },
+    {
+      "args": [
+        "server"
+      ],
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "value": "data[x73;x54!x24"
+      },
+      "features": [
+        "optional_typed_accessors"
+      ],
+      "functions": [
+        "get_string"
+      ],
+      "inputs": [
+        "server = data[x73;x54!x24"
+      ],
+      "name": "s99_fuzz_val_server_2_get_string",
+      "source_test": "s99_fuzz_val_server_2",
+      "validation": "get_string",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "entries": [
+          {
+            "key": "path",
+            "value": "data~x4>x82~x46"
+          }
+        ]
+      },
+      "features": [
+        "optional_typed_accessors"
+      ],
+      "functions": [
+        "parse"
+      ],
+      "inputs": [
+        "path = data~x4>x82~x46"
+      ],
+      "name": "s99_fuzz_val_path_3_parse",
+      "source_test": "s99_fuzz_val_path_3",
+      "validation": "parse",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "path": "data~x4>x82~x46"
+        }
+      },
+      "features": [
+        "optional_typed_accessors"
+      ],
+      "functions": [
+        "build_hierarchy"
+      ],
+      "inputs": [
+        "path = data~x4>x82~x46"
+      ],
+      "name": "s99_fuzz_val_path_3_build_hierarchy",
+      "source_test": "s99_fuzz_val_path_3",
+      "validation": "build_hierarchy",
+      "variants": []
+    },
+    {
+      "args": [
+        "path"
+      ],
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "value": "data~x4>x82~x46"
+      },
+      "features": [
+        "optional_typed_accessors"
+      ],
+      "functions": [
+        "get_string"
+      ],
+      "inputs": [
+        "path = data~x4>x82~x46"
+      ],
+      "name": "s99_fuzz_val_path_3_get_string",
+      "source_test": "s99_fuzz_val_path_3",
+      "validation": "get_string",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "entries": [
+          {
+            "key": "alpha",
+            "value": "data<x11[x43"
+          }
+        ]
+      },
+      "features": [
+        "optional_typed_accessors"
+      ],
+      "functions": [
+        "parse"
+      ],
+      "inputs": [
+        "alpha = data<x11[x43"
+      ],
+      "name": "s99_fuzz_val_alpha_4_parse",
+      "source_test": "s99_fuzz_val_alpha_4",
+      "validation": "parse",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "alpha": "data<x11[x43"
+        }
+      },
+      "features": [
+        "optional_typed_accessors"
+      ],
+      "functions": [
+        "build_hierarchy"
+      ],
+      "inputs": [
+        "alpha = data<x11[x43"
+      ],
+      "name": "s99_fuzz_val_alpha_4_build_hierarchy",
+      "source_test": "s99_fuzz_val_alpha_4",
+      "validation": "build_hierarchy",
+      "variants": []
+    },
+    {
+      "args": [
+        "alpha"
+      ],
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "value": "data<x11[x43"
+      },
+      "features": [
+        "optional_typed_accessors"
+      ],
+      "functions": [
+        "get_string"
+      ],
+      "inputs": [
+        "alpha = data<x11[x43"
+      ],
+      "name": "s99_fuzz_val_alpha_4_get_string",
+      "source_test": "s99_fuzz_val_alpha_4",
+      "validation": "get_string",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 2,
+        "entries": [
+          {
+            "key": "/data",
+            "value": "nested929"
+          },
+          {
+            "key": ")item",
+            "value": "deep37"
+          }
+        ]
+      },
+      "features": [
+        "optional_typed_accessors"
+      ],
+      "functions": [
+        "parse"
+      ],
+      "inputs": [
+        "/data = nested929\n)item = deep37"
+      ],
+      "name": "s99_fuzz_nested_slash_rparen_0_parse",
+      "source_test": "s99_fuzz_nested_slash_rparen_0",
+      "validation": "parse",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          ")item": "deep37",
+          "/data": "nested929"
+        }
+      },
+      "features": [
+        "optional_typed_accessors"
+      ],
+      "functions": [
+        "build_hierarchy"
+      ],
+      "inputs": [
+        "/data = nested929\n)item = deep37"
+      ],
+      "name": "s99_fuzz_nested_slash_rparen_0_build_hierarchy",
+      "source_test": "s99_fuzz_nested_slash_rparen_0",
+      "validation": "build_hierarchy",
+      "variants": []
+    },
+    {
+      "args": [
+        "/data"
+      ],
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "value": "nested929"
+      },
+      "features": [
+        "optional_typed_accessors"
+      ],
+      "functions": [
+        "get_string"
+      ],
+      "inputs": [
+        "/data = nested929\n)item = deep37"
+      ],
+      "name": "s99_fuzz_nested_slash_rparen_0_get_string",
+      "source_test": "s99_fuzz_nested_slash_rparen_0",
+      "validation": "get_string",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 2,
+        "entries": [
+          {
+            "key": "<port",
+            "value": "nested722"
+          },
+          {
+            "key": "%config",
+            "value": "deep795"
+          }
+        ]
+      },
+      "features": [
+        "optional_typed_accessors"
+      ],
+      "functions": [
+        "parse"
+      ],
+      "inputs": [
+        "<port = nested722\n%config = deep795"
+      ],
+      "name": "s99_fuzz_nested_lt_percent_1_parse",
+      "source_test": "s99_fuzz_nested_lt_percent_1",
+      "validation": "parse",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "%config": "deep795",
+          "<port": "nested722"
+        }
+      },
+      "features": [
+        "optional_typed_accessors"
+      ],
+      "functions": [
+        "build_hierarchy"
+      ],
+      "inputs": [
+        "<port = nested722\n%config = deep795"
+      ],
+      "name": "s99_fuzz_nested_lt_percent_1_build_hierarchy",
+      "source_test": "s99_fuzz_nested_lt_percent_1",
+      "validation": "build_hierarchy",
+      "variants": []
+    },
+    {
+      "args": [
+        "<port"
+      ],
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "value": "nested722"
+      },
+      "features": [
+        "optional_typed_accessors"
+      ],
+      "functions": [
+        "get_string"
+      ],
+      "inputs": [
+        "<port = nested722\n%config = deep795"
+      ],
+      "name": "s99_fuzz_nested_lt_percent_1_get_string",
+      "source_test": "s99_fuzz_nested_lt_percent_1",
+      "validation": "get_string",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 2,
+        "entries": [
+          {
+            "key": "/epsilon",
+            "value": "nested268"
+          },
+          {
+            "key": "{server",
+            "value": "deep795"
+          }
+        ]
+      },
+      "features": [
+        "optional_typed_accessors"
+      ],
+      "functions": [
+        "parse"
+      ],
+      "inputs": [
+        "/epsilon = nested268\n{server = deep795"
+      ],
+      "name": "s99_fuzz_nested_slash_lbrace_2_parse",
+      "source_test": "s99_fuzz_nested_slash_lbrace_2",
+      "validation": "parse",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "/epsilon": "nested268",
+          "{server": "deep795"
+        }
+      },
+      "features": [
+        "optional_typed_accessors"
+      ],
+      "functions": [
+        "build_hierarchy"
+      ],
+      "inputs": [
+        "/epsilon = nested268\n{server = deep795"
+      ],
+      "name": "s99_fuzz_nested_slash_lbrace_2_build_hierarchy",
+      "source_test": "s99_fuzz_nested_slash_lbrace_2",
+      "validation": "build_hierarchy",
+      "variants": []
+    },
+    {
+      "args": [
+        "/epsilon"
+      ],
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "value": "nested268"
+      },
+      "features": [
+        "optional_typed_accessors"
+      ],
+      "functions": [
+        "get_string"
+      ],
+      "inputs": [
+        "/epsilon = nested268\n{server = deep795"
+      ],
+      "name": "s99_fuzz_nested_slash_lbrace_2_get_string",
+      "source_test": "s99_fuzz_nested_slash_lbrace_2",
+      "validation": "get_string",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 2,
+        "entries": [
+          {
+            "key": "\"host",
+            "value": "nested435"
+          },
+          {
+            "key": "[server",
+            "value": "deep479"
+          }
+        ]
+      },
+      "features": [
+        "optional_typed_accessors"
+      ],
+      "functions": [
+        "parse"
+      ],
+      "inputs": [
+        "\"host = nested435\n[server = deep479"
+      ],
+      "name": "s99_fuzz_nested_dquote_lbracket_3_parse",
+      "source_test": "s99_fuzz_nested_dquote_lbracket_3",
+      "validation": "parse",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "\"host": "nested435",
+          "[server": "deep479"
+        }
+      },
+      "features": [
+        "optional_typed_accessors"
+      ],
+      "functions": [
+        "build_hierarchy"
+      ],
+      "inputs": [
+        "\"host = nested435\n[server = deep479"
+      ],
+      "name": "s99_fuzz_nested_dquote_lbracket_3_build_hierarchy",
+      "source_test": "s99_fuzz_nested_dquote_lbracket_3",
+      "validation": "build_hierarchy",
+      "variants": []
+    },
+    {
+      "args": [
+        "\"host"
+      ],
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "value": "nested435"
+      },
+      "features": [
+        "optional_typed_accessors"
+      ],
+      "functions": [
+        "get_string"
+      ],
+      "inputs": [
+        "\"host = nested435\n[server = deep479"
+      ],
+      "name": "s99_fuzz_nested_dquote_lbracket_3_get_string",
+      "source_test": "s99_fuzz_nested_dquote_lbracket_3",
+      "validation": "get_string",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 2,
+        "entries": [
+          {
+            "key": "\\item",
+            "value": "nested708"
+          },
+          {
+            "key": "\\name",
+            "value": "deep133"
+          }
+        ]
+      },
+      "features": [
+        "optional_typed_accessors"
+      ],
+      "functions": [
+        "parse"
+      ],
+      "inputs": [
+        "\\item = nested708\n\\name = deep133"
+      ],
+      "name": "s99_fuzz_nested_backslash_backslash_4_parse",
+      "source_test": "s99_fuzz_nested_backslash_backslash_4",
+      "validation": "parse",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "\\item": "nested708",
+          "\\name": "deep133"
+        }
+      },
+      "features": [
+        "optional_typed_accessors"
+      ],
+      "functions": [
+        "build_hierarchy"
+      ],
+      "inputs": [
+        "\\item = nested708\n\\name = deep133"
+      ],
+      "name": "s99_fuzz_nested_backslash_backslash_4_build_hierarchy",
+      "source_test": "s99_fuzz_nested_backslash_backslash_4",
+      "validation": "build_hierarchy",
+      "variants": []
+    },
+    {
+      "args": [
+        "\\item"
+      ],
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "value": "nested708"
+      },
+      "features": [
+        "optional_typed_accessors"
+      ],
+      "functions": [
+        "get_string"
+      ],
+      "inputs": [
+        "\\item = nested708\n\\name = deep133"
+      ],
+      "name": "s99_fuzz_nested_backslash_backslash_4_get_string",
+      "source_test": "s99_fuzz_nested_backslash_backslash_4",
+      "validation": "get_string",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 2,
+        "entries": [
+          {
+            "key": "?delta",
+            "value": "nested18"
+          },
+          {
+            "key": "\"item",
+            "value": "deep576"
+          }
+        ]
+      },
+      "features": [
+        "optional_typed_accessors"
+      ],
+      "functions": [
+        "parse"
+      ],
+      "inputs": [
+        "?delta = nested18\n\"item = deep576"
+      ],
+      "name": "s99_fuzz_nested_question_dquote_5_parse",
+      "source_test": "s99_fuzz_nested_question_dquote_5",
+      "validation": "parse",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "\"item": "deep576",
+          "?delta": "nested18"
+        }
+      },
+      "features": [
+        "optional_typed_accessors"
+      ],
+      "functions": [
+        "build_hierarchy"
+      ],
+      "inputs": [
+        "?delta = nested18\n\"item = deep576"
+      ],
+      "name": "s99_fuzz_nested_question_dquote_5_build_hierarchy",
+      "source_test": "s99_fuzz_nested_question_dquote_5",
+      "validation": "build_hierarchy",
+      "variants": []
+    },
+    {
+      "args": [
+        "?delta"
+      ],
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "value": "nested18"
+      },
+      "features": [
+        "optional_typed_accessors"
+      ],
+      "functions": [
+        "get_string"
+      ],
+      "inputs": [
+        "?delta = nested18\n\"item = deep576"
+      ],
+      "name": "s99_fuzz_nested_question_dquote_5_get_string",
+      "source_test": "s99_fuzz_nested_question_dquote_5",
+      "validation": "get_string",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 2,
+        "entries": [
+          {
+            "key": "\"user",
+            "value": "nested759"
+          },
+          {
+            "key": "\\data",
+            "value": "deep718"
+          }
+        ]
+      },
+      "features": [
+        "optional_typed_accessors"
+      ],
+      "functions": [
+        "parse"
+      ],
+      "inputs": [
+        "\"user = nested759\n\\data = deep718"
+      ],
+      "name": "s99_fuzz_nested_dquote_backslash_6_parse",
+      "source_test": "s99_fuzz_nested_dquote_backslash_6",
+      "validation": "parse",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "\"user": "nested759",
+          "\\data": "deep718"
+        }
+      },
+      "features": [
+        "optional_typed_accessors"
+      ],
+      "functions": [
+        "build_hierarchy"
+      ],
+      "inputs": [
+        "\"user = nested759\n\\data = deep718"
+      ],
+      "name": "s99_fuzz_nested_dquote_backslash_6_build_hierarchy",
+      "source_test": "s99_fuzz_nested_dquote_backslash_6",
+      "validation": "build_hierarchy",
+      "variants": []
+    },
+    {
+      "args": [
+        "\"user"
+      ],
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "value": "nested759"
+      },
+      "features": [
+        "optional_typed_accessors"
+      ],
+      "functions": [
+        "get_string"
+      ],
+      "inputs": [
+        "\"user = nested759\n\\data = deep718"
+      ],
+      "name": "s99_fuzz_nested_dquote_backslash_6_get_string",
+      "source_test": "s99_fuzz_nested_dquote_backslash_6",
+      "validation": "get_string",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 2,
+        "entries": [
+          {
+            "key": ")port",
+            "value": "nested292"
+          },
+          {
+            "key": "\\server",
+            "value": "deep527"
+          }
+        ]
+      },
+      "features": [
+        "optional_typed_accessors"
+      ],
+      "functions": [
+        "parse"
+      ],
+      "inputs": [
+        ")port = nested292\n\\server = deep527"
+      ],
+      "name": "s99_fuzz_nested_rparen_backslash_7_parse",
+      "source_test": "s99_fuzz_nested_rparen_backslash_7",
+      "validation": "parse",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          ")port": "nested292",
+          "\\server": "deep527"
+        }
+      },
+      "features": [
+        "optional_typed_accessors"
+      ],
+      "functions": [
+        "build_hierarchy"
+      ],
+      "inputs": [
+        ")port = nested292\n\\server = deep527"
+      ],
+      "name": "s99_fuzz_nested_rparen_backslash_7_build_hierarchy",
+      "source_test": "s99_fuzz_nested_rparen_backslash_7",
+      "validation": "build_hierarchy",
+      "variants": []
+    },
+    {
+      "args": [
+        ")port"
+      ],
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "value": "nested292"
+      },
+      "features": [
+        "optional_typed_accessors"
+      ],
+      "functions": [
+        "get_string"
+      ],
+      "inputs": [
+        ")port = nested292\n\\server = deep527"
+      ],
+      "name": "s99_fuzz_nested_rparen_backslash_7_get_string",
+      "source_test": "s99_fuzz_nested_rparen_backslash_7",
+      "validation": "get_string",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 2,
+        "entries": [
+          {
+            "key": "}delta",
+            "value": "nested591"
+          },
+          {
+            "key": "$gamma",
+            "value": "deep225"
+          }
+        ]
+      },
+      "features": [
+        "optional_typed_accessors"
+      ],
+      "functions": [
+        "parse"
+      ],
+      "inputs": [
+        "}delta = nested591\n$gamma = deep225"
+      ],
+      "name": "s99_fuzz_nested_rbrace_dollar_8_parse",
+      "source_test": "s99_fuzz_nested_rbrace_dollar_8",
+      "validation": "parse",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "$gamma": "deep225",
+          "}delta": "nested591"
+        }
+      },
+      "features": [
+        "optional_typed_accessors"
+      ],
+      "functions": [
+        "build_hierarchy"
+      ],
+      "inputs": [
+        "}delta = nested591\n$gamma = deep225"
+      ],
+      "name": "s99_fuzz_nested_rbrace_dollar_8_build_hierarchy",
+      "source_test": "s99_fuzz_nested_rbrace_dollar_8",
+      "validation": "build_hierarchy",
+      "variants": []
+    },
+    {
+      "args": [
+        "}delta"
+      ],
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "value": "nested591"
+      },
+      "features": [
+        "optional_typed_accessors"
+      ],
+      "functions": [
+        "get_string"
+      ],
+      "inputs": [
+        "}delta = nested591\n$gamma = deep225"
+      ],
+      "name": "s99_fuzz_nested_rbrace_dollar_8_get_string",
+      "source_test": "s99_fuzz_nested_rbrace_dollar_8",
+      "validation": "get_string",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 2,
+        "entries": [
+          {
+            "key": "%epsilon",
+            "value": "nested761"
+          },
+          {
+            "key": "&port",
+            "value": "deep211"
+          }
+        ]
+      },
+      "features": [
+        "optional_typed_accessors"
+      ],
+      "functions": [
+        "parse"
+      ],
+      "inputs": [
+        "%epsilon = nested761\n&port = deep211"
+      ],
+      "name": "s99_fuzz_nested_percent_ampersand_9_parse",
+      "source_test": "s99_fuzz_nested_percent_ampersand_9",
+      "validation": "parse",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "%epsilon": "nested761",
+          "&port": "deep211"
+        }
+      },
+      "features": [
+        "optional_typed_accessors"
+      ],
+      "functions": [
+        "build_hierarchy"
+      ],
+      "inputs": [
+        "%epsilon = nested761\n&port = deep211"
+      ],
+      "name": "s99_fuzz_nested_percent_ampersand_9_build_hierarchy",
+      "source_test": "s99_fuzz_nested_percent_ampersand_9",
+      "validation": "build_hierarchy",
+      "variants": []
+    },
+    {
+      "args": [
+        "%epsilon"
+      ],
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "value": "nested761"
+      },
+      "features": [
+        "optional_typed_accessors"
+      ],
+      "functions": [
+        "get_string"
+      ],
+      "inputs": [
+        "%epsilon = nested761\n&port = deep211"
+      ],
+      "name": "s99_fuzz_nested_percent_ampersand_9_get_string",
+      "source_test": "s99_fuzz_nested_percent_ampersand_9",
+      "validation": "get_string",
+      "variants": []
+    }
+  ]
+}
