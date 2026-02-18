@@ -587,6 +587,10 @@ tag = review
         .iter()
         .map(|obj| obj.keys().next().unwrap().as_str())
         .collect();
+    // reference_compliant feature sorts duplicate key values lexically
+    #[cfg(feature = "reference_compliant")]
+    assert_eq!(tags, vec!["important", "review", "urgent"]);
+    #[cfg(not(feature = "reference_compliant"))]
     assert_eq!(tags, vec!["important", "urgent", "review"]);
 }
 

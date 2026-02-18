@@ -230,14 +230,14 @@ fn build_model(map: indexmap::IndexMap<String, Vec<String>>) -> Result<CclObject
     let mut result = indexmap::IndexMap::new();
 
     for (key, values) in map {
-        // Reference implementation iterates hash tables in reverse insertion order
-        // Reverse ONLY for non-empty duplicate keys
+        // Reference implementation iterates hash tables in lexical order
+        // Sort ONLY for non-empty duplicate keys
         // Empty keys (bare list items) maintain insertion order
         #[cfg(feature = "reference_compliant")]
         let values = {
             let mut v = values;
             if v.len() > 1 && !key.is_empty() {
-                v.reverse();
+                v.sort();
             }
             v
         };
@@ -533,7 +533,7 @@ fn load_with_options_internal(input: &str, options: &ParserOptions) -> Result<Cc
 }
 
 #[cfg(feature = "serde-deserialize")]
-pub use de::from_str;
+pub use de::{from_str, from_str_with_options};
 
 #[cfg(feature = "serde-serialize")]
 pub use ser::to_string;

@@ -40,6 +40,34 @@ where
     T::deserialize(&mut deserializer).map_err(|e| Error::ValueError(e.to_string()))
 }
 
+/// Deserialize a CCL string into a type T with custom parser options
+///
+/// # Examples
+///
+/// ```rust
+/// use serde::Deserialize;
+/// use sickle::{from_str_with_options, ParserOptions};
+/// use sickle::options::CrlfBehavior;
+///
+/// #[derive(Deserialize)]
+/// struct Config {
+///     name: String,
+/// }
+///
+/// let ccl = "name = MyApp\r\n";
+/// let options = ParserOptions::default().with_crlf(CrlfBehavior::NormalizeToLf);
+/// let config: Config = from_str_with_options(ccl, &options).unwrap();
+/// assert_eq!(config.name, "MyApp");
+/// ```
+pub fn from_str_with_options<'a, T>(s: &'a str, options: &crate::ParserOptions) -> Result<T>
+where
+    T: Deserialize<'a>,
+{
+    let model = crate::load_with_options_internal(s, options)?;
+    let mut deserializer = Deserializer::from_model(model);
+    T::deserialize(&mut deserializer).map_err(|e| Error::ValueError(e.to_string()))
+}
+
 /// Deserialize a Model into a type T
 pub fn from_model<'de, T>(model: CclObject) -> Result<T>
 where
