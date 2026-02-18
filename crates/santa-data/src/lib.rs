@@ -147,10 +147,9 @@ fn model_to_value(model: &sickle::CclObject) -> Result<Value> {
 /// ```
 pub fn parse_ccl_to<T: DeserializeOwned>(ccl_content: &str) -> Result<T> {
     // Normalize CRLF to LF for cross-platform compatibility (e.g. Windows checkouts)
-    let options = sickle::ParserOptions::default()
-        .with_crlf(sickle::options::CrlfBehavior::NormalizeToLf);
-    sickle::from_str_with_options(ccl_content, &options)
-        .context("Failed to deserialize parsed CCL")
+    let options =
+        sickle::ParserOptions::default().with_crlf(sickle::options::CrlfBehavior::NormalizeToLf);
+    sickle::from_str_with_options(ccl_content, &options).context("Failed to deserialize parsed CCL")
 }
 
 #[cfg(test)]
