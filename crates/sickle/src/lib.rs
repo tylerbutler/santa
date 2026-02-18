@@ -195,17 +195,17 @@ pub fn build_hierarchy(entries: &[Entry]) -> Result<CclObject> {
     build_model(map)
 }
 
-/// Check if a string looks like a valid CCL key
-/// Valid keys: alphanumeric, underscores, dots, hyphens (not leading), slashes for comments
+/// Check if a string looks like a valid CCL key for recursive parsing detection.
+///
+/// When a value contains `=`, we try parsing it as nested CCL. If the parser doesn't
+/// find a valid ` = ` delimiter, the entire string becomes a single key. We detect this
+/// by rejecting keys with spaces — real CCL keys from nested structures won't have spaces
+/// since the ` = ` delimiter consumes them. Keys may contain special characters like
+/// `/`, `\`, `:`, `@`, `#`, `[]`, `()` etc.
 #[cfg(feature = "hierarchy")]
 fn is_valid_ccl_key(key: &str) -> bool {
     if key.is_empty() {
         return true; // Empty keys are valid (for lists)
-    }
-
-    // Comment keys are valid
-    if key.starts_with('/') {
-        return true;
     }
 
     // Must not start with a hyphen (command-line flag)
@@ -213,9 +213,9 @@ fn is_valid_ccl_key(key: &str) -> bool {
         return false;
     }
 
-    // Must consist of: alphanumeric, underscore, dot, or hyphen (not leading)
-    key.chars()
-        .all(|c| c.is_alphanumeric() || c == '_' || c == '.' || c == '-')
+    // Keys with spaces are likely unparsed value strings, not real CCL keys.
+    // When the parser doesn't find ` = `, the whole line becomes a "key" — reject those.
+    !key.contains(' ')
 }
 
 /// Internal helper: Build a Model from the grouped key-value map
