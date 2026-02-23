@@ -536,7 +536,7 @@ fn load_with_options_internal(input: &str, options: &ParserOptions) -> Result<Cc
 pub use de::{from_str, from_str_with_options};
 
 #[cfg(feature = "serde-serialize")]
-pub use ser::to_string;
+pub use ser::{to_string, to_string_with_config};
 
 // Unit tests removed - all functionality is covered by data-driven tests in:
 // - api_core_ccl_parsing.json (basic parsing, multiline values, equals in values)

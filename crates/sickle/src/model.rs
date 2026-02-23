@@ -674,13 +674,6 @@ impl CclObject {
         CclObject(map)
     }
 
-    /// Extract the inner IndexMap, consuming the Model
-    /// This is internal-only for crate operations
-    #[allow(dead_code)]
-    pub(crate) fn into_inner(self) -> CclMap {
-        self.0
-    }
-
     /// Insert a string value at the given key
     /// Creates the CCL representation: `{key: {value: {}}}`
     #[cfg(feature = "serde-serialize")]
