@@ -332,43 +332,6 @@ fn finalize_value(value: &str, options: &ParserOptions) -> String {
     options.process_tabs(trimmed).into_owned()
 }
 
-/// Remove common leading whitespace from all lines while preserving relative indentation
-///
-/// Note: This function is currently unused as the CCL specification requires preserving
-/// indentation as-is. Kept for potential future use with specific parser behaviors.
-#[allow(dead_code)]
-fn dedent(s: &str) -> String {
-    let lines: Vec<&str> = s.lines().collect();
-    if lines.is_empty() {
-        return String::new();
-    }
-
-    // Find the minimum indentation (ignoring empty lines)
-    let min_indent = lines
-        .iter()
-        .filter(|line| !line.trim().is_empty())
-        .map(|line| line.len() - line.trim_start().len())
-        .min()
-        .unwrap_or(0);
-
-    // Remove that amount of leading whitespace from each line
-    lines
-        .iter()
-        .map(|line| {
-            if line.trim().is_empty() {
-                ""
-            } else if line.len() >= min_indent {
-                &line[min_indent..]
-            } else {
-                line
-            }
-        })
-        .collect::<Vec<_>>()
-        .join("\n")
-        .trim()
-        .to_string()
-}
-
 /// Build hierarchical structure from flat entries
 pub(crate) fn parse_to_map(
     input: &str,

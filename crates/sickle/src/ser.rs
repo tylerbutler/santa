@@ -260,11 +260,6 @@ impl<'a> ser::Serializer for &'a mut Serializer {
     where
         T: ?Sized + Serialize,
     {
-        // Store the variant name as the key
-        let key = self.current_key.take();
-        if let Some(k) = key {
-            self.current_key = Some(k);
-        }
         self.current_key = Some(variant.to_string());
         value.serialize(self)
     }
@@ -1535,23 +1530,9 @@ mod serde_validation_tests {
         map.insert("key1".to_string(), "value1".to_string());
         map.insert("key2".to_string(), "value2".to_string());
 
-        // Serialize to CCL
         let ccl = to_string(&map).unwrap();
-        println!("Serialized: {}", ccl);
-
-        // Try to deserialize back
-        let result: crate::Result<HashMap<String, String>> = crate::from_str(&ccl);
-
-        match result {
-            Ok(deserialized) => {
-                assert_eq!(map, deserialized);
-                println!("Roundtrip successful!");
-            }
-            Err(e) => {
-                println!("Roundtrip failed: {}", e);
-                panic!("HashMap<String, String> roundtrip failed: {}", e);
-            }
-        }
+        let deserialized: HashMap<String, String> = crate::from_str(&ccl).unwrap();
+        assert_eq!(map, deserialized);
     }
 
     #[test]
@@ -1580,23 +1561,9 @@ mod serde_validation_tests {
             },
         );
 
-        // Serialize to CCL
         let ccl = to_string(&map).unwrap();
-        println!("Serialized: {}", ccl);
-
-        // Try to deserialize back
-        let result: crate::Result<HashMap<String, ConfigValue>> = crate::from_str(&ccl);
-
-        match result {
-            Ok(deserialized) => {
-                assert_eq!(map, deserialized);
-                println!("Roundtrip successful!");
-            }
-            Err(e) => {
-                println!("Roundtrip failed: {}", e);
-                panic!("HashMap<String, Struct> roundtrip failed: {}", e);
-            }
-        }
+        let deserialized: HashMap<String, ConfigValue> = crate::from_str(&ccl).unwrap();
+        assert_eq!(map, deserialized);
     }
 
     #[test]
@@ -1626,23 +1593,9 @@ mod serde_validation_tests {
             ],
         };
 
-        // Serialize to CCL
         let ccl = to_string(&original).unwrap();
-        println!("Serialized: {}", ccl);
-
-        // Try to deserialize back
-        let result: crate::Result<Container> = crate::from_str(&ccl);
-
-        match result {
-            Ok(deserialized) => {
-                assert_eq!(original, deserialized);
-                println!("Roundtrip successful!");
-            }
-            Err(e) => {
-                println!("Roundtrip failed: {}", e);
-                panic!("Vec<Struct> roundtrip failed: {}", e);
-            }
-        }
+        let deserialized: Container = crate::from_str(&ccl).unwrap();
+        assert_eq!(original, deserialized);
     }
 
     #[test]
