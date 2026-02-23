@@ -1,4 +1,0 @@
-project: santa-data
-kind: Fixed
-body: Normalize CRLF line endings when parsing CCL data for cross-platform compatibility
-time: 2026-02-17T19:00:02.000000-08:00

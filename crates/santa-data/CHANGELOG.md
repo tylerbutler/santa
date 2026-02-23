@@ -2,15 +2,24 @@
 
 All notable changes to this project will be documented in this file.
 
+## v0.3.3 - 2026-02-23
+
+
+### Fixed
+
+- Normalize CRLF line endings when parsing CCL data for cross-platform compatibility
+
+## v0.3.2 - 2026-02-05
+
+Baseline version established for changie migration.
+
 ## [santa-data-v0.3.2] - 2026-01-31
 
 No notable changes in this release.
 
-
 ## [santa-data-v0.3.1] - 2026-01-18
 
 No notable changes in this release.
-
 
 ## [santa-data-v0.3.0] - 2025-12-16
 
@@ -18,35 +27,27 @@ No notable changes in this release.
 
 - Reorganize package data by source (#45)
 
-
-
 ## [santa-data-v0.2.0] - 2025-12-01
 
 No notable changes in this release.
-
 
 ## [santa-data-v0.1.4] - 2025-11-17
 
 No notable changes in this release.
 
-
 ## [santa-data-v0.1.3] - 2025-11-17
 
 No notable changes in this release.
-
 
 ## [santa-data-v0.1.2] - 2025-11-17
 
 No notable changes in this release.
 
-
 ## [santa-data-v0.1.1] - 2025-11-17
 
 No notable changes in this release.
 
-
 ## [santa-data-v0.1.0] - 2025-11-16
 
 No notable changes in this release.
-
 
