@@ -1,5 +1,5 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$schema": "https://raw.githubusercontent.com/CatConfLang/ccl-test-data/v0.6.0/schemas/generated-format.json",
   "tests": [
     {
       "behaviors": [],
@@ -283,7 +283,7 @@
         "count": 1,
         "entries": [
           {
-            "key": "\u003c",
+            "key": "<",
             "value": "val789"
           }
         ]
@@ -293,7 +293,7 @@
         "parse"
       ],
       "inputs": [
-        "\u003c = val789"
+        "< = val789"
       ],
       "name": "s1_fuzz_single_lt_parse",
       "source_test": "s1_fuzz_single_lt",
@@ -352,7 +352,7 @@
         "count": 1,
         "entries": [
           {
-            "key": "@\u003c/",
+            "key": "@</",
             "value": "combo594"
           }
         ]
@@ -362,7 +362,7 @@
         "parse"
       ],
       "inputs": [
-        "@\u003c/ = combo594"
+        "@</ = combo594"
       ],
       "name": "s1_fuzz_combo_at_lt_slash_parse",
       "source_test": "s1_fuzz_combo_at_lt_slash",
@@ -398,7 +398,7 @@
         "count": 1,
         "entries": [
           {
-            "key": "\u003c#",
+            "key": "<#",
             "value": "combo31"
           }
         ]
@@ -408,7 +408,7 @@
         "parse"
       ],
       "inputs": [
-        "\u003c# = combo31"
+        "<# = combo31"
       ],
       "name": "s1_fuzz_combo_lt_hash_parse",
       "source_test": "s1_fuzz_combo_lt_hash",
@@ -559,7 +559,7 @@
         "count": 1,
         "entries": [
           {
-            "key": ":;'\u003c",
+            "key": ":;'<",
             "value": "combo488"
           }
         ]
@@ -569,7 +569,7 @@
         "parse"
       ],
       "inputs": [
-        ":;'\u003c = combo488"
+        ":;'< = combo488"
       ],
       "name": "s1_fuzz_combo_colon_semicolon_squote_lt_parse",
       "source_test": "s1_fuzz_combo_colon_semicolon_squote_lt",
@@ -674,7 +674,7 @@
         "count": 1,
         "entries": [
           {
-            "key": "al\u003epha",
+            "key": "al>pha",
             "value": "pos153"
           }
         ]
@@ -684,7 +684,7 @@
         "parse"
       ],
       "inputs": [
-        "al\u003epha = pos153"
+        "al>pha = pos153"
       ],
       "name": "s1_fuzz_pos_middle_gt_alpha_parse",
       "source_test": "s1_fuzz_pos_middle_gt_alpha",
@@ -743,7 +743,7 @@
         "count": 1,
         "entries": [
           {
-            "key": "po\u0026rt",
+            "key": "po&rt",
             "value": "pos601"
           }
         ]
@@ -753,7 +753,7 @@
         "parse"
       ],
       "inputs": [
-        "po\u0026rt = pos601"
+        "po&rt = pos601"
       ],
       "name": "s1_fuzz_pos_middle_ampersand_port_parse",
       "source_test": "s1_fuzz_pos_middle_ampersand_port",
@@ -1162,7 +1162,7 @@
         "count": 2,
         "entries": [
           {
-            "key": "\u0026alpha",
+            "key": "&alpha",
             "value": "nested297"
           },
           {
@@ -1178,7 +1178,7 @@
         "parse"
       ],
       "inputs": [
-        "\u0026alpha = nested297\n}gamma = deep715"
+        "&alpha = nested297\n}gamma = deep715"
       ],
       "name": "s1_fuzz_nested_ampersand_rbrace_0_parse",
       "source_test": "s1_fuzz_nested_ampersand_rbrace_0",
@@ -1190,7 +1190,7 @@
       "expected": {
         "count": 1,
         "object": {
-          "\u0026alpha": "nested297",
+          "&alpha": "nested297",
           "}gamma": "deep715"
         }
       },
@@ -1201,7 +1201,7 @@
         "build_hierarchy"
       ],
       "inputs": [
-        "\u0026alpha = nested297\n}gamma = deep715"
+        "&alpha = nested297\n}gamma = deep715"
       ],
       "name": "s1_fuzz_nested_ampersand_rbrace_0_build_hierarchy",
       "source_test": "s1_fuzz_nested_ampersand_rbrace_0",
@@ -1210,7 +1210,7 @@
     },
     {
       "args": [
-        "\u0026alpha"
+        "&alpha"
       ],
       "behaviors": [],
       "expected": {
@@ -1224,7 +1224,7 @@
         "get_string"
       ],
       "inputs": [
-        "\u0026alpha = nested297\n}gamma = deep715"
+        "&alpha = nested297\n}gamma = deep715"
       ],
       "name": "s1_fuzz_nested_ampersand_rbrace_0_get_string",
       "source_test": "s1_fuzz_nested_ampersand_rbrace_0",
@@ -1387,7 +1387,7 @@
         "count": 2,
         "entries": [
           {
-            "key": "\u0026name",
+            "key": "&name",
             "value": "nested41"
           },
           {
@@ -1403,7 +1403,7 @@
         "parse"
       ],
       "inputs": [
-        "\u0026name = nested41\n$port = deep486"
+        "&name = nested41\n$port = deep486"
       ],
       "name": "s1_fuzz_nested_ampersand_dollar_3_parse",
       "source_test": "s1_fuzz_nested_ampersand_dollar_3",
@@ -1416,7 +1416,7 @@
         "count": 1,
         "object": {
           "$port": "deep486",
-          "\u0026name": "nested41"
+          "&name": "nested41"
         }
       },
       "features": [
@@ -1426,7 +1426,7 @@
         "build_hierarchy"
       ],
       "inputs": [
-        "\u0026name = nested41\n$port = deep486"
+        "&name = nested41\n$port = deep486"
       ],
       "name": "s1_fuzz_nested_ampersand_dollar_3_build_hierarchy",
       "source_test": "s1_fuzz_nested_ampersand_dollar_3",
@@ -1435,7 +1435,7 @@
     },
     {
       "args": [
-        "\u0026name"
+        "&name"
       ],
       "behaviors": [],
       "expected": {
@@ -1449,7 +1449,7 @@
         "get_string"
       ],
       "inputs": [
-        "\u0026name = nested41\n$port = deep486"
+        "&name = nested41\n$port = deep486"
       ],
       "name": "s1_fuzz_nested_ampersand_dollar_3_get_string",
       "source_test": "s1_fuzz_nested_ampersand_dollar_3",
@@ -1541,7 +1541,7 @@
             "value": "nested723"
           },
           {
-            "key": "\u0026epsilon",
+            "key": "&epsilon",
             "value": "deep891"
           }
         ]
@@ -1553,7 +1553,7 @@
         "parse"
       ],
       "inputs": [
-        "-config = nested723\n\u0026epsilon = deep891"
+        "-config = nested723\n&epsilon = deep891"
       ],
       "name": "s1_fuzz_nested_hyphen_ampersand_5_parse",
       "source_test": "s1_fuzz_nested_hyphen_ampersand_5",
@@ -1565,7 +1565,7 @@
       "expected": {
         "count": 1,
         "object": {
-          "\u0026epsilon": "deep891",
+          "&epsilon": "deep891",
           "-config": "nested723"
         }
       },
@@ -1576,7 +1576,7 @@
         "build_hierarchy"
       ],
       "inputs": [
-        "-config = nested723\n\u0026epsilon = deep891"
+        "-config = nested723\n&epsilon = deep891"
       ],
       "name": "s1_fuzz_nested_hyphen_ampersand_5_build_hierarchy",
       "source_test": "s1_fuzz_nested_hyphen_ampersand_5",
@@ -1599,7 +1599,7 @@
         "get_string"
       ],
       "inputs": [
-        "-config = nested723\n\u0026epsilon = deep891"
+        "-config = nested723\n&epsilon = deep891"
       ],
       "name": "s1_fuzz_nested_hyphen_ampersand_5_get_string",
       "source_test": "s1_fuzz_nested_hyphen_ampersand_5",

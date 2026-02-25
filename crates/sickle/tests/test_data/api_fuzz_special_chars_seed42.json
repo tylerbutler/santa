@@ -1,5 +1,5 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$schema": "https://raw.githubusercontent.com/CatConfLang/ccl-test-data/v0.6.0/schemas/generated-format.json",
   "tests": [
     {
       "behaviors": [],
@@ -260,7 +260,7 @@
         "count": 1,
         "entries": [
           {
-            "key": "\u003e",
+            "key": ">",
             "value": "val318"
           }
         ]
@@ -270,7 +270,7 @@
         "parse"
       ],
       "inputs": [
-        "\u003e = val318"
+        "> = val318"
       ],
       "name": "s42_fuzz_single_gt_parse",
       "source_test": "s42_fuzz_single_gt",
@@ -352,7 +352,7 @@
         "count": 1,
         "entries": [
           {
-            "key": "|\u003c;",
+            "key": "|<;",
             "value": "combo808"
           }
         ]
@@ -362,7 +362,7 @@
         "parse"
       ],
       "inputs": [
-        "|\u003c; = combo808"
+        "|<; = combo808"
       ],
       "name": "s42_fuzz_combo_pipe_lt_semicolon_parse",
       "source_test": "s42_fuzz_combo_pipe_lt_semicolon",
@@ -421,7 +421,7 @@
         "count": 1,
         "entries": [
           {
-            "key": "\u0026\")",
+            "key": "&\")",
             "value": "combo488"
           }
         ]
@@ -431,7 +431,7 @@
         "parse"
       ],
       "inputs": [
-        "\u0026\") = combo488"
+        "&\") = combo488"
       ],
       "name": "s42_fuzz_combo_ampersand_dquote_rparen_parse",
       "source_test": "s42_fuzz_combo_ampersand_dquote_rparen",
@@ -467,7 +467,7 @@
         "count": 1,
         "entries": [
           {
-            "key": "@\u003c;[",
+            "key": "@<;[",
             "value": "combo491"
           }
         ]
@@ -477,7 +477,7 @@
         "parse"
       ],
       "inputs": [
-        "@\u003c;[ = combo491"
+        "@<;[ = combo491"
       ],
       "name": "s42_fuzz_combo_at_lt_semicolon_lbracket_parse",
       "source_test": "s42_fuzz_combo_at_lt_semicolon_lbracket",
@@ -513,7 +513,7 @@
         "count": 1,
         "entries": [
           {
-            "key": "\u003c:",
+            "key": "<:",
             "value": "combo590"
           }
         ]
@@ -523,7 +523,7 @@
         "parse"
       ],
       "inputs": [
-        "\u003c: = combo590"
+        "<: = combo590"
       ],
       "name": "s42_fuzz_combo_lt_colon_parse",
       "source_test": "s42_fuzz_combo_lt_colon",
@@ -628,7 +628,7 @@
         "count": 1,
         "entries": [
           {
-            "key": "data\u003e",
+            "key": "data>",
             "value": "pos187"
           }
         ]
@@ -638,7 +638,7 @@
         "parse"
       ],
       "inputs": [
-        "data\u003e = pos187"
+        "data> = pos187"
       ],
       "name": "s42_fuzz_pos_end_gt_data_parse",
       "source_test": "s42_fuzz_pos_end_gt_data",
@@ -789,7 +789,7 @@
         "count": 1,
         "entries": [
           {
-            "key": "\u003ealpha",
+            "key": ">alpha",
             "value": "pos196"
           }
         ]
@@ -799,7 +799,7 @@
         "parse"
       ],
       "inputs": [
-        "\u003ealpha = pos196"
+        ">alpha = pos196"
       ],
       "name": "s42_fuzz_pos_start_gt_alpha_parse",
       "source_test": "s42_fuzz_pos_start_gt_alpha",
@@ -1312,7 +1312,7 @@
         "count": 2,
         "entries": [
           {
-            "key": "\u0026delta",
+            "key": "&delta",
             "value": "nested56"
           },
           {
@@ -1328,7 +1328,7 @@
         "parse"
       ],
       "inputs": [
-        "\u0026delta = nested56\n%data = deep952"
+        "&delta = nested56\n%data = deep952"
       ],
       "name": "s42_fuzz_nested_ampersand_percent_2_parse",
       "source_test": "s42_fuzz_nested_ampersand_percent_2",
@@ -1341,7 +1341,7 @@
         "count": 1,
         "object": {
           "%data": "deep952",
-          "\u0026delta": "nested56"
+          "&delta": "nested56"
         }
       },
       "features": [
@@ -1351,7 +1351,7 @@
         "build_hierarchy"
       ],
       "inputs": [
-        "\u0026delta = nested56\n%data = deep952"
+        "&delta = nested56\n%data = deep952"
       ],
       "name": "s42_fuzz_nested_ampersand_percent_2_build_hierarchy",
       "source_test": "s42_fuzz_nested_ampersand_percent_2",
@@ -1360,7 +1360,7 @@
     },
     {
       "args": [
-        "\u0026delta"
+        "&delta"
       ],
       "behaviors": [],
       "expected": {
@@ -1374,7 +1374,7 @@
         "get_string"
       ],
       "inputs": [
-        "\u0026delta = nested56\n%data = deep952"
+        "&delta = nested56\n%data = deep952"
       ],
       "name": "s42_fuzz_nested_ampersand_percent_2_get_string",
       "source_test": "s42_fuzz_nested_ampersand_percent_2",
@@ -1391,7 +1391,7 @@
             "value": "nested885"
           },
           {
-            "key": "\u003euser",
+            "key": ">user",
             "value": "deep168"
           }
         ]
@@ -1403,7 +1403,7 @@
         "parse"
       ],
       "inputs": [
-        "\"epsilon = nested885\n\u003euser = deep168"
+        "\"epsilon = nested885\n>user = deep168"
       ],
       "name": "s42_fuzz_nested_dquote_gt_3_parse",
       "source_test": "s42_fuzz_nested_dquote_gt_3",
@@ -1416,7 +1416,7 @@
         "count": 1,
         "object": {
           "\"epsilon": "nested885",
-          "\u003euser": "deep168"
+          ">user": "deep168"
         }
       },
       "features": [
@@ -1426,7 +1426,7 @@
         "build_hierarchy"
       ],
       "inputs": [
-        "\"epsilon = nested885\n\u003euser = deep168"
+        "\"epsilon = nested885\n>user = deep168"
       ],
       "name": "s42_fuzz_nested_dquote_gt_3_build_hierarchy",
       "source_test": "s42_fuzz_nested_dquote_gt_3",
@@ -1449,7 +1449,7 @@
         "get_string"
       ],
       "inputs": [
-        "\"epsilon = nested885\n\u003euser = deep168"
+        "\"epsilon = nested885\n>user = deep168"
       ],
       "name": "s42_fuzz_nested_dquote_gt_3_get_string",
       "source_test": "s42_fuzz_nested_dquote_gt_3",
@@ -1616,7 +1616,7 @@
             "value": "nested474"
           },
           {
-            "key": "\u0026port",
+            "key": "&port",
             "value": "deep22"
           }
         ]
@@ -1628,7 +1628,7 @@
         "parse"
       ],
       "inputs": [
-        "{data = nested474\n\u0026port = deep22"
+        "{data = nested474\n&port = deep22"
       ],
       "name": "s42_fuzz_nested_lbrace_ampersand_6_parse",
       "source_test": "s42_fuzz_nested_lbrace_ampersand_6",
@@ -1640,7 +1640,7 @@
       "expected": {
         "count": 1,
         "object": {
-          "\u0026port": "deep22",
+          "&port": "deep22",
           "{data": "nested474"
         }
       },
@@ -1651,7 +1651,7 @@
         "build_hierarchy"
       ],
       "inputs": [
-        "{data = nested474\n\u0026port = deep22"
+        "{data = nested474\n&port = deep22"
       ],
       "name": "s42_fuzz_nested_lbrace_ampersand_6_build_hierarchy",
       "source_test": "s42_fuzz_nested_lbrace_ampersand_6",
@@ -1674,7 +1674,7 @@
         "get_string"
       ],
       "inputs": [
-        "{data = nested474\n\u0026port = deep22"
+        "{data = nested474\n&port = deep22"
       ],
       "name": "s42_fuzz_nested_lbrace_ampersand_6_get_string",
       "source_test": "s42_fuzz_nested_lbrace_ampersand_6",
@@ -1841,7 +1841,7 @@
             "value": "nested835"
           },
           {
-            "key": "\u0026gamma",
+            "key": "&gamma",
             "value": "deep966"
           }
         ]
@@ -1853,7 +1853,7 @@
         "parse"
       ],
       "inputs": [
-        "~beta = nested835\n\u0026gamma = deep966"
+        "~beta = nested835\n&gamma = deep966"
       ],
       "name": "s42_fuzz_nested_tilde_ampersand_9_parse",
       "source_test": "s42_fuzz_nested_tilde_ampersand_9",
@@ -1865,7 +1865,7 @@
       "expected": {
         "count": 1,
         "object": {
-          "\u0026gamma": "deep966",
+          "&gamma": "deep966",
           "~beta": "nested835"
         }
       },
@@ -1876,7 +1876,7 @@
         "build_hierarchy"
       ],
       "inputs": [
-        "~beta = nested835\n\u0026gamma = deep966"
+        "~beta = nested835\n&gamma = deep966"
       ],
       "name": "s42_fuzz_nested_tilde_ampersand_9_build_hierarchy",
       "source_test": "s42_fuzz_nested_tilde_ampersand_9",
@@ -1899,7 +1899,7 @@
         "get_string"
       ],
       "inputs": [
-        "~beta = nested835\n\u0026gamma = deep966"
+        "~beta = nested835\n&gamma = deep966"
       ],
       "name": "s42_fuzz_nested_tilde_ampersand_9_get_string",
       "source_test": "s42_fuzz_nested_tilde_ampersand_9",

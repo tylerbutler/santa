@@ -1,5 +1,5 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$schema": "https://raw.githubusercontent.com/CatConfLang/ccl-test-data/v0.6.0/schemas/generated-format.json",
   "tests": [
     {
       "behaviors": [],
@@ -168,7 +168,7 @@
         "count": 1,
         "entries": [
           {
-            "key": "\u0026",
+            "key": "&",
             "value": "val116"
           }
         ]
@@ -178,7 +178,7 @@
         "parse"
       ],
       "inputs": [
-        "\u0026 = val116"
+        "& = val116"
       ],
       "name": "s49_fuzz_single_ampersand_parse",
       "source_test": "s49_fuzz_single_ampersand",
@@ -467,7 +467,7 @@
         "count": 1,
         "entries": [
           {
-            "key": "\u003e~)",
+            "key": ">~)",
             "value": "combo274"
           }
         ]
@@ -477,7 +477,7 @@
         "parse"
       ],
       "inputs": [
-        "\u003e~) = combo274"
+        ">~) = combo274"
       ],
       "name": "s49_fuzz_combo_gt_tilde_rparen_parse",
       "source_test": "s49_fuzz_combo_gt_tilde_rparen",
@@ -490,7 +490,7 @@
         "count": 1,
         "entries": [
           {
-            "key": ";\u003e:",
+            "key": ";>:",
             "value": "combo111"
           }
         ]
@@ -500,7 +500,7 @@
         "parse"
       ],
       "inputs": [
-        ";\u003e: = combo111"
+        ";>: = combo111"
       ],
       "name": "s49_fuzz_combo_semicolon_gt_colon_parse",
       "source_test": "s49_fuzz_combo_semicolon_gt_colon",
@@ -536,7 +536,7 @@
         "count": 1,
         "entries": [
           {
-            "key": "\u0026\u0026",
+            "key": "&&",
             "value": "combo102"
           }
         ]
@@ -546,7 +546,7 @@
         "parse"
       ],
       "inputs": [
-        "\u0026\u0026 = combo102"
+        "&& = combo102"
       ],
       "name": "s49_fuzz_combo_ampersand_ampersand_parse",
       "source_test": "s49_fuzz_combo_ampersand_ampersand",
@@ -559,7 +559,7 @@
         "count": 1,
         "entries": [
           {
-            "key": "~\u0026~",
+            "key": "~&~",
             "value": "combo549"
           }
         ]
@@ -569,7 +569,7 @@
         "parse"
       ],
       "inputs": [
-        "~\u0026~ = combo549"
+        "~&~ = combo549"
       ],
       "name": "s49_fuzz_combo_tilde_ampersand_tilde_parse",
       "source_test": "s49_fuzz_combo_tilde_ampersand_tilde",
@@ -813,7 +813,7 @@
         "entries": [
           {
             "key": "epsilon",
-            "value": "data;x5\u0026x96?x73"
+            "value": "data;x5&x96?x73"
           }
         ]
       },
@@ -824,7 +824,7 @@
         "parse"
       ],
       "inputs": [
-        "epsilon = data;x5\u0026x96?x73"
+        "epsilon = data;x5&x96?x73"
       ],
       "name": "s49_fuzz_val_epsilon_0_parse",
       "source_test": "s49_fuzz_val_epsilon_0",
@@ -836,7 +836,7 @@
       "expected": {
         "count": 1,
         "object": {
-          "epsilon": "data;x5\u0026x96?x73"
+          "epsilon": "data;x5&x96?x73"
         }
       },
       "features": [
@@ -846,7 +846,7 @@
         "build_hierarchy"
       ],
       "inputs": [
-        "epsilon = data;x5\u0026x96?x73"
+        "epsilon = data;x5&x96?x73"
       ],
       "name": "s49_fuzz_val_epsilon_0_build_hierarchy",
       "source_test": "s49_fuzz_val_epsilon_0",
@@ -860,7 +860,7 @@
       "behaviors": [],
       "expected": {
         "count": 1,
-        "value": "data;x5\u0026x96?x73"
+        "value": "data;x5&x96?x73"
       },
       "features": [
         "optional_typed_accessors"
@@ -869,7 +869,7 @@
         "get_string"
       ],
       "inputs": [
-        "epsilon = data;x5\u0026x96?x73"
+        "epsilon = data;x5&x96?x73"
       ],
       "name": "s49_fuzz_val_epsilon_0_get_string",
       "source_test": "s49_fuzz_val_epsilon_0",
@@ -953,7 +953,7 @@
         "entries": [
           {
             "key": "name",
-            "value": "data\u003cx71"
+            "value": "data<x71"
           }
         ]
       },
@@ -964,7 +964,7 @@
         "parse"
       ],
       "inputs": [
-        "name = data\u003cx71"
+        "name = data<x71"
       ],
       "name": "s49_fuzz_val_name_2_parse",
       "source_test": "s49_fuzz_val_name_2",
@@ -976,7 +976,7 @@
       "expected": {
         "count": 1,
         "object": {
-          "name": "data\u003cx71"
+          "name": "data<x71"
         }
       },
       "features": [
@@ -986,7 +986,7 @@
         "build_hierarchy"
       ],
       "inputs": [
-        "name = data\u003cx71"
+        "name = data<x71"
       ],
       "name": "s49_fuzz_val_name_2_build_hierarchy",
       "source_test": "s49_fuzz_val_name_2",
@@ -1000,7 +1000,7 @@
       "behaviors": [],
       "expected": {
         "count": 1,
-        "value": "data\u003cx71"
+        "value": "data<x71"
       },
       "features": [
         "optional_typed_accessors"
@@ -1009,7 +1009,7 @@
         "get_string"
       ],
       "inputs": [
-        "name = data\u003cx71"
+        "name = data<x71"
       ],
       "name": "s49_fuzz_val_name_2_get_string",
       "source_test": "s49_fuzz_val_name_2",
@@ -1391,7 +1391,7 @@
             "value": "nested76"
           },
           {
-            "key": "\u003ehost",
+            "key": ">host",
             "value": "deep444"
           }
         ]
@@ -1403,7 +1403,7 @@
         "parse"
       ],
       "inputs": [
-        "$port = nested76\n\u003ehost = deep444"
+        "$port = nested76\n>host = deep444"
       ],
       "name": "s49_fuzz_nested_dollar_gt_3_parse",
       "source_test": "s49_fuzz_nested_dollar_gt_3",
@@ -1416,7 +1416,7 @@
         "count": 1,
         "object": {
           "$port": "nested76",
-          "\u003ehost": "deep444"
+          ">host": "deep444"
         }
       },
       "features": [
@@ -1426,7 +1426,7 @@
         "build_hierarchy"
       ],
       "inputs": [
-        "$port = nested76\n\u003ehost = deep444"
+        "$port = nested76\n>host = deep444"
       ],
       "name": "s49_fuzz_nested_dollar_gt_3_build_hierarchy",
       "source_test": "s49_fuzz_nested_dollar_gt_3",
@@ -1449,7 +1449,7 @@
         "get_string"
       ],
       "inputs": [
-        "$port = nested76\n\u003ehost = deep444"
+        "$port = nested76\n>host = deep444"
       ],
       "name": "s49_fuzz_nested_dollar_gt_3_get_string",
       "source_test": "s49_fuzz_nested_dollar_gt_3",
@@ -1691,7 +1691,7 @@
             "value": "nested496"
           },
           {
-            "key": "\u0026gamma",
+            "key": "&gamma",
             "value": "deep440"
           }
         ]
@@ -1703,7 +1703,7 @@
         "parse"
       ],
       "inputs": [
-        "+server = nested496\n\u0026gamma = deep440"
+        "+server = nested496\n&gamma = deep440"
       ],
       "name": "s49_fuzz_nested_plus_ampersand_7_parse",
       "source_test": "s49_fuzz_nested_plus_ampersand_7",
@@ -1715,7 +1715,7 @@
       "expected": {
         "count": 1,
         "object": {
-          "\u0026gamma": "deep440",
+          "&gamma": "deep440",
           "+server": "nested496"
         }
       },
@@ -1726,7 +1726,7 @@
         "build_hierarchy"
       ],
       "inputs": [
-        "+server = nested496\n\u0026gamma = deep440"
+        "+server = nested496\n&gamma = deep440"
       ],
       "name": "s49_fuzz_nested_plus_ampersand_7_build_hierarchy",
       "source_test": "s49_fuzz_nested_plus_ampersand_7",
@@ -1749,7 +1749,7 @@
         "get_string"
       ],
       "inputs": [
-        "+server = nested496\n\u0026gamma = deep440"
+        "+server = nested496\n&gamma = deep440"
       ],
       "name": "s49_fuzz_nested_plus_ampersand_7_get_string",
       "source_test": "s49_fuzz_nested_plus_ampersand_7",

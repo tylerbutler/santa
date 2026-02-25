@@ -1,5 +1,5 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$schema": "https://raw.githubusercontent.com/CatConfLang/ccl-test-data/v0.6.0/schemas/generated-format.json",
   "tests": [
     {
       "behaviors": [],
@@ -1795,7 +1795,7 @@
         "parse"
       ],
       "inputs": [
-        "config =\n  build =\n    output = ../../dist\n    cache = ../.cache"
+        "config =\n  build = \n    output = ../../dist\n    cache = ../.cache"
       ],
       "name": "relative_paths_deeply_nested_parse",
       "source_test": "relative_paths_deeply_nested",
@@ -1820,7 +1820,7 @@
         "build_hierarchy"
       ],
       "inputs": [
-        "config =\n  build =\n    output = ../../dist\n    cache = ../.cache"
+        "config =\n  build = \n    output = ../../dist\n    cache = ../.cache"
       ],
       "name": "relative_paths_deeply_nested_build_hierarchy",
       "source_test": "relative_paths_deeply_nested",
@@ -1843,7 +1843,7 @@
         "get_string"
       ],
       "inputs": [
-        "config =\n  build =\n    output = ../../dist\n    cache = ../.cache"
+        "config =\n  build = \n    output = ../../dist\n    cache = ../.cache"
       ],
       "name": "relative_paths_deeply_nested_get_string",
       "source_test": "relative_paths_deeply_nested",
@@ -1866,7 +1866,7 @@
         "parse"
       ],
       "inputs": [
-        "imports =\n  .. =\n    main = ../src/main\n    test = ../tests"
+        "imports =\n  .. = \n    main = ../src/main\n    test = ../tests"
       ],
       "name": "relative_paths_as_nested_keys_parse",
       "source_test": "relative_paths_as_nested_keys",
@@ -1891,7 +1891,7 @@
         "build_hierarchy"
       ],
       "inputs": [
-        "imports =\n  .. =\n    main = ../src/main\n    test = ../tests"
+        "imports =\n  .. = \n    main = ../src/main\n    test = ../tests"
       ],
       "name": "relative_paths_as_nested_keys_build_hierarchy",
       "source_test": "relative_paths_as_nested_keys",
@@ -1914,7 +1914,7 @@
         "get_string"
       ],
       "inputs": [
-        "imports =\n  .. =\n    main = ../src/main\n    test = ../tests"
+        "imports =\n  .. = \n    main = ../src/main\n    test = ../tests"
       ],
       "name": "relative_paths_as_nested_keys_get_string",
       "source_test": "relative_paths_as_nested_keys",
@@ -1937,7 +1937,7 @@
         "parse"
       ],
       "inputs": [
-        "paths =\n  relative =\n    up = ../../\n    current = .\n  absolute =\n    root = /"
+        "paths =\n  relative = \n    up = ../../\n    current = .\n  absolute = \n    root = /"
       ],
       "name": "mixed_relative_and_absolute_nested_parse",
       "source_test": "mixed_relative_and_absolute_nested",
@@ -1965,7 +1965,7 @@
         "build_hierarchy"
       ],
       "inputs": [
-        "paths =\n  relative =\n    up = ../../\n    current = .\n  absolute =\n    root = /"
+        "paths =\n  relative = \n    up = ../../\n    current = .\n  absolute = \n    root = /"
       ],
       "name": "mixed_relative_and_absolute_nested_build_hierarchy",
       "source_test": "mixed_relative_and_absolute_nested",
@@ -1988,7 +1988,7 @@
         "get_string"
       ],
       "inputs": [
-        "paths =\n  relative =\n    up = ../../\n    current = .\n  absolute =\n    root = /"
+        "paths =\n  relative = \n    up = ../../\n    current = .\n  absolute = \n    root = /"
       ],
       "name": "mixed_relative_and_absolute_nested_get_string",
       "source_test": "mixed_relative_and_absolute_nested",
@@ -2011,7 +2011,7 @@
         "parse"
       ],
       "inputs": [
-        "servers =\n  primary =\n    api = //api.example.com\n    cdn = //cdn.example.com\n  secondary =\n    //internal = //backup.example.com"
+        "servers =\n  primary = \n    api = //api.example.com\n    cdn = //cdn.example.com\n  secondary = \n    //internal = //backup.example.com"
       ],
       "name": "double_slash_deeply_nested_parse",
       "source_test": "double_slash_deeply_nested",
@@ -2039,7 +2039,7 @@
         "build_hierarchy"
       ],
       "inputs": [
-        "servers =\n  primary =\n    api = //api.example.com\n    cdn = //cdn.example.com\n  secondary =\n    //internal = //backup.example.com"
+        "servers =\n  primary = \n    api = //api.example.com\n    cdn = //cdn.example.com\n  secondary = \n    //internal = //backup.example.com"
       ],
       "name": "double_slash_deeply_nested_build_hierarchy",
       "source_test": "double_slash_deeply_nested",
@@ -2062,7 +2062,7 @@
         "get_string"
       ],
       "inputs": [
-        "servers =\n  primary =\n    api = //api.example.com\n    cdn = //cdn.example.com\n  secondary =\n    //internal = //backup.example.com"
+        "servers =\n  primary = \n    api = //api.example.com\n    cdn = //cdn.example.com\n  secondary = \n    //internal = //backup.example.com"
       ],
       "name": "double_slash_deeply_nested_get_string",
       "source_test": "double_slash_deeply_nested",
@@ -2367,7 +2367,7 @@
         "parse"
       ],
       "inputs": [
-        "config =\n  services =\n    api =\n      url = https://api.example.com\n      backup = https://backup.example.com\n    cdn =\n      url = https://cdn.example.com"
+        "config =\n  services = \n    api = \n      url = https://api.example.com\n      backup = https://backup.example.com\n    cdn = \n      url = https://cdn.example.com"
       ],
       "name": "urls_deeply_nested_parse",
       "source_test": "urls_deeply_nested",
@@ -2397,7 +2397,7 @@
         "build_hierarchy"
       ],
       "inputs": [
-        "config =\n  services =\n    api =\n      url = https://api.example.com\n      backup = https://backup.example.com\n    cdn =\n      url = https://cdn.example.com"
+        "config =\n  services = \n    api = \n      url = https://api.example.com\n      backup = https://backup.example.com\n    cdn = \n      url = https://cdn.example.com"
       ],
       "name": "urls_deeply_nested_build_hierarchy",
       "source_test": "urls_deeply_nested",
@@ -2421,7 +2421,7 @@
         "get_string"
       ],
       "inputs": [
-        "config =\n  services =\n    api =\n      url = https://api.example.com\n      backup = https://backup.example.com\n    cdn =\n      url = https://cdn.example.com"
+        "config =\n  services = \n    api = \n      url = https://api.example.com\n      backup = https://backup.example.com\n    cdn = \n      url = https://cdn.example.com"
       ],
       "name": "urls_deeply_nested_get_string",
       "source_test": "urls_deeply_nested",
@@ -2429,7 +2429,14 @@
       "variants": []
     },
     {
-      "behaviors": [],
+      "behaviors": [
+        "delimiter_prefer_spaced"
+      ],
+      "conflicts": {
+        "behaviors": [
+          "delimiter_first_equals"
+        ]
+      },
       "expected": {
         "count": 1,
         "entries": [
@@ -2452,7 +2459,14 @@
       "variants": []
     },
     {
-      "behaviors": [],
+      "behaviors": [
+        "delimiter_prefer_spaced"
+      ],
+      "conflicts": {
+        "behaviors": [
+          "delimiter_first_equals"
+        ]
+      },
       "expected": {
         "count": 1,
         "object": {
@@ -2468,6 +2482,348 @@
       ],
       "name": "url_with_query_params_as_key_build_hierarchy",
       "source_test": "url_with_query_params_as_key",
+      "validation": "build_hierarchy",
+      "variants": []
+    },
+    {
+      "behaviors": [
+        "delimiter_first_equals"
+      ],
+      "conflicts": {
+        "behaviors": [
+          "delimiter_prefer_spaced"
+        ]
+      },
+      "expected": {
+        "count": 1,
+        "entries": [
+          {
+            "key": "https://api.example.com/search?q",
+            "value": "test&page=1 = search_results"
+          }
+        ]
+      },
+      "features": [],
+      "functions": [
+        "parse"
+      ],
+      "inputs": [
+        "https://api.example.com/search?q=test&page=1 = search_results"
+      ],
+      "name": "delimiter_first_url_with_query_params_parse",
+      "source_test": "delimiter_first_url_with_query_params",
+      "validation": "parse",
+      "variants": []
+    },
+    {
+      "behaviors": [
+        "delimiter_first_equals"
+      ],
+      "conflicts": {
+        "behaviors": [
+          "delimiter_prefer_spaced"
+        ]
+      },
+      "expected": {
+        "count": 1,
+        "object": {
+          "https://api.example.com/search?q": "test&page=1 = search_results"
+        }
+      },
+      "features": [],
+      "functions": [
+        "build_hierarchy"
+      ],
+      "inputs": [
+        "https://api.example.com/search?q=test&page=1 = search_results"
+      ],
+      "name": "delimiter_first_url_with_query_params_build_hierarchy",
+      "source_test": "delimiter_first_url_with_query_params",
+      "validation": "build_hierarchy",
+      "variants": []
+    },
+    {
+      "behaviors": [
+        "delimiter_first_equals"
+      ],
+      "conflicts": {
+        "behaviors": [
+          "delimiter_prefer_spaced"
+        ]
+      },
+      "expected": {
+        "count": 1,
+        "entries": [
+          {
+            "key": "a",
+            "value": "b = c=d"
+          }
+        ]
+      },
+      "features": [],
+      "functions": [
+        "parse"
+      ],
+      "inputs": [
+        "a=b = c=d"
+      ],
+      "name": "delimiter_first_multiple_equals_parse",
+      "source_test": "delimiter_first_multiple_equals",
+      "validation": "parse",
+      "variants": []
+    },
+    {
+      "behaviors": [
+        "delimiter_first_equals"
+      ],
+      "conflicts": {
+        "behaviors": [
+          "delimiter_prefer_spaced"
+        ]
+      },
+      "expected": {
+        "count": 1,
+        "object": {
+          "a": "b = c=d"
+        }
+      },
+      "features": [],
+      "functions": [
+        "build_hierarchy"
+      ],
+      "inputs": [
+        "a=b = c=d"
+      ],
+      "name": "delimiter_first_multiple_equals_build_hierarchy",
+      "source_test": "delimiter_first_multiple_equals",
+      "validation": "build_hierarchy",
+      "variants": []
+    },
+    {
+      "behaviors": [
+        "delimiter_first_equals"
+      ],
+      "conflicts": {
+        "behaviors": [
+          "delimiter_prefer_spaced"
+        ]
+      },
+      "expected": {
+        "count": 1,
+        "entries": [
+          {
+            "key": "a",
+            "value": "b ="
+          }
+        ]
+      },
+      "features": [],
+      "functions": [
+        "parse"
+      ],
+      "inputs": [
+        "a=b ="
+      ],
+      "name": "delimiter_first_empty_value_parse",
+      "source_test": "delimiter_first_empty_value",
+      "validation": "parse",
+      "variants": []
+    },
+    {
+      "behaviors": [
+        "delimiter_first_equals"
+      ],
+      "conflicts": {
+        "behaviors": [
+          "delimiter_prefer_spaced"
+        ]
+      },
+      "expected": {
+        "count": 1,
+        "object": {
+          "a": "b ="
+        }
+      },
+      "features": [],
+      "functions": [
+        "build_hierarchy"
+      ],
+      "inputs": [
+        "a=b ="
+      ],
+      "name": "delimiter_first_empty_value_build_hierarchy",
+      "source_test": "delimiter_first_empty_value",
+      "validation": "build_hierarchy",
+      "variants": []
+    },
+    {
+      "behaviors": [
+        "delimiter_prefer_spaced"
+      ],
+      "conflicts": {
+        "behaviors": [
+          "delimiter_first_equals"
+        ]
+      },
+      "expected": {
+        "count": 1,
+        "entries": [
+          {
+            "key": "a=b",
+            "value": "c=d"
+          }
+        ]
+      },
+      "features": [],
+      "functions": [
+        "parse"
+      ],
+      "inputs": [
+        "a=b = c=d"
+      ],
+      "name": "delimiter_spaced_multiple_equals_parse",
+      "source_test": "delimiter_spaced_multiple_equals",
+      "validation": "parse",
+      "variants": []
+    },
+    {
+      "behaviors": [
+        "delimiter_prefer_spaced"
+      ],
+      "conflicts": {
+        "behaviors": [
+          "delimiter_first_equals"
+        ]
+      },
+      "expected": {
+        "count": 1,
+        "object": {
+          "a=b": "c=d"
+        }
+      },
+      "features": [],
+      "functions": [
+        "build_hierarchy"
+      ],
+      "inputs": [
+        "a=b = c=d"
+      ],
+      "name": "delimiter_spaced_multiple_equals_build_hierarchy",
+      "source_test": "delimiter_spaced_multiple_equals",
+      "validation": "build_hierarchy",
+      "variants": []
+    },
+    {
+      "behaviors": [
+        "delimiter_prefer_spaced"
+      ],
+      "conflicts": {
+        "behaviors": [
+          "delimiter_first_equals"
+        ]
+      },
+      "expected": {
+        "count": 1,
+        "entries": [
+          {
+            "key": "key",
+            "value": "value"
+          }
+        ]
+      },
+      "features": [],
+      "functions": [
+        "parse"
+      ],
+      "inputs": [
+        "key=value"
+      ],
+      "name": "delimiter_spaced_fallback_no_space_parse",
+      "source_test": "delimiter_spaced_fallback_no_space",
+      "validation": "parse",
+      "variants": []
+    },
+    {
+      "behaviors": [
+        "delimiter_prefer_spaced"
+      ],
+      "conflicts": {
+        "behaviors": [
+          "delimiter_first_equals"
+        ]
+      },
+      "expected": {
+        "count": 1,
+        "object": {
+          "key": "value"
+        }
+      },
+      "features": [],
+      "functions": [
+        "build_hierarchy"
+      ],
+      "inputs": [
+        "key=value"
+      ],
+      "name": "delimiter_spaced_fallback_no_space_build_hierarchy",
+      "source_test": "delimiter_spaced_fallback_no_space",
+      "validation": "build_hierarchy",
+      "variants": []
+    },
+    {
+      "behaviors": [
+        "delimiter_prefer_spaced"
+      ],
+      "conflicts": {
+        "behaviors": [
+          "delimiter_first_equals"
+        ]
+      },
+      "expected": {
+        "count": 1,
+        "entries": [
+          {
+            "key": "a=b",
+            "value": ""
+          }
+        ]
+      },
+      "features": [],
+      "functions": [
+        "parse"
+      ],
+      "inputs": [
+        "a=b ="
+      ],
+      "name": "delimiter_spaced_empty_value_parse",
+      "source_test": "delimiter_spaced_empty_value",
+      "validation": "parse",
+      "variants": []
+    },
+    {
+      "behaviors": [
+        "delimiter_prefer_spaced"
+      ],
+      "conflicts": {
+        "behaviors": [
+          "delimiter_first_equals"
+        ]
+      },
+      "expected": {
+        "count": 1,
+        "object": {
+          "a=b": ""
+        }
+      },
+      "features": [],
+      "functions": [
+        "build_hierarchy"
+      ],
+      "inputs": [
+        "a=b ="
+      ],
+      "name": "delimiter_spaced_empty_value_build_hierarchy",
+      "source_test": "delimiter_spaced_empty_value",
       "validation": "build_hierarchy",
       "variants": []
     },

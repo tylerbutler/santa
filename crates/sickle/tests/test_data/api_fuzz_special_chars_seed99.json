@@ -1,5 +1,5 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$schema": "https://raw.githubusercontent.com/CatConfLang/ccl-test-data/v0.6.0/schemas/generated-format.json",
   "tests": [
     {
       "behaviors": [],
@@ -283,7 +283,7 @@
         "count": 1,
         "entries": [
           {
-            "key": "\u0026",
+            "key": "&",
             "value": "val520"
           }
         ]
@@ -293,7 +293,7 @@
         "parse"
       ],
       "inputs": [
-        "\u0026 = val520"
+        "& = val520"
       ],
       "name": "s99_fuzz_single_ampersand_parse",
       "source_test": "s99_fuzz_single_ampersand",
@@ -352,7 +352,7 @@
         "count": 1,
         "entries": [
           {
-            "key": "[*\u003e",
+            "key": "[*>",
             "value": "combo828"
           }
         ]
@@ -362,7 +362,7 @@
         "parse"
       ],
       "inputs": [
-        "[*\u003e = combo828"
+        "[*> = combo828"
       ],
       "name": "s99_fuzz_combo_lbracket_asterisk_gt_parse",
       "source_test": "s99_fuzz_combo_lbracket_asterisk_gt",
@@ -421,7 +421,7 @@
         "count": 1,
         "entries": [
           {
-            "key": "_[\u003c\\",
+            "key": "_[<\\",
             "value": "combo602"
           }
         ]
@@ -431,7 +431,7 @@
         "parse"
       ],
       "inputs": [
-        "_[\u003c\\ = combo602"
+        "_[<\\ = combo602"
       ],
       "name": "s99_fuzz_combo_underscore_lbracket_lt_backslash_parse",
       "source_test": "s99_fuzz_combo_underscore_lbracket_lt_backslash",
@@ -444,7 +444,7 @@
         "count": 1,
         "entries": [
           {
-            "key": "\u0026(\"",
+            "key": "&(\"",
             "value": "combo48"
           }
         ]
@@ -454,7 +454,7 @@
         "parse"
       ],
       "inputs": [
-        "\u0026(\" = combo48"
+        "&(\" = combo48"
       ],
       "name": "s99_fuzz_combo_ampersand_lparen_dquote_parse",
       "source_test": "s99_fuzz_combo_ampersand_lparen_dquote",
@@ -628,7 +628,7 @@
         "count": 1,
         "entries": [
           {
-            "key": "delta\u003e",
+            "key": "delta>",
             "value": "pos239"
           }
         ]
@@ -638,7 +638,7 @@
         "parse"
       ],
       "inputs": [
-        "delta\u003e = pos239"
+        "delta> = pos239"
       ],
       "name": "s99_fuzz_pos_end_gt_delta_parse",
       "source_test": "s99_fuzz_pos_end_gt_delta",
@@ -720,7 +720,7 @@
         "count": 1,
         "entries": [
           {
-            "key": "\u003calpha",
+            "key": "<alpha",
             "value": "pos633"
           }
         ]
@@ -730,7 +730,7 @@
         "parse"
       ],
       "inputs": [
-        "\u003calpha = pos633"
+        "<alpha = pos633"
       ],
       "name": "s99_fuzz_pos_start_lt_alpha_parse",
       "source_test": "s99_fuzz_pos_start_lt_alpha",
@@ -1023,7 +1023,7 @@
         "entries": [
           {
             "key": "path",
-            "value": "data~x4\u003ex82~x46"
+            "value": "data~x4>x82~x46"
           }
         ]
       },
@@ -1034,7 +1034,7 @@
         "parse"
       ],
       "inputs": [
-        "path = data~x4\u003ex82~x46"
+        "path = data~x4>x82~x46"
       ],
       "name": "s99_fuzz_val_path_3_parse",
       "source_test": "s99_fuzz_val_path_3",
@@ -1046,7 +1046,7 @@
       "expected": {
         "count": 1,
         "object": {
-          "path": "data~x4\u003ex82~x46"
+          "path": "data~x4>x82~x46"
         }
       },
       "features": [
@@ -1056,7 +1056,7 @@
         "build_hierarchy"
       ],
       "inputs": [
-        "path = data~x4\u003ex82~x46"
+        "path = data~x4>x82~x46"
       ],
       "name": "s99_fuzz_val_path_3_build_hierarchy",
       "source_test": "s99_fuzz_val_path_3",
@@ -1070,7 +1070,7 @@
       "behaviors": [],
       "expected": {
         "count": 1,
-        "value": "data~x4\u003ex82~x46"
+        "value": "data~x4>x82~x46"
       },
       "features": [
         "optional_typed_accessors"
@@ -1079,7 +1079,7 @@
         "get_string"
       ],
       "inputs": [
-        "path = data~x4\u003ex82~x46"
+        "path = data~x4>x82~x46"
       ],
       "name": "s99_fuzz_val_path_3_get_string",
       "source_test": "s99_fuzz_val_path_3",
@@ -1093,7 +1093,7 @@
         "entries": [
           {
             "key": "alpha",
-            "value": "data\u003cx11[x43"
+            "value": "data<x11[x43"
           }
         ]
       },
@@ -1104,7 +1104,7 @@
         "parse"
       ],
       "inputs": [
-        "alpha = data\u003cx11[x43"
+        "alpha = data<x11[x43"
       ],
       "name": "s99_fuzz_val_alpha_4_parse",
       "source_test": "s99_fuzz_val_alpha_4",
@@ -1116,7 +1116,7 @@
       "expected": {
         "count": 1,
         "object": {
-          "alpha": "data\u003cx11[x43"
+          "alpha": "data<x11[x43"
         }
       },
       "features": [
@@ -1126,7 +1126,7 @@
         "build_hierarchy"
       ],
       "inputs": [
-        "alpha = data\u003cx11[x43"
+        "alpha = data<x11[x43"
       ],
       "name": "s99_fuzz_val_alpha_4_build_hierarchy",
       "source_test": "s99_fuzz_val_alpha_4",
@@ -1140,7 +1140,7 @@
       "behaviors": [],
       "expected": {
         "count": 1,
-        "value": "data\u003cx11[x43"
+        "value": "data<x11[x43"
       },
       "features": [
         "optional_typed_accessors"
@@ -1149,7 +1149,7 @@
         "get_string"
       ],
       "inputs": [
-        "alpha = data\u003cx11[x43"
+        "alpha = data<x11[x43"
       ],
       "name": "s99_fuzz_val_alpha_4_get_string",
       "source_test": "s99_fuzz_val_alpha_4",
@@ -1237,7 +1237,7 @@
         "count": 2,
         "entries": [
           {
-            "key": "\u003cport",
+            "key": "<port",
             "value": "nested722"
           },
           {
@@ -1253,7 +1253,7 @@
         "parse"
       ],
       "inputs": [
-        "\u003cport = nested722\n%config = deep795"
+        "<port = nested722\n%config = deep795"
       ],
       "name": "s99_fuzz_nested_lt_percent_1_parse",
       "source_test": "s99_fuzz_nested_lt_percent_1",
@@ -1266,7 +1266,7 @@
         "count": 1,
         "object": {
           "%config": "deep795",
-          "\u003cport": "nested722"
+          "<port": "nested722"
         }
       },
       "features": [
@@ -1276,7 +1276,7 @@
         "build_hierarchy"
       ],
       "inputs": [
-        "\u003cport = nested722\n%config = deep795"
+        "<port = nested722\n%config = deep795"
       ],
       "name": "s99_fuzz_nested_lt_percent_1_build_hierarchy",
       "source_test": "s99_fuzz_nested_lt_percent_1",
@@ -1285,7 +1285,7 @@
     },
     {
       "args": [
-        "\u003cport"
+        "<port"
       ],
       "behaviors": [],
       "expected": {
@@ -1299,7 +1299,7 @@
         "get_string"
       ],
       "inputs": [
-        "\u003cport = nested722\n%config = deep795"
+        "<port = nested722\n%config = deep795"
       ],
       "name": "s99_fuzz_nested_lt_percent_1_get_string",
       "source_test": "s99_fuzz_nested_lt_percent_1",
@@ -1841,7 +1841,7 @@
             "value": "nested761"
           },
           {
-            "key": "\u0026port",
+            "key": "&port",
             "value": "deep211"
           }
         ]
@@ -1853,7 +1853,7 @@
         "parse"
       ],
       "inputs": [
-        "%epsilon = nested761\n\u0026port = deep211"
+        "%epsilon = nested761\n&port = deep211"
       ],
       "name": "s99_fuzz_nested_percent_ampersand_9_parse",
       "source_test": "s99_fuzz_nested_percent_ampersand_9",
@@ -1866,7 +1866,7 @@
         "count": 1,
         "object": {
           "%epsilon": "nested761",
-          "\u0026port": "deep211"
+          "&port": "deep211"
         }
       },
       "features": [
@@ -1876,7 +1876,7 @@
         "build_hierarchy"
       ],
       "inputs": [
-        "%epsilon = nested761\n\u0026port = deep211"
+        "%epsilon = nested761\n&port = deep211"
       ],
       "name": "s99_fuzz_nested_percent_ampersand_9_build_hierarchy",
       "source_test": "s99_fuzz_nested_percent_ampersand_9",
@@ -1899,7 +1899,7 @@
         "get_string"
       ],
       "inputs": [
-        "%epsilon = nested761\n\u0026port = deep211"
+        "%epsilon = nested761\n&port = deep211"
       ],
       "name": "s99_fuzz_nested_percent_ampersand_9_get_string",
       "source_test": "s99_fuzz_nested_percent_ampersand_9",

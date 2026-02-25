@@ -1,5 +1,5 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$schema": "https://raw.githubusercontent.com/CatConfLang/ccl-test-data/v0.6.0/schemas/generated-format.json",
   "tests": [
     {
       "behaviors": [],
@@ -725,7 +725,7 @@
           },
           {
             "key": "symbols",
-            "value": "!^\u0026*()"
+            "value": "!^&*()"
           },
           {
             "key": "symbols",
@@ -738,7 +738,7 @@
         "parse"
       ],
       "inputs": [
-        "symbols = @#$%\nsymbols = !^\u0026*()\nsymbols = []{}|"
+        "symbols = @#$%\nsymbols = !^&*()\nsymbols = []{}|"
       ],
       "name": "list_with_special_characters_reference_parse",
       "source_test": "list_with_special_characters_reference",
@@ -758,7 +758,7 @@
         "count": 1,
         "object": {
           "symbols": [
-            "!^\u0026*()",
+            "!^&*()",
             "@#$%",
             "[]{}|"
           ]
@@ -769,7 +769,7 @@
         "build_hierarchy"
       ],
       "inputs": [
-        "symbols = @#$%\nsymbols = !^\u0026*()\nsymbols = []{}|"
+        "symbols = @#$%\nsymbols = !^&*()\nsymbols = []{}|"
       ],
       "name": "list_with_special_characters_reference_build_hierarchy",
       "source_test": "list_with_special_characters_reference",
@@ -798,7 +798,7 @@
         "get_list"
       ],
       "inputs": [
-        "symbols = @#$%\nsymbols = !^\u0026*()\nsymbols = []{}|"
+        "symbols = @#$%\nsymbols = !^&*()\nsymbols = []{}|"
       ],
       "name": "list_with_special_characters_reference_get_list",
       "source_test": "list_with_special_characters_reference",
