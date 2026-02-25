@@ -1,5 +1,5 @@
 {
-  "$schema": "https://raw.githubusercontent.com/CatConfLang/ccl-test-data/v0.5.0/schemas/generated-format.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
   "tests": [
     {
       "behaviors": [],
@@ -980,7 +980,7 @@
           },
           {
             "key": "symbols",
-            "value": "!^&*()"
+            "value": "!^\u0026*()"
           },
           {
             "key": "symbols",
@@ -988,7 +988,7 @@
           },
           {
             "key": "symbols",
-            "value": "<>=+"
+            "value": "\u003c\u003e=+"
           }
         ]
       },
@@ -997,7 +997,7 @@
         "parse"
       ],
       "inputs": [
-        "symbols = @#$%\nsymbols = !^&*()\nsymbols = []{}|\nsymbols = <>=+"
+        "symbols = @#$%\nsymbols = !^\u0026*()\nsymbols = []{}|\nsymbols = \u003c\u003e=+"
       ],
       "name": "list_with_special_characters_parse",
       "source_test": "list_with_special_characters",
@@ -1013,9 +1013,9 @@
         "object": {
           "symbols": [
             "@#$%",
-            "!^&*()",
+            "!^\u0026*()",
             "[]{}|",
-            "<>=+"
+            "\u003c\u003e=+"
           ]
         }
       },
@@ -1024,7 +1024,7 @@
         "build_hierarchy"
       ],
       "inputs": [
-        "symbols = @#$%\nsymbols = !^&*()\nsymbols = []{}|\nsymbols = <>=+"
+        "symbols = @#$%\nsymbols = !^\u0026*()\nsymbols = []{}|\nsymbols = \u003c\u003e=+"
       ],
       "name": "list_with_special_characters_build_hierarchy",
       "source_test": "list_with_special_characters",
@@ -1049,9 +1049,9 @@
         "count": 4,
         "list": [
           "@#$%",
-          "!^&*()",
+          "!^\u0026*()",
           "[]{}|",
-          "<>=+"
+          "\u003c\u003e=+"
         ]
       },
       "features": [],
@@ -1059,7 +1059,7 @@
         "get_list"
       ],
       "inputs": [
-        "symbols = @#$%\nsymbols = !^&*()\nsymbols = []{}|\nsymbols = <>=+"
+        "symbols = @#$%\nsymbols = !^\u0026*()\nsymbols = []{}|\nsymbols = \u003c\u003e=+"
       ],
       "name": "list_with_special_characters_get_list",
       "source_test": "list_with_special_characters",

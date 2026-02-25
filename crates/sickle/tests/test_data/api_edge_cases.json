@@ -1,5 +1,5 @@
 {
-  "$schema": "https://raw.githubusercontent.com/CatConfLang/ccl-test-data/v0.5.0/schemas/generated-format.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
   "tests": [
     {
       "behaviors": [],
@@ -1426,6 +1426,1091 @@
       ],
       "name": "url_like_keys_build_hierarchy",
       "source_test": "url_like_keys",
+      "validation": "build_hierarchy",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "entries": [
+          {
+            "key": "../..",
+            "value": "up_two_levels"
+          }
+        ]
+      },
+      "features": [],
+      "functions": [
+        "parse"
+      ],
+      "inputs": [
+        "../.. = up_two_levels"
+      ],
+      "name": "relative_path_parent_parent_parse",
+      "source_test": "relative_path_parent_parent",
+      "validation": "parse",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "../..": "up_two_levels"
+        }
+      },
+      "features": [],
+      "functions": [
+        "build_hierarchy"
+      ],
+      "inputs": [
+        "../.. = up_two_levels"
+      ],
+      "name": "relative_path_parent_parent_build_hierarchy",
+      "source_test": "relative_path_parent_parent",
+      "validation": "build_hierarchy",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "entries": [
+          {
+            "key": "../",
+            "value": "parent_dir"
+          }
+        ]
+      },
+      "features": [],
+      "functions": [
+        "parse"
+      ],
+      "inputs": [
+        "../ = parent_dir"
+      ],
+      "name": "relative_path_parent_parse",
+      "source_test": "relative_path_parent",
+      "validation": "parse",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "../": "parent_dir"
+        }
+      },
+      "features": [],
+      "functions": [
+        "build_hierarchy"
+      ],
+      "inputs": [
+        "../ = parent_dir"
+      ],
+      "name": "relative_path_parent_build_hierarchy",
+      "source_test": "relative_path_parent",
+      "validation": "build_hierarchy",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "entries": [
+          {
+            "key": ".",
+            "value": "current_dir"
+          }
+        ]
+      },
+      "features": [],
+      "functions": [
+        "parse"
+      ],
+      "inputs": [
+        ". = current_dir"
+      ],
+      "name": "relative_path_single_dot_parse",
+      "source_test": "relative_path_single_dot",
+      "validation": "parse",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          ".": "current_dir"
+        }
+      },
+      "features": [],
+      "functions": [
+        "build_hierarchy"
+      ],
+      "inputs": [
+        ". = current_dir"
+      ],
+      "name": "relative_path_single_dot_build_hierarchy",
+      "source_test": "relative_path_single_dot",
+      "validation": "build_hierarchy",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "entries": [
+          {
+            "key": "//",
+            "value": "double_slash_value"
+          }
+        ]
+      },
+      "features": [],
+      "functions": [
+        "parse"
+      ],
+      "inputs": [
+        "// = double_slash_value"
+      ],
+      "name": "double_slash_parse",
+      "source_test": "double_slash",
+      "validation": "parse",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "//": "double_slash_value"
+        }
+      },
+      "features": [],
+      "functions": [
+        "build_hierarchy"
+      ],
+      "inputs": [
+        "// = double_slash_value"
+      ],
+      "name": "double_slash_build_hierarchy",
+      "source_test": "double_slash",
+      "validation": "build_hierarchy",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "entries": [
+          {
+            "key": "path",
+            "value": "../../src"
+          }
+        ]
+      },
+      "features": [],
+      "functions": [
+        "parse"
+      ],
+      "inputs": [
+        "path = ../../src"
+      ],
+      "name": "relative_path_in_value_parse",
+      "source_test": "relative_path_in_value",
+      "validation": "parse",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "path": "../../src"
+        }
+      },
+      "features": [],
+      "functions": [
+        "build_hierarchy"
+      ],
+      "inputs": [
+        "path = ../../src"
+      ],
+      "name": "relative_path_in_value_build_hierarchy",
+      "source_test": "relative_path_in_value",
+      "validation": "build_hierarchy",
+      "variants": []
+    },
+    {
+      "args": [
+        "path"
+      ],
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "value": "../../src"
+      },
+      "features": [],
+      "functions": [
+        "get_string"
+      ],
+      "inputs": [
+        "path = ../../src"
+      ],
+      "name": "relative_path_in_value_get_string",
+      "source_test": "relative_path_in_value",
+      "validation": "get_string",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "entries": [
+          {
+            "key": "mappings",
+            "value": "\n  ../foo = ../bar\n  ../../config = ../../data"
+          }
+        ]
+      },
+      "features": [],
+      "functions": [
+        "parse"
+      ],
+      "inputs": [
+        "mappings =\n  ../foo = ../bar\n  ../../config = ../../data"
+      ],
+      "name": "relative_path_in_nested_value_parse",
+      "source_test": "relative_path_in_nested_value",
+      "validation": "parse",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "mappings": {
+            "../../config": "../../data",
+            "../foo": "../bar"
+          }
+        }
+      },
+      "features": [],
+      "functions": [
+        "build_hierarchy"
+      ],
+      "inputs": [
+        "mappings =\n  ../foo = ../bar\n  ../../config = ../../data"
+      ],
+      "name": "relative_path_in_nested_value_build_hierarchy",
+      "source_test": "relative_path_in_nested_value",
+      "validation": "build_hierarchy",
+      "variants": []
+    },
+    {
+      "args": [
+        "mappings",
+        "../foo"
+      ],
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "value": "../bar"
+      },
+      "features": [],
+      "functions": [
+        "get_string"
+      ],
+      "inputs": [
+        "mappings =\n  ../foo = ../bar\n  ../../config = ../../data"
+      ],
+      "name": "relative_path_in_nested_value_get_string",
+      "source_test": "relative_path_in_nested_value",
+      "validation": "get_string",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "entries": [
+          {
+            "key": "urls",
+            "value": "\n  //api = //backup\n  //server = /root"
+          }
+        ]
+      },
+      "features": [],
+      "functions": [
+        "parse"
+      ],
+      "inputs": [
+        "urls =\n  //api = //backup\n  //server = /root"
+      ],
+      "name": "double_slash_in_nested_parse",
+      "source_test": "double_slash_in_nested",
+      "validation": "parse",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "urls": {
+            "//api": "//backup",
+            "//server": "/root"
+          }
+        }
+      },
+      "features": [],
+      "functions": [
+        "build_hierarchy"
+      ],
+      "inputs": [
+        "urls =\n  //api = //backup\n  //server = /root"
+      ],
+      "name": "double_slash_in_nested_build_hierarchy",
+      "source_test": "double_slash_in_nested",
+      "validation": "build_hierarchy",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "entries": [
+          {
+            "key": "config",
+            "value": "\n  build = \n    output = ../../dist\n    cache = ../.cache"
+          }
+        ]
+      },
+      "features": [],
+      "functions": [
+        "parse"
+      ],
+      "inputs": [
+        "config =\n  build =\n    output = ../../dist\n    cache = ../.cache"
+      ],
+      "name": "relative_paths_deeply_nested_parse",
+      "source_test": "relative_paths_deeply_nested",
+      "validation": "parse",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "config": {
+            "build": {
+              "cache": "../.cache",
+              "output": "../../dist"
+            }
+          }
+        }
+      },
+      "features": [],
+      "functions": [
+        "build_hierarchy"
+      ],
+      "inputs": [
+        "config =\n  build =\n    output = ../../dist\n    cache = ../.cache"
+      ],
+      "name": "relative_paths_deeply_nested_build_hierarchy",
+      "source_test": "relative_paths_deeply_nested",
+      "validation": "build_hierarchy",
+      "variants": []
+    },
+    {
+      "args": [
+        "config",
+        "build",
+        "cache"
+      ],
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "value": "../.cache"
+      },
+      "features": [],
+      "functions": [
+        "get_string"
+      ],
+      "inputs": [
+        "config =\n  build =\n    output = ../../dist\n    cache = ../.cache"
+      ],
+      "name": "relative_paths_deeply_nested_get_string",
+      "source_test": "relative_paths_deeply_nested",
+      "validation": "get_string",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "entries": [
+          {
+            "key": "imports",
+            "value": "\n  .. = \n    main = ../src/main\n    test = ../tests"
+          }
+        ]
+      },
+      "features": [],
+      "functions": [
+        "parse"
+      ],
+      "inputs": [
+        "imports =\n  .. =\n    main = ../src/main\n    test = ../tests"
+      ],
+      "name": "relative_paths_as_nested_keys_parse",
+      "source_test": "relative_paths_as_nested_keys",
+      "validation": "parse",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "imports": {
+            "..": {
+              "main": "../src/main",
+              "test": "../tests"
+            }
+          }
+        }
+      },
+      "features": [],
+      "functions": [
+        "build_hierarchy"
+      ],
+      "inputs": [
+        "imports =\n  .. =\n    main = ../src/main\n    test = ../tests"
+      ],
+      "name": "relative_paths_as_nested_keys_build_hierarchy",
+      "source_test": "relative_paths_as_nested_keys",
+      "validation": "build_hierarchy",
+      "variants": []
+    },
+    {
+      "args": [
+        "imports",
+        "..",
+        "main"
+      ],
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "value": "../src/main"
+      },
+      "features": [],
+      "functions": [
+        "get_string"
+      ],
+      "inputs": [
+        "imports =\n  .. =\n    main = ../src/main\n    test = ../tests"
+      ],
+      "name": "relative_paths_as_nested_keys_get_string",
+      "source_test": "relative_paths_as_nested_keys",
+      "validation": "get_string",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "entries": [
+          {
+            "key": "paths",
+            "value": "\n  relative = \n    up = ../../\n    current = .\n  absolute = \n    root = /"
+          }
+        ]
+      },
+      "features": [],
+      "functions": [
+        "parse"
+      ],
+      "inputs": [
+        "paths =\n  relative =\n    up = ../../\n    current = .\n  absolute =\n    root = /"
+      ],
+      "name": "mixed_relative_and_absolute_nested_parse",
+      "source_test": "mixed_relative_and_absolute_nested",
+      "validation": "parse",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "paths": {
+            "absolute": {
+              "root": "/"
+            },
+            "relative": {
+              "current": ".",
+              "up": "../../"
+            }
+          }
+        }
+      },
+      "features": [],
+      "functions": [
+        "build_hierarchy"
+      ],
+      "inputs": [
+        "paths =\n  relative =\n    up = ../../\n    current = .\n  absolute =\n    root = /"
+      ],
+      "name": "mixed_relative_and_absolute_nested_build_hierarchy",
+      "source_test": "mixed_relative_and_absolute_nested",
+      "validation": "build_hierarchy",
+      "variants": []
+    },
+    {
+      "args": [
+        "paths",
+        "relative",
+        "up"
+      ],
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "value": "../../"
+      },
+      "features": [],
+      "functions": [
+        "get_string"
+      ],
+      "inputs": [
+        "paths =\n  relative =\n    up = ../../\n    current = .\n  absolute =\n    root = /"
+      ],
+      "name": "mixed_relative_and_absolute_nested_get_string",
+      "source_test": "mixed_relative_and_absolute_nested",
+      "validation": "get_string",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "entries": [
+          {
+            "key": "servers",
+            "value": "\n  primary = \n    api = //api.example.com\n    cdn = //cdn.example.com\n  secondary = \n    //internal = //backup.example.com"
+          }
+        ]
+      },
+      "features": [],
+      "functions": [
+        "parse"
+      ],
+      "inputs": [
+        "servers =\n  primary =\n    api = //api.example.com\n    cdn = //cdn.example.com\n  secondary =\n    //internal = //backup.example.com"
+      ],
+      "name": "double_slash_deeply_nested_parse",
+      "source_test": "double_slash_deeply_nested",
+      "validation": "parse",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "servers": {
+            "primary": {
+              "api": "//api.example.com",
+              "cdn": "//cdn.example.com"
+            },
+            "secondary": {
+              "//internal": "//backup.example.com"
+            }
+          }
+        }
+      },
+      "features": [],
+      "functions": [
+        "build_hierarchy"
+      ],
+      "inputs": [
+        "servers =\n  primary =\n    api = //api.example.com\n    cdn = //cdn.example.com\n  secondary =\n    //internal = //backup.example.com"
+      ],
+      "name": "double_slash_deeply_nested_build_hierarchy",
+      "source_test": "double_slash_deeply_nested",
+      "validation": "build_hierarchy",
+      "variants": []
+    },
+    {
+      "args": [
+        "servers",
+        "primary",
+        "api"
+      ],
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "value": "//api.example.com"
+      },
+      "features": [],
+      "functions": [
+        "get_string"
+      ],
+      "inputs": [
+        "servers =\n  primary =\n    api = //api.example.com\n    cdn = //cdn.example.com\n  secondary =\n    //internal = //backup.example.com"
+      ],
+      "name": "double_slash_deeply_nested_get_string",
+      "source_test": "double_slash_deeply_nested",
+      "validation": "get_string",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "entries": [
+          {
+            "key": "https://api.example.com",
+            "value": "production"
+          }
+        ]
+      },
+      "features": [],
+      "functions": [
+        "parse"
+      ],
+      "inputs": [
+        "https://api.example.com = production"
+      ],
+      "name": "url_as_key_parse",
+      "source_test": "url_as_key",
+      "validation": "parse",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "https://api.example.com": "production"
+        }
+      },
+      "features": [],
+      "functions": [
+        "build_hierarchy"
+      ],
+      "inputs": [
+        "https://api.example.com = production"
+      ],
+      "name": "url_as_key_build_hierarchy",
+      "source_test": "url_as_key",
+      "validation": "build_hierarchy",
+      "variants": []
+    },
+    {
+      "args": [
+        "https://api.example.com"
+      ],
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "value": "production"
+      },
+      "features": [],
+      "functions": [
+        "get_string"
+      ],
+      "inputs": [
+        "https://api.example.com = production"
+      ],
+      "name": "url_as_key_get_string",
+      "source_test": "url_as_key",
+      "validation": "get_string",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "entries": [
+          {
+            "key": "http://localhost:8080",
+            "value": "dev"
+          }
+        ]
+      },
+      "features": [],
+      "functions": [
+        "parse"
+      ],
+      "inputs": [
+        "http://localhost:8080 = dev"
+      ],
+      "name": "url_with_port_as_key_parse",
+      "source_test": "url_with_port_as_key",
+      "validation": "parse",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "http://localhost:8080": "dev"
+        }
+      },
+      "features": [],
+      "functions": [
+        "build_hierarchy"
+      ],
+      "inputs": [
+        "http://localhost:8080 = dev"
+      ],
+      "name": "url_with_port_as_key_build_hierarchy",
+      "source_test": "url_with_port_as_key",
+      "validation": "build_hierarchy",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "entries": [
+          {
+            "key": "https://api.example.com/v1/users",
+            "value": "users_endpoint"
+          }
+        ]
+      },
+      "features": [],
+      "functions": [
+        "parse"
+      ],
+      "inputs": [
+        "https://api.example.com/v1/users = users_endpoint"
+      ],
+      "name": "url_with_path_as_key_parse",
+      "source_test": "url_with_path_as_key",
+      "validation": "parse",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "https://api.example.com/v1/users": "users_endpoint"
+        }
+      },
+      "features": [],
+      "functions": [
+        "build_hierarchy"
+      ],
+      "inputs": [
+        "https://api.example.com/v1/users = users_endpoint"
+      ],
+      "name": "url_with_path_as_key_build_hierarchy",
+      "source_test": "url_with_path_as_key",
+      "validation": "build_hierarchy",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "entries": [
+          {
+            "key": "endpoint",
+            "value": "https://api.example.com/v1/data"
+          }
+        ]
+      },
+      "features": [],
+      "functions": [
+        "parse"
+      ],
+      "inputs": [
+        "endpoint = https://api.example.com/v1/data"
+      ],
+      "name": "url_in_value_parse",
+      "source_test": "url_in_value",
+      "validation": "parse",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "endpoint": "https://api.example.com/v1/data"
+        }
+      },
+      "features": [],
+      "functions": [
+        "build_hierarchy"
+      ],
+      "inputs": [
+        "endpoint = https://api.example.com/v1/data"
+      ],
+      "name": "url_in_value_build_hierarchy",
+      "source_test": "url_in_value",
+      "validation": "build_hierarchy",
+      "variants": []
+    },
+    {
+      "args": [
+        "endpoint"
+      ],
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "value": "https://api.example.com/v1/data"
+      },
+      "features": [],
+      "functions": [
+        "get_string"
+      ],
+      "inputs": [
+        "endpoint = https://api.example.com/v1/data"
+      ],
+      "name": "url_in_value_get_string",
+      "source_test": "url_in_value",
+      "validation": "get_string",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "entries": [
+          {
+            "key": "mappings",
+            "value": "\n  https://api.example.com = https://prod.example.com\n  https://staging.example.com = https://stage.example.com"
+          }
+        ]
+      },
+      "features": [],
+      "functions": [
+        "parse"
+      ],
+      "inputs": [
+        "mappings =\n  https://api.example.com = https://prod.example.com\n  https://staging.example.com = https://stage.example.com"
+      ],
+      "name": "urls_as_nested_keys_and_values_parse",
+      "source_test": "urls_as_nested_keys_and_values",
+      "validation": "parse",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "mappings": {
+            "https://api.example.com": "https://prod.example.com",
+            "https://staging.example.com": "https://stage.example.com"
+          }
+        }
+      },
+      "features": [],
+      "functions": [
+        "build_hierarchy"
+      ],
+      "inputs": [
+        "mappings =\n  https://api.example.com = https://prod.example.com\n  https://staging.example.com = https://stage.example.com"
+      ],
+      "name": "urls_as_nested_keys_and_values_build_hierarchy",
+      "source_test": "urls_as_nested_keys_and_values",
+      "validation": "build_hierarchy",
+      "variants": []
+    },
+    {
+      "args": [
+        "mappings",
+        "https://api.example.com"
+      ],
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "value": "https://prod.example.com"
+      },
+      "features": [],
+      "functions": [
+        "get_string"
+      ],
+      "inputs": [
+        "mappings =\n  https://api.example.com = https://prod.example.com\n  https://staging.example.com = https://stage.example.com"
+      ],
+      "name": "urls_as_nested_keys_and_values_get_string",
+      "source_test": "urls_as_nested_keys_and_values",
+      "validation": "get_string",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "entries": [
+          {
+            "key": "config",
+            "value": "\n  services = \n    api = \n      url = https://api.example.com\n      backup = https://backup.example.com\n    cdn = \n      url = https://cdn.example.com"
+          }
+        ]
+      },
+      "features": [],
+      "functions": [
+        "parse"
+      ],
+      "inputs": [
+        "config =\n  services =\n    api =\n      url = https://api.example.com\n      backup = https://backup.example.com\n    cdn =\n      url = https://cdn.example.com"
+      ],
+      "name": "urls_deeply_nested_parse",
+      "source_test": "urls_deeply_nested",
+      "validation": "parse",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "config": {
+            "services": {
+              "api": {
+                "backup": "https://backup.example.com",
+                "url": "https://api.example.com"
+              },
+              "cdn": {
+                "url": "https://cdn.example.com"
+              }
+            }
+          }
+        }
+      },
+      "features": [],
+      "functions": [
+        "build_hierarchy"
+      ],
+      "inputs": [
+        "config =\n  services =\n    api =\n      url = https://api.example.com\n      backup = https://backup.example.com\n    cdn =\n      url = https://cdn.example.com"
+      ],
+      "name": "urls_deeply_nested_build_hierarchy",
+      "source_test": "urls_deeply_nested",
+      "validation": "build_hierarchy",
+      "variants": []
+    },
+    {
+      "args": [
+        "config",
+        "services",
+        "api",
+        "url"
+      ],
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "value": "https://api.example.com"
+      },
+      "features": [],
+      "functions": [
+        "get_string"
+      ],
+      "inputs": [
+        "config =\n  services =\n    api =\n      url = https://api.example.com\n      backup = https://backup.example.com\n    cdn =\n      url = https://cdn.example.com"
+      ],
+      "name": "urls_deeply_nested_get_string",
+      "source_test": "urls_deeply_nested",
+      "validation": "get_string",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "entries": [
+          {
+            "key": "https://api.example.com/search?q=test\u0026page=1",
+            "value": "search_results"
+          }
+        ]
+      },
+      "features": [],
+      "functions": [
+        "parse"
+      ],
+      "inputs": [
+        "https://api.example.com/search?q=test\u0026page=1 = search_results"
+      ],
+      "name": "url_with_query_params_as_key_parse",
+      "source_test": "url_with_query_params_as_key",
+      "validation": "parse",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "https://api.example.com/search?q=test\u0026page=1": "search_results"
+        }
+      },
+      "features": [],
+      "functions": [
+        "build_hierarchy"
+      ],
+      "inputs": [
+        "https://api.example.com/search?q=test\u0026page=1 = search_results"
+      ],
+      "name": "url_with_query_params_as_key_build_hierarchy",
+      "source_test": "url_with_query_params_as_key",
+      "validation": "build_hierarchy",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "entries": [
+          {
+            "key": "https://docs.example.com/guide#section-1",
+            "value": "docs_section_1"
+          }
+        ]
+      },
+      "features": [],
+      "functions": [
+        "parse"
+      ],
+      "inputs": [
+        "https://docs.example.com/guide#section-1 = docs_section_1"
+      ],
+      "name": "url_with_fragment_as_key_parse",
+      "source_test": "url_with_fragment_as_key",
+      "validation": "parse",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "https://docs.example.com/guide#section-1": "docs_section_1"
+        }
+      },
+      "features": [],
+      "functions": [
+        "build_hierarchy"
+      ],
+      "inputs": [
+        "https://docs.example.com/guide#section-1 = docs_section_1"
+      ],
+      "name": "url_with_fragment_as_key_build_hierarchy",
+      "source_test": "url_with_fragment_as_key",
       "validation": "build_hierarchy",
       "variants": []
     }

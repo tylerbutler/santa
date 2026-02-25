@@ -335,6 +335,8 @@ impl ImplementationConfig {
                 "get_bool",
                 "get_list",
                 "canonical_format",
+                "print",
+                "round_trip",
             ]
             .iter()
             .map(|s| s.to_string())

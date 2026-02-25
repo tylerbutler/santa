@@ -333,6 +333,7 @@ fn finalize_value(value: &str, options: &ParserOptions) -> String {
 }
 
 /// Build hierarchical structure from flat entries
+#[allow(dead_code)]
 pub(crate) fn parse_to_map(
     input: &str,
     options: &ParserOptions,
@@ -346,6 +347,22 @@ pub(crate) fn parse_to_map(
     }
 
     Ok(result)
+}
+
+/// Parse CCL input into a flat list of key-value entries preserving insertion order.
+///
+/// Unlike `parse_to_map`, this returns entries in their original order without
+/// grouping by key. This is essential for structure-preserving `print()` which
+/// needs to reproduce the original entry interleaving.
+pub(crate) fn parse_to_entries(
+    input: &str,
+    options: &ParserOptions,
+) -> Result<Vec<crate::Entry>> {
+    let entries = parse_entries(input, options);
+    Ok(entries
+        .into_iter()
+        .map(|e| crate::Entry::new(e.key, e.value))
+        .collect())
 }
 
 // Unit tests removed - all parser functionality is covered by data-driven tests in:

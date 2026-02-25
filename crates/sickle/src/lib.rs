@@ -99,7 +99,7 @@ pub use model::{BoolOptions, CclObject, Entry, ListOptions};
 pub use options::{CrlfBehavior, ParserOptions, SpacingBehavior, TabBehavior};
 
 #[cfg(feature = "printer")]
-pub use printer::{CclPrinter, PrinterConfig};
+pub use printer::{print, round_trip, CclPrinter, PrinterConfig};
 
 /// Parse a CCL string into a flat list of entries
 ///
@@ -147,17 +147,10 @@ pub fn parse_with_options(input: &str, options: &ParserOptions) -> Result<Vec<En
 /// Internal implementation of parse_with_options
 #[cfg(feature = "parse")]
 fn parse_with_options_internal(input: &str, options: &ParserOptions) -> Result<Vec<Entry>> {
-    let map = parser::parse_to_map(input, options)?;
-
-    // Convert IndexMap<String, Vec<String>> to Vec<Entry>
-    let mut entries = Vec::new();
-    for (key, values) in map {
-        for value in values {
-            entries.push(Entry::new(key.clone(), value));
-        }
-    }
-
-    Ok(entries)
+    // Return entries in original insertion order (not grouped by key).
+    // This preserves interleaving of duplicate keys, which is essential
+    // for structure-preserving print(): print(parse(x)) == x
+    parser::parse_to_entries(input, options)
 }
 
 /// Build a hierarchical Model from a flat list of entries
