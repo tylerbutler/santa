@@ -104,6 +104,25 @@ impl TabBehavior {
     }
 }
 
+/// Type-safe representation of mutually exclusive delimiter strategy behaviors
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum DelimiterBehavior {
+    /// Split on the first `=` character (reference implementation behavior)
+    FirstEquals,
+    /// Prefer ` = ` (space-equals-space) when multiple `=` exist, allowing `=` in keys
+    PreferSpaced,
+}
+
+impl DelimiterBehavior {
+    /// Get the string identifier for this behavior
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            Self::FirstEquals => "delimiter_first_equals",
+            Self::PreferSpaced => "delimiter_prefer_spaced",
+        }
+    }
+}
+
 /// Type-safe representation of mutually exclusive array ordering behaviors
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ArrayOrderBehavior {
@@ -279,6 +298,9 @@ pub struct ImplementationConfig {
     /// Supported list coercion behaviors (access-time configurable via ListOptions)
     /// When both are present, the test runner will use the appropriate option based on the test
     pub supported_list_coercion_behaviors: HashSet<ListCoercionBehavior>,
+    /// Supported delimiter strategy behaviors (parse-time configurable via ParserOptions)
+    /// When both are present, the test runner selects based on test behaviors
+    pub supported_delimiter_behaviors: HashSet<DelimiterBehavior>,
 }
 
 impl ImplementationConfig {
@@ -375,6 +397,13 @@ impl ImplementationConfig {
             ]
             .into_iter()
             .collect(),
+            // Delimiter strategy is parse-time configurable via ParserOptions - we support both
+            supported_delimiter_behaviors: [
+                DelimiterBehavior::FirstEquals,
+                DelimiterBehavior::PreferSpaced,
+            ]
+            .into_iter()
+            .collect(),
         }
     }
 
@@ -403,6 +432,9 @@ impl ImplementationConfig {
             behaviors.insert(b.as_str().to_string());
         }
         for b in &self.supported_list_coercion_behaviors {
+            behaviors.insert(b.as_str().to_string());
+        }
+        for b in &self.supported_delimiter_behaviors {
             behaviors.insert(b.as_str().to_string());
         }
 
@@ -455,6 +487,13 @@ impl ImplementationConfig {
             "array_order_lexicographic" => {
                 self.array_order_behavior == ArrayOrderBehavior::Lexicographic
             }
+            // Delimiter strategy is parse-time configurable
+            "delimiter_first_equals" => self
+                .supported_delimiter_behaviors
+                .contains(&DelimiterBehavior::FirstEquals),
+            "delimiter_prefer_spaced" => self
+                .supported_delimiter_behaviors
+                .contains(&DelimiterBehavior::PreferSpaced),
             _ => false, // Unknown behavior
         }
     }

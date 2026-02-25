@@ -5,7 +5,9 @@ mod common;
 use colored::Colorize;
 
 use common::{load_all_test_suites, ImplementationConfig, TestCase, TestSuite};
-use sickle::options::{CrlfBehavior, ParserOptions, SpacingBehavior, TabBehavior};
+use sickle::options::{
+    CrlfBehavior, DelimiterStrategy, ParserOptions, SpacingBehavior, TabBehavior,
+};
 use sickle::{
     build_hierarchy, load_with_options, parse_indented_with_options, parse_with_options, CclPrinter,
 };
@@ -31,6 +33,15 @@ fn options_from_test(test: &TestCase) -> ParserOptions {
         options = options.with_crlf(CrlfBehavior::NormalizeToLf);
     }
     // crlf_preserve is the default, no need to set explicitly
+
+    // Check for delimiter strategy behavior
+    if test
+        .behaviors
+        .contains(&"delimiter_prefer_spaced".to_string())
+    {
+        options = options.with_delimiter(DelimiterStrategy::PreferSpaced);
+    }
+    // delimiter_first_equals is the default, no need to set explicitly
 
     options
 }

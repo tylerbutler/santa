@@ -96,7 +96,7 @@ pub use model::{BoolOptions, CclObject, Entry, ListOptions};
 
 // Re-export options types for crate-internal use
 // ParserOptions is pub(crate) for now until API stabilizes
-pub use options::{CrlfBehavior, ParserOptions, SpacingBehavior, TabBehavior};
+pub use options::{CrlfBehavior, DelimiterStrategy, ParserOptions, SpacingBehavior, TabBehavior};
 
 #[cfg(feature = "printer")]
 pub use printer::{print, round_trip, CclPrinter, PrinterConfig};
