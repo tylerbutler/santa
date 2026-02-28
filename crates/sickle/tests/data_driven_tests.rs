@@ -1287,10 +1287,7 @@ fn test_all_ccl_suites_comprehensive() {
                             if let Some(expected_bool) = expected_value.as_bool() {
                                 let result = sickle::printer::round_trip(test.input())
                                     .unwrap_or_else(|e| {
-                                        panic!(
-                                            "Test '{}' round_trip failed: {}",
-                                            test.name, e
-                                        );
+                                        panic!("Test '{}' round_trip failed: {}", test.name, e);
                                     });
 
                                 assert_eq!(
@@ -1312,15 +1309,11 @@ fn test_all_ccl_suites_comprehensive() {
                             }
                         } else {
                             // No expected value: just verify round-trip succeeds
-                            let result = sickle::printer::round_trip(test.input())
-                                .unwrap_or_else(|e| {
+                            let result =
+                                sickle::printer::round_trip(test.input()).unwrap_or_else(|e| {
                                     panic!("Test '{}' round_trip failed: {}", test.name, e);
                                 });
-                            assert!(
-                                result,
-                                "Test '{}': round_trip expected true",
-                                test.name
-                            );
+                            assert!(result, "Test '{}': round_trip expected true", test.name);
                         }
                     }
                     "canonical_format" => {

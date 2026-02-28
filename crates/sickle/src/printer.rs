@@ -344,10 +344,7 @@ mod tests {
         let input = "script =\n  #!/bin/bash\n  echo hello\n  exit 0";
         let entries = crate::parse(input).unwrap();
         let output = print(&entries);
-        assert_eq!(
-            output,
-            "script = \n  #!/bin/bash\n  echo hello\n  exit 0"
-        );
+        assert_eq!(output, "script = \n  #!/bin/bash\n  echo hello\n  exit 0");
     }
 
     #[test]
@@ -373,7 +370,8 @@ mod tests {
     #[test]
     fn test_print_mixed_content() {
         // Entry preservation: duplicate empty-key entries maintain original interleaving
-        let input = "name = Alice\n= first item\nconfig =\n  port = 3000\n= second item\nfinal = value";
+        let input =
+            "name = Alice\n= first item\nconfig =\n  port = 3000\n= second item\nfinal = value";
         let entries = crate::parse(input).unwrap();
         let output = print(&entries);
         assert_eq!(
@@ -429,7 +427,8 @@ mod tests {
         // for empty keys, and the parser treats leading-space lines as continuation lines.
         // This is a known test data issue — the print format and parser expectations
         // are incompatible for empty keys at the top level.
-        let input = "name = Alice\n= first item\nconfig =\n  port = 3000\n= second item\nfinal = value";
+        let input =
+            "name = Alice\n= first item\nconfig =\n  port = 3000\n= second item\nfinal = value";
         let entries = crate::parse(input).unwrap();
         let printed = print(&entries);
         // Verify print preserves interleaved order

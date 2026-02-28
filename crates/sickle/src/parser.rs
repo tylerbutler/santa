@@ -368,10 +368,7 @@ pub(crate) fn parse_to_map(
 /// Unlike `parse_to_map`, this returns entries in their original order without
 /// grouping by key. This is essential for structure-preserving `print()` which
 /// needs to reproduce the original entry interleaving.
-pub(crate) fn parse_to_entries(
-    input: &str,
-    options: &ParserOptions,
-) -> Result<Vec<crate::Entry>> {
+pub(crate) fn parse_to_entries(input: &str, options: &ParserOptions) -> Result<Vec<crate::Entry>> {
     let entries = parse_entries(input, options);
     Ok(entries
         .into_iter()
