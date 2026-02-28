@@ -5,7 +5,9 @@ mod common;
 use colored::Colorize;
 
 use common::{load_all_test_suites, ImplementationConfig, TestCase, TestSuite};
-use sickle::options::{CrlfBehavior, ParserOptions, SpacingBehavior, TabBehavior};
+use sickle::options::{
+    CrlfBehavior, DelimiterStrategy, ParserOptions, SpacingBehavior, TabBehavior,
+};
 use sickle::{
     build_hierarchy, load_with_options, parse_indented_with_options, parse_with_options, CclPrinter,
 };
@@ -31,6 +33,15 @@ fn options_from_test(test: &TestCase) -> ParserOptions {
         options = options.with_crlf(CrlfBehavior::NormalizeToLf);
     }
     // crlf_preserve is the default, no need to set explicitly
+
+    // Check for delimiter strategy behavior
+    if test
+        .behaviors
+        .contains(&"delimiter_prefer_spaced".to_string())
+    {
+        options = options.with_delimiter(DelimiterStrategy::PreferSpaced);
+    }
+    // delimiter_first_equals is the default, no need to set explicitly
 
     options
 }
@@ -1243,6 +1254,66 @@ fn test_all_ccl_suites_comprehensive() {
                                 expected_float,
                                 actual_float
                             );
+                        }
+                    }
+                    "print" => {
+                        // Parse input to entries, then print back to CCL text
+                        let entries = entries.unwrap_or_else(|e| {
+                            panic!("Test '{}' failed to parse: {}", test.name, e);
+                        });
+
+                        let output = sickle::printer::print(&entries);
+
+                        if let Some(ref expected_value) = test.expected.value {
+                            let expected_str = expected_value.as_str().unwrap_or_else(|| {
+                                panic!("Test '{}': expected value is not a string", test.name)
+                            });
+
+                            assert_eq!(
+                                output, expected_str,
+                                "Test '{}': print output mismatch",
+                                test.name
+                            );
+                        }
+                    }
+                    "round_trip" => {
+                        // Verify parse(print(parse(x))) == parse(x)
+                        // Expected value can be:
+                        // - boolean true/false: verify round-trip property holds
+                        // - string: verify that print(parse(x)) produces the expected string
+                        // - absent: just verify round-trip succeeds (defaults to true)
+
+                        if let Some(ref expected_value) = test.expected.value {
+                            if let Some(expected_bool) = expected_value.as_bool() {
+                                let result = sickle::printer::round_trip(test.input())
+                                    .unwrap_or_else(|e| {
+                                        panic!("Test '{}' round_trip failed: {}", test.name, e);
+                                    });
+
+                                assert_eq!(
+                                    result, expected_bool,
+                                    "Test '{}': round_trip expected {}, got {}",
+                                    test.name, expected_bool, result
+                                );
+                            } else if let Some(expected_str) = expected_value.as_str() {
+                                // String expectation: verify print output matches
+                                let entry_list = entries.unwrap_or_else(|e| {
+                                    panic!("Test '{}' failed to parse: {}", test.name, e);
+                                });
+                                let output = sickle::printer::print(&entry_list);
+                                assert_eq!(
+                                    output, expected_str,
+                                    "Test '{}': round_trip print output mismatch",
+                                    test.name
+                                );
+                            }
+                        } else {
+                            // No expected value: just verify round-trip succeeds
+                            let result =
+                                sickle::printer::round_trip(test.input()).unwrap_or_else(|e| {
+                                    panic!("Test '{}' round_trip failed: {}", test.name, e);
+                                });
+                            assert!(result, "Test '{}': round_trip expected true", test.name);
                         }
                     }
                     "canonical_format" => {
