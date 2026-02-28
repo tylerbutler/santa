@@ -239,8 +239,10 @@ fn build_model(map: indexmap::IndexMap<String, Vec<String>>) -> Result<CclObject
         let mut nested_values = Vec::new();
 
         for value in values {
-            if value.contains('=') {
-                // Contains '=' - might be nested CCL
+            if value.contains('\n') && value.contains('=') {
+                // Multiline value containing '=' - might be nested CCL
+                // Only multiline values (with newlines) can be nested structures.
+                // Inline values like "b = c=d" are plain strings, not nested CCL.
                 // Try to parse recursively
                 match load(&value) {
                     Ok(parsed) => {

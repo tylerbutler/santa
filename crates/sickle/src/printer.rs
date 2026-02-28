@@ -66,7 +66,14 @@ use crate::Entry;
 pub fn print(entries: &[Entry]) -> String {
     entries
         .iter()
-        .map(|entry| format!("{} = {}", entry.key, entry.value))
+        .map(|entry| {
+            if entry.key.is_empty() {
+                // Empty keys use bare list syntax: `= value` (no leading space)
+                format!("= {}", entry.value)
+            } else {
+                format!("{} = {}", entry.key, entry.value)
+            }
+        })
         .collect::<Vec<_>>()
         .join("\n")
 }
@@ -325,7 +332,7 @@ mod tests {
         let input = "= item1\n= item2\nregular = value";
         let entries = crate::parse(input).unwrap();
         let output = print(&entries);
-        assert_eq!(output, " = item1\n = item2\nregular = value");
+        assert_eq!(output, "= item1\n= item2\nregular = value");
     }
 
     #[test]
@@ -376,7 +383,7 @@ mod tests {
         let output = print(&entries);
         assert_eq!(
             output,
-            "name = Alice\n = first item\nconfig = \n  port = 3000\n = second item\nfinal = value"
+            "name = Alice\n= first item\nconfig = \n  port = 3000\n= second item\nfinal = value"
         );
     }
 
@@ -423,10 +430,8 @@ mod tests {
     #[test]
     fn test_round_trip_mixed_content() {
         // print() preserves interleaved entry order thanks to entry preservation.
-        // However, full round_trip fails because print outputs ` = item` (leading space)
-        // for empty keys, and the parser treats leading-space lines as continuation lines.
-        // This is a known test data issue — the print format and parser expectations
-        // are incompatible for empty keys at the top level.
+        // Empty keys use `= value` format (no leading space), which correctly
+        // re-parses as a new entry at base indentation level.
         let input =
             "name = Alice\n= first item\nconfig =\n  port = 3000\n= second item\nfinal = value";
         let entries = crate::parse(input).unwrap();
@@ -434,10 +439,11 @@ mod tests {
         // Verify print preserves interleaved order
         assert_eq!(
             printed,
-            "name = Alice\n = first item\nconfig = \n  port = 3000\n = second item\nfinal = value"
+            "name = Alice\n= first item\nconfig = \n  port = 3000\n= second item\nfinal = value"
         );
-        // Note: round_trip(input) returns false because ` = first item` re-parses
-        // as a continuation of the previous entry due to the leading space.
+        // Round-trip now works correctly since `= item` at indent 0
+        // re-parses as a new entry (not a continuation of the previous one).
+        assert!(round_trip(input).unwrap());
     }
 
     #[test]
