@@ -19,7 +19,7 @@ readme = "README.md"
 
 [workspace.dependencies]
 # Error handling
-anyhow = "1.0.101"
+anyhow = "1.0.102"
 thiserror = "1.0"
 
 # Serialization
@@ -34,7 +34,7 @@ colored = "3"
 dialoguer = "0.11.0"
 
 # Async
-tokio = { version = "1.49", features = ["process", "rt-multi-thread", "macros", "time", "sync"] }
+tokio = { version = "1.50", features = ["process", "rt-multi-thread", "macros", "time", "sync"] }
 futures = "0.3"
 
 # Logging
@@ -62,8 +62,8 @@ minreq = { version = "2.14", features = ["https-rustls"] }
 
 # Dev dependencies
 rstest = "0.18"
-tempfile = "3.24"
-proptest = "1.8"
+tempfile = "3.26"
+proptest = "1.10"
 mockall = "0.12"
 assert_cmd = "2.1"
 predicates = "3.1"

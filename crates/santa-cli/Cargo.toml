@@ -22,16 +22,16 @@ dev-tools = ["dep:regex", "dep:reqwest"]
 
 [dependencies]
 # Error handling with context and chaining
-anyhow = "1.0.101"
+anyhow = "1.0.102"
 
 # Command-line argument parsing with derive macros and colors
-clap = { version = "4.5.57", features = ["color", "derive", "cargo", "wrap_help"] }
+clap = { version = "4.5.60", features = ["color", "derive", "cargo", "wrap_help"] }
 
 # Markdown documentation generation for CLI
 clap-markdown = "0.1.5"
 
 # Shell completion generation for CLI commands
-clap_complete = "4.5.65"
+clap_complete = "4.5.66"
 
 # Terminal color output for user-friendly messages
 colored = "3.1.1"
@@ -71,13 +71,13 @@ tracing-subscriber = { version = "0.3.22", features = ["env-filter"] }
 tabular = "0.2.0"
 
 # Async runtime with process execution and synchronization primitives
-tokio = { version = "1.49.0", features = ["process", "rt-multi-thread", "macros", "time", "sync"] }
+tokio = { version = "1.50.0", features = ["process", "rt-multi-thread", "macros", "time", "sync"] }
 
 # Async utilities and combinators
-futures = "0.3.31"
+futures = "0.3.32"
 
 # High-performance caching with TTL and LRU eviction
-moka = { version = "0.12.13", features = ["sync", "logging"] }
+moka = { version = "0.12.14", features = ["sync", "logging"] }
 
 # Builder pattern code generation
 derive_builder = "0.20.2"
@@ -95,10 +95,10 @@ notify = "8.2.0"
 shell-escape = "0.1.5"
 
 # Template engine for script generation (Jinja2-compatible, minimal deps)
-minijinja = "2.15.1"
+minijinja = "2.17.1"
 
 # Date/time handling for script metadata
-chrono = { version = "0.4.43", features = ["serde"] }
+chrono = { version = "0.4.44", features = ["serde"] }
 
 # Structured error types with derive macros
 thiserror = "2.0.18"
@@ -117,10 +117,10 @@ tiny-update-check = "1"
 rstest = "0.18"
 
 # Temporary file and directory creation for tests
-tempfile = "3.24"
+tempfile = "3.26"
 
 # Property-based testing with random input generation
-proptest = "1.8"
+proptest = "1.10"
 
 # Integration testing for CLI applications
 assert_cmd = "2.1"
