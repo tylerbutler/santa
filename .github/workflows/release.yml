@@ -18,7 +18,7 @@ jobs:
           fetch-depth: 0
 
       - name: Install changie
-        uses: miniscruff/changie-action@v2.0.0
+        uses: miniscruff/changie-action@v2.1.0
 
       - name: Check for unreleased changes
         id: check
