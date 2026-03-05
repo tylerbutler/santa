@@ -58,7 +58,7 @@ unstable = []
 
 [dependencies]
 # Data structures - IndexMap for insertion-order preservation
-indexmap = { version = "2.12.1", features = ["serde"] }
+indexmap = { version = "2.13.0", features = ["serde"] }
 
 # Optional: Serde support for deserialization
 serde = { workspace = true, optional = true }
