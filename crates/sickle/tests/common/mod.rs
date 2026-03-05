@@ -104,6 +104,25 @@ impl TabBehavior {
     }
 }
 
+/// Type-safe representation of mutually exclusive delimiter strategy behaviors
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum DelimiterBehavior {
+    /// Split on the first `=` character (reference implementation behavior)
+    FirstEquals,
+    /// Prefer ` = ` (space-equals-space) when multiple `=` exist, allowing `=` in keys
+    PreferSpaced,
+}
+
+impl DelimiterBehavior {
+    /// Get the string identifier for this behavior
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            Self::FirstEquals => "delimiter_first_equals",
+            Self::PreferSpaced => "delimiter_prefer_spaced",
+        }
+    }
+}
+
 /// Type-safe representation of mutually exclusive array ordering behaviors
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ArrayOrderBehavior {
@@ -279,6 +298,9 @@ pub struct ImplementationConfig {
     /// Supported list coercion behaviors (access-time configurable via ListOptions)
     /// When both are present, the test runner will use the appropriate option based on the test
     pub supported_list_coercion_behaviors: HashSet<ListCoercionBehavior>,
+    /// Supported delimiter strategy behaviors (parse-time configurable via ParserOptions)
+    /// When both are present, the test runner selects based on test behaviors
+    pub supported_delimiter_behaviors: HashSet<DelimiterBehavior>,
 }
 
 impl ImplementationConfig {
@@ -335,6 +357,8 @@ impl ImplementationConfig {
                 "get_bool",
                 "get_list",
                 "canonical_format",
+                "print",
+                "round_trip",
             ]
             .iter()
             .map(|s| s.to_string())
@@ -373,6 +397,13 @@ impl ImplementationConfig {
             ]
             .into_iter()
             .collect(),
+            // Delimiter strategy is parse-time configurable via ParserOptions - we support both
+            supported_delimiter_behaviors: [
+                DelimiterBehavior::FirstEquals,
+                DelimiterBehavior::PreferSpaced,
+            ]
+            .into_iter()
+            .collect(),
         }
     }
 
@@ -401,6 +432,9 @@ impl ImplementationConfig {
             behaviors.insert(b.as_str().to_string());
         }
         for b in &self.supported_list_coercion_behaviors {
+            behaviors.insert(b.as_str().to_string());
+        }
+        for b in &self.supported_delimiter_behaviors {
             behaviors.insert(b.as_str().to_string());
         }
 
@@ -453,6 +487,13 @@ impl ImplementationConfig {
             "array_order_lexicographic" => {
                 self.array_order_behavior == ArrayOrderBehavior::Lexicographic
             }
+            // Delimiter strategy is parse-time configurable
+            "delimiter_first_equals" => self
+                .supported_delimiter_behaviors
+                .contains(&DelimiterBehavior::FirstEquals),
+            "delimiter_prefer_spaced" => self
+                .supported_delimiter_behaviors
+                .contains(&DelimiterBehavior::PreferSpaced),
             _ => false, // Unknown behavior
         }
     }
@@ -580,6 +621,19 @@ impl TestSuite {
             "spacing_loose_multiline_various_build_hierarchy",
             "tabs_to_spaces_in_value_build_hierarchy",
             "tabs_to_spaces_in_value_get_string",
+            // KNOWN ISSUE: Test expects tabs converted to spaces but has empty behaviors[].
+            // Source test has behaviors: ["tabs_as_whitespace"] but generated test drops it.
+            // See: https://github.com/CatConfLang/ccl-test-data/issues/76
+            "tabs_as_whitespace_round_trip_round_trip",
+            // KNOWN ISSUE: Test data inconsistency — CRLF comment tests expect "/" key filtered
+            // from build_hierarchy, but ocaml_stress_test_original expects "/" preserved.
+            // See: https://github.com/CatConfLang/ccl-test-data/issues/77
+            "crlf_normalize_comments_and_values_build_hierarchy",
+            "crlf_preserve_comments_and_values_build_hierarchy",
+            // KNOWN ISSUE: Test data inconsistency — expects ` = item` (leading space) for
+            // empty keys in print output, but property_round_trip tests expect `= item`.
+            // See: https://github.com/CatConfLang/ccl-test-data/issues/75
+            "round_trip_property_complex_print",
         ];
 
         if problematic_tests.contains(&test.name.as_str()) {

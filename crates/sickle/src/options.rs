@@ -22,6 +22,31 @@ pub enum SpacingBehavior {
     Loose,
 }
 
+/// Strategy for choosing which `=` sign is the key-value delimiter
+///
+/// When a line contains multiple `=` characters, the delimiter strategy
+/// determines which one splits the key from the value.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum DelimiterStrategy {
+    /// Always split on the first `=` character.
+    /// This matches the OCaml reference implementation.
+    /// Keys cannot contain `=` with this strategy.
+    ///
+    /// Example: `a=b=c` → key `a`, value `b=c`
+    #[default]
+    FirstEquals,
+    /// Prefer ` = ` (space-equals-space) as the delimiter when present.
+    /// Falls back to the first `=` if no spaced delimiter exists.
+    /// This allows keys to contain `=` when the actual delimiter is
+    /// surrounded by spaces.
+    ///
+    /// Examples:
+    /// - `https://x.com?q=1 = result` → key `https://x.com?q=1`, value `result`
+    /// - `key=value` → key `key`, value `value` (fallback, no ` = `)
+    /// - `key = value` → key `key`, value `value`
+    PreferSpaced,
+}
+
 /// How to handle tab characters in parsed content
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum TabBehavior {
@@ -59,6 +84,8 @@ pub struct ParserOptions {
     pub tabs: TabBehavior,
     /// How to handle CRLF line endings
     pub crlf: CrlfBehavior,
+    /// Strategy for choosing which `=` is the delimiter
+    pub delimiter: DelimiterStrategy,
 }
 
 impl ParserOptions {
@@ -73,11 +100,13 @@ impl ParserOptions {
     /// - Loose spacing (accepts `key=value`, `key = value`, etc.)
     /// - Tab-to-spaces conversion
     /// - CRLF normalization to LF
+    /// - Prefer-spaced delimiter strategy (allows `=` in keys)
     pub fn permissive() -> Self {
         Self {
             spacing: SpacingBehavior::Loose,
             tabs: TabBehavior::ToSpaces,
             crlf: CrlfBehavior::NormalizeToLf,
+            delimiter: DelimiterStrategy::PreferSpaced,
         }
     }
 
@@ -99,9 +128,20 @@ impl ParserOptions {
         self
     }
 
+    /// Set the delimiter strategy
+    pub fn with_delimiter(mut self, delimiter: DelimiterStrategy) -> Self {
+        self.delimiter = delimiter;
+        self
+    }
+
     /// Check if spacing is strict
     pub(crate) fn is_strict_spacing(&self) -> bool {
         matches!(self.spacing, SpacingBehavior::Strict)
+    }
+
+    /// Check if delimiter strategy prefers spaced delimiters
+    pub(crate) fn prefer_spaced_delimiter(&self) -> bool {
+        matches!(self.delimiter, DelimiterStrategy::PreferSpaced)
     }
 
     /// Check if tabs should be preserved

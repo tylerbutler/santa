@@ -1,5 +1,5 @@
 {
-  "$schema": "https://raw.githubusercontent.com/CatConfLang/ccl-test-data/v0.5.0/schemas/generated-format.json",
+  "$schema": "https://raw.githubusercontent.com/CatConfLang/ccl-test-data/v0.6.0/schemas/generated-format.json",
   "tests": [
     {
       "behaviors": [],
@@ -216,7 +216,7 @@
       "behaviors": [],
       "expected": {
         "count": 1,
-        "value": " = item1\n = item2\nregular = value"
+        "value": "= item1\n= item2\nregular = value"
       },
       "features": [
         "empty_keys"
@@ -424,7 +424,7 @@
       "behaviors": [],
       "expected": {
         "count": 1,
-        "value": "name = Alice\n = first item\nconfig = \n  port = 3000\n = second item\nfinal = value"
+        "value": "name = Alice\n= first item\nconfig = \n  port = 3000\n= second item\nfinal = value"
       },
       "features": [
         "empty_keys"

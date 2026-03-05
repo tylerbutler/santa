@@ -155,10 +155,12 @@ fn trim_start_with_cr_option(s: &str, preserve_cr: bool) -> &str {
     }
 }
 
-/// Find the position of a valid `=` delimiter based on spacing options
+/// Find the position of a valid `=` delimiter based on spacing and delimiter options
 ///
-/// - Strict spacing: requires ` = ` (space-equals-space), or ` =` at end of line
-/// - Loose spacing: any `=` is valid
+/// The behavior depends on two options:
+/// - **Spacing**: Strict requires ` = ` or ` =` at end; Loose accepts any `=`
+/// - **Delimiter strategy**: FirstEquals always uses the first `=`;
+///   PreferSpaced tries ` = ` first, then falls back to bare `=`
 ///
 /// Returns the byte position of `=` if found, or None if no valid delimiter exists.
 fn find_delimiter(s: &str, options: &ParserOptions) -> Option<usize> {
@@ -173,8 +175,20 @@ fn find_delimiter(s: &str, options: &ParserOptions) -> Option<usize> {
             return Some(s.len() - 1);
         }
         None
+    } else if options.prefer_spaced_delimiter() {
+        // Prefer-spaced: try ` = ` first, allowing keys to contain bare `=`
+        // This enables keys like URLs with query params: `https://x.com?q=1 = result`
+        if let Some(pos) = s.find(" = ") {
+            return Some(pos + 1);
+        }
+        // Check for ` =` at end of string (empty value)
+        if s.ends_with(" =") {
+            return Some(s.len() - 1);
+        }
+        // Fallback: first bare `=` (no spaced delimiter found)
+        s.find('=')
     } else {
-        // Loose spacing: any `=` is a valid delimiter
+        // Loose spacing with FirstEquals: any `=` is a valid delimiter
         s.find('=')
     }
 }
@@ -333,6 +347,7 @@ fn finalize_value(value: &str, options: &ParserOptions) -> String {
 }
 
 /// Build hierarchical structure from flat entries
+#[allow(dead_code)]
 pub(crate) fn parse_to_map(
     input: &str,
     options: &ParserOptions,
@@ -346,6 +361,19 @@ pub(crate) fn parse_to_map(
     }
 
     Ok(result)
+}
+
+/// Parse CCL input into a flat list of key-value entries preserving insertion order.
+///
+/// Unlike `parse_to_map`, this returns entries in their original order without
+/// grouping by key. This is essential for structure-preserving `print()` which
+/// needs to reproduce the original entry interleaving.
+pub(crate) fn parse_to_entries(input: &str, options: &ParserOptions) -> Result<Vec<crate::Entry>> {
+    let entries = parse_entries(input, options);
+    Ok(entries
+        .into_iter()
+        .map(|e| crate::Entry::new(e.key, e.value))
+        .collect())
 }
 
 // Unit tests removed - all parser functionality is covered by data-driven tests in:
