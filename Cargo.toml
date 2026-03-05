@@ -61,7 +61,7 @@ chrono = { version = "0.4", features = ["serde"] }
 minreq = { version = "2.14", features = ["https-rustls"] }
 
 # Dev dependencies
-rstest = "0.18"
+rstest = "0.26"
 tempfile = "3.26"
 proptest = "1.10"
 mockall = "0.12"
