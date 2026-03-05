@@ -1,0 +1,4 @@
+project: sickle
+kind: Added
+body: Add `print()` and `round_trip()` functions for serializing entries back to canonical CCL text
+time: 2026-03-05T12:00:00.000000-08:00

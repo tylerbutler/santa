@@ -1,0 +1,4 @@
+project: sickle
+kind: Added
+body: Add `DelimiterStrategy::PreferSpaced` option for keys containing bare `=` characters
+time: 2026-03-05T12:00:02.000000-08:00
