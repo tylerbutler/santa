@@ -1,4 +1,0 @@
-project: sickle
-kind: Added
-body: Add `parse_to_entries()` parser path that preserves original insertion order for round-trip fidelity
-time: 2026-03-05T12:00:01.000000-08:00
