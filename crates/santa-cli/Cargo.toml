@@ -83,7 +83,7 @@ moka = { version = "0.12.14", features = ["sync", "logging"] }
 derive_builder = "0.20.2"
 
 # Cross-platform executable discovery
-which = "8.0.0"
+which = "8.0.2"
 
 # Data validation with derive macros
 validator = { version = "0.20", features = ["derive"] }
