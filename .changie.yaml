@@ -19,6 +19,9 @@ projects:
     - label: Sickle
       key: sickle
       changelog: crates/sickle/CHANGELOG.md
+    - label: Sickle CLI
+      key: sickle-cli
+      changelog: crates/sickle-cli/CHANGELOG.md
 
 versionFormat: '## {{.Version}} - {{.Time.Format "2006-01-02"}}'
 kindFormat: '### {{.Kind}}'
