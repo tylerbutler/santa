@@ -58,7 +58,10 @@ pub fn detect_format(file: Option<&Path>, explicit: Option<Format>) -> Result<Fo
             Some("ccl") => Ok(Format::Ccl),
             Some("json") => Ok(Format::Json),
             Some("toml") => Ok(Format::Toml),
-            Some(ext) => bail!("Unknown extension '.{}'. Use --from to specify format.", ext),
+            Some(ext) => bail!(
+                "Unknown extension '.{}'. Use --from to specify format.",
+                ext
+            ),
             None => bail!("No file extension. Use --from to specify format."),
         },
         _ => bail!("Reading from stdin requires --from to specify format."),

@@ -28,7 +28,10 @@ fn empty_value() {
 fn nested_object() {
     let obj = sickle::load("server =\n  host = localhost\n  port = 8080").unwrap();
     let val = bridge::ccl_to_value(&obj);
-    assert_eq!(val, json!({"server": {"host": "localhost", "port": "8080"}}));
+    assert_eq!(
+        val,
+        json!({"server": {"host": "localhost", "port": "8080"}})
+    );
 }
 
 #[test]

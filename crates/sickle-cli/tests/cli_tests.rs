@@ -17,7 +17,12 @@ fn fixture(name: &str) -> PathBuf {
 #[test]
 fn convert_ccl_to_json() {
     sickle()
-        .args(["convert", fixture("sample.ccl").to_str().unwrap(), "--to", "json"])
+        .args([
+            "convert",
+            fixture("sample.ccl").to_str().unwrap(),
+            "--to",
+            "json",
+        ])
         .assert()
         .success()
         .stdout(predicate::str::contains("\"name\""))
@@ -37,7 +42,12 @@ fn convert_json_to_ccl() {
 #[test]
 fn convert_ccl_to_toml() {
     sickle()
-        .args(["convert", fixture("sample.ccl").to_str().unwrap(), "--to", "toml"])
+        .args([
+            "convert",
+            fixture("sample.ccl").to_str().unwrap(),
+            "--to",
+            "toml",
+        ])
         .assert()
         .success()
         .stdout(predicate::str::contains("name = "));
@@ -73,7 +83,11 @@ fn validate_valid_file() {
 #[test]
 fn validate_quiet() {
     sickle()
-        .args(["validate", "--quiet", fixture("sample.ccl").to_str().unwrap()])
+        .args([
+            "validate",
+            "--quiet",
+            fixture("sample.ccl").to_str().unwrap(),
+        ])
         .assert()
         .success()
         .stdout(predicate::str::is_empty());

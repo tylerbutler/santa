@@ -60,17 +60,15 @@ fn warn_comment_loss() -> Result<()> {
 fn convert(content: &str, from: Format, to: Format, pretty: bool) -> Result<String> {
     let value: serde_json::Value = match from {
         Format::Ccl => {
-            let obj = sickle::load(content)
-                .map_err(|e| anyhow::anyhow!("{}", e))?;
+            let obj = sickle::load(content).map_err(|e| anyhow::anyhow!("{}", e))?;
             bridge::ccl_to_value(&obj)
         }
         Format::Json => {
-            serde_json::from_str(content)
-                .map_err(|e| anyhow::anyhow!("Invalid JSON: {}", e))?
+            serde_json::from_str(content).map_err(|e| anyhow::anyhow!("Invalid JSON: {}", e))?
         }
         Format::Toml => {
-            let toml_val: toml::Value = toml::from_str(content)
-                .map_err(|e| anyhow::anyhow!("Invalid TOML: {}", e))?;
+            let toml_val: toml::Value =
+                toml::from_str(content).map_err(|e| anyhow::anyhow!("Invalid TOML: {}", e))?;
             serde_json::to_value(toml_val)
                 .map_err(|e| anyhow::anyhow!("TOML to JSON conversion error: {}", e))?
         }
