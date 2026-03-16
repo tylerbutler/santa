@@ -17,6 +17,11 @@ colored.workspace = true
 anyhow.workspace = true
 dialoguer.workspace = true
 
+[dev-dependencies]
+assert_cmd = "2.1"
+predicates = "3.1"
+tempfile = "3.26"
+
 [[bin]]
 name = "sickle"
 path = "src/main.rs"

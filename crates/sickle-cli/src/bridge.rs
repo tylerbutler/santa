@@ -22,7 +22,7 @@ pub fn ccl_to_value(obj: &CclObject) -> Value {
     // Check for bare list: single empty key with multiple values
     if keys.len() == 1 && keys[0].is_empty() {
         if let Ok(items) = obj.get_all("") {
-            let arr: Vec<Value> = items.iter().map(|child| ccl_to_value(child)).collect();
+            let arr: Vec<Value> = items.iter().map(ccl_to_value).collect();
             return Value::Array(arr);
         }
     }
@@ -33,7 +33,7 @@ pub fn ccl_to_value(obj: &CclObject) -> Value {
             if values.len() == 1 {
                 map.insert(key.clone(), ccl_to_value(&values[0]));
             } else {
-                let arr: Vec<Value> = values.iter().map(|v| ccl_to_value(v)).collect();
+                let arr: Vec<Value> = values.iter().map(ccl_to_value).collect();
                 map.insert(key.clone(), Value::Array(arr));
             }
         }

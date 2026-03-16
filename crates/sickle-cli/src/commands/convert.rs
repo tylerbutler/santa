@@ -32,10 +32,12 @@ pub fn run(args: ConvertArgs) -> Result<()> {
     let input = source.read()?;
 
     // Check for comment loss when converting FROM CCL
-    if matches!(from, Format::Ccl) && !matches!(args.to, Format::Ccl) {
-        if bridge::has_comments(&input.content) && !args.yes {
-            warn_comment_loss()?;
-        }
+    if matches!(from, Format::Ccl)
+        && !matches!(args.to, Format::Ccl)
+        && bridge::has_comments(&input.content)
+        && !args.yes
+    {
+        warn_comment_loss()?;
     }
 
     let output = convert(&input.content, from, args.to, !args.compact)?;

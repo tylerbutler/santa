@@ -2414,12 +2414,15 @@ name = "sickle-cli"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "assert_cmd",
  "clap",
  "colored",
  "dialoguer 0.11.0",
+ "predicates",
  "serde",
  "serde_json",
  "sickle",
+ "tempfile",
  "toml 0.8.23",
 ]
 
