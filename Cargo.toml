@@ -4,6 +4,7 @@ members = [
     "crates/santa-cli",
     "crates/santa-data",
     "crates/sickle",
+    "crates/sickle-cli",
 ]
 
 [workspace.package]
