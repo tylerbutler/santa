@@ -25,19 +25,19 @@ dev-tools = ["dep:regex", "dep:reqwest"]
 anyhow = "1.0.102"
 
 # Command-line argument parsing with derive macros and colors
-clap = { version = "4.5.60", features = ["color", "derive", "cargo", "wrap_help"] }
+clap = { version = "4.6.0", features = ["color", "derive", "cargo", "wrap_help"] }
 
 # Markdown documentation generation for CLI
 clap-markdown = "0.1.5"
 
 # Shell completion generation for CLI commands
-clap_complete = "4.5.66"
+clap_complete = "4.6.0"
 
 # Terminal color output for user-friendly messages
 colored = "3.1.1"
 
 # Configuration file loading and management
-config = { version = "0.15.19", default-features = false, features = ["toml"] }
+config = { version = "0.15.21", default-features = false, features = ["toml"] }
 
 # Interactive CLI prompts and user input
 dialoguer = "0.12.0"
@@ -65,7 +65,7 @@ santa-data = { version = "0.3.2", path = "../santa-data" }
 tracing = "0.1.44"
 
 # Tracing subscriber with environment-based filtering
-tracing-subscriber = { version = "0.3.22", features = ["env-filter"] }
+tracing-subscriber = { version = "0.3.23", features = ["env-filter"] }
 
 # ASCII table formatting for command output
 tabular = "0.2.0"
@@ -83,7 +83,7 @@ moka = { version = "0.12.14", features = ["sync", "logging"] }
 derive_builder = "0.20.2"
 
 # Cross-platform executable discovery
-which = "8.0.0"
+which = "8.0.2"
 
 # Data validation with derive macros
 validator = { version = "0.20", features = ["derive"] }
@@ -95,7 +95,7 @@ notify = "8.2.0"
 shell-escape = "0.1.5"
 
 # Template engine for script generation (Jinja2-compatible, minimal deps)
-minijinja = "2.17.1"
+minijinja = "2.18.0"
 
 # Date/time handling for script metadata
 chrono = { version = "0.4.44", features = ["serde"] }
@@ -117,13 +117,13 @@ tiny-update-check = "1"
 rstest = "0.18"
 
 # Temporary file and directory creation for tests
-tempfile = "3.26"
+tempfile = "3.27"
 
 # Property-based testing with random input generation
 proptest = "1.10"
 
 # Integration testing for CLI applications
-assert_cmd = "2.1"
+assert_cmd = "2.2"
 
 # Predicate functions for test assertions
 predicates = "3.1"

@@ -28,8 +28,8 @@ serde_json = "1.0"
 serde-enum-str = "0.2.5"
 
 # CLI
-clap = { version = "4.5", features = ["color", "derive", "cargo", "wrap_help"] }
-clap_complete = "4.5"
+clap = { version = "4.6", features = ["color", "derive", "cargo", "wrap_help"] }
+clap_complete = "4.6"
 colored = "3"
 dialoguer = "0.11.0"
 
@@ -62,10 +62,10 @@ minreq = { version = "2.14", features = ["https-rustls"] }
 
 # Dev dependencies
 rstest = "0.18"
-tempfile = "3.26"
+tempfile = "3.27"
 proptest = "1.10"
 mockall = "0.12"
-assert_cmd = "2.1"
+assert_cmd = "2.2"
 predicates = "3.1"
 criterion = { version = "0.5", features = ["html_reports", "async_tokio"] }
 
