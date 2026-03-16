@@ -28,7 +28,7 @@ crates/sickle-cli/
 - `sickle` (path = "../sickle", features = ["full"])
 - `clap` (derive, color, wrap_help)
 - `serde_json`
-- `toml`
+- `toml` (version "0.8")
 - `colored`
 - `anyhow`
 
@@ -52,29 +52,35 @@ Converts between CCL, JSON, and TOML.
 - **`--from`:** Auto-detected from file extension (`.ccl`, `.json`, `.toml`). Required for stdin. Errors on unknown extension.
 - **`--to`:** Required.
 - **`--pretty` / `--compact`:** Controls JSON output formatting. Default: pretty.
-- Output to stdout.
+- **`--yes` / `-y`:** Skip interactive prompts (e.g., comment loss warning). Useful for scripting.
+- Output to stdout. File output via shell redirection (`> file.json`).
+- All conversions between all three formats are supported, including JSON ↔ TOML (which doesn't involve CCL at all but falls out naturally).
+
+**Comment loss warning:** When converting FROM CCL to another format, the CLI checks if the input contains CCL comments (`/= ...`). If comments are present, the user is prompted with a warning that comments will be lost in the conversion and must acknowledge before proceeding. Use `--yes` / `-y` to skip the prompt (for scripts/CI).
 
 #### `sickle validate <file>`
 
 Parses CCL file and reports errors.
 
 - Exit code 0 on valid, 1 on invalid.
-- Error output includes file path, line number, description (e.g., `config.ccl:12: missing '=' delimiter`).
+- Error output includes file path and description (e.g., `config.ccl: missing '=' delimiter`).
 - **`--quiet` / `-q`:** No output on success, just exit code.
+
+**Note:** sickle's `Error` type does not currently include line numbers. Error messages will include the file path and error description but not line/column positions. Line number reporting is a future improvement requiring parser changes.
 
 #### `sickle fmt <file>`
 
-Reformats CCL to canonical form.
+Reformats CCL to canonical form using structure-preserving formatting.
 
 - Prints to stdout by default.
 - **`--in-place` / `-i`:** Overwrites the file.
-- Uses sickle's `CclPrinter` / `round_trip`.
+- **Pipeline:** `parse()` → entry-level `print()` (preserves document structure, normalizes whitespace). This is intentionally NOT model-level printing, which would lose entry ordering and structure.
 
 ### Secondary Commands
 
 #### `sickle view <file>`
 
-Pretty-prints CCL with syntax highlighting (colored keys/values). Always to stdout.
+Pretty-prints CCL with syntax highlighting (colored keys/values). Always to stdout. Color scheme deferred to implementation.
 
 #### `sickle parse <file>`
 
@@ -101,20 +107,29 @@ Extension mapping: `.ccl` → ccl, `.json` → json, `.toml` → toml.
 
 ## Format Bridging Strategy
 
-The CLI handles format conversion without changes to the sickle library:
+The CLI handles format conversion. The CCL ↔ other-format path requires a `CclObject` → `serde_json::Value` conversion because `CclObject`'s derived `Serialize` produces the internal recursive representation (`{"key": [{"value": [{}]}]}`), not natural JSON (`{"key": "value"}`).
 
-- **CCL → JSON:** `sickle::load()` → `CclObject` → `serde_json::to_string()`
-- **CCL → TOML:** `sickle::load()` → `CclObject` → `toml::to_string()`
-- **JSON → CCL:** `serde_json::from_str()` → `serde_json::Value` → `sickle::to_string()`
-- **TOML → CCL:** `toml::from_str()` → `toml::Value` → `sickle::to_string()`
-- **JSON ↔ TOML:** Direct via serde_json::Value / toml::Value (bonus, falls out naturally)
+**Conversion pipelines:**
 
-No sickle lib changes needed for v1.
+- **CCL → JSON:** `sickle::load()` → `CclObject` → CLI-side `ccl_to_value()` → `serde_json::to_string()`
+- **CCL → TOML:** `sickle::load()` → `CclObject` → CLI-side `ccl_to_value()` → `toml::to_string()`
+- **JSON → CCL:** `serde_json::from_str()` → `serde_json::Value` → CLI-side `value_to_ccl_string()` (recursive walk producing CCL text)
+- **TOML → CCL:** `toml::from_str()` → `toml::Value` → CLI-side `value_to_ccl_string()`
+- **JSON ↔ TOML:** Direct via `serde_json::Value` / `toml::Value` serialization.
+
+The `ccl_to_value()` and `value_to_ccl_string()` functions live in the CLI crate (e.g., `src/convert_bridge.rs`). If these prove generally useful, they can be promoted to the sickle library later.
+
+**Known limitations for v1:**
+- JSON `null` values have no CCL equivalent — converted to empty string with a warning.
+- Mixed-type JSON arrays may not round-trip cleanly through CCL.
+- Deeply nested structures may produce verbose CCL output.
+
+**No sickle lib changes needed for v1.**
 
 ## Error Reporting
 
-- Parse errors: `file:line: description`
-- Conversion errors: clear message about what failed
+- Parse errors: file path + error description (no line numbers in v1)
+- Conversion errors: clear message about what failed (e.g., "Cannot represent null in CCL")
 - File errors: path included in message
 - `anyhow` for error chaining, `colored` for terminal output
 - Errors to stderr, data to stdout (unix convention)
