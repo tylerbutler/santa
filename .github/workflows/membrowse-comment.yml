@@ -30,7 +30,7 @@ jobs:
 
       - name: Post combined PR comment
         if: steps.download-reports.outputs.found_artifact == 'true'
-        uses: membrowse/membrowse-action/comment-action@de0c81afbe88ee846c7c64bd3578c10b7ed9bf25 # ratchet:membrowse/membrowse-action/comment-action@v1
+        uses: membrowse/membrowse-action/comment-action@e80eef8697a04ec41df655d3084eff9ea7bfc6b9 # ratchet:membrowse/membrowse-action/comment-action@v1
         with:
           json_files: "reports/**/*.json"
         env:
