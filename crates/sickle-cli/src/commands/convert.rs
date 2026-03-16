@@ -88,7 +88,7 @@ fn convert(content: &str, from: Format, to: Format, pretty: bool) -> Result<Stri
             }
         }
         Format::Toml => {
-            let toml_val: toml::Value = serde_json::from_value(value.clone())
+            let toml_val: toml::Value = serde_json::from_value(value)
                 .map_err(|e| anyhow::anyhow!("Cannot represent as TOML: {}", e))?;
             toml::to_string_pretty(&toml_val)
                 .map_err(|e| anyhow::anyhow!("TOML serialization error: {}", e))
