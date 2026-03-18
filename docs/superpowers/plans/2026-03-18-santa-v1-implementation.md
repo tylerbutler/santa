@@ -4,7 +4,7 @@
 
 **Goal:** Ship santa 1.0.0 — a stable, documented, well-tested package manager meta-tool with the `santa init` command and complete Tier 1/2 package manager support.
 
-**Architecture:** The work is organized into 6 independent tasks that can be parallelized. Task 1 (santa init) is the only new feature. Tasks 2-6 are polish, testing, docs, and infrastructure. All work happens within the existing 4-crate workspace; no new crates needed.
+**Architecture:** The work is organized into 8 tasks. Task 1 (santa init) is the only new feature. Tasks 2-7 are polish, testing, docs, and infrastructure. Task 8 is the version bump. Tasks have some shared file conflicts (noted in Execution Order) but can be serialized cleanly. All work happens within the existing 4-crate workspace; no new crates needed.
 
 **Tech Stack:** Rust, clap (CLI), dialoguer (interactive prompts), minijinja (templates), sickle (CCL parsing), assert_cmd/rstest/proptest (testing), cargo-dist (releases), changie (changelogs)
 
@@ -40,16 +40,17 @@ Init {
 },
 ```
 
-Add the match arm in the `run()` function (before the config loading block — `init` should work without an existing config):
+Add an early-return handler in the `run()` function **between lines 467-468** (after `command` is extracted from `cli.command`, before tracing/config setup). This must come before `load_config` since `init` creates the config:
 
 ```rust
-Commands::Init { yes, output } => {
-    santa::init::run_init(yes, output.as_deref()).await?;
+// Handle init before config loading (init creates the config)
+if let Commands::Init { yes, output } = &command {
+    santa::init::run_init(*yes, output.as_deref()).await?;
     return Ok(());
 }
 ```
 
-Note: The `Init` handler must be placed **before** config loading (line ~534), since `init` is the command that creates the config. Add a check early in `run()` — after argument parsing but before `load_config` — that handles `Init` and returns early.
+Place this immediately after the `None => { Cli::command().print_help()?; return Ok(()); }` block (line 467) and before the completions handler (line 470).
 
 - [ ] **Step 2: Write the init module skeleton with tests**
 
@@ -214,17 +215,9 @@ pub async fn run_init(yes: bool, output: Option<&Path>) -> Result<()> {
 }
 ```
 
-- [ ] **Step 3: Add `which` dependency**
+- [ ] **Step 3: Export init module**
 
-The `which` crate is needed for detecting package managers on `$PATH`. Add to `crates/santa-cli/Cargo.toml` under `[dependencies]`:
-
-```toml
-which = "7"
-```
-
-Run: `cargo check -p santa` to verify compilation.
-
-- [ ] **Step 4: Export init module**
+Note: The `which` crate is already a dependency at v8.0.0 in `Cargo.toml` (line 86). No new dependency needed.
 
 In `crates/santa-cli/src/lib.rs`, add:
 
@@ -234,7 +227,7 @@ pub mod init;
 
 Run: `cargo check -p santa` to verify.
 
-- [ ] **Step 5: Write tests for init**
+- [ ] **Step 4: Write tests for init**
 
 Create `crates/santa-cli/tests/e2e/init_tests.rs`:
 
@@ -313,15 +306,15 @@ Add to `crates/santa-cli/tests/e2e/mod.rs`:
 mod init_tests;
 ```
 
-- [ ] **Step 6: Run tests**
+- [ ] **Step 5: Run tests**
 
 Run: `cargo test -p santa --test integration_tests -- init`
 Expected: All 3 tests pass.
 
-- [ ] **Step 7: Commit**
+- [ ] **Step 6: Commit**
 
 ```bash
-git add crates/santa-cli/src/init.rs crates/santa-cli/src/main.rs crates/santa-cli/src/lib.rs crates/santa-cli/tests/e2e/init_tests.rs crates/santa-cli/tests/e2e/mod.rs crates/santa-cli/Cargo.toml Cargo.lock
+git add crates/santa-cli/src/init.rs crates/santa-cli/src/main.rs crates/santa-cli/src/lib.rs crates/santa-cli/tests/e2e/init_tests.rs crates/santa-cli/tests/e2e/mod.rs
 git commit -m "feat: add santa init command
 
 Interactive config generation with platform detection, manager selection,
@@ -331,17 +324,28 @@ and --output for custom config path."
 
 ---
 
-### Task 2: Create Missing Tier 2 Source Definitions
+### Task 2: Create Missing Source Definitions
 
 **Files:**
+- Modify: `crates/santa-cli/data/sources.ccl` (add apt, dnf, winget)
 - Create: `crates/santa-cli/data/sources/dnf.ccl`
 - Create: `crates/santa-cli/data/sources/winget.ccl`
+- Create: `crates/santa-cli/data/sources/flathub.ccl`
 
-**Context:** Source definitions follow the CCL format in `crates/santa-cli/data/sources.ccl` which defines the manager's emoji, install/check commands, and optional prefix/overrides. Individual source files in `data/sources/` list packages available in that manager. The `flathub` manager already has an entry in `sources.ccl` (line 33-37), so only a package list file is needed.
+**Context:** Source definitions follow the CCL format in `crates/santa-cli/data/sources.ccl` which defines the manager's emoji, install/check commands, and optional prefix/overrides. Individual source files in `data/sources/` list packages available in that manager. The `flathub` manager already has an entry in `sources.ccl` (line 33-37), so only a package list file is needed. **Note:** `apt` is a Tier 1 manager with a package list file (`data/sources/apt.ccl`) but is missing from `sources.ccl` — its install template is hardcoded in `templates/install.sh.tera` but it should also be in `sources.ccl` for consistency (used by `sources list`, status checking, etc.).
 
-Note: `flathub` already exists in `sources.ccl` with install/check/prefix defined. It just needs a package list file in `data/sources/flathub.ccl`.
+- [ ] **Step 1: Add apt to sources.ccl (Tier 1 gap)**
 
-- [ ] **Step 1: Add dnf to sources.ccl**
+Add to `crates/santa-cli/data/sources.ccl`:
+
+```ccl
+apt =
+  emoji = 📦
+  install = sudo apt install -y {package}
+  check = apt list --installed 2>/dev/null | cut -d'/' -f1 | tail -n +2
+```
+
+- [ ] **Step 2: Add dnf to sources.ccl**
 
 Add to `crates/santa-cli/data/sources.ccl`:
 
@@ -352,7 +356,7 @@ dnf =
   check = dnf list installed | tail -n +2 | cut -d'.' -f1
 ```
 
-- [ ] **Step 2: Create dnf package list**
+- [ ] **Step 3: Create dnf package list**
 
 Create `crates/santa-cli/data/sources/dnf.ccl`:
 
@@ -391,7 +395,7 @@ wget =
 zsh =
 ```
 
-- [ ] **Step 3: Add winget to sources.ccl**
+- [ ] **Step 4: Add winget to sources.ccl**
 
 Add to `crates/santa-cli/data/sources.ccl`:
 
@@ -402,7 +406,7 @@ winget =
   check = winget list | ForEach-Object { ($_ -split '\s{2,}')[0] }
 ```
 
-- [ ] **Step 4: Create winget package list**
+- [ ] **Step 5: Create winget package list**
 
 Create `crates/santa-cli/data/sources/winget.ccl`:
 
@@ -421,7 +425,7 @@ JetBrains.Toolbox =
 Docker.DockerDesktop =
 ```
 
-- [ ] **Step 5: Create flathub package list**
+- [ ] **Step 6: Create flathub package list**
 
 Create `crates/santa-cli/data/sources/flathub.ccl`:
 
@@ -437,24 +441,25 @@ org.inkscape.Inkscape =
 com.obsproject.Studio =
 ```
 
-- [ ] **Step 6: Regenerate index**
+- [ ] **Step 7: Regenerate index**
 
 Run: `just generate-index`
 Verify: `crates/santa-cli/data/known_packages.ccl` includes the new packages.
 
-- [ ] **Step 7: Run tests**
+- [ ] **Step 8: Run tests**
 
 Run: `cargo test -p santa`
 Expected: All tests pass. No regressions.
 
-- [ ] **Step 8: Commit**
+- [ ] **Step 9: Commit**
 
 ```bash
 git add crates/santa-cli/data/sources.ccl crates/santa-cli/data/sources/dnf.ccl crates/santa-cli/data/sources/winget.ccl crates/santa-cli/data/sources/flathub.ccl crates/santa-cli/data/known_packages.ccl
-git commit -m "feat: add dnf, winget, and flathub source definitions
+git commit -m "feat: add apt, dnf, winget, and flathub source definitions
 
-Adds Tier 2 package manager support for dnf (Fedora/RHEL), winget
-(Windows), and flathub (Flatpak) with initial package lists."
+Adds apt to sources.ccl (was missing despite being Tier 1). Adds Tier 2
+support for dnf (Fedora/RHEL), winget (Windows), and flathub (Flatpak)
+with initial package lists."
 ```
 
 ---
@@ -508,18 +513,22 @@ impl SantaError {
     /// Returns an actionable hint for the user, if applicable.
     pub fn hint(&self) -> Option<String> {
         match self {
-            SantaError::Config(msg) => {
+            SantaError::Config(err) => {
+                let msg = err.to_string();
                 if msg.contains("not found") || msg.contains("No such file") {
                     Some("Run `santa init` to create a config file, or use `--config` to specify a path.".into())
                 } else {
                     Some("Check your config file syntax. See `santa config` or the config guide at docs/configuration.md.".into())
                 }
             }
-            SantaError::PackageSource(source, msg) => {
+            // PackageSource(String) contains "source: message" format from package_source() helper
+            SantaError::PackageSource(msg) => {
                 if msg.contains("not found") || msg.contains("not installed") {
+                    // Try to extract source name from "source: message" format
+                    let source = msg.split(':').next().unwrap_or("the package manager");
                     Some(format!("Is `{source}` installed? Check with `which {source}`."))
                 } else {
-                    Some(format!("Run `santa sources show {source}` to check the source configuration."))
+                    Some("Run `santa sources list` to check available sources.".into())
                 }
             }
             SantaError::Network(msg) => {
@@ -529,8 +538,8 @@ impl SantaError {
                     Some("Check your internet connection. If this persists, try `santa sources clear` and re-run.".into())
                 }
             }
-            SantaError::InvalidPackage(msg) => {
-                Some(format!("Run `santa sources update` to get the latest package definitions. {msg}"))
+            SantaError::InvalidPackage(_) => {
+                Some("Run `santa sources update` to get the latest package definitions.".into())
             }
             SantaError::Security(_) => {
                 Some("This package name contains suspicious characters. If this is intentional, file an issue.".into())
@@ -1061,16 +1070,244 @@ git commit -m "docs: add Homebrew tap installation instructions"
 
 ---
 
+### Task 7: Tier 2 Smoke Tests and Cross-Platform Name Resolution Tests
+
+**Files:**
+- Create: `crates/santa-cli/tests/e2e/tier2_smoke_tests.rs`
+- Create: `crates/santa-cli/tests/e2e/name_resolution_tests.rs`
+- Modify: `crates/santa-cli/tests/e2e/mod.rs`
+
+**Context:** PRD success criterion #4 requires Tier 2 managers "must not panic or generate syntactically invalid scripts." PRD test coverage table requires "Cross-platform name resolution: Tier 1 managers have verified mappings." These are both missing from the original plan.
+
+- [ ] **Step 1: Write Tier 2 smoke tests**
+
+Create `crates/santa-cli/tests/e2e/tier2_smoke_tests.rs`:
+
+```rust
+//! Smoke tests for Tier 2 managers: verify they don't panic or produce invalid scripts.
+
+use assert_cmd::Command;
+use tempfile::TempDir;
+
+fn santa_cmd() -> Command {
+    Command::cargo_bin("santa").unwrap()
+}
+
+fn write_test_config(dir: &std::path::Path, manager: &str, packages: &[&str]) -> std::path::PathBuf {
+    let config_path = dir.join("config.ccl");
+    let mut content = format!("{manager} =\n");
+    for pkg in packages {
+        content.push_str(&format!("  = {pkg}\n"));
+    }
+    std::fs::write(&config_path, &content).unwrap();
+    config_path
+}
+
+/// Macro to generate a smoke test for each Tier 2 manager
+macro_rules! tier2_smoke_test {
+    ($name:ident, $manager:expr, $packages:expr) => {
+        #[test]
+        fn $name() {
+            let tmp = TempDir::new().unwrap();
+            let output_dir = TempDir::new().unwrap();
+            let config = write_test_config(tmp.path(), $manager, $packages);
+
+            // Should not panic and should exit cleanly
+            santa_cmd()
+                .args([
+                    "--config", config.to_str().unwrap(),
+                    "install",
+                    "--format", "shell",
+                    "--output-dir", output_dir.path().to_str().unwrap(),
+                ])
+                .assert()
+                .success();
+        }
+    };
+}
+
+tier2_smoke_test!(dnf_does_not_crash, "dnf", &["git", "curl"]);
+tier2_smoke_test!(nix_does_not_crash, "nix", &["git", "curl"]);
+tier2_smoke_test!(aur_does_not_crash, "aur", &["git"]);
+tier2_smoke_test!(scoop_does_not_crash, "scoop", &["git", "curl"]);
+tier2_smoke_test!(winget_does_not_crash, "winget", &["Git.Git"]);
+tier2_smoke_test!(flathub_does_not_crash, "flathub", &["org.mozilla.firefox"]);
+```
+
+- [ ] **Step 2: Write cross-platform name resolution tests**
+
+Create `crates/santa-cli/tests/e2e/name_resolution_tests.rs`:
+
+```rust
+//! Tests that verify cross-platform package name mappings are correct
+//! for Tier 1 managers. These test the bundled data, not the pipeline.
+
+use assert_cmd::Command;
+use predicates::prelude::*;
+use tempfile::TempDir;
+
+fn santa_cmd() -> Command {
+    Command::cargo_bin("santa").unwrap()
+}
+
+/// Test that a package is recognized and produces a script with the correct name.
+/// Uses a config with the manager-specific name and verifies the script contains it.
+fn verify_package_name(manager: &str, package_name: &str) {
+    let tmp = TempDir::new().unwrap();
+    let output_dir = TempDir::new().unwrap();
+    let config_path = tmp.path().join("config.ccl");
+    let content = format!("{manager} =\n  = {package_name}\n");
+    std::fs::write(&config_path, &content).unwrap();
+
+    let result = santa_cmd()
+        .args([
+            "--config", config_path.to_str().unwrap(),
+            "install",
+            "--format", "shell",
+            "--output-dir", output_dir.path().to_str().unwrap(),
+        ])
+        .assert()
+        .success();
+
+    // Verify the generated script contains the expected package name
+    let scripts: Vec<_> = std::fs::read_dir(output_dir.path())
+        .unwrap()
+        .filter_map(|e| e.ok())
+        .filter(|e| e.path().extension().map_or(false, |ext| ext == "sh"))
+        .collect();
+
+    if !scripts.is_empty() {
+        let content = std::fs::read_to_string(scripts[0].path()).unwrap();
+        assert!(
+            content.contains(package_name),
+            "Script for {manager} should contain '{package_name}', got:\n{content}"
+        );
+    }
+}
+
+#[test]
+fn fd_maps_to_fd_find_on_apt() {
+    // fd is known as fd-find in apt
+    verify_package_name("apt", "fd-find");
+}
+
+#[test]
+fn ripgrep_works_on_all_tier1() {
+    for manager in &["brew", "apt", "pacman", "cargo"] {
+        verify_package_name(manager, "ripgrep");
+    }
+}
+
+#[test]
+fn bat_works_on_brew_and_cargo() {
+    verify_package_name("brew", "bat");
+    verify_package_name("cargo", "bat");
+}
+
+#[test]
+fn jq_works_on_brew_apt_pacman() {
+    for manager in &["brew", "apt", "pacman"] {
+        verify_package_name(manager, "jq");
+    }
+}
+```
+
+- [ ] **Step 3: Update e2e/mod.rs**
+
+Add to `crates/santa-cli/tests/e2e/mod.rs`:
+
+```rust
+mod tier2_smoke_tests;
+mod name_resolution_tests;
+```
+
+- [ ] **Step 4: Run tests**
+
+Run: `cargo test -p santa --test integration_tests -- tier2 name_resolution`
+Expected: All tests pass.
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add crates/santa-cli/tests/e2e/tier2_smoke_tests.rs crates/santa-cli/tests/e2e/name_resolution_tests.rs crates/santa-cli/tests/e2e/mod.rs
+git commit -m "test: add Tier 2 smoke tests and name resolution tests
+
+Verify Tier 2 managers don't crash on script generation. Verify
+cross-platform package name mappings for Tier 1 managers."
+```
+
+---
+
+### Task 8: Version Bump to 1.0.0
+
+**Files:**
+- Modify: `Cargo.toml` (workspace version)
+- Modify: `crates/santa-cli/Cargo.toml` (santa-data dependency version)
+- Modify: `crates/santa-data/Cargo.toml` (if version is workspace-inherited, only workspace root needs change)
+
+**Context:** The workspace `Cargo.toml` defines the version for all crates. Currently at 0.3.2. The `santa` and `santa-data` crates use `version.workspace = true`. Sickle crates have their own version (0.1.x) and should NOT be bumped.
+
+**Important:** This task should only be done after all other tasks are complete and CI is green.
+
+- [ ] **Step 1: Check current version configuration**
+
+Read: `Cargo.toml` (workspace root) to understand how versions are managed.
+Verify which crates use `version.workspace = true` vs. their own version.
+
+- [ ] **Step 2: Determine version strategy**
+
+The workspace version applies to `santa` and `santa-data`. Sickle crates (`sickle`, `sickle-cli`) should have independent versions. If the workspace version currently applies to all crates, the sickle crates may need to be switched to explicit versions before bumping the workspace to 1.0.0.
+
+- [ ] **Step 3: Update versions**
+
+Update the workspace version in root `Cargo.toml` from `0.3.2` to `1.0.0`.
+If sickle crates inherit workspace version, switch them to explicit `version = "0.1.x"`.
+Update any internal `santa-data = { version = "0.3.2", ... }` dependency references to `"1.0.0"`.
+
+- [ ] **Step 4: Update changelogs**
+
+Use `changie` to create a changelog entry for the 1.0.0 release:
+```bash
+changie new --kind feat --body "Santa v1.0.0 release"
+```
+
+- [ ] **Step 5: Run full CI checks**
+
+```bash
+just pr
+```
+
+Expected: All checks pass (format, docs, lint, coverage, audit, build, verify).
+
+- [ ] **Step 6: Commit**
+
+```bash
+git add Cargo.toml crates/*/Cargo.toml Cargo.lock .changes/
+git commit -m "chore: bump santa and santa-data to 1.0.0
+
+Establishes semver stability contract for the santa CLI and santa-data
+library. Sickle crates remain at 0.x."
+```
+
+---
+
 ## Execution Order
 
-Tasks 1-5 can be executed in parallel — they modify different files and have no dependencies on each other. Task 6 (Homebrew tap) is independent but requires GitHub access and should be done after at least one test release.
+Tasks share some files and must be serialized in groups:
 
-**Recommended order for serial execution:**
-1. Task 1: `santa init` (largest, most complex)
-2. Task 2: Missing source definitions (quick wins)
-3. Task 3: Error message polish
-4. Task 4: Test coverage expansion
-5. Task 5: Documentation updates
-6. Task 6: Homebrew tap setup
+**File conflicts:**
+- `main.rs`: Tasks 1, 3
+- `tests/e2e/mod.rs`: Tasks 1, 3, 4, 7
+- `README.md`: Tasks 5, 6
 
-**After all tasks:** Run `just pr` to verify the full CI suite passes, then bump versions to 1.0.0 for `santa` and `santa-data` crates.
+**Recommended serial execution order:**
+1. Task 2: Missing source definitions (quick, unblocks Tier 1/2 tests)
+2. Task 1: `santa init` (largest new feature)
+3. Task 3: Error message polish (touches main.rs after Task 1)
+4. Task 4: Tier 1 manager tests
+5. Task 7: Tier 2 smoke tests and name resolution tests
+6. Task 5: Documentation updates
+7. Task 6: Homebrew tap setup
+8. Task 8: Version bump to 1.0.0 (last — only after everything else is green)
+
+**After all tasks:** Run `just pr` to verify the full CI suite passes before tagging the release.
