@@ -679,7 +679,18 @@ async fn main() {
     match run().await {
         Ok(()) => {}
         Err(err) => {
-            eprintln!("error: {err}");
+            use colored::Colorize;
+            if let Some(santa_err) = err.downcast_ref::<santa::errors::SantaError>() {
+                eprintln!("{} {}", "error:".red().bold(), santa_err);
+                if let Some(hint) = santa_err.hint() {
+                    eprintln!("{} {}", "hint:".cyan().bold(), hint);
+                }
+            } else {
+                eprintln!("{} {}", "error:".red().bold(), err);
+                for cause in err.chain().skip(1) {
+                    eprintln!("  {} {}", "caused by:".dimmed(), cause);
+                }
+            }
             std::process::exit(1);
         }
     }
