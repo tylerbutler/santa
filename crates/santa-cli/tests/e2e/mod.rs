@@ -5,4 +5,5 @@
 
 pub mod config_tests;
 pub mod error_tests;
+pub mod init_tests;
 pub mod status_tests;

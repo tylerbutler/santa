@@ -133,6 +133,16 @@ enum Commands {
     /// Manage package sources
     #[clap(subcommand)]
     Sources(SourcesCommands),
+    /// Initialize a new santa configuration
+    Init {
+        /// Accept defaults without prompting
+        #[clap(short, long)]
+        yes: bool,
+
+        /// Output path for the config file (default: ~/.config/santa/config.ccl)
+        #[clap(short, long)]
+        output: Option<std::path::PathBuf>,
+    },
 }
 
 /// Subcommands for managing package sources
@@ -466,6 +476,12 @@ pub async fn run() -> Result<(), anyhow::Error> {
         }
     };
 
+    // Handle init before config loading (init creates the config)
+    if let Commands::Init { yes, output } = &command {
+        santa::init::run_init(*yes, output.as_deref()).await?;
+        return Ok(());
+    }
+
     // Handle shell completions with enhanced suggestions
     if let Commands::Completions { shell } = &command {
         let mut cmd = build_cli();
@@ -645,6 +661,10 @@ pub async fn run() -> Result<(), anyhow::Error> {
         }
         Commands::Sources(sources_cmd) => {
             handle_sources_command(sources_cmd, &config).await?;
+        }
+        Commands::Init { .. } => {
+            // This is handled earlier in the function
+            unreachable!("Init should be handled before this point");
         }
     }
 
