@@ -345,7 +345,25 @@ apt =
   check = apt list --installed 2>/dev/null | cut -d'/' -f1 | tail -n +2
 ```
 
-- [ ] **Step 2: Add dnf to sources.ccl**
+- [ ] **Step 2: Add arch and aur to sources.ccl (Tier 2 gaps)**
+
+Both `arch` and `aur` have package list files but are missing from `sources.ccl`. Add:
+
+```ccl
+arch =
+  emoji = 🏛️
+  install = sudo pacman -S --noconfirm {package}
+  check = pacman -Qq
+
+aur =
+  emoji = 🔧
+  install = yay -S --noconfirm {package}
+  check = yay -Qq
+```
+
+Note: `aur` assumes `yay` as the AUR helper. This is the most common choice but users may use `paru` or others. This is acceptable for Tier 2 best-effort.
+
+- [ ] **Step 3: Add dnf to sources.ccl**
 
 Add to `crates/santa-cli/data/sources.ccl`:
 
@@ -356,7 +374,7 @@ dnf =
   check = dnf list installed | tail -n +2 | cut -d'.' -f1
 ```
 
-- [ ] **Step 3: Create dnf package list**
+- [ ] **Step 4: Create dnf package list**
 
 Create `crates/santa-cli/data/sources/dnf.ccl`:
 
@@ -395,7 +413,7 @@ wget =
 zsh =
 ```
 
-- [ ] **Step 4: Add winget to sources.ccl**
+- [ ] **Step 5: Add winget to sources.ccl**
 
 Add to `crates/santa-cli/data/sources.ccl`:
 
@@ -406,7 +424,7 @@ winget =
   check = winget list | ForEach-Object { ($_ -split '\s{2,}')[0] }
 ```
 
-- [ ] **Step 5: Create winget package list**
+- [ ] **Step 6: Create winget package list**
 
 Create `crates/santa-cli/data/sources/winget.ccl`:
 
@@ -425,7 +443,7 @@ JetBrains.Toolbox =
 Docker.DockerDesktop =
 ```
 
-- [ ] **Step 6: Create flathub package list**
+- [ ] **Step 7: Create flathub package list**
 
 Create `crates/santa-cli/data/sources/flathub.ccl`:
 
@@ -441,17 +459,17 @@ org.inkscape.Inkscape =
 com.obsproject.Studio =
 ```
 
-- [ ] **Step 7: Regenerate index**
+- [ ] **Step 8: Regenerate index**
 
 Run: `just generate-index`
 Verify: `crates/santa-cli/data/known_packages.ccl` includes the new packages.
 
-- [ ] **Step 8: Run tests**
+- [ ] **Step 9: Run tests**
 
 Run: `cargo test -p santa`
 Expected: All tests pass. No regressions.
 
-- [ ] **Step 9: Commit**
+- [ ] **Step 10: Commit**
 
 ```bash
 git add crates/santa-cli/data/sources.ccl crates/santa-cli/data/sources/dnf.ccl crates/santa-cli/data/sources/winget.ccl crates/santa-cli/data/sources/flathub.ccl crates/santa-cli/data/known_packages.ccl
@@ -1128,7 +1146,8 @@ macro_rules! tier2_smoke_test {
 
 tier2_smoke_test!(dnf_does_not_crash, "dnf", &["git", "curl"]);
 tier2_smoke_test!(nix_does_not_crash, "nix", &["git", "curl"]);
-tier2_smoke_test!(aur_does_not_crash, "aur", &["git"]);
+tier2_smoke_test!(arch_does_not_crash, "arch", &["binutils", "cairo"]);
+tier2_smoke_test!(aur_does_not_crash, "aur", &["ack", "add-gitignore"]);
 tier2_smoke_test!(scoop_does_not_crash, "scoop", &["git", "curl"]);
 tier2_smoke_test!(winget_does_not_crash, "winget", &["Git.Git"]);
 tier2_smoke_test!(flathub_does_not_crash, "flathub", &["org.mozilla.firefox"]);
