@@ -33,6 +33,36 @@ cargo install --path crates/santa-cli
    santa install
    ```
 
+## Getting Started with `santa init`
+
+The fastest way to get started is to run `santa init`:
+
+```sh
+santa init
+```
+
+This will:
+1. Detect which package managers are available on your system
+2. Let you choose which ones to include
+3. Optionally seed your config with common dev tools
+4. Write a starter config to `~/.config/santa/config.ccl`
+
+### Non-interactive mode
+
+For scripted setups, use `--yes` to accept all defaults:
+
+```sh
+santa init --yes
+```
+
+### Custom output path
+
+To write the config somewhere else:
+
+```sh
+santa init --output ./my-config.ccl
+```
+
 ## Command Reference
 
 ### `santa status`

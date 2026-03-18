@@ -23,6 +23,9 @@ The main Santa command-line application. Install and manage packages across Home
 # Install Santa
 cargo install santa-cli
 
+# Create your config
+santa init
+
 # Check package status
 santa status
 

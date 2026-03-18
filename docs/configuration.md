@@ -2,6 +2,8 @@
 
 Santa uses CCL (Categorical Configuration Language) for configuration files. This guide explains the format, file locations, and configuration options.
 
+> **Tip:** Run `santa init` to generate a starter config automatically.
+
 ## CCL Format Overview
 
 CCL is a simple, human-readable configuration format. Key features:

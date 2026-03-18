@@ -2,6 +2,21 @@
 
 Common issues and solutions when using Santa.
 
+## `santa init` Issues
+
+### "Config already exists" error
+
+If you already have a config file, `santa init` will not overwrite it by default. Options:
+- Remove the existing config: `rm ~/.config/santa/config.ccl`
+- Write to a different path: `santa init --output ./new-config.ccl`
+
+### No package managers detected
+
+If `santa init` doesn't detect any managers, they may not be on your `$PATH`. Verify with:
+```sh
+which brew apt pacman cargo npm
+```
+
 ## Configuration Issues
 
 ### Configuration Not Loading
