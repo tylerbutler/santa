@@ -119,8 +119,8 @@ fn pacman_script_contains_pacman() {
 #[test]
 fn cargo_script_contains_cargo_install() {
     let output_dir = TempDir::new().unwrap();
-    // cargo-update and when-cli are available for cargo in the package database
-    let config = write_test_config(&["cargo"], &["cargo-update", "when-cli"]);
+    // Use multiple cargo packages — at least one should be uninstalled on any machine
+    let config = write_test_config(&["cargo"], &["dotenv-linter", "hurl", "procs", "xsv"]);
 
     santa_cmd()
         .env("SANTA_CONFIG_PATH", config.path())
