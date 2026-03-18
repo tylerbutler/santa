@@ -20,8 +20,12 @@ The main Santa command-line application. Install and manage packages across Home
 **For users:** See the [User Guide](docs/user-guide.md) for complete usage instructions.
 
 ```bash
-# Install Santa
-cargo install santa-cli
+# Install Santa (pick one)
+brew install tylerbutler/tap/santa    # Homebrew
+cargo install santa                    # Cargo
+
+# Create your config
+santa init
 
 # Check package status
 santa status

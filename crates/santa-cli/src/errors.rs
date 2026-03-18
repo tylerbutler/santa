@@ -109,6 +109,42 @@ impl SantaError {
         )
     }
 
+    /// Returns an optional user-facing hint for how to resolve this error.
+    pub fn hint(&self) -> Option<String> {
+        match self {
+            SantaError::Config(err) => {
+                let msg = err.to_string();
+                if msg.contains("not found") || msg.contains("No such file") {
+                    Some("Run `santa init` to create a config file, or use `--config` to specify a path.".into())
+                } else {
+                    Some("Check your config file syntax. See `santa config` or the config guide at docs/configuration.md.".into())
+                }
+            }
+            SantaError::PackageSource(msg) => {
+                if msg.contains("not found") || msg.contains("not installed") {
+                    let source = msg.split(':').next().unwrap_or("the package manager");
+                    Some(format!("Is `{source}` installed? Check with `which {source}`."))
+                } else {
+                    Some("Run `santa sources list` to check available sources.".into())
+                }
+            }
+            SantaError::Network(msg) => {
+                if msg.contains("timeout") {
+                    Some("Check your internet connection and try again.".into())
+                } else {
+                    Some("Check your internet connection. If this persists, try `santa sources clear` and re-run.".into())
+                }
+            }
+            SantaError::InvalidPackage(_) => {
+                Some("Run `santa sources update` to get the latest package definitions.".into())
+            }
+            SantaError::Security(_) => {
+                Some("This package name contains suspicious characters. If this is intentional, file an issue.".into())
+            }
+            _ => None,
+        }
+    }
+
     /// Returns the error category as a string for logging/metrics.
     pub fn category(&self) -> &'static str {
         match self {
