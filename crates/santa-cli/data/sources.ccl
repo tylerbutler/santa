@@ -40,3 +40,28 @@ scoop =
   emoji = 🍨
   install = scoop install {package}
   check = scoop export |% { $_.split(' ')[0] } |% { echo $_ }
+
+apt =
+  emoji = 📦
+  install = sudo apt install -y {package}
+  check = apt list --installed 2>/dev/null | cut -d'/' -f1 | tail -n +2
+
+arch =
+  emoji = 🏛️
+  install = sudo pacman -S --noconfirm {package}
+  check = pacman -Qq
+
+aur =
+  emoji = 🔧
+  install = yay -S --noconfirm {package}
+  check = yay -Qq
+
+dnf =
+  emoji = 🎩
+  install = sudo dnf install -y {package}
+  check = dnf list installed | tail -n +2 | cut -d'.' -f1
+
+winget =
+  emoji = 🪟
+  install = winget install --id {package} --accept-source-agreements --accept-package-agreements
+  check = winget list | ForEach-Object { ($_ -split '\s{2,}')[0] }
