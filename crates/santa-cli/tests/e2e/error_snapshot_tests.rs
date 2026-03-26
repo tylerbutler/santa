@@ -33,26 +33,16 @@ fn error_add_unknown_package_shows_hint() {
 
 #[test]
 fn error_add_no_packages_shows_usage() {
-    santa_cmd()
-        .args(["add"])
-        .assert()
-        .failure()
-        .stderr(
-            predicate::str::contains("No packages specified")
-                .or(predicate::str::contains("Usage")),
-        );
+    santa_cmd().args(["add"]).assert().failure().stderr(
+        predicate::str::contains("No packages specified").or(predicate::str::contains("Usage")),
+    );
 }
 
 #[test]
 fn error_remove_no_packages_shows_usage() {
-    santa_cmd()
-        .args(["remove"])
-        .assert()
-        .failure()
-        .stderr(
-            predicate::str::contains("No packages specified")
-                .or(predicate::str::contains("Usage")),
-        );
+    santa_cmd().args(["remove"]).assert().failure().stderr(
+        predicate::str::contains("No packages specified").or(predicate::str::contains("Usage")),
+    );
 }
 
 #[test]

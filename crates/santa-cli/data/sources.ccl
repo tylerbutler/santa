@@ -32,7 +32,7 @@ nix =
 
 flathub =
   emoji = 📦
-  install = flatpak install {package}
+  install = flatpak install flathub {package}
   check = flatpak list --columns=application | cut -d'-' -f2-
   prefix = flathub
 

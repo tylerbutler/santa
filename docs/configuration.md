@@ -2,7 +2,9 @@
 
 Santa uses CCL (Categorical Configuration Language) for configuration files. This guide explains the format, file locations, and configuration options.
 
-> **Tip:** Run `santa init` to generate a starter config automatically.
+> **Tip:** Run `santa init` to generate a starter config automatically. The
+> generated file uses the same `sources =` and `packages =` list structure shown
+> below.
 
 ## CCL Format Overview
 
@@ -46,7 +48,7 @@ Santa loads configuration in priority order (later files override earlier ones):
 ### Override with Environment Variable
 
 ```bash
-export SANTA_CONFIG=/path/to/config.ccl
+export SANTA_CONFIG_PATH=/path/to/config.ccl
 santa status
 ```
 
@@ -72,7 +74,7 @@ sources =
   = pacman
 ```
 
-**Available sources**: `brew`, `cargo`, `apt`, `pacman`, `aur`, `scoop`, `nix`
+**Available sources**: `brew`, `cargo`, `apt`, `pacman`, `arch`, `aur`, `dnf`, `scoop`, `winget`, `nix`, `flathub`
 
 Santa automatically filters sources to those available on your platform.
 
@@ -270,12 +272,12 @@ neovim =
 
 Override configuration with environment variables:
 
-### `SANTA_CONFIG`
+### `SANTA_CONFIG_PATH`
 
 Path to configuration file:
 
 ```bash
-export SANTA_CONFIG=~/my-santa-config.ccl
+export SANTA_CONFIG_PATH=~/my-santa-config.ccl
 santa status
 ```
 
@@ -318,7 +320,7 @@ Error: Failed to parse configuration
 Warning: Unknown source 'xyz' in configuration
 ```
 
-**Fix**: Verify source name is valid. Available sources: `brew`, `cargo`, `apt`, `pacman`, `aur`, `scoop`, `nix`.
+**Fix**: Verify source name is valid. Available sources: `brew`, `cargo`, `apt`, `pacman`, `arch`, `aur`, `dnf`, `scoop`, `winget`, `nix`, `flathub`.
 
 ### Duplicate Package Definitions
 
@@ -404,9 +406,13 @@ package4 =
 | `cargo` | All | Rust package manager |
 | `apt` | Debian, Ubuntu | Debian package manager |
 | `pacman` | Arch Linux | Arch package manager |
+| `arch` | Arch Linux | Alias for official Arch repositories in user config and script generation |
 | `aur` | Arch Linux | Arch User Repository |
+| `dnf` | Fedora, RHEL | Fedora/RHEL package manager |
 | `scoop` | Windows | Windows package manager |
+| `winget` | Windows | Windows Package Manager |
 | `nix` | All | Nix package manager |
+| `flathub` | Linux | Flatpak remote |
 
 ## Next Steps
 

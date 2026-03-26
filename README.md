@@ -218,7 +218,7 @@ santa/
 - **Migration Support** - Transparent YAML-to-CCL migration
 
 ### Package Management
-- **Multi-Source** - Support for 7+ package managers
+- **Multi-Source** - Support for Homebrew, Cargo, APT, Pacman, Arch, AUR, DNF, Scoop, Winget, Nix, and Flathub
 - **Async Operations** - High-performance concurrent execution
 - **Intelligent Caching** - Reduces redundant operations
 - **Cross-Platform** - Works on Linux, macOS, Windows
@@ -237,9 +237,13 @@ santa/
 | **Cargo** | All | ✅ Full Support |
 | **APT** | Debian, Ubuntu | ✅ Full Support |
 | **Pacman** | Arch Linux | ✅ Full Support |
+| **Arch** | Arch Linux | ✅ Full Support |
 | **AUR** | Arch Linux | ✅ Full Support |
+| **DNF** | Fedora, RHEL | ✅ Full Support |
 | **Scoop** | Windows | ✅ Full Support |
+| **Winget** | Windows | ✅ Full Support |
 | **Nix** | All | ✅ Full Support |
+| **Flathub** | Linux | ✅ Full Support |
 
 ## Contributing
 

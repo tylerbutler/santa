@@ -1,3 +1,4 @@
+use crate::data::SantaData;
 use anyhow::{bail, Context, Result};
 use colored::Colorize;
 use dialoguer::{theme::ColorfulTheme, Confirm, MultiSelect};
@@ -12,14 +13,7 @@ const DETECTABLE_MANAGERS: &[(&str, &str)] = &[
     ("npm", "npm"),
 ];
 
-/// Starter packages per manager (canonical name -> manager-specific name)
-const STARTER_PACKAGES: &[(&str, &[(&str, &str)])] = &[
-    ("brew", &[("ripgrep", "ripgrep"), ("fd", "fd"), ("jq", "jq"), ("bat", "bat")]),
-    ("apt", &[("ripgrep", "ripgrep"), ("fd", "fd-find"), ("jq", "jq"), ("bat", "bat")]),
-    ("pacman", &[("ripgrep", "ripgrep"), ("fd", "fd"), ("jq", "jq"), ("bat", "bat")]),
-    ("cargo", &[("bat", "bat"), ("eza", "eza"), ("ripgrep", "ripgrep")]),
-    ("npm", &[]),
-];
+const STARTER_PACKAGES: &[&str] = &["ripgrep", "fd", "jq", "bat", "eza"];
 
 /// Detect which package managers are available on $PATH
 fn detect_managers() -> Vec<String> {
@@ -36,21 +30,38 @@ fn default_config_path() -> Result<PathBuf> {
     Ok(base.home_dir().join(".config/santa/config.ccl"))
 }
 
-/// Generate CCL config content for the selected managers and packages
-fn generate_config(managers: &[String], include_starter: bool) -> String {
+fn starter_packages_for(managers: &[String], data: &SantaData) -> Vec<&'static str> {
+    STARTER_PACKAGES
+        .iter()
+        .copied()
+        .filter(|package| {
+            data.packages.get(*package).is_some_and(|sources| {
+                managers
+                    .iter()
+                    .any(|selected| sources.keys().any(|source| source.to_string() == *selected))
+            })
+        })
+        .collect()
+}
+
+/// Generate CCL config content for the selected managers and packages.
+fn generate_config(managers: &[String], include_starter: bool, data: &SantaData) -> String {
     let mut lines = vec!["/= Santa package configuration".to_string(), String::new()];
 
+    lines.push("sources =".to_string());
     for manager in managers {
-        lines.push(format!("{manager} ="));
-        if include_starter {
-            if let Some((_, packages)) = STARTER_PACKAGES.iter().find(|(m, _)| *m == manager.as_str()) {
-                for (_, pkg_name) in *packages {
-                    lines.push(format!("  = {pkg_name}"));
-                }
-            }
-        }
-        lines.push(String::new());
+        lines.push(format!("  = {manager}"));
     }
+    lines.push(String::new());
+
+    lines.push("packages =".to_string());
+    if include_starter {
+        for package in starter_packages_for(managers, data) {
+            lines.push(format!("  = {package}"));
+        }
+    }
+
+    lines.push(String::new());
 
     lines.join("\n")
 }
@@ -120,18 +131,20 @@ pub async fn run_init(yes: bool, output: Option<&Path>) -> Result<()> {
         bail!("No package managers selected. Config not created.");
     }
 
+    let data = SantaData::default();
+
     // Ask about starter packages
     let include_starter = if yes {
         true
     } else {
         Confirm::with_theme(&ColorfulTheme::default())
-            .with_prompt("Include starter packages (ripgrep, fd, jq, bat)?")
+            .with_prompt("Include starter packages (ripgrep, fd, jq, bat, eza when supported)?")
             .default(true)
             .interact()?
     };
 
     // Generate and write config
-    let content = generate_config(&selected, include_starter);
+    let content = generate_config(&selected, include_starter, &data);
 
     // Create parent directories
     if let Some(parent) = config_path.parent() {
@@ -153,4 +166,35 @@ pub async fn run_init(yes: bool, output: Option<&Path>) -> Result<()> {
     println!("  santa add <pkg> — add more packages");
 
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::starter_packages_for;
+    use crate::data::SantaData;
+
+    #[test]
+    fn starter_packages_only_include_supported_packages_for_selected_sources() {
+        let data = SantaData::default();
+
+        let apt_only = starter_packages_for(&["apt".to_string()], &data);
+        assert!(!apt_only.contains(&"fd"));
+        assert!(apt_only.contains(&"ripgrep"));
+        assert!(apt_only.contains(&"jq"));
+        assert!(apt_only.contains(&"bat"));
+
+        let cargo_only = starter_packages_for(&["cargo".to_string()], &data);
+        assert!(cargo_only.is_empty());
+
+        let brew_only = starter_packages_for(&["brew".to_string()], &data);
+        assert!(brew_only.contains(&"eza"));
+
+        for package in &brew_only {
+            let supported = data
+                .packages
+                .get(*package)
+                .is_some_and(|sources| sources.keys().any(|source| source.to_string() == "brew"));
+            assert!(supported, "{package} should be installable with brew");
+        }
+    }
 }

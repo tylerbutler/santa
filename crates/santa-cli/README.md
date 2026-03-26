@@ -31,7 +31,7 @@ Santa simplifies this workflow. Santa knows where your packages can be installed
 
 ### 🔧 Cross-Platform
 - **Linux, macOS, and Windows** support
-- **Multiple package managers**: Homebrew, Cargo, APT, Pacman, AUR, Scoop, Nix
+- **Multiple package managers**: Homebrew, Cargo, APT, Pacman, Arch, AUR, DNF, Scoop, Winget, Nix, Flathub
 - **Automatic fallback** to available package managers
 
 ### 🌟 User-Friendly
@@ -66,7 +66,7 @@ Expand-Archive santa.zip
 ### From Source
 
 ```bash
-cargo install santa-cli
+cargo install santa
 ```
 
 ### Verify Installation
@@ -77,7 +77,19 @@ santa --version
 
 ## Quick Start
 
-### 1. Check Status
+### 1. Create a Config
+
+Generate a starter config at `~/.config/santa/config.ccl`:
+
+```bash
+santa init
+```
+
+Santa writes a starter config using top-level `sources =` and `packages =`
+lists, and starter packages use Santa's canonical package names so source-level
+name differences are resolved during package lookup.
+
+### 2. Check Status
 
 See what packages are available and their installation status:
 
@@ -85,7 +97,7 @@ See what packages are available and their installation status:
 santa status
 ```
 
-### 2. Install Packages
+### 3. Install Packages
 
 Install all configured packages:
 
@@ -99,13 +111,13 @@ Install specific packages:
 santa install ripgrep bat fd
 ```
 
-### 3. View Configuration
+### 4. View Configuration
 
 ```bash
 santa config
 ```
 
-### 4. Set Up Shell Completions
+### 5. Set Up Shell Completions
 
 ```bash
 # Bash
@@ -155,9 +167,13 @@ packages =
 | **Cargo** | All | ✅ Full Support |
 | **APT** | Debian, Ubuntu | ✅ Full Support |
 | **Pacman** | Arch Linux | ✅ Full Support |
+| **Arch** | Arch Linux | ✅ Full Support |
 | **AUR** | Arch Linux | ✅ Full Support |
+| **DNF** | Fedora, RHEL | ✅ Full Support |
 | **Scoop** | Windows | ✅ Full Support |
+| **Winget** | Windows | ✅ Full Support |
 | **Nix** | All | ✅ Full Support |
+| **Flathub** | Linux | ✅ Full Support |
 
 ### Environment Variables
 

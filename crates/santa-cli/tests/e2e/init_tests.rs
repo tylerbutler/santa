@@ -19,7 +19,8 @@ fn init_with_yes_creates_config() {
 
     assert!(config_path.exists());
     let content = std::fs::read_to_string(&config_path).unwrap();
-    assert!(content.contains("="));
+    assert!(content.contains("sources ="));
+    assert!(content.contains("packages ="));
 }
 
 #[test]
@@ -36,7 +37,7 @@ fn init_refuses_overwrite_with_yes_flag() {
 }
 
 #[test]
-fn init_generates_valid_ccl() {
+fn init_generates_cli_loadable_config() {
     let tmp = TempDir::new().unwrap();
     let config_path = tmp.path().join("config.ccl");
 
@@ -45,16 +46,8 @@ fn init_generates_valid_ccl() {
         .assert()
         .success();
 
-    let content = std::fs::read_to_string(&config_path).unwrap();
-    assert!(content.starts_with("/="));
-    for line in content.lines() {
-        let trimmed = line.trim();
-        assert!(
-            trimmed.is_empty()
-                || trimmed.starts_with("/=")
-                || trimmed.starts_with("= ")
-                || trimmed.contains(" ="),
-            "Invalid CCL line: {trimmed}"
-        );
-    }
+    santa_init_cmd()
+        .args(["--config", config_path.to_str().unwrap(), "config"])
+        .assert()
+        .success();
 }

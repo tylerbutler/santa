@@ -9,6 +9,7 @@ Common issues and solutions when using Santa.
 If you already have a config file, `santa init` will not overwrite it by default. Options:
 - Remove the existing config: `rm ~/.config/santa/config.ccl`
 - Write to a different path: `santa init --output ./new-config.ccl`
+- Verify the generated file loads correctly: `santa --config ./new-config.ccl config`
 
 ### No package managers detected
 
@@ -42,11 +43,11 @@ which brew apt pacman cargo npm
 
 3. Verify environment variable isn't overriding:
    ```bash
-   # Check if SANTA_CONFIG is set
-   echo $SANTA_CONFIG
+   # Check if SANTA_CONFIG_PATH is set
+   echo $SANTA_CONFIG_PATH
 
    # If set, either unset it or use that file
-   unset SANTA_CONFIG
+   unset SANTA_CONFIG_PATH
    ```
 
 4. Test with built-in configuration only:
@@ -397,7 +398,7 @@ santa --builtin-only status
 santa install --output-dir ./debug-scripts
 
 # Test with specific config file
-SANTA_CONFIG=./test.ccl santa status
+SANTA_CONFIG_PATH=./test.ccl santa status
 ```
 
 ## Clean Slate
@@ -510,10 +511,10 @@ Windows uses different path separators. Santa handles this automatically, but if
 
 ```powershell
 # Check environment
-echo $env:SANTA_CONFIG
+echo $env:SANTA_CONFIG_PATH
 
 # Use Windows-style paths
-$env:SANTA_CONFIG = "C:\Users\username\config.ccl"
+$env:SANTA_CONFIG_PATH = "C:\Users\username\config.ccl"
 ```
 
 ## Getting Help
