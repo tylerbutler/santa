@@ -1,0 +1,27 @@
+[package]
+name = "sickle-cli"
+version = "0.1.0"
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+description = "CLI tool for working with CCL files"
+publish = false
+
+[dependencies]
+sickle = { path = "../sickle", features = ["full"] }
+clap = { version = "4.5", features = ["color", "derive", "wrap_help"] }
+serde_json.workspace = true
+serde = { workspace = true }
+toml = "1.1"
+colored.workspace = true
+anyhow.workspace = true
+dialoguer.workspace = true
+
+[dev-dependencies]
+assert_cmd = "2.1"
+predicates = "3.1"
+tempfile = "3.26"
+
+[[bin]]
+name = "sickle"
+path = "src/main.rs"

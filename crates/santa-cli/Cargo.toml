@@ -114,7 +114,7 @@ tiny-update-check = "1"
 
 [dev-dependencies]
 # Parameterized testing framework with fixtures
-rstest = "0.18"
+rstest = "0.26"
 
 # Temporary file and directory creation for tests
 tempfile = "3.26"
@@ -129,7 +129,7 @@ assert_cmd = "2.1"
 predicates = "3.1"
 
 # Benchmarking framework with HTML reports
-criterion = { version = "0.5", features = ["html_reports", "async_tokio"] }
+criterion = { version = "0.8", features = ["html_reports", "async_tokio"] }
 
 [[bin]]
 name = "santa"
