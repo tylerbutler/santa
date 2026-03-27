@@ -177,3 +177,4 @@ harness = false
 # cargo-dist: This package generates distributable binaries
 [package.metadata.dist]
 dist = true
+binaries = ["santa"]
