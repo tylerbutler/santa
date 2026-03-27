@@ -324,6 +324,7 @@ jobs:
         with:
           base-sha: ${{ github.event.pull_request.base.sha }}
           head-sha: ${{ github.event.pull_request.head.sha }}
+          projects: santa,santa-data,sickle,sickle-cli
       - name: Comment with changelog preview
         if: steps.changelog.outputs.has-entries == 'true'
         uses: marocchino/sticky-pull-request-comment@70d2764d1a7d5d9560b100cbea0077fc8f633987 # ratchet:marocchino/sticky-pull-request-comment@v3.0.2
