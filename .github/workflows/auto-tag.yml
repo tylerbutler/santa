@@ -32,26 +32,33 @@ jobs:
           fetch-depth: 0
           token: ${{ steps.app-token.outputs.token }}
 
-      - name: Install changie
-        uses: miniscruff/changie-action@5036dffa79ffc007110dc7f75eca7ef72780e147 # ratchet:miniscruff/changie-action@v2.1.0
-
       - name: Create tags for released projects
         id: tags
         run: |
           CREATED_TAGS=""
+
+          # Map changie project keys to Cargo.toml paths and tag prefixes
+          declare -A CRATE_PATH=(
+            [santa]="crates/santa-cli/Cargo.toml"
+            [santa-data]="crates/santa-data/Cargo.toml"
+            [sickle]="crates/sickle/Cargo.toml"
+          )
+
           for project in santa santa-data sickle; do
-            version=$(changie latest --project "$project" 2>/dev/null || true)
-            if [ -z "$version" ]; then
-              echo "Could not resolve version for $project, skipping"
+            cargo_file="${CRATE_PATH[$project]}"
+            ver=$(sed -n 's/^version = "\(.*\)"/\1/p' "$cargo_file")
+            if [ -z "$ver" ]; then
+              echo "Could not read version for $project from $cargo_file, skipping"
               continue
             fi
-            if git tag -l "$version" | grep -q .; then
-              echo "Tag $version already exists, skipping"
+            tag="${project}-v${ver}"
+            if git tag -l "$tag" | grep -q .; then
+              echo "Tag $tag already exists, skipping"
               continue
             fi
-            git tag "$version"
-            CREATED_TAGS="${CREATED_TAGS:+$CREATED_TAGS }$version"
-            echo "Created tag: $version"
+            git tag "$tag"
+            CREATED_TAGS="${CREATED_TAGS:+$CREATED_TAGS }$tag"
+            echo "Created tag: $tag"
           done
 
           if [ -n "$CREATED_TAGS" ]; then
