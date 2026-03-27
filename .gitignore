@@ -1,6 +1,9 @@
 /target
-.claude
+.claude/*
+!.claude/skills/
+crates/**/.claude/
 .serena
+.worktrees
 
 # CycloneDX SBOM files (if generated locally)
 *.cdx.xml
