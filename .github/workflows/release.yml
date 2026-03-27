@@ -13,12 +13,20 @@ jobs:
   release:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - name: Generate app token
+        id: app-token
+        uses: actions/create-github-app-token@fee1f7d63c2ff003460e3d139729b119787bc349 # ratchet:actions/create-github-app-token@v2
+        with:
+          app-id: ${{ secrets.RELEASE_APP_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # ratchet:actions/checkout@v6
         with:
           fetch-depth: 0
+          token: ${{ steps.app-token.outputs.token }}
 
       - name: Install changie
-        uses: miniscruff/changie-action@v2.1.0
+        uses: miniscruff/changie-action@5036dffa79ffc007110dc7f75eca7ef72780e147 # ratchet:miniscruff/changie-action@v2.1.0
 
       - name: Check for unreleased changes
         id: check
@@ -86,8 +94,9 @@ jobs:
 
       - name: Create release pull request
         if: steps.check.outputs.skipped != 'true' && steps.versions.outputs.skipped != 'true'
-        uses: peter-evans/create-pull-request@v8
+        uses: peter-evans/create-pull-request@c0f553fe549906ede9cf27b5156039d195d2ece0 # ratchet:peter-evans/create-pull-request@v8
         with:
+          token: ${{ steps.app-token.outputs.token }}
           title: "Release ${{ steps.versions.outputs.versions }}"
           branch: release/next
           commit-message: "chore(release): ${{ steps.versions.outputs.versions }}"
