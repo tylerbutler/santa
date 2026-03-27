@@ -177,4 +177,10 @@ harness = false
 # cargo-dist: This package generates distributable binaries
 [package.metadata.dist]
 dist = true
-binaries = ["santa"]
+
+[package.metadata.dist.binaries]
+aarch64-apple-darwin = ["santa"]
+aarch64-unknown-linux-gnu = ["santa"]
+x86_64-apple-darwin = ["santa"]
+x86_64-unknown-linux-gnu = ["santa"]
+x86_64-pc-windows-msvc = ["santa"]
