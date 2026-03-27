@@ -1,5 +1,7 @@
 /target
-.claude
+.claude/*
+!.claude/skills/
+crates/**/.claude/
 .serena
 .worktrees
 
