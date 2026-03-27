@@ -401,6 +401,14 @@ impl<'de> de::Deserializer<'de> for &mut Deserializer {
             }
         }
 
+        // Fallback: single scalar value → one-element sequence
+        if let Ok(s) = self.model.as_string() {
+            let seq = StringSeqDeserializer {
+                iter: vec![s.to_owned()].into_iter(),
+            };
+            return visitor.visit_seq(seq);
+        }
+
         Err(DeError::custom("expected a list"))
     }
 
@@ -1106,19 +1114,42 @@ mod serde_validation_tests {
     }
 
     #[test]
-    fn test_vec_single_item_limitation() {
-        // Known limitation: A single value is not distinguishable from a scalar
-        // in CCL's key-value model. To get a single-item list, you need the
-        // explicit list syntax or use duplicate keys.
+    fn test_vec_single_item() {
+        // A single scalar value should coerce into a one-element Vec
         let ccl = "items = only_one";
-        #[allow(dead_code)]
-        #[derive(Deserialize, Debug)]
+        #[derive(Deserialize, PartialEq, Debug)]
         struct S {
             items: Vec<String>,
         }
-        let result: Result<S> = from_str(ccl);
-        // This currently fails because a single value looks like a scalar, not a list
-        assert!(result.is_err());
+        let s: S = from_str(ccl).unwrap();
+        assert_eq!(s.items, vec!["only_one"]);
+    }
+
+    #[test]
+    fn test_vec_single_item_integer() {
+        let ccl = "count = 42";
+        #[derive(Deserialize, PartialEq, Debug)]
+        struct S {
+            count: Vec<i64>,
+        }
+        let s: S = from_str(ccl).unwrap();
+        assert_eq!(s.count, vec![42]);
+    }
+
+    #[test]
+    fn test_hashmap_string_vec_mixed() {
+        // Single and multi-value keys should both work as Vec values
+        let ccl = "mappings =\n  foo = bar\n  baz = qux\n  baz = quux";
+        #[derive(Deserialize, PartialEq, Debug)]
+        struct S {
+            mappings: HashMap<String, Vec<String>>,
+        }
+        let s: S = from_str(ccl).unwrap();
+        assert_eq!(s.mappings.get("foo").unwrap(), &vec!["bar"]);
+        let baz = s.mappings.get("baz").unwrap();
+        assert_eq!(baz.len(), 2);
+        assert!(baz.contains(&"qux".to_string()));
+        assert!(baz.contains(&"quux".to_string()));
     }
 
     #[test]
