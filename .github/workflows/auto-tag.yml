@@ -4,6 +4,11 @@ on:
   pull_request:
     types: [closed]
     branches: [main]
+  workflow_dispatch:
+    inputs:
+      crates:
+        description: 'Space-separated tags to publish (e.g. "sickle-v0.2.0 santa-data-v0.3.3")'
+        required: true
 
 permissions:
   contents: write
@@ -65,7 +70,7 @@ jobs:
 
   publish:
     needs: tag
-    if: needs.tag.outputs.created_tags != ''
+    if: always() && (needs.tag.outputs.created_tags != '' || github.event_name == 'workflow_dispatch')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # ratchet:actions/checkout@v6
@@ -78,7 +83,7 @@ jobs:
       - name: Publish crates
         env:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
-          CREATED_TAGS: ${{ needs.tag.outputs.created_tags }}
+          CREATED_TAGS: ${{ github.event.inputs.crates || needs.tag.outputs.created_tags }}
         run: |
           # Publish in dependency order: sickle -> santa-data -> santa
           for project in sickle santa-data santa; do
