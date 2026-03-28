@@ -133,6 +133,8 @@ enum Commands {
     /// Manage package sources
     #[clap(subcommand)]
     Sources(SourcesCommands),
+    /// Launch interactive terminal UI
+    Tui,
 }
 
 /// Subcommands for managing package sources
@@ -645,6 +647,16 @@ pub async fn run() -> Result<(), anyhow::Error> {
         }
         Commands::Sources(sources_cmd) => {
             handle_sources_command(sources_cmd, &config).await?;
+        }
+        Commands::Tui => {
+            santa::tui::run_tui(
+                config,
+                data,
+                execution_mode,
+                script_format,
+                output_dir,
+            )
+            .await?;
         }
     }
 
