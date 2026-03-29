@@ -199,7 +199,10 @@ coverage-report:
 #   just download-ccl-tests latest       # download latest release
 #   just download-ccl-tests v0.6.2       # download specific version
 #   just download-ccl-tests latest true  # force re-download latest
-download-ccl-tests version="" force="false":
+ccl_test_data_dir := "crates/sickle/tests/test_data"
+ccl_test_data_version := if path_exists(ccl_test_data_dir / ".version") == "true" { trim(read(ccl_test_data_dir / ".version")) } else { "latest" }
+
+download-ccl-tests version=ccl_test_data_version force="false":
     #!/usr/bin/env bash
     set -euo pipefail
 
@@ -210,13 +213,6 @@ download-ccl-tests version="" force="false":
     FORCE="{{ force }}"
 
     mkdir -p "$TEST_DATA_DIR"
-
-    # Default to the version pinned in .version
-    if [ -z "$REQUESTED_VERSION" ] && [ -f "$VERSION_FILE" ]; then
-        REQUESTED_VERSION=$(cat "$VERSION_FILE")
-    elif [ -z "$REQUESTED_VERSION" ]; then
-        REQUESTED_VERSION="latest"
-    fi
 
     # Resolve the target version
     if [ "$REQUESTED_VERSION" = "latest" ]; then
