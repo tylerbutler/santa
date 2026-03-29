@@ -302,7 +302,7 @@ jobs:
 
       - uses: ./.github/actions/setup-rust
 
-      - uses: ./.github/actions/download-ccl-tests
+      - run: just download-ccl-tests
 
       - name: Test packages in isolation
         run: |

@@ -28,7 +28,7 @@ jobs:
         with:
           tools: just,cargo-llvm-cov,cargo-nextest
 
-      - uses: ./.github/actions/download-ccl-tests
+      - run: just download-ccl-tests
 
       - name: Run tests with coverage
         run: just test-coverage

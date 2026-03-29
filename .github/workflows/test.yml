@@ -35,7 +35,7 @@ jobs:
         with:
           tools: just
 
-      - uses: ./.github/actions/download-ccl-tests
+      - run: just download-ccl-tests
 
       - run: just test --verbose --workspace --all-features
       - run: just test --verbose --workspace --no-default-features
@@ -60,7 +60,7 @@ jobs:
         with:
           tools: just
 
-      - uses: ./.github/actions/download-ccl-tests
+      - run: just download-ccl-tests
 
       - run: just test --verbose --workspace --all-features
       - run: just test --verbose --workspace --no-default-features
@@ -87,7 +87,7 @@ jobs:
         with:
           tools: cross
 
-      - uses: ./.github/actions/download-ccl-tests
+      - run: just download-ccl-tests
 
       - run: cross test --verbose --target=${{ matrix.target }} --no-default-features
       - run: cross test --verbose --target=${{ matrix.target }} --all-features
