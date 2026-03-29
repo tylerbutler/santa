@@ -195,12 +195,12 @@ coverage-report:
 
 # Download CCL test data from ccl-test-data release
 # Usage:
-#   just download-ccl-tests              # download version from .version file, skip if already current
+#   just download-ccl-tests              # download version from .pinned-version file, skip if already current
 #   just download-ccl-tests latest       # download latest release
 #   just download-ccl-tests v0.6.2       # download specific version
 #   just download-ccl-tests latest true  # force re-download latest
 ccl_test_data_dir := "crates/sickle/tests/test_data"
-ccl_test_data_version := if path_exists(ccl_test_data_dir / ".version") == "true" { trim(read(ccl_test_data_dir / ".version")) } else { "latest" }
+ccl_test_data_version := if path_exists(ccl_test_data_dir / ".pinned-version") == "true" { trim(read(ccl_test_data_dir / ".pinned-version")) } else { "latest" }
 
 download-ccl-tests version=ccl_test_data_version force="false":
     npx --package=ccl-test-runner-ts ccl-download-tests -o={{ ccl_test_data_dir }} {{ if version != "latest" { "-v=" + version } else { "" } }} {{ if force == "true" { "-f" } else { "" } }}
