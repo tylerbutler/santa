@@ -1,6 +1,25 @@
 # CCL Test Data
 
-This directory contains JSON test suites from the [ccl-test-data](https://github.com/tylerbutler/ccl-test-data) repository.
+This directory contains JSON test suites from the [ccl-test-data](https://github.com/CatConfLang/ccl-test-data) repository.
+
+## Downloading Test Data
+
+Test data JSON files are **not committed to git** — they are downloaded from ccl-test-data GitHub releases. To download or update test data:
+
+```bash
+# Download latest version (skips if already current)
+just download-ccl-tests
+
+# Download a specific version
+just download-ccl-tests v0.6.2
+
+# Force re-download even if already current
+just download-ccl-tests latest true
+```
+
+A `.version` file tracks the currently downloaded release to avoid unnecessary re-downloads.
+
+In CI, the `.github/actions/download-ccl-tests` composite action handles this automatically before test runs.
 
 ## Overview
 
@@ -61,36 +80,13 @@ The test infrastructure in `test_helpers.rs` loads these JSON files and runs the
 ### Running Tests
 
 ```bash
-# Run comprehensive test covering all 327 test cases from all JSON files
+# Run comprehensive test covering all test cases from all JSON files
 just test-ccl
 
 # Or run directly with cargo
 cargo test -p sickle test_all_ccl_suites_comprehensive -- --nocapture
 ```
 
-This will run all test cases from all 13 JSON files and show per-suite results.
-
-## Current Status
-
-**110 out of 327 tests passing (33.6%)** as of the latest run:
-
-- ✅ **api_core_ccl_parsing**: 8/8 passing (100%)
-- ✅ **api_errors**: 6/6 passing (100%)
-- ✅ **api_edge_cases**: 21/35 passing (60%)
-- ⚠️ **api_typed_access**: 25/74 passing (34%)
-- ⚠️ **api_comments**: 0/6 passing (0%) - feature not implemented
-- And more...
-
-Not all tests are expected to pass as sickle is under active development. The test infrastructure gracefully handles failures and shows which specific features are implemented, making it easy to track implementation progress.
-
-## Updating Test Data
-
-To download/update all test files from the ccl-test-data repository:
-
-```bash
-just download-ccl-tests
-```
-
-This task clones the [ccl-test-data repository](https://github.com/tylerbutler/ccl-test-data) to a temporary location and copies all JSON files from the `generated_tests/` directory. This ensures you always have the complete set of test files.
+This will run all test cases from all JSON files and show per-suite results.
 
 The test helpers automatically discover and load all `.json` files in this directory when running tests.

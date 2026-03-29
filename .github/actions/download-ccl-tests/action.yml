@@ -1,0 +1,84 @@
+name: 'Download CCL Test Data'
+description: 'Download ccl-test-data from GitHub releases with version tracking'
+
+inputs:
+  version:
+    description: 'Release version to download (e.g. v0.6.2). Defaults to latest.'
+    required: false
+    default: 'latest'
+  force:
+    description: 'Force re-download even if already at the target version'
+    required: false
+    default: 'false'
+
+runs:
+  using: composite
+  steps:
+    - name: Download CCL test data
+      shell: bash
+      env:
+        REQUESTED_VERSION: ${{ inputs.version }}
+        FORCE: ${{ inputs.force }}
+      run: |
+        TEST_DATA_DIR="crates/sickle/tests/test_data"
+        VERSION_FILE="$TEST_DATA_DIR/.version"
+        REPO="CatConfLang/ccl-test-data"
+
+        mkdir -p "$TEST_DATA_DIR"
+
+        # Resolve the target version
+        if [ "$REQUESTED_VERSION" = "latest" ]; then
+          echo "📥 Fetching latest ccl-test-data release info..."
+          TARGET_VERSION=$(curl -sL "https://api.github.com/repos/$REPO/releases/latest" | jq -r '.tag_name')
+        else
+          TARGET_VERSION="$REQUESTED_VERSION"
+        fi
+
+        if [ -z "$TARGET_VERSION" ] || [ "$TARGET_VERSION" = "null" ]; then
+          echo "::error::Failed to resolve ccl-test-data release version"
+          exit 1
+        fi
+
+        # Check if already up-to-date
+        if [ "$FORCE" != "true" ] && [ -f "$VERSION_FILE" ]; then
+          CURRENT_VERSION=$(cat "$VERSION_FILE")
+          if [ "$CURRENT_VERSION" = "$TARGET_VERSION" ]; then
+            echo "✅ CCL test data already at $TARGET_VERSION"
+            exit 0
+          fi
+          echo "📥 Updating CCL test data from $CURRENT_VERSION to $TARGET_VERSION..."
+        else
+          echo "📥 Downloading CCL test data $TARGET_VERSION..."
+        fi
+
+        # Fetch release info for the target version
+        if [ "$REQUESTED_VERSION" = "latest" ]; then
+          RELEASE_URL="https://api.github.com/repos/$REPO/releases/latest"
+        else
+          RELEASE_URL="https://api.github.com/repos/$REPO/releases/tags/$TARGET_VERSION"
+        fi
+
+        ZIP_URL=$(curl -sL "$RELEASE_URL" | \
+          jq -r '.assets[] | select(.name | contains("generated")) | .browser_download_url')
+
+        if [ -z "$ZIP_URL" ] || [ "$ZIP_URL" = "null" ]; then
+          echo "::error::No generated test data asset found for $TARGET_VERSION"
+          exit 1
+        fi
+
+        # Download and extract
+        TEMP_DIR=$(mktemp -d)
+        trap "rm -rf $TEMP_DIR" EXIT
+
+        echo "Downloading $ZIP_URL..."
+        curl -sL "$ZIP_URL" -o "$TEMP_DIR/generated-tests.zip"
+        echo "Extracting test files..."
+        unzip -q "$TEMP_DIR/generated-tests.zip" -d "$TEMP_DIR/"
+
+        # Copy JSON files to test data directory
+        find "$TEMP_DIR" -name "*.json" -exec cp {} "$TEST_DATA_DIR/" \;
+
+        # Record the downloaded version
+        echo "$TARGET_VERSION" > "$VERSION_FILE"
+
+        echo "✅ CCL test data $TARGET_VERSION downloaded to $TEST_DATA_DIR/"
