@@ -1,6 +1,7 @@
 [tools]
 changie = "latest"
 just = "latest"
+node = "22"  # For ccl-download-tests (npx ccl-test-runner-ts)
 python = "3"  # For scripts (binary-size-diff.py, etc.)
 ruff = "latest"
 
