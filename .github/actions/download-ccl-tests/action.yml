@@ -15,7 +15,7 @@ runs:
   using: composite
   steps:
     - name: Download CCL test data
-      uses: tylerbutler/actions/download-ccl-tests@main
+      uses: tylerbutler/actions/download-ccl-tests@45e41a577532a09caabd5700cfbb90ce25efda78 # ratchet:tylerbutler/actions/download-ccl-tests@main
       with:
         version: ${{ inputs.version }}
         force: ${{ inputs.force }}
