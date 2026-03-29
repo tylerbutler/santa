@@ -195,10 +195,11 @@ coverage-report:
 
 # Download CCL test data from ccl-test-data release
 # Usage:
-#   just download-ccl-tests              # download latest, skip if already current
+#   just download-ccl-tests              # download pinned version, skip if already current
+#   just download-ccl-tests latest       # download latest release
 #   just download-ccl-tests v0.6.2       # download specific version
 #   just download-ccl-tests latest true  # force re-download latest
-download-ccl-tests version="latest" force="false":
+download-ccl-tests version="v0.6.0" force="false":
     #!/usr/bin/env bash
     set -euo pipefail
 

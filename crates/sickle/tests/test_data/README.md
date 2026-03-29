@@ -7,8 +7,11 @@ This directory contains JSON test suites from the [ccl-test-data](https://github
 Test data JSON files are **not committed to git** — they are downloaded from ccl-test-data GitHub releases. To download or update test data:
 
 ```bash
-# Download latest version (skips if already current)
+# Download pinned version (skips if already current)
 just download-ccl-tests
+
+# Download the latest release
+just download-ccl-tests latest
 
 # Download a specific version
 just download-ccl-tests v0.6.2
