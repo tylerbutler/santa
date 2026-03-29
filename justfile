@@ -195,11 +195,11 @@ coverage-report:
 
 # Download CCL test data from ccl-test-data release
 # Usage:
-#   just download-ccl-tests              # download pinned version, skip if already current
+#   just download-ccl-tests              # download version from .version file, skip if already current
 #   just download-ccl-tests latest       # download latest release
 #   just download-ccl-tests v0.6.2       # download specific version
 #   just download-ccl-tests latest true  # force re-download latest
-download-ccl-tests version="v0.6.0" force="false":
+download-ccl-tests version="" force="false":
     #!/usr/bin/env bash
     set -euo pipefail
 
@@ -210,6 +210,13 @@ download-ccl-tests version="v0.6.0" force="false":
     FORCE="{{ force }}"
 
     mkdir -p "$TEST_DATA_DIR"
+
+    # Default to the version pinned in .version
+    if [ -z "$REQUESTED_VERSION" ] && [ -f "$VERSION_FILE" ]; then
+        REQUESTED_VERSION=$(cat "$VERSION_FILE")
+    elif [ -z "$REQUESTED_VERSION" ]; then
+        REQUESTED_VERSION="latest"
+    fi
 
     # Resolve the target version
     if [ "$REQUESTED_VERSION" = "latest" ]; then

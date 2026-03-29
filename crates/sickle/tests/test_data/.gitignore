@@ -1,4 +1,3 @@
 # Test data JSON files are downloaded from ccl-test-data releases.
 # Use `just download-ccl-tests` to download them.
 *.json
-.version
