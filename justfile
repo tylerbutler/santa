@@ -203,7 +203,7 @@ ccl_test_data_dir := "crates/sickle/tests/test_data"
 ccl_test_data_version := if path_exists(ccl_test_data_dir / ".version") == "true" { trim(read(ccl_test_data_dir / ".version")) } else { "latest" }
 
 download-ccl-tests version=ccl_test_data_version force="false":
-    npx ccl-test-runner-ts -o={{ ccl_test_data_dir }} {{ if version != "latest" { "-v=" + version } else { "" } }} {{ if force == "true" { "-f" } else { "" } }}
+    npx --package=ccl-test-runner-ts ccl-download-tests -o={{ ccl_test_data_dir }} {{ if version != "latest" { "-v=" + version } else { "" } }} {{ if force == "true" { "-f" } else { "" } }}
 
 # Run CCL test suites with detailed results from all JSON test files
 test-ccl:
