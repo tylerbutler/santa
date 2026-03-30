@@ -192,8 +192,8 @@ pub fn build_hierarchy(entries: &[Entry]) -> Result<CclObject> {
 ///
 /// When a value contains `=`, we try parsing it as nested CCL. If the parser doesn't
 /// find a valid ` = ` delimiter, the entire string becomes a single key. We detect this
-/// by rejecting keys with spaces — real CCL keys from nested structures won't have spaces
-/// since the ` = ` delimiter consumes them. Keys may contain special characters like
+/// by rejecting keys that look like misinterpreted value strings (contain ` = ` pattern).
+/// Keys may contain spaces (for lines without `=`) and special characters like
 /// `/`, `\`, `:`, `@`, `#`, `[]`, `()` etc.
 #[cfg(feature = "hierarchy")]
 fn is_valid_ccl_key(key: &str) -> bool {
@@ -206,9 +206,14 @@ fn is_valid_ccl_key(key: &str) -> bool {
         return false;
     }
 
-    // Keys with spaces are likely unparsed value strings, not real CCL keys.
-    // When the parser doesn't find ` = `, the whole line becomes a "key" — reject those.
-    !key.contains(' ')
+    // Keys containing ` = ` are likely misinterpreted value strings where the parser
+    // failed to find a delimiter and treated the whole line as a key.
+    // However, keys without `=` at all are valid (lines without delimiter become keys).
+    if key.contains(" = ") || key.contains(" =\t") {
+        return false;
+    }
+
+    true
 }
 
 /// Internal helper: Build a Model from the grouped key-value map
@@ -239,10 +244,8 @@ fn build_model(map: indexmap::IndexMap<String, Vec<String>>) -> Result<CclObject
         let mut nested_values = Vec::new();
 
         for value in values {
-            if value.contains('\n') && value.contains('=') {
-                // Multiline value containing '=' - might be nested CCL
-                // Only multiline values (with newlines) can be nested structures.
-                // Inline values like "b = c=d" are plain strings, not nested CCL.
+            if value.contains('\n') {
+                // Multiline value - might be nested CCL
                 // Try to parse recursively
                 match load(&value) {
                     Ok(parsed) => {
@@ -268,8 +271,20 @@ fn build_model(map: indexmap::IndexMap<String, Vec<String>>) -> Result<CclObject
                         nested_values.push(CclObject::from_string(value));
                     }
                 }
+            } else if value.starts_with(' ') || value.starts_with('\t') {
+                // Single-line value with leading whitespace — this is an indented
+                // child line (key without `=`). Trim and treat as a nested key.
+                let trimmed = value.trim();
+                if !trimmed.is_empty() && !trimmed.contains('=') {
+                    let child = CclObject::from_string(String::new());
+                    let mut parent_map = indexmap::IndexMap::new();
+                    parent_map.insert(trimmed.to_string(), vec![child]);
+                    nested_values.push(CclObject::from_map(parent_map));
+                } else {
+                    nested_values.push(CclObject::from_string(value));
+                }
             } else {
-                // Plain string value
+                // Plain string value (single line)
                 nested_values.push(CclObject::from_string(value));
             }
         }
@@ -407,37 +422,64 @@ fn parse_indented_with_options_internal(
     }
 }
 
-/// Parse all key=value pairs from input as flat entries, ignoring indentation hierarchy
+/// Parse all key=value pairs from input as flat entries, handling indentation
+///
+/// Rules:
+/// - Lines with `=` at any level become separate entries (dedented)
+/// - Lines without `=` that are indented become value continuations of the previous entry
+/// - Lines without `=` at indent 0 become entries with empty values
 #[cfg(feature = "parse")]
 fn parse_flat_entries(input: &str, options: &ParserOptions) -> Result<Vec<Entry>> {
     let mut entries = Vec::new();
 
     for line in input.lines() {
-        let trimmed = line.trim();
-
         // Skip empty lines
-        if trimmed.is_empty() {
+        if line.trim().is_empty() {
             continue;
         }
 
-        // Extract key=value pairs or treat lines without '=' as keys with empty values
-        if let Some(eq_pos) = trimmed.find('=') {
-            let key = trimmed[..eq_pos].trim().to_string();
-            let value_raw = &trimmed[eq_pos + 1..];
-            // Use options-aware trimming
-            let value = if options.is_strict_spacing() {
-                // Strict: trim only spaces
-                value_raw
-                    .trim_start_matches(' ')
-                    .trim_end_matches(' ')
-                    .to_string()
+        let indent = line.len() - line.trim_start().len();
+        let trimmed = line.trim();
+
+        if trimmed.contains('=') {
+            // Line with '=' → new entry (dedented)
+            if let Some(eq_pos) = trimmed.find('=') {
+                let key = trimmed[..eq_pos].trim().to_string();
+                let value_raw = &trimmed[eq_pos + 1..];
+                let value = if options.is_strict_spacing() {
+                    value_raw
+                        .trim_start_matches(' ')
+                        .trim_end_matches(' ')
+                        .to_string()
+                } else {
+                    value_raw.trim().to_string()
+                };
+                entries.push(Entry::new(key, value));
+            }
+        } else if indent > 0 && !entries.is_empty() {
+            let last = entries.last().unwrap();
+            if !last.value.is_empty() {
+                // Indented line without '=' after entry with value → continuation
+                let last: &mut Entry = entries.last_mut().unwrap();
+                last.value.push('\n');
+                last.value.push_str(line);
             } else {
-                // Loose: trim all whitespace
-                value_raw.trim().to_string()
-            };
-            entries.push(Entry::new(key, value));
+                // Indented line without '=' after entry with empty value → new entry (dedented)
+                entries.push(Entry::new(trimmed.to_string(), String::new()));
+            }
+        } else if !entries.is_empty() {
+            // Unindented line without '=' after a bare-list/empty-key entry → continuation
+            let last = entries.last().unwrap();
+            if last.key.is_empty() {
+                let last: &mut Entry = entries.last_mut().unwrap();
+                last.value.push('\n');
+                last.value.push_str(trimmed);
+            } else {
+                // Unindented line without '=' → new entry with empty value
+                entries.push(Entry::new(trimmed.to_string(), String::new()));
+            }
         } else {
-            // Line without '=' is a key with empty value
+            // First line without '=' → entry with empty value
             entries.push(Entry::new(trimmed.to_string(), String::new()));
         }
     }

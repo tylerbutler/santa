@@ -578,7 +578,7 @@ impl CclObject {
 
     /// Get a list of string values by key (with coercion)
     ///
-    /// Duplicate keys are coerced into lists, and scalar literals are filtered.
+    /// Duplicate keys are coerced into lists.
     /// When multiple entries exist for the same key (e.g., `servers = web1\nservers = web2`),
     /// all values are collected into a single list.
     ///
@@ -591,7 +591,7 @@ impl CclObject {
         // Each entry is a CclObject - extract its keys (which are the actual values)
         let result: Vec<String> = all_values
             .iter()
-            .flat_map(|obj| obj.keys().filter(|k| !is_scalar_literal(k)).cloned())
+            .flat_map(|obj| obj.keys().cloned())
             .collect();
 
         Ok(result)
