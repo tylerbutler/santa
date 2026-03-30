@@ -1290,16 +1290,11 @@ fn test_all_ccl_suites_comprehensive() {
                                         panic!("Test '{}' round_trip failed: {}", test.name, e);
                                     });
 
-                                // A successful round-trip is strictly better than a
-                                // failed one, so treat expected=false / actual=true
-                                // as a pass (our printer improved on the spec).
-                                if !(expected_bool == false && result == true) {
-                                    assert_eq!(
-                                        result, expected_bool,
-                                        "Test '{}': round_trip expected {}, got {}",
-                                        test.name, expected_bool, result
-                                    );
-                                }
+                                assert_eq!(
+                                    result, expected_bool,
+                                    "Test '{}': round_trip expected {}, got {}",
+                                    test.name, expected_bool, result
+                                );
                             } else if let Some(expected_str) = expected_value.as_str() {
                                 // String expectation: verify print output matches
                                 let entry_list = entries.unwrap_or_else(|e| {
