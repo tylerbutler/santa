@@ -420,7 +420,9 @@ servers =
   = web3
 "#;
     let model = load(ccl).expect("should load");
-    let list = model.get_list("servers").unwrap();
+    let list = model
+        .get_list("servers", sickle::model::ListOptions::new())
+        .unwrap();
     assert_eq!(list, vec!["web1", "web2", "web3"]);
 }
 
@@ -438,7 +440,9 @@ items =
     let model = load(ccl).expect("should load");
 
     // Coerced version treats the nested keys as a list (filtering scalars)
-    let coerced = model.get_list_coerced("items").unwrap();
+    let coerced = model
+        .get_list("items", sickle::model::ListOptions::new().with_coerce())
+        .unwrap();
     assert_eq!(coerced, vec!["first", "second", "third"]);
 }
 
@@ -632,7 +636,9 @@ items =
   = http://example.com
 "#;
     let model = load(ccl).expect("should load");
-    let list = model.get_list("items").unwrap();
+    let list = model
+        .get_list("items", sickle::model::ListOptions::new())
+        .unwrap();
     assert_eq!(list.len(), 3);
     assert_eq!(list[0], "simple");
     assert_eq!(list[1], "with spaces in value");
