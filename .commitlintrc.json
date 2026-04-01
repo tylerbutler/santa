@@ -22,13 +22,6 @@
         "revert"
       ]
     ],
-    "subject-case": [
-      2,
-      "never",
-      [
-        "upper-case"
-      ]
-    ],
     "subject-empty": [
       2,
       "never"

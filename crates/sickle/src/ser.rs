@@ -51,7 +51,7 @@ where
 }
 
 /// A structure that serializes Rust values into CCL
-pub struct Serializer {
+pub(crate) struct Serializer {
     /// The current key being serialized (for map entries)
     current_key: Option<String>,
     /// Stack of nested objects being built
@@ -93,7 +93,7 @@ impl Default for Serializer {
 
 /// Custom error type for serialization
 #[derive(Debug, Clone)]
-pub struct SerError {
+pub(crate) struct SerError {
     msg: String,
 }
 
@@ -358,7 +358,7 @@ impl<'a> ser::Serializer for &'a mut Serializer {
 }
 
 /// Serializer for sequences (Vec, arrays, etc.)
-pub struct SeqSerializer<'a> {
+pub(crate) struct SeqSerializer<'a> {
     ser: &'a mut Serializer,
     /// Simple string items (for `Vec<String>`, `Vec<i32>`, etc.)
     items: Vec<String>,
@@ -468,7 +468,7 @@ impl<'a> ser::SerializeTupleVariant for SeqSerializer<'a> {
 }
 
 /// Serializer for maps and structs
-pub struct MapSerializer<'a> {
+pub(crate) struct MapSerializer<'a> {
     ser: &'a mut Serializer,
     /// The key under which this map/struct will be inserted (for nested structs)
     parent_key: Option<String>,
@@ -511,10 +511,11 @@ impl<'a> ser::SerializeMap for MapSerializer<'a> {
                 // Nested map/struct: insert under the parent key
                 self.ser.current_object().insert_object(&key, completed);
             } else {
-                // Top-level map, merge into current
+                // Top-level map, merge into current preserving all values per key
                 let current = self.ser.current_object();
-                for (k, v) in completed.iter() {
-                    current.insert_object(k, v.clone());
+                let current_map = current.inner_mut();
+                for (k, values) in completed.iter_map() {
+                    current_map.insert(k.clone(), values.clone());
                 }
             }
         }
@@ -573,7 +574,7 @@ mod serde_validation_tests {
     #![allow(dead_code)] // Test structs/enums exist to verify serialization, not field usage
 
     use super::*;
-    use crate::printer::PrinterConfig;
+    use crate::printer::{CclPrinter, PrinterConfig};
     use serde::{Deserialize, Serialize};
     use std::collections::HashMap;
 
@@ -1748,5 +1749,51 @@ mod serde_validation_tests {
             crate::Error::ValueError(msg) => assert_eq!(msg, "serialization failed"),
             _ => panic!("Expected ValueError"),
         }
+    }
+
+    // ===========================================
+    // Duplicate Key Preservation (Issue #95)
+    // ===========================================
+
+    #[test]
+    fn test_map_serializer_preserves_duplicate_keys() {
+        // Build a CclObject with duplicate keys manually, then serialize it
+        // and verify all values survive the round-trip through MapSerializer::end()
+        let mut obj = CclObject::new();
+        let map = obj.inner_mut();
+        map.insert(
+            "name".to_string(),
+            vec![
+                CclObject::from_string("alice"),
+                CclObject::from_string("bob"),
+            ],
+        );
+        map.insert("version".to_string(), vec![CclObject::from_string("1.0")]);
+
+        let printer = crate::printer::CclPrinter::new();
+        let output = printer.print(&obj);
+
+        // Both "alice" and "bob" must appear in the output
+        assert!(
+            output.contains("alice"),
+            "First duplicate key value 'alice' should be preserved in output: {output}"
+        );
+        assert!(
+            output.contains("bob"),
+            "Second duplicate key value 'bob' should be preserved in output: {output}"
+        );
+    }
+
+    #[test]
+    fn test_hashmap_serialization_merges_into_current_preserving_values() {
+        // Serialize a HashMap through serde; this exercises MapSerializer::end()
+        // with the top-level merge path (no parent_key).
+        let mut map = HashMap::new();
+        map.insert("key1".to_string(), "value1".to_string());
+        map.insert("key2".to_string(), "value2".to_string());
+
+        let ccl = to_string(&map).unwrap();
+        assert!(ccl.contains("key1 = value1"), "key1 missing from: {ccl}");
+        assert!(ccl.contains("key2 = value2"), "key2 missing from: {ccl}");
     }
 }
