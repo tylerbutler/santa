@@ -2,7 +2,7 @@
 //!
 //! This crate provides:
 //! - Core data models (Platform, KnownSources, PackageData, etc.)
-//! - Configuration loading and management (SantaConfig, ConfigLoader)
+//! - Configuration loading and management (SantaConfig)
 //! - CCL schema definitions (PackageDefinition, SourceDefinition, etc.)
 //! - CCL parser that handles both simple and complex formats
 
