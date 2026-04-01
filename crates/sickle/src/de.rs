@@ -69,7 +69,8 @@ where
 }
 
 /// Deserialize a Model into a type T
-pub fn from_model<'de, T>(model: CclObject) -> Result<T>
+#[allow(dead_code)]
+pub(crate) fn from_model<'de, T>(model: CclObject) -> Result<T>
 where
     T: Deserialize<'de>,
 {
@@ -78,13 +79,13 @@ where
 }
 
 /// A structure that deserializes CCL into Rust values
-pub struct Deserializer {
+pub(crate) struct Deserializer {
     model: CclObject,
 }
 
 impl Deserializer {
     /// Create a new deserializer from a Model
-    pub fn from_model(model: CclObject) -> Self {
+    pub(crate) fn from_model(model: CclObject) -> Self {
         Deserializer { model }
     }
 }
@@ -605,7 +606,7 @@ impl<'de, 'a> MapAccess<'de> for MapDeserializer<'a> {
 
 /// Custom error type for deserialization
 #[derive(Debug, Clone)]
-pub struct DeError {
+pub(crate) struct DeError {
     msg: String,
 }
 
