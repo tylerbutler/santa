@@ -1,0 +1,3 @@
+project: sickle
+kind: Fixed
+body: Preserve duplicate keys in `MapSerializer::end()` during top-level map serialization
