@@ -4,7 +4,7 @@ use std::path::PathBuf;
 use crate::input::InputSource;
 
 #[derive(clap::Args)]
-pub struct ParseArgs {
+pub(crate) struct ParseArgs {
     /// Input file (reads from stdin if omitted or -)
     pub file: Option<PathBuf>,
 
@@ -13,7 +13,7 @@ pub struct ParseArgs {
     pub json: bool,
 }
 
-pub fn run(args: ParseArgs) -> Result<()> {
+pub(crate) fn run(args: ParseArgs) -> Result<()> {
     let source = InputSource::from_arg(args.file.as_deref());
     let input = source.read()?;
 
