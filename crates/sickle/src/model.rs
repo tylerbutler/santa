@@ -135,6 +135,27 @@ impl CclObject {
         CclObject(IndexMap::new())
     }
 
+    /// Create a configured reader over this object
+    ///
+    /// Returns a `CclReader` with default options. Use the builder methods
+    /// to configure boolean and list behavior before reading fields.
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// # use sickle::{load, CclObject};
+    /// # use sickle::model::BoolOptions;
+    /// # fn example() -> sickle::error::Result<()> {
+    /// let model = load("enabled = yes\nname = Alice")?;
+    /// let reader = model.reader().with_bool_options(BoolOptions::lenient());
+    /// let enabled = reader.get_bool("enabled")?;
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub fn reader(&self) -> crate::reader::CclReader<'_> {
+        crate::reader::CclReader::new(self)
+    }
+
     /// Create a Model from an IndexMap
     /// This is internal-only for crate operations
     pub(crate) fn from_map(map: CclMap) -> Self {
