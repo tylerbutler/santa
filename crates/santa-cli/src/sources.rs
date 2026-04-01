@@ -925,11 +925,7 @@ mod tests {
 
     fn create_test_source_with_overrides() -> PackageSource {
         let override_config = SourceOverride {
-            platform: Platform {
-                os: OS::Windows,
-                arch: Arch::X64,
-                distro: None,
-            },
+            platform: Platform::new(OS::Windows, Arch::X64, None),
             shell_command: Some("pwsh".to_string()),
             install_command: Some("scoop install".to_string()),
             check_command: Some("scoop list".to_string()),

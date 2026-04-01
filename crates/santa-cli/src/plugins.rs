@@ -390,13 +390,7 @@ mod tests {
     use crate::data::KnownSources;
 
     fn create_test_config() -> SantaConfig {
-        SantaConfig {
-            sources: vec![KnownSources::Brew],
-            packages: vec!["git".to_string()],
-            custom_sources: None,
-            _groups: None,
-            log_level: 0,
-        }
+        SantaConfig::new(vec![KnownSources::Brew], vec!["git".to_string()])
     }
 
     fn create_test_data() -> SantaData {

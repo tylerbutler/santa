@@ -319,33 +319,21 @@ _overrides =
     let brew: SourceDefinition = sickle::from_str(sources_ccl).unwrap();
 
     // Test macOS platform
-    let macos = Platform {
-        os: OS::Macos,
-        arch: Arch::Aarch64,
-        distro: None,
-    };
+    let macos = Platform::new(OS::Macos, Arch::Aarch64, None);
     assert_eq!(
         brew.get_install_command(&macos),
         "brew install --cask {package}"
     );
 
     // Test Linux platform
-    let linux = Platform {
-        os: OS::Linux,
-        arch: Arch::X64,
-        distro: Some(Distro::Ubuntu),
-    };
+    let linux = Platform::new(OS::Linux, Arch::X64, Some(Distro::Ubuntu));
     assert_eq!(
         brew.get_install_command(&linux),
         "linuxbrew install {package}"
     );
 
     // Test Windows platform (no override, should use default)
-    let windows = Platform {
-        os: OS::Windows,
-        arch: Arch::X64,
-        distro: None,
-    };
+    let windows = Platform::new(OS::Windows, Arch::X64, None);
     assert_eq!(brew.get_install_command(&windows), "brew install {package}");
 }
 
