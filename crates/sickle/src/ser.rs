@@ -574,7 +574,7 @@ mod serde_validation_tests {
     #![allow(dead_code)] // Test structs/enums exist to verify serialization, not field usage
 
     use super::*;
-    use crate::printer::PrinterConfig;
+    use crate::printer::{CclPrinter, PrinterConfig};
     use serde::{Deserialize, Serialize};
     use std::collections::HashMap;
 
@@ -1770,13 +1770,8 @@ mod serde_validation_tests {
         );
         map.insert("version".to_string(), vec![CclObject::from_string("1.0")]);
 
-        let output = crate::printer::to_string_with_config(
-            &obj,
-            &PrinterConfig {
-                indent: 4,
-                ..Default::default()
-            },
-        );
+        let printer = crate::printer::CclPrinter::new();
+        let output = printer.print(&obj);
 
         // Both "alice" and "bob" must appear in the output
         assert!(
