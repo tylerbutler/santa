@@ -21,7 +21,7 @@
 //! # }
 //! ```
 
-use crate::error::{Error, Result};
+use crate::error::Result;
 use crate::model::{BoolOptions, CclObject, ListOptions};
 use std::str::FromStr;
 
