@@ -302,6 +302,8 @@ jobs:
 
       - uses: ./.github/actions/setup-rust
 
+      - run: just download-ccl-tests
+
       - name: Test packages in isolation
         run: |
           echo "Testing santa-cli in isolation..."

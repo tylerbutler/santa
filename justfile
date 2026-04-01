@@ -193,35 +193,17 @@ test-coverage-sickle:
 coverage-report:
     cargo llvm-cov report --html --output-dir target/llvm-cov/html
 
-# Download CCL test data from latest ccl-test-data release
-download-ccl-tests:
-    #!/usr/bin/env bash
-    set -euo pipefail
-    echo "📥 Downloading CCL test data from latest release..."
-    echo "Fetching latest release information..."
-    mkdir -p crates/sickle/tests/test_data
-    VERSION=$(curl -sL https://api.github.com/repos/CatConfLang/ccl-test-data/releases/latest | jq -r '.tag_name')
-    echo "Downloading generated test data zip from $VERSION release..."
-    
-    # Get the zip file URL for generated tests
-    ZIP_URL=$(curl -sL https://api.github.com/repos/CatConfLang/ccl-test-data/releases/latest | \
-    jq -r '.assets[] | select(.name | contains("generated")) | .browser_download_url')
-    
-    # Create temporary directory for extraction
-    TEMP_DIR=$(mktemp -d)
-    trap "rm -rf $TEMP_DIR" EXIT
-    
-    # Download and extract the zip file
-    echo "Downloading $ZIP_URL..."
-    curl -sL "$ZIP_URL" -o "$TEMP_DIR/generated-tests.zip"
-    echo "Extracting test files..."
-    unzip -q "$TEMP_DIR/generated-tests.zip" -d "$TEMP_DIR/"
-    
-    # Copy JSON files to test data directory
-    echo "Copying test files to crates/sickle/tests/test_data/"
-    find "$TEMP_DIR" -name "*.json" -exec cp {} crates/sickle/tests/test_data/ \;
-    
-    echo "✅ Downloaded and extracted all test files to crates/sickle/tests/test_data/"
+# Download CCL test data from ccl-test-data release
+# Usage:
+#   just download-ccl-tests              # download version from .pinned-version file, skip if already current
+#   just download-ccl-tests latest       # download latest release
+#   just download-ccl-tests v0.6.2       # download specific version
+#   just download-ccl-tests latest true  # force re-download latest
+ccl_test_data_dir := "crates/sickle/tests/test_data"
+ccl_test_data_version := if path_exists(ccl_test_data_dir / ".pinned-version") == "true" { trim(read(ccl_test_data_dir / ".pinned-version")) } else { "latest" }
+
+download-ccl-tests version=ccl_test_data_version force="false":
+    npx --package=ccl-test-runner-ts ccl-download-tests -o={{ ccl_test_data_dir }} {{ if version != "latest" { "-v=" + version } else { "" } }} {{ if force == "true" { "-f" } else { "" } }}
 
 # Run CCL test suites with detailed results from all JSON test files
 test-ccl:

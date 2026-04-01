@@ -28,6 +28,8 @@ jobs:
         with:
           tools: just,cargo-llvm-cov,cargo-nextest
 
+      - run: just download-ccl-tests
+
       - name: Run tests with coverage
         run: just test-coverage
 

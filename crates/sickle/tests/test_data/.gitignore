@@ -1,0 +1,6 @@
+# Test data JSON files are downloaded from ccl-test-data releases.
+# Use `just download-ccl-tests` to download them.
+*.json
+# .version is written by the download tool as a status marker.
+# The pinned version is tracked in .pinned-version instead.
+.version
