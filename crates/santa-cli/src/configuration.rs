@@ -247,9 +247,9 @@ impl SantaConfigLoader {
         let contents = std::fs::read_to_string(path).map_err(SantaError::Io)?;
 
         let config: SantaConfig =
-            sickle::from_str(&contents).map_err(|e| SantaError::Config(anyhow::Error::from(e)))?;
+            sickle::from_str(&contents).map_err(|e| SantaError::Config(e.to_string()))?;
 
-        config.validate_basic().map_err(SantaError::Config)?;
+        config.validate_basic().map_err(|e| SantaError::Config(e.to_string()))?;
         Ok(config)
     }
 

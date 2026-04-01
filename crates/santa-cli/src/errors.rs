@@ -13,7 +13,7 @@ use thiserror::Error;
 pub enum SantaError {
     /// Configuration-related errors (file parsing, validation, etc.)
     #[error("Configuration error: {0}")]
-    Config(#[from] anyhow::Error),
+    Config(String),
 
     /// Package source-related errors (installation, listing, etc.)
     #[error("Package source error: {0}")]
@@ -131,13 +131,13 @@ impl SantaError {
 
 impl From<config::ConfigError> for SantaError {
     fn from(err: config::ConfigError) -> Self {
-        SantaError::Config(anyhow::Error::from(err))
+        SantaError::Config(err.to_string())
     }
 }
 
 impl From<sickle::Error> for SantaError {
     fn from(err: sickle::Error) -> Self {
-        SantaError::Config(anyhow::Error::from(err))
+        SantaError::Config(err.to_string())
     }
 }
 

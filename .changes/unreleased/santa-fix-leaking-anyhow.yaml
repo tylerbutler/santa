@@ -1,0 +1,3 @@
+project: santa
+kind: Fixed
+body: Stop leaking `anyhow::Error` through `SantaError::Config` public API
