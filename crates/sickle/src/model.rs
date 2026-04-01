@@ -542,7 +542,15 @@ impl CclObject {
         None
     }
 
-    /// Get a list of string values by key
+    /// Get a list of string values by key (default options)
+    ///
+    /// Uses `list_coercion_disabled`: only succeeds on actual list values.
+    /// For coercion or other options, use `get_list_with_options()`.
+    pub fn get_list(&self, key: &str) -> Result<Vec<String>> {
+        self.get_list_with_options(key, ListOptions::new())
+    }
+
+    /// Get a list of string values by key with options
     ///
     /// Behavior depends on `options.coerce` (CCL list coercion behavior):
     /// - `coerce = false` (default, `list_coercion_disabled`): `get_list` only succeeds
@@ -553,7 +561,7 @@ impl CclObject {
     /// See <https://ccl.tylerbutler.com/behavior-reference/#list-coercion>
     ///
     /// For typed access, use `get_list_typed()`.
-    pub fn get_list(&self, key: &str, options: ListOptions) -> Result<Vec<String>> {
+    pub fn get_list_with_options(&self, key: &str, options: ListOptions) -> Result<Vec<String>> {
         let model = self.get(key)?;
 
         // Check if this is a bare list (= item syntax)
@@ -575,7 +583,19 @@ impl CclObject {
         }
     }
 
-    /// Get a typed list of values by key
+    /// Get a typed list of values by key (default options)
+    ///
+    /// Uses `list_coercion_disabled`: only succeeds on actual list values.
+    /// For coercion or other options, use `get_list_typed_with_options()`.
+    pub fn get_list_typed<T>(&self, key: &str) -> Result<Vec<T>>
+    where
+        T: FromStr,
+        T::Err: std::fmt::Display,
+    {
+        self.get_list_typed_with_options(key, ListOptions::new())
+    }
+
+    /// Get a typed list of values by key with options
     ///
     /// Parses list items as type T. Follows the same coercion rules as `get_list()`:
     /// - `coerce = false` (default): only bare list values succeed, single values error
@@ -591,7 +611,7 @@ impl CclObject {
     /// let input = "numbers =\n  = 1\n  = 42\n  = -17";
     /// let entries = parse(input)?;
     /// let model = build_hierarchy(&entries)?;
-    /// let numbers: Vec<i64> = model.get_list_typed("numbers", ListOptions::new())?;
+    /// let numbers: Vec<i64> = model.get_list_typed("numbers")?;
     /// assert_eq!(numbers, vec![1, 42, -17]);
     /// # Ok(())
     /// # }
@@ -601,7 +621,7 @@ impl CclObject {
     ///
     /// Returns `Error::NotAList` if the value is not a list and coercion is disabled.
     /// Returns `Error::ValueError` if any item cannot be parsed as type T.
-    pub fn get_list_typed<T>(&self, key: &str, options: ListOptions) -> Result<Vec<T>>
+    pub fn get_list_typed_with_options<T>(&self, key: &str, options: ListOptions) -> Result<Vec<T>>
     where
         T: FromStr,
         T::Err: std::fmt::Display,
@@ -964,7 +984,7 @@ mod tests {
             .inner_mut()
             .insert("numbers".to_string(), vec![numbers_inner]);
 
-        let result: Result<Vec<i64>> = model.get_list_typed("numbers", ListOptions::new());
+        let result: Result<Vec<i64>> = model.get_list_typed("numbers");
         assert!(result.is_err());
     }
 
@@ -981,7 +1001,7 @@ mod tests {
             .insert("numbers".to_string(), vec![numbers_inner]);
 
         let opts = ListOptions::new().with_coerce();
-        let result: Vec<i64> = model.get_list_typed("numbers", opts).unwrap();
+        let result: Vec<i64> = model.get_list_typed_with_options("numbers", opts).unwrap();
         assert_eq!(result, vec![42]);
     }
 
@@ -1002,7 +1022,7 @@ mod tests {
             .inner_mut()
             .insert("numbers".to_string(), vec![numbers_inner]);
 
-        let result: Vec<i64> = model.get_list_typed("numbers", ListOptions::new()).unwrap();
+        let result: Vec<i64> = model.get_list_typed("numbers").unwrap();
         assert_eq!(result, vec![1, 2, 3]);
     }
 }

@@ -1048,7 +1048,7 @@ fn test_all_ccl_suites_comprehensive() {
                         } else {
                             sickle::model::ListOptions::new()
                         };
-                        let get_list_result = parent_model.get_list(key, opts);
+                        let get_list_result = parent_model.get_list_with_options(key, opts);
 
                         if test.expected.error.is_some() {
                             assert!(
