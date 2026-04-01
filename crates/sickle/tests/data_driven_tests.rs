@@ -1162,10 +1162,13 @@ fn test_all_ccl_suites_comprehensive() {
                             (&model, test.args.first().unwrap())
                         };
 
-                        // Use get_bool or get_bool_lenient based on test behaviors
+                        // Use get_bool or get_bool_with_options based on test behaviors
                         let bool_result = if test.behaviors.contains(&"boolean_lenient".to_string())
                         {
-                            parent_model.get_bool_lenient(key)
+                            parent_model.get_bool_with_options(
+                                key,
+                                sickle::BoolOptions::new().with_lenient(),
+                            )
                         } else {
                             parent_model.get_bool(key)
                         };
