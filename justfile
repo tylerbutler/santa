@@ -256,8 +256,12 @@ fix:
     cargo clippy --fix --allow-dirty --allow-staged
     cargo fix --allow-dirty --allow-staged
 
-# Check for unused dependencies (requires nightly)
+# Install development tool dependencies
 deps:
+    mise install
+
+# Check for unused dependencies (requires nightly + cargo-udeps)
+udeps:
     cargo +nightly udeps
 
 # Security audit
