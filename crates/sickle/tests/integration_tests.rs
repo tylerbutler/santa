@@ -427,23 +427,25 @@ servers =
 }
 
 #[test]
-fn test_get_list_coerced() {
-    // Test coerced list access where duplicate keys at top level are stored
-    // When building hierarchy, duplicate keys with simple values are kept as Vec
-    // get_list_coerced looks at the first value's keys with coercion enabled
-    let ccl = r#"
-items =
-  first = a
-  second = b
-  third = c
-"#;
+fn test_get_list_coercion_enabled() {
+    // list_coercion_enabled: single value is wrapped in a list
+    let ccl = "single = hello\n";
     let model = load(ccl).expect("should load");
 
-    // Coerced version treats the nested keys as a list (filtering scalars)
-    let coerced = model
-        .get_list("items", sickle::model::ListOptions::new().with_coerce())
-        .unwrap();
-    assert_eq!(coerced, vec!["first", "second", "third"]);
+    let opts = sickle::model::ListOptions::new().with_coerce();
+    let result = model.get_list("single", opts).unwrap();
+    assert_eq!(result, vec!["hello"]);
+}
+
+#[test]
+fn test_get_list_coercion_disabled() {
+    // list_coercion_disabled: single value causes error
+    let ccl = "single = hello\n";
+    let model = load(ccl).expect("should load");
+
+    let opts = sickle::model::ListOptions::new();
+    let result = model.get_list("single", opts);
+    assert!(result.is_err());
 }
 
 #[test]

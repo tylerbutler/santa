@@ -42,32 +42,30 @@ impl BoolOptions {
 
 /// Options for list access operations
 ///
-/// Controls how `get_list()` and `get_list_typed()` interpret CCL data structures.
+/// Controls how `get_list()` and `get_list_typed()` handle non-list values.
+///
+/// See the [CCL behavior reference](https://ccl.tylerbutler.com/behavior-reference/#list-coercion)
+/// for the specification of list coercion behavior.
 #[derive(Debug, Clone, Copy, Default)]
 pub struct ListOptions {
-    /// When true, duplicate keys are coerced into lists and scalar literals are filtered.
-    /// When false (default), only bare list syntax (empty keys) produces lists.
+    /// Controls list coercion behavior per the CCL spec.
+    ///
+    /// - `false` (default, `list_coercion_disabled`): `get_list` only succeeds on actual
+    ///   list values. Single values cause an error.
+    /// - `true` (`list_coercion_enabled`): when `get_list` accesses a single value, it
+    ///   wraps it in a list automatically. E.g. `single = value` → `["value"]`.
     pub coerce: bool,
-    /// When true, a single value is returned as a one-element list.
-    /// When false (default), single values return an empty list.
-    pub single_as_list: bool,
 }
 
 impl ListOptions {
-    /// Create default options (coerce = false, single_as_list = false)
+    /// Create default options (coerce = false, matching `list_coercion_disabled`)
     pub fn new() -> Self {
         Self::default()
     }
 
-    /// Enable coercion: duplicate keys create lists, scalar literals are filtered
+    /// Enable list coercion: single values are wrapped in a list automatically
     pub fn with_coerce(mut self) -> Self {
         self.coerce = true;
-        self
-    }
-
-    /// Enable single-as-list: a single value is returned as a one-element list
-    pub fn with_single_as_list(mut self) -> Self {
-        self.single_as_list = true;
         self
     }
 }
@@ -77,9 +75,7 @@ impl ListOptions {
 /// CCL distinguishes between string values and scalar literals:
 /// - Numbers: integers and floats (e.g., "42", "3.14", "-17")
 /// - Booleans: true/false/yes/no
-///
-/// This helper is used to filter out scalar literals from string lists
-/// when coercion is enabled.
+#[cfg(test)]
 fn is_scalar_literal(s: &str) -> bool {
     // Check if it's parseable as an integer
     if s.parse::<i64>().is_ok() {
@@ -517,7 +513,7 @@ impl CclObject {
         self.get(key)?.as_float()
     }
 
-    /// Extract a list of string values from the model (no key lookup)
+    /// Try to extract bare list items from the model (no key lookup)
     ///
     /// In CCL, lists are represented using **bare list syntax** with empty keys:
     /// ```text
@@ -526,89 +522,64 @@ impl CclObject {
     ///   = web2
     /// ```
     ///
-    /// Behavior varies by `options.coerce`:
-    ///
-    /// **With `coerce = false` (default, reference-compliant)**:
-    /// - Returns values ONLY when all keys are empty strings `""`
-    /// - Duplicate keys with values are NOT lists: `servers = web1` → `[]`
-    /// - Bare lists work: Access via `get("servers")?.as_list_with_options(...)` → `["web1", "web2"]`
-    /// - Matches OCaml reference implementation
-    ///
-    /// **With `coerce = true`**:
-    /// - Duplicate keys create lists: `servers = web1` → `["web1", "web2"]`
-    /// - Still filters scalar literals (numbers/booleans)
-    /// - Single values coerced to lists
-    pub(crate) fn as_list_with_options(&self, options: ListOptions) -> Vec<String> {
-        if options.coerce {
-            // Coercion mode: duplicate keys create lists, but filter scalars
-            self.keys()
-                .filter(|k| !is_scalar_literal(k))
-                .cloned()
-                .collect()
-        } else {
-            // Reference-compliant mode: only bare list syntax works
-            // Filter out comment keys (starting with '/') when checking for bare lists
-            let non_comment_keys: Vec<&String> =
-                self.keys().filter(|k| !k.starts_with('/')).collect();
+    /// Returns `Some(items)` if this is a bare list, `None` otherwise.
+    pub(crate) fn as_bare_list(&self) -> Option<Vec<String>> {
+        // Filter out comment keys (starting with '/') when checking for bare lists
+        let non_comment_keys: Vec<&String> = self.keys().filter(|k| !k.starts_with('/')).collect();
 
-            // Handle bare list syntax: single empty-key child containing the list items
-            // With Vec structure: { "": [CclObject({item1}), CclObject({item2}), ...] }
-            // We need to get ALL values from the Vec at key ""
-            if non_comment_keys.len() == 1 && non_comment_keys[0].is_empty() {
-                if let Ok(children) = self.get_all("") {
-                    // Found empty-key entries - each child contains one list item as its key
-                    // Filter out comment keys from each child
-                    return children
-                        .iter()
-                        .flat_map(|child| child.keys().filter(|k| !k.starts_with('/')).cloned())
-                        .collect();
-                }
+        // Handle bare list syntax: single empty-key child containing the list items
+        // With Vec structure: { "": [CclObject({item1}), CclObject({item2}), ...] }
+        if non_comment_keys.len() == 1 && non_comment_keys[0].is_empty() {
+            if let Ok(children) = self.get_all("") {
+                let items: Vec<String> = children
+                    .iter()
+                    .flat_map(|child| child.keys().filter(|k| !k.starts_with('/')).cloned())
+                    .collect();
+                return Some(items);
             }
-
-            // Empty or single non-empty key = not a list
-            if non_comment_keys.len() <= 1 {
-                return Vec::new();
-            }
-
-            // Multiple non-comment keys = not a bare list in reference mode
-            Vec::new()
         }
+
+        None
     }
 
     /// Get a list of string values by key
     ///
-    /// Behavior depends on `options`:
-    /// - `coerce = false` (default): only bare list syntax (`= item`) produces lists
-    /// - `coerce = true`: duplicate keys are coerced into lists, scalar literals filtered
-    /// - `single_as_list = true`: a single value is returned as a one-element list
+    /// Behavior depends on `options.coerce` (CCL list coercion behavior):
+    /// - `coerce = false` (default, `list_coercion_disabled`): `get_list` only succeeds
+    ///   on actual list values. Single values cause an error.
+    /// - `coerce = true` (`list_coercion_enabled`): when `get_list` accesses a single
+    ///   value, it wraps it in a list automatically.
+    ///
+    /// See <https://ccl.tylerbutler.com/behavior-reference/#list-coercion>
     ///
     /// For typed access, use `get_list_typed()`.
     pub fn get_list(&self, key: &str, options: ListOptions) -> Result<Vec<String>> {
+        let model = self.get(key)?;
+
+        // Check if this is a bare list (= item syntax)
+        if let Some(items) = model.as_bare_list() {
+            return Ok(items);
+        }
+
+        // Not a bare list — behavior depends on coercion setting
         if options.coerce {
-            let all_values = self.get_all(key)?;
-            let result: Vec<String> = all_values
-                .iter()
-                .flat_map(|obj| obj.keys().filter(|k| !is_scalar_literal(k)).cloned())
-                .collect();
-            Ok(result)
-        } else {
-            let model = self.get(key)?;
-            let list = model.as_list_with_options(options);
-            if list.is_empty() && options.single_as_list {
-                // Try to return the single value as a one-element list
-                if let Ok(s) = model.as_string() {
-                    return Ok(vec![s.to_string()]);
-                }
+            // list_coercion_enabled: wrap single value in a list
+            if let Ok(s) = model.as_string() {
+                return Ok(vec![s.to_string()]);
             }
-            Ok(list)
+            // Not a string either — return error
+            Err(Error::NotAList)
+        } else {
+            // list_coercion_disabled: single values cause an error
+            Err(Error::NotAList)
         }
     }
 
     /// Get a typed list of values by key
     ///
-    /// Parses all keys as type T. Behavior depends on `options`:
-    /// - `single_as_list = false` (default): single values return empty Vec
-    /// - `single_as_list = true`: single values are parsed and returned as one-element Vec
+    /// Parses list items as type T. Follows the same coercion rules as `get_list()`:
+    /// - `coerce = false` (default): only bare list values succeed, single values error
+    /// - `coerce = true`: single values are wrapped and parsed as one-element lists
     ///
     /// # Examples
     ///
@@ -617,7 +588,7 @@ impl CclObject {
     /// # use sickle::model::ListOptions;
     /// # use sickle::error::Result;
     /// # fn example() -> Result<()> {
-    /// let input = "numbers = 1\nnumbers = 42\nnumbers = -17";
+    /// let input = "numbers =\n  = 1\n  = 42\n  = -17";
     /// let entries = parse(input)?;
     /// let model = build_hierarchy(&entries)?;
     /// let numbers: Vec<i64> = model.get_list_typed("numbers", ListOptions::new())?;
@@ -628,7 +599,8 @@ impl CclObject {
     ///
     /// # Errors
     ///
-    /// Returns `Error::ValueError` if any key cannot be parsed as type T.
+    /// Returns `Error::NotAList` if the value is not a list and coercion is disabled.
+    /// Returns `Error::ValueError` if any item cannot be parsed as type T.
     pub fn get_list_typed<T>(&self, key: &str, options: ListOptions) -> Result<Vec<T>>
     where
         T: FromStr,
@@ -636,10 +608,26 @@ impl CclObject {
     {
         let model = self.get(key)?;
 
-        let min_len = if options.single_as_list { 1 } else { 2 };
+        // Check if this is a bare list
+        if let Some(items) = model.as_bare_list() {
+            return items
+                .iter()
+                .map(|k| {
+                    k.parse::<T>().map_err(|e| {
+                        Error::ValueError(format!(
+                            "Failed to parse '{}' as {}: {}",
+                            k,
+                            std::any::type_name::<T>(),
+                            e
+                        ))
+                    })
+                })
+                .collect();
+        }
 
-        if model.len() >= min_len {
-            model
+        // Not a bare list — check for multi-key objects (duplicate key lists)
+        if model.len() >= 2 {
+            return model
                 .keys()
                 .map(|k| {
                     k.parse::<T>().map_err(|e| {
@@ -651,10 +639,25 @@ impl CclObject {
                         ))
                     })
                 })
-                .collect()
-        } else {
-            Ok(Vec::new())
+                .collect();
         }
+
+        // Single value — coercion behavior
+        if options.coerce {
+            if let Ok(s) = model.as_string() {
+                let val = s.parse::<T>().map_err(|e| {
+                    Error::ValueError(format!(
+                        "Failed to parse '{}' as {}: {}",
+                        s,
+                        std::any::type_name::<T>(),
+                        e
+                    ))
+                })?;
+                return Ok(vec![val]);
+            }
+        }
+
+        Err(Error::NotAList)
     }
 
     /// Create a CclObject representing a string value
@@ -749,19 +752,6 @@ mod tests {
     fn test_list_options_with_coerce() {
         let opts = ListOptions::new().with_coerce();
         assert!(opts.coerce);
-    }
-
-    #[test]
-    fn test_list_options_with_single_as_list() {
-        let opts = ListOptions::new().with_single_as_list();
-        assert!(opts.single_as_list);
-    }
-
-    #[test]
-    fn test_list_options_chaining() {
-        let opts = ListOptions::new().with_coerce().with_single_as_list();
-        assert!(opts.coerce);
-        assert!(opts.single_as_list);
     }
 
     #[test]
@@ -963,8 +953,8 @@ mod tests {
     // ========================================================================
 
     #[test]
-    fn test_get_list_typed_single_item_default() {
-        // Default options: single value returns empty Vec
+    fn test_get_list_typed_single_item_coercion_disabled() {
+        // list_coercion_disabled: single value returns error
         let mut model = CclObject::new();
         let mut numbers_inner = CclObject::new();
         numbers_inner
@@ -974,13 +964,13 @@ mod tests {
             .inner_mut()
             .insert("numbers".to_string(), vec![numbers_inner]);
 
-        let result: Vec<i64> = model.get_list_typed("numbers", ListOptions::new()).unwrap();
-        assert_eq!(result, Vec::<i64>::new());
+        let result: Result<Vec<i64>> = model.get_list_typed("numbers", ListOptions::new());
+        assert!(result.is_err());
     }
 
     #[test]
-    fn test_get_list_typed_single_item_with_option() {
-        // With single_as_list: single value returns vec![42]
+    fn test_get_list_typed_single_item_coercion_enabled() {
+        // list_coercion_enabled: single value wraps to vec![42]
         let mut model = CclObject::new();
         let mut numbers_inner = CclObject::new();
         numbers_inner
@@ -990,7 +980,7 @@ mod tests {
             .inner_mut()
             .insert("numbers".to_string(), vec![numbers_inner]);
 
-        let opts = ListOptions::new().with_single_as_list();
+        let opts = ListOptions::new().with_coerce();
         let result: Vec<i64> = model.get_list_typed("numbers", opts).unwrap();
         assert_eq!(result, vec![42]);
     }
