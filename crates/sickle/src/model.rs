@@ -21,22 +21,30 @@ pub(crate) type CclMapIter<'a> = indexmap::map::Iter<'a, String, Vec<CclObject>>
 /// Options for boolean access operations
 ///
 /// Controls how `get_bool()` interprets string values as booleans.
+/// All comparisons are case-insensitive per the CCL spec.
+///
+/// See <https://ccl.tylerbutler.com/behavior-reference/>
 #[derive(Debug, Clone, Copy, Default)]
 pub struct BoolOptions {
-    /// When true, accepts "yes"/"no" in addition to "true"/"false".
-    /// When false (default), only "true" and "false" are accepted.
+    /// Controls boolean parsing strictness per the CCL spec.
+    ///
+    /// - `false` (default, `boolean_strict`): only accepts `true`/`false`
+    ///   (case-insensitive).
+    /// - `true` (`boolean_lenient`): also accepts `yes`/`no`, `on`/`off`,
+    ///   `1`/`0` (all case-insensitive).
     pub lenient: bool,
 }
 
 impl BoolOptions {
-    /// Create default options (strict mode - only "true"/"false")
+    /// Create default options (`boolean_strict` — only `true`/`false`)
     pub fn new() -> Self {
         Self::default()
     }
 
-    /// Create options with lenient mode enabled (accepts "yes"/"no")
-    pub fn lenient() -> Self {
-        Self { lenient: true }
+    /// Enable lenient mode (`boolean_lenient` — accepts `yes`/`no`, `on`/`off`, `1`/`0`)
+    pub fn with_lenient(mut self) -> Self {
+        self.lenient = true;
+        self
     }
 }
 
@@ -147,7 +155,7 @@ impl CclObject {
     /// # use sickle::model::BoolOptions;
     /// # fn example() -> sickle::error::Result<()> {
     /// let model = load("enabled = yes\nname = Alice")?;
-    /// let reader = model.reader().with_bool_options(BoolOptions::lenient());
+    /// let reader = model.reader().with_bool_options(BoolOptions::new().with_lenient());
     /// let enabled = reader.get_bool("enabled")?;
     /// # Ok(())
     /// # }
@@ -463,47 +471,48 @@ impl CclObject {
 
     /// Extract a boolean value from the model with options (no key lookup)
     ///
-    /// Parses the string representation as a boolean.
-    /// - Strict mode (default): only "true" and "false" accepted
-    /// - Lenient mode: also accepts "yes" and "no"
+    /// All comparisons are case-insensitive per the CCL spec.
+    /// - Strict mode (default): only "true" and "false"
+    /// - Lenient mode: also accepts "yes"/"no", "on"/"off", "1"/"0"
     pub(crate) fn as_bool_with_options(&self, options: BoolOptions) -> Result<bool> {
         let s = self.as_string()?;
+        let lower = s.to_lowercase();
         if options.lenient {
-            match s {
-                "true" | "yes" => Ok(true),
-                "false" | "no" => Ok(false),
+            match lower.as_str() {
+                "true" | "yes" | "on" | "1" => Ok(true),
+                "false" | "no" | "off" | "0" => Ok(false),
                 _ => Err(Error::ValueError(format!(
                     "failed to parse '{}' as bool",
                     s
                 ))),
             }
         } else {
-            s.parse::<bool>()
-                .map_err(|_| Error::ValueError(format!("failed to parse '{}' as bool", s)))
+            match lower.as_str() {
+                "true" => Ok(true),
+                "false" => Ok(false),
+                _ => Err(Error::ValueError(format!(
+                    "failed to parse '{}' as bool",
+                    s
+                ))),
+            }
         }
     }
 
-    /// Get a boolean value by key (strict mode)
+    /// Get a boolean value by key (default options, strict mode)
     ///
-    /// Only accepts "true" and "false". For lenient parsing that also
-    /// accepts "yes" and "no", use `get_bool_lenient()`.
+    /// Only accepts "true" and "false" (case-insensitive).
+    /// For lenient parsing, use `get_bool_with_options()`.
     pub fn get_bool(&self, key: &str) -> Result<bool> {
         self.get(key)?.as_bool()
     }
 
     /// Get a boolean value by key with options
     ///
-    /// Allows configuring boolean parsing behavior.
+    /// Behavior depends on `options.lenient` (CCL boolean behavior):
+    /// - `false` (default, `boolean_strict`): only "true"/"false" (case-insensitive)
+    /// - `true` (`boolean_lenient`): also accepts "yes"/"no", "on"/"off", "1"/"0"
     pub fn get_bool_with_options(&self, key: &str, options: BoolOptions) -> Result<bool> {
         self.get(key)?.as_bool_with_options(options)
-    }
-
-    /// Get a boolean value by key (lenient mode)
-    ///
-    /// Accepts "true", "false", "yes", and "no".
-    /// For strict parsing, use `get_bool()`.
-    pub fn get_bool_lenient(&self, key: &str) -> Result<bool> {
-        self.get_bool_with_options(key, BoolOptions::lenient())
     }
 
     /// Extract an integer value from the model (no key lookup)
@@ -769,7 +778,7 @@ mod tests {
 
     #[test]
     fn test_bool_options_lenient() {
-        let opts = BoolOptions::lenient();
+        let opts = BoolOptions::new().with_lenient();
         assert!(opts.lenient);
     }
 
