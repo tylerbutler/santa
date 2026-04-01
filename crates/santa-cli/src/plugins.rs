@@ -34,7 +34,7 @@ pub struct PluginMetadata {
 }
 
 /// Plugin lifecycle hooks
-pub trait Plugin: Send + Sync {
+pub trait Plugin: Send + Sync + crate::traits::private::Sealed {
     /// Get plugin metadata
     fn metadata(&self) -> &PluginMetadata;
 
@@ -273,6 +273,8 @@ impl LoggingPlugin {
     }
 }
 
+impl crate::traits::private::Sealed for LoggingPlugin {}
+
 impl Plugin for LoggingPlugin {
     fn metadata(&self) -> &PluginMetadata {
         &self.metadata
@@ -346,6 +348,8 @@ impl PerformancePlugin {
         }
     }
 }
+
+impl crate::traits::private::Sealed for PerformancePlugin {}
 
 impl Plugin for PerformancePlugin {
     fn metadata(&self) -> &PluginMetadata {

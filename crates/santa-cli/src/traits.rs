@@ -1,6 +1,10 @@
 use crate::errors::Result;
 use std::path::Path;
 
+pub(crate) mod private {
+    pub trait Sealed {}
+}
+
 /// Core trait for package managers providing unified interface across different platforms.
 ///
 /// This trait abstracts over different package managers (apt, brew, cargo, etc.) to provide
@@ -48,7 +52,7 @@ use std::path::Path;
 /// - Network connectivity issues during package operations
 /// - Insufficient permissions (when `requires_elevation()` is false but elevation needed)
 /// - Invalid package names or malformed commands
-pub trait PackageManager {
+pub trait PackageManager: private::Sealed {
     type Error: std::error::Error;
 
     /// Returns the display name of this package manager.
