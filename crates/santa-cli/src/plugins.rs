@@ -14,6 +14,7 @@ use crate::data::SantaData;
 ///
 /// Plugin metadata information
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct PluginMetadata {
     /// Plugin name
     pub name: String,

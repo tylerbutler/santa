@@ -59,6 +59,7 @@ const MACHINE_KIND: &str = if cfg!(windows) {
 /// Thread-safe package cache with TTL, LRU eviction, and monitoring
 /// Uses the high-performance moka caching library
 #[derive(Clone, Debug)]
+#[non_exhaustive]
 pub struct PackageCache {
     cache: Cache<String, Vec<String>>,
     max_capacity: u64,
@@ -136,7 +137,8 @@ impl PackageCache {
     }
 }
 
-/// Cache statistics for monitoring  
+/// Cache statistics for monitoring
+#[non_exhaustive]  
 #[derive(Debug, Clone)]
 pub struct CacheStats {
     pub entries: u64,
