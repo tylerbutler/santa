@@ -360,12 +360,11 @@ opt_true = true
 opt_false = false
 "#;
     let model = load(ccl).expect("should load");
-    let lenient = sickle::BoolOptions::new().with_lenient();
     // Lenient mode should accept all variants
-    assert!(model.get_bool_with_options("opt_yes", lenient).unwrap());
-    assert!(!model.get_bool_with_options("opt_no", lenient).unwrap());
-    assert!(model.get_bool_with_options("opt_true", lenient).unwrap());
-    assert!(!model.get_bool_with_options("opt_false", lenient).unwrap());
+    assert!(model.get_bool_lenient("opt_yes").unwrap());
+    assert!(!model.get_bool_lenient("opt_no").unwrap());
+    assert!(model.get_bool_lenient("opt_true").unwrap());
+    assert!(!model.get_bool_lenient("opt_false").unwrap());
 }
 
 #[test]
@@ -382,7 +381,7 @@ flag = yes
     assert!(model.get_bool_with_options("flag", strict_opts).is_err());
 
     // Lenient mode accepts "yes"
-    let lenient_opts = BoolOptions::new().with_lenient();
+    let lenient_opts = BoolOptions::lenient();
     assert!(model.get_bool_with_options("flag", lenient_opts).unwrap());
 }
 
@@ -393,21 +392,19 @@ not_bool = hello
 number = 42
 "#;
     let model = load(ccl).expect("should load");
-    let lenient = sickle::BoolOptions::new().with_lenient();
     // Neither strict nor lenient should accept these
     assert!(model.get_bool("not_bool").is_err());
-    assert!(model.get_bool_with_options("not_bool", lenient).is_err());
+    assert!(model.get_bool_lenient("not_bool").is_err());
     assert!(model.get_bool("number").is_err());
-    assert!(model.get_bool_with_options("number", lenient).is_err());
+    assert!(model.get_bool_lenient("number").is_err());
 }
 
 #[test]
 fn test_get_bool_missing_key() {
     let ccl = "name = value";
     let model = load(ccl).expect("should load");
-    let lenient = sickle::BoolOptions::new().with_lenient();
     assert!(model.get_bool("nonexistent").is_err());
-    assert!(model.get_bool_with_options("nonexistent", lenient).is_err());
+    assert!(model.get_bool_lenient("nonexistent").is_err());
 }
 
 // ============================================================================
@@ -559,28 +556,21 @@ fn test_tabs_in_multiline_values() {
 // ============================================================================
 
 #[test]
-fn test_get_bool_case_insensitive() {
-    // Boolean parsing is case-insensitive per CCL spec
+fn test_get_bool_case_sensitivity() {
+    // Boolean parsing is case-sensitive
     let ccl = r#"
 upper_true = TRUE
 upper_false = FALSE
-mixed_true = True
-mixed_false = fAlSe
 upper_yes = YES
 upper_no = NO
 "#;
     let model = load(ccl).expect("should load");
-    let lenient = sickle::BoolOptions::new().with_lenient();
 
-    // Strict mode: TRUE/FALSE accepted (case-insensitive)
-    assert!(model.get_bool("upper_true").unwrap());
-    assert!(!model.get_bool("upper_false").unwrap());
-    assert!(model.get_bool("mixed_true").unwrap());
-    assert!(!model.get_bool("mixed_false").unwrap());
-
-    // Lenient mode: YES/NO also accepted (case-insensitive)
-    assert!(model.get_bool_with_options("upper_yes", lenient).unwrap());
-    assert!(!model.get_bool_with_options("upper_no", lenient).unwrap());
+    // All uppercase variants should fail (case-sensitive)
+    assert!(model.get_bool("upper_true").is_err());
+    assert!(model.get_bool("upper_false").is_err());
+    assert!(model.get_bool_lenient("upper_yes").is_err());
+    assert!(model.get_bool_lenient("upper_no").is_err());
 }
 
 #[test]
@@ -622,21 +612,17 @@ settings =
     assert!(!settings.get_bool("verbose").unwrap());
 
     // "yes" only works with lenient mode
-    let lenient = sickle::BoolOptions::new().with_lenient();
     assert!(settings.get_bool("experimental").is_err());
-    assert!(settings
-        .get_bool_with_options("experimental", lenient)
-        .unwrap());
+    assert!(settings.get_bool_lenient("experimental").unwrap());
 }
 
 #[test]
 fn test_empty_value_is_not_bool() {
     let ccl = "flag =";
     let model = load(ccl).expect("should load");
-    let lenient = sickle::BoolOptions::new().with_lenient();
     // Empty value cannot be parsed as bool
     assert!(model.get_bool("flag").is_err());
-    assert!(model.get_bool_with_options("flag", lenient).is_err());
+    assert!(model.get_bool_lenient("flag").is_err());
 }
 
 #[test]

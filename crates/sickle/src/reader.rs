@@ -12,7 +12,7 @@
 //! # fn example() -> sickle::error::Result<()> {
 //! let model = load("enabled = yes\nservers =\n  = web1\n  = web2")?;
 //! let reader = CclReader::new(&model)
-//!     .with_bool_options(BoolOptions::new().with_lenient())
+//!     .with_bool_options(BoolOptions::lenient())
 //!     .with_list_options(ListOptions::new().with_coerce());
 //!
 //! let enabled = reader.get_bool("enabled")?;  // uses lenient mode
@@ -167,7 +167,7 @@ mod tests {
     #[test]
     fn test_reader_get_bool_lenient() {
         let model = make_model("enabled = yes");
-        let reader = CclReader::new(&model).with_bool_options(BoolOptions::new().with_lenient());
+        let reader = CclReader::new(&model).with_bool_options(BoolOptions::lenient());
         assert!(reader.get_bool("enabled").unwrap());
     }
 
@@ -181,7 +181,7 @@ mod tests {
     #[test]
     fn test_reader_sub_reader() {
         let model = make_model("config =\n  host = localhost\n  port = 8080");
-        let reader = CclReader::new(&model).with_bool_options(BoolOptions::new().with_lenient());
+        let reader = CclReader::new(&model).with_bool_options(BoolOptions::lenient());
         let config = reader.get_reader("config").unwrap();
         assert_eq!(config.get_string("host").unwrap(), "localhost");
         assert_eq!(config.get_int("port").unwrap(), 8080);
