@@ -78,6 +78,7 @@
 pub mod error;
 pub mod model;
 pub mod options;
+pub mod reader;
 
 #[cfg(feature = "parse")]
 mod parser;
@@ -93,6 +94,7 @@ pub mod ser;
 
 pub use error::{Error, Result};
 pub use model::{BoolOptions, CclObject, Entry, ListOptions};
+pub use reader::CclReader;
 
 // Re-export options types for crate-internal use
 // ParserOptions is pub(crate) for now until API stabilizes
