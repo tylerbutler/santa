@@ -4,7 +4,7 @@ use std::path::PathBuf;
 use crate::input::InputSource;
 
 #[derive(clap::Args)]
-pub struct FmtArgs {
+pub(crate) struct FmtArgs {
     /// Input file (reads from stdin if omitted or -)
     pub file: Option<PathBuf>,
 
@@ -13,7 +13,7 @@ pub struct FmtArgs {
     pub in_place: bool,
 }
 
-pub fn run(args: FmtArgs) -> Result<()> {
+pub(crate) fn run(args: FmtArgs) -> Result<()> {
     if args.in_place && args.file.is_none() {
         bail!("--in-place requires a file argument (cannot overwrite stdin)");
     }
