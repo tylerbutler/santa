@@ -51,7 +51,7 @@ where
 }
 
 /// A structure that serializes Rust values into CCL
-pub struct Serializer {
+pub(crate) struct Serializer {
     /// The current key being serialized (for map entries)
     current_key: Option<String>,
     /// Stack of nested objects being built
@@ -93,7 +93,7 @@ impl Default for Serializer {
 
 /// Custom error type for serialization
 #[derive(Debug, Clone)]
-pub struct SerError {
+pub(crate) struct SerError {
     msg: String,
 }
 
@@ -358,7 +358,7 @@ impl<'a> ser::Serializer for &'a mut Serializer {
 }
 
 /// Serializer for sequences (Vec, arrays, etc.)
-pub struct SeqSerializer<'a> {
+pub(crate) struct SeqSerializer<'a> {
     ser: &'a mut Serializer,
     /// Simple string items (for `Vec<String>`, `Vec<i32>`, etc.)
     items: Vec<String>,
@@ -468,7 +468,7 @@ impl<'a> ser::SerializeTupleVariant for SeqSerializer<'a> {
 }
 
 /// Serializer for maps and structs
-pub struct MapSerializer<'a> {
+pub(crate) struct MapSerializer<'a> {
     ser: &'a mut Serializer,
     /// The key under which this map/struct will be inserted (for nested structs)
     parent_key: Option<String>,

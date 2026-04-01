@@ -5,7 +5,7 @@ use crate::bridge;
 use crate::input::{self, Format, InputSource};
 
 #[derive(clap::Args)]
-pub struct ConvertArgs {
+pub(crate) struct ConvertArgs {
     /// Input file (reads from stdin if omitted or -)
     pub file: Option<PathBuf>,
 
@@ -26,7 +26,7 @@ pub struct ConvertArgs {
     pub yes: bool,
 }
 
-pub fn run(args: ConvertArgs) -> Result<()> {
+pub(crate) fn run(args: ConvertArgs) -> Result<()> {
     let from = input::detect_format(args.file.as_deref(), args.from)?;
     let source = InputSource::from_arg(args.file.as_deref());
     let input = source.read()?;
