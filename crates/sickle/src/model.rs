@@ -636,7 +636,7 @@ impl CclObject {
         let model = self.get(key)?;
 
         // For typed lists, we want ALL keys (including scalar literals)
-        if model.len() >= 2 {
+        if model.len() >= 1 {
             model
                 .keys()
                 .map(|k| {
@@ -941,5 +941,47 @@ mod tests {
         );
 
         assert!(CclObject::compose_associative(&a, &b, &c));
+    }
+
+    // ========================================================================
+    // get_list_typed tests
+    // ========================================================================
+
+    #[test]
+    fn test_get_list_typed_single_item() {
+        // A single-item list like "numbers = 42" should return vec![42],
+        // not an empty Vec. Regression test for issue #93.
+        let mut model = CclObject::new();
+        let mut numbers_inner = CclObject::new();
+        numbers_inner
+            .inner_mut()
+            .insert("42".to_string(), vec![CclObject::new()]);
+        model
+            .inner_mut()
+            .insert("numbers".to_string(), vec![numbers_inner]);
+
+        let result: Vec<i64> = model.get_list_typed("numbers").unwrap();
+        assert_eq!(result, vec![42]);
+    }
+
+    #[test]
+    fn test_get_list_typed_multiple_items() {
+        let mut model = CclObject::new();
+        let mut numbers_inner = CclObject::new();
+        numbers_inner
+            .inner_mut()
+            .insert("1".to_string(), vec![CclObject::new()]);
+        numbers_inner
+            .inner_mut()
+            .insert("2".to_string(), vec![CclObject::new()]);
+        numbers_inner
+            .inner_mut()
+            .insert("3".to_string(), vec![CclObject::new()]);
+        model
+            .inner_mut()
+            .insert("numbers".to_string(), vec![numbers_inner]);
+
+        let result: Vec<i64> = model.get_list_typed("numbers").unwrap();
+        assert_eq!(result, vec![1, 2, 3]);
     }
 }
