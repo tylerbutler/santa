@@ -155,7 +155,7 @@ impl CclObject {
     /// # use sickle::model::BoolOptions;
     /// # fn example() -> sickle::error::Result<()> {
     /// let model = load("enabled = yes\nname = Alice")?;
-    /// let reader = model.reader().with_bool_options(BoolOptions::lenient());
+    /// let reader = model.reader().with_bool_options(BoolOptions::new().with_lenient());
     /// let enabled = reader.get_bool("enabled")?;
     /// # Ok(())
     /// # }

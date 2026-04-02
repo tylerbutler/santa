@@ -4,6 +4,7 @@ use std::fmt;
 
 /// Errors that can occur during CCL parsing or Model navigation
 #[derive(Debug, Clone, PartialEq, Eq)]
+#[non_exhaustive]
 pub enum Error {
     /// Key not found in the model
     MissingKey(String),
