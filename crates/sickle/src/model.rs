@@ -21,44 +21,60 @@ pub(crate) type CclMapIter<'a> = indexmap::map::Iter<'a, String, Vec<CclObject>>
 /// Options for boolean access operations
 ///
 /// Controls how `get_bool()` interprets string values as booleans.
+/// All comparisons are case-insensitive per the CCL spec.
+///
+/// See <https://ccl.tylerbutler.com/behavior-reference/>
 #[derive(Debug, Clone, Copy, Default)]
 pub struct BoolOptions {
-    /// When true, accepts "yes"/"no" in addition to "true"/"false".
-    /// When false (default), only "true" and "false" are accepted.
+    /// Controls boolean parsing strictness per the CCL spec.
+    ///
+    /// - `false` (default, `boolean_strict`): only accepts `true`/`false`
+    ///   (case-insensitive).
+    /// - `true` (`boolean_lenient`): also accepts `yes`/`no`, `on`/`off`,
+    ///   `1`/`0` (all case-insensitive).
     pub lenient: bool,
 }
 
 impl BoolOptions {
-    /// Create default options (strict mode - only "true"/"false")
+    /// Create default options (`boolean_strict` — only `true`/`false`)
     pub fn new() -> Self {
         Self::default()
     }
 
-    /// Create options with lenient mode enabled (accepts "yes"/"no")
-    pub fn lenient() -> Self {
-        Self { lenient: true }
+    /// Enable lenient mode (`boolean_lenient` — accepts `yes`/`no`, `on`/`off`, `1`/`0`)
+    pub fn with_lenient(mut self) -> Self {
+        self.lenient = true;
+        self
     }
 }
 
 /// Options for list access operations
 ///
-/// Controls how `get_list()` interprets the CCL data structure.
+/// Controls how `get_list()` and `get_list_typed()` handle non-list values.
+///
+/// See the [CCL behavior reference](https://ccl.tylerbutler.com/behavior-reference/#list-coercion)
+/// for the specification of list coercion behavior.
 #[derive(Debug, Clone, Copy, Default)]
 pub struct ListOptions {
-    /// When true, duplicate keys are coerced into lists and scalar literals are filtered.
-    /// When false (default), only bare list syntax (empty keys) produces lists.
+    /// Controls list coercion behavior per the CCL spec.
+    ///
+    /// - `false` (default, `list_coercion_disabled`): `get_list` only succeeds on actual
+    ///   list values. Single values cause an error.
+    /// - `true` (`list_coercion_enabled`): when `get_list` accesses a single value, it
+    ///   wraps it in a list automatically. E.g. `single = value` → `["value"]`.
     pub coerce: bool,
 }
 
 impl ListOptions {
-    /// Create default options (coerce = false)
+    /// Create default options (coerce = false, matching `list_coercion_disabled`)
     pub fn new() -> Self {
         Self::default()
     }
 
-    /// Create options with coercion enabled
-    pub fn with_coerce() -> Self {
-        Self { coerce: true }
+    /// Enable list coercion: single values are wrapped in a list automatically
+    pub fn with_coerce(mut self) -> Self {
+        self.coerce = true;
+        self
     }
 }
 
@@ -67,9 +83,7 @@ impl ListOptions {
 /// CCL distinguishes between string values and scalar literals:
 /// - Numbers: integers and floats (e.g., "42", "3.14", "-17")
 /// - Booleans: true/false/yes/no
-///
-/// This helper is used to filter out scalar literals from string lists
-/// when coercion is enabled.
+#[cfg(test)]
 fn is_scalar_literal(s: &str) -> bool {
     // Check if it's parseable as an integer
     if s.parse::<i64>().is_ok() {
@@ -127,6 +141,27 @@ impl CclObject {
     /// Create a new empty model
     pub fn new() -> Self {
         CclObject(IndexMap::new())
+    }
+
+    /// Create a configured reader over this object
+    ///
+    /// Returns a `CclReader` with default options. Use the builder methods
+    /// to configure boolean and list behavior before reading fields.
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// # use sickle::{load, CclObject};
+    /// # use sickle::model::BoolOptions;
+    /// # fn example() -> sickle::error::Result<()> {
+    /// let model = load("enabled = yes\nname = Alice")?;
+    /// let reader = model.reader().with_bool_options(BoolOptions::new().with_lenient());
+    /// let enabled = reader.get_bool("enabled")?;
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub fn reader(&self) -> crate::reader::CclReader<'_> {
+        crate::reader::CclReader::new(self)
     }
 
     /// Create a Model from an IndexMap
@@ -436,47 +471,48 @@ impl CclObject {
 
     /// Extract a boolean value from the model with options (no key lookup)
     ///
-    /// Parses the string representation as a boolean.
-    /// - Strict mode (default): only "true" and "false" accepted
-    /// - Lenient mode: also accepts "yes" and "no"
+    /// All comparisons are case-insensitive per the CCL spec.
+    /// - Strict mode (default): only "true" and "false"
+    /// - Lenient mode: also accepts "yes"/"no", "on"/"off", "1"/"0"
     pub(crate) fn as_bool_with_options(&self, options: BoolOptions) -> Result<bool> {
         let s = self.as_string()?;
+        let lower = s.to_lowercase();
         if options.lenient {
-            match s {
-                "true" | "yes" => Ok(true),
-                "false" | "no" => Ok(false),
+            match lower.as_str() {
+                "true" | "yes" | "on" | "1" => Ok(true),
+                "false" | "no" | "off" | "0" => Ok(false),
                 _ => Err(Error::ValueError(format!(
                     "failed to parse '{}' as bool",
                     s
                 ))),
             }
         } else {
-            s.parse::<bool>()
-                .map_err(|_| Error::ValueError(format!("failed to parse '{}' as bool", s)))
+            match lower.as_str() {
+                "true" => Ok(true),
+                "false" => Ok(false),
+                _ => Err(Error::ValueError(format!(
+                    "failed to parse '{}' as bool",
+                    s
+                ))),
+            }
         }
     }
 
-    /// Get a boolean value by key (strict mode)
+    /// Get a boolean value by key (default options, strict mode)
     ///
-    /// Only accepts "true" and "false". For lenient parsing that also
-    /// accepts "yes" and "no", use `get_bool_lenient()`.
+    /// Only accepts "true" and "false" (case-insensitive).
+    /// For lenient parsing, use `get_bool_with_options()`.
     pub fn get_bool(&self, key: &str) -> Result<bool> {
         self.get(key)?.as_bool()
     }
 
     /// Get a boolean value by key with options
     ///
-    /// Allows configuring boolean parsing behavior.
+    /// Behavior depends on `options.lenient` (CCL boolean behavior):
+    /// - `false` (default, `boolean_strict`): only "true"/"false" (case-insensitive)
+    /// - `true` (`boolean_lenient`): also accepts "yes"/"no", "on"/"off", "1"/"0"
     pub fn get_bool_with_options(&self, key: &str, options: BoolOptions) -> Result<bool> {
         self.get(key)?.as_bool_with_options(options)
-    }
-
-    /// Get a boolean value by key (lenient mode)
-    ///
-    /// Accepts "true", "false", "yes", and "no".
-    /// For strict parsing, use `get_bool()`.
-    pub fn get_bool_lenient(&self, key: &str) -> Result<bool> {
-        self.get_bool_with_options(key, BoolOptions::lenient())
     }
 
     /// Extract an integer value from the model (no key lookup)
@@ -507,7 +543,7 @@ impl CclObject {
         self.get(key)?.as_float()
     }
 
-    /// Extract a list of string values from the model (no key lookup)
+    /// Try to extract bare list items from the model (no key lookup)
     ///
     /// In CCL, lists are represented using **bare list syntax** with empty keys:
     /// ```text
@@ -516,128 +552,132 @@ impl CclObject {
     ///   = web2
     /// ```
     ///
-    /// Behavior varies by `options.coerce`:
+    /// Returns `Some(items)` if this is a bare list, `None` otherwise.
+    pub(crate) fn as_bare_list(&self) -> Option<Vec<String>> {
+        // Filter out comment keys (starting with '/') when checking for bare lists
+        let non_comment_keys: Vec<&String> = self.keys().filter(|k| !k.starts_with('/')).collect();
+
+        // Handle bare list syntax: single empty-key child containing the list items
+        // With Vec structure: { "": [CclObject({item1}), CclObject({item2}), ...] }
+        if non_comment_keys.len() == 1 && non_comment_keys[0].is_empty() {
+            if let Ok(children) = self.get_all("") {
+                let items: Vec<String> = children
+                    .iter()
+                    .flat_map(|child| child.keys().filter(|k| !k.starts_with('/')).cloned())
+                    .collect();
+                return Some(items);
+            }
+        }
+
+        None
+    }
+
+    /// Get a list of string values by key (default options)
     ///
-    /// **With `coerce = false` (default, reference-compliant)**:
-    /// - Returns values ONLY when all keys are empty strings `""`
-    /// - Duplicate keys with values are NOT lists: `servers = web1` → `[]`
-    /// - Bare lists work: Access via `get("servers")?.as_list_with_options(...)` → `["web1", "web2"]`
-    /// - Matches OCaml reference implementation
+    /// Uses `list_coercion_disabled`: only succeeds on actual list values.
+    /// For coercion or other options, use `get_list_with_options()`.
+    pub fn get_list(&self, key: &str) -> Result<Vec<String>> {
+        self.get_list_with_options(key, ListOptions::new())
+    }
+
+    /// Get a list of string values by key with options
     ///
-    /// **With `coerce = true`**:
-    /// - Duplicate keys create lists: `servers = web1` → `["web1", "web2"]`
-    /// - Still filters scalar literals (numbers/booleans)
-    /// - Single values coerced to lists
-    pub(crate) fn as_list_with_options(&self, options: ListOptions) -> Vec<String> {
+    /// Behavior depends on `options.coerce` (CCL list coercion behavior):
+    /// - `coerce = false` (default, `list_coercion_disabled`): `get_list` only succeeds
+    ///   on actual list values. Single values cause an error.
+    /// - `coerce = true` (`list_coercion_enabled`): when `get_list` accesses a single
+    ///   value, it wraps it in a list automatically.
+    ///
+    /// See <https://ccl.tylerbutler.com/behavior-reference/#list-coercion>
+    ///
+    /// For typed access, use `get_list_typed()`.
+    pub fn get_list_with_options(&self, key: &str, options: ListOptions) -> Result<Vec<String>> {
+        let model = self.get(key)?;
+
+        // Check if this is a bare list (= item syntax)
+        if let Some(items) = model.as_bare_list() {
+            return Ok(items);
+        }
+
+        // Not a bare list — behavior depends on coercion setting
         if options.coerce {
-            // Coercion mode: duplicate keys create lists, but filter scalars
-            self.keys()
-                .filter(|k| !is_scalar_literal(k))
-                .cloned()
-                .collect()
+            // list_coercion_enabled: wrap single value in a list
+            if let Ok(s) = model.as_string() {
+                return Ok(vec![s.to_string()]);
+            }
+            // Not a string either — return error
+            Err(Error::NotAList)
         } else {
-            // Reference-compliant mode: only bare list syntax works
-            // Filter out comment keys (starting with '/') when checking for bare lists
-            let non_comment_keys: Vec<&String> =
-                self.keys().filter(|k| !k.starts_with('/')).collect();
-
-            // Handle bare list syntax: single empty-key child containing the list items
-            // With Vec structure: { "": [CclObject({item1}), CclObject({item2}), ...] }
-            // We need to get ALL values from the Vec at key ""
-            if non_comment_keys.len() == 1 && non_comment_keys[0].is_empty() {
-                if let Ok(children) = self.get_all("") {
-                    // Found empty-key entries - each child contains one list item as its key
-                    // Filter out comment keys from each child
-                    return children
-                        .iter()
-                        .flat_map(|child| child.keys().filter(|k| !k.starts_with('/')).cloned())
-                        .collect();
-                }
-            }
-
-            // Empty or single non-empty key = not a list
-            if non_comment_keys.len() <= 1 {
-                return Vec::new();
-            }
-
-            // Multiple non-comment keys = not a bare list in reference mode
-            Vec::new()
+            // list_coercion_disabled: single values cause an error
+            Err(Error::NotAList)
         }
     }
 
-    /// Get a list of string values by key (reference-compliant behavior)
+    /// Get a typed list of values by key (default options)
     ///
-    /// Only bare list syntax produces lists. Duplicate keys with values are NOT
-    /// treated as lists.
-    ///
-    /// For typed access to lists of scalars, use `get_list_typed::<T>()` instead.
-    /// For coercion behavior, use `get_list_coerced()`.
-    pub fn get_list(&self, key: &str) -> Result<Vec<String>> {
-        Ok(self.get(key)?.as_list_with_options(ListOptions::new()))
+    /// Uses `list_coercion_disabled`: only succeeds on actual list values.
+    /// For coercion or other options, use `get_list_typed_with_options()`.
+    pub fn get_list_typed<T>(&self, key: &str) -> Result<Vec<T>>
+    where
+        T: FromStr,
+        T::Err: std::fmt::Display,
+    {
+        self.get_list_typed_with_options(key, ListOptions::new())
     }
 
-    /// Get a list of string values by key (with coercion)
+    /// Get a typed list of values by key with options
     ///
-    /// Duplicate keys are coerced into lists, and scalar literals are filtered.
-    /// When multiple entries exist for the same key (e.g., `servers = web1\nservers = web2`),
-    /// all values are collected into a single list.
-    ///
-    /// For typed access to lists of scalars, use `get_list_typed::<T>()` instead.
-    /// For reference-compliant behavior, use `get_list()`.
-    pub fn get_list_coerced(&self, key: &str) -> Result<Vec<String>> {
-        let all_values = self.get_all(key)?;
-
-        // Collect string values from all entries for this key
-        // Each entry is a CclObject - extract its keys (which are the actual values)
-        let result: Vec<String> = all_values
-            .iter()
-            .flat_map(|obj| obj.keys().filter(|k| !is_scalar_literal(k)).cloned())
-            .collect();
-
-        Ok(result)
-    }
-
-    /// Get a typed list of values by key
-    ///
-    /// This method provides generic access to lists of any parseable type.
-    /// Unlike `get_list()`, this doesn't filter scalar literals - it parses all keys as type T.
+    /// Parses list items as type T. Follows the same coercion rules as `get_list()`:
+    /// - `coerce = false` (default): only bare list values succeed, single values error
+    /// - `coerce = true`: single values are wrapped and parsed as one-element lists
     ///
     /// # Examples
     ///
     /// ```
     /// # use sickle::{CclObject, parse, build_hierarchy};
+    /// # use sickle::model::ListOptions;
     /// # use sickle::error::Result;
     /// # fn example() -> Result<()> {
-    /// // Numbers list
-    /// let input = "numbers = 1\nnumbers = 42\nnumbers = -17";
+    /// let input = "numbers =\n  = 1\n  = 42\n  = -17";
     /// let entries = parse(input)?;
     /// let model = build_hierarchy(&entries)?;
     /// let numbers: Vec<i64> = model.get_list_typed("numbers")?;
     /// assert_eq!(numbers, vec![1, 42, -17]);
-    ///
-    /// // Booleans list
-    /// let input = "flags = true\nflags = false";
-    /// let entries = parse(input)?;
-    /// let model = build_hierarchy(&entries)?;
-    /// let flags: Vec<bool> = model.get_list_typed("flags")?;
-    /// assert_eq!(flags, vec![true, false]);
     /// # Ok(())
     /// # }
     /// ```
     ///
     /// # Errors
     ///
-    /// Returns `Error::ValueError` if any key cannot be parsed as type T.
-    pub fn get_list_typed<T>(&self, key: &str) -> Result<Vec<T>>
+    /// Returns `Error::NotAList` if the value is not a list and coercion is disabled.
+    /// Returns `Error::ValueError` if any item cannot be parsed as type T.
+    pub fn get_list_typed_with_options<T>(&self, key: &str, options: ListOptions) -> Result<Vec<T>>
     where
         T: FromStr,
         T::Err: std::fmt::Display,
     {
         let model = self.get(key)?;
 
-        // For typed lists, we want ALL keys (including scalar literals)
+        // Check if this is a bare list
+        if let Some(items) = model.as_bare_list() {
+            return items
+                .iter()
+                .map(|k| {
+                    k.parse::<T>().map_err(|e| {
+                        Error::ValueError(format!(
+                            "Failed to parse '{}' as {}: {}",
+                            k,
+                            std::any::type_name::<T>(),
+                            e
+                        ))
+                    })
+                })
+                .collect();
+        }
+
+        // Not a bare list — check for multi-key objects (duplicate key lists)
         if model.len() >= 2 {
-            model
+            return model
                 .keys()
                 .map(|k| {
                     k.parse::<T>().map_err(|e| {
@@ -649,10 +689,25 @@ impl CclObject {
                         ))
                     })
                 })
-                .collect()
-        } else {
-            Ok(Vec::new())
+                .collect();
         }
+
+        // Single value — coercion behavior
+        if options.coerce {
+            if let Ok(s) = model.as_string() {
+                let val = s.parse::<T>().map_err(|e| {
+                    Error::ValueError(format!(
+                        "Failed to parse '{}' as {}: {}",
+                        s,
+                        std::any::type_name::<T>(),
+                        e
+                    ))
+                })?;
+                return Ok(vec![val]);
+            }
+        }
+
+        Err(Error::NotAList)
     }
 
     /// Create a CclObject representing a string value
@@ -723,7 +778,7 @@ mod tests {
 
     #[test]
     fn test_bool_options_lenient() {
-        let opts = BoolOptions::lenient();
+        let opts = BoolOptions::new().with_lenient();
         assert!(opts.lenient);
     }
 
@@ -745,7 +800,7 @@ mod tests {
 
     #[test]
     fn test_list_options_with_coerce() {
-        let opts = ListOptions::with_coerce();
+        let opts = ListOptions::new().with_coerce();
         assert!(opts.coerce);
     }
 
@@ -941,5 +996,63 @@ mod tests {
         );
 
         assert!(CclObject::compose_associative(&a, &b, &c));
+    }
+
+    // ========================================================================
+    // get_list_typed tests
+    // ========================================================================
+
+    #[test]
+    fn test_get_list_typed_single_item_coercion_disabled() {
+        // list_coercion_disabled: single value returns error
+        let mut model = CclObject::new();
+        let mut numbers_inner = CclObject::new();
+        numbers_inner
+            .inner_mut()
+            .insert("42".to_string(), vec![CclObject::new()]);
+        model
+            .inner_mut()
+            .insert("numbers".to_string(), vec![numbers_inner]);
+
+        let result: Result<Vec<i64>> = model.get_list_typed("numbers");
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_get_list_typed_single_item_coercion_enabled() {
+        // list_coercion_enabled: single value wraps to vec![42]
+        let mut model = CclObject::new();
+        let mut numbers_inner = CclObject::new();
+        numbers_inner
+            .inner_mut()
+            .insert("42".to_string(), vec![CclObject::new()]);
+        model
+            .inner_mut()
+            .insert("numbers".to_string(), vec![numbers_inner]);
+
+        let opts = ListOptions::new().with_coerce();
+        let result: Vec<i64> = model.get_list_typed_with_options("numbers", opts).unwrap();
+        assert_eq!(result, vec![42]);
+    }
+
+    #[test]
+    fn test_get_list_typed_multiple_items() {
+        let mut model = CclObject::new();
+        let mut numbers_inner = CclObject::new();
+        numbers_inner
+            .inner_mut()
+            .insert("1".to_string(), vec![CclObject::new()]);
+        numbers_inner
+            .inner_mut()
+            .insert("2".to_string(), vec![CclObject::new()]);
+        numbers_inner
+            .inner_mut()
+            .insert("3".to_string(), vec![CclObject::new()]);
+        model
+            .inner_mut()
+            .insert("numbers".to_string(), vec![numbers_inner]);
+
+        let result: Vec<i64> = model.get_list_typed("numbers").unwrap();
+        assert_eq!(result, vec![1, 2, 3]);
     }
 }

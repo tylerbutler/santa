@@ -1,0 +1,3 @@
+project: sickle
+kind: Fixed
+body: Add `#[non_exhaustive]` to `Error` enum to allow adding variants without breaking changes

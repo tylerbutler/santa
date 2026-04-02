@@ -376,9 +376,4 @@ bat =
     // Test parse_ccl_to
     let typed: HashMap<String, PackageDefinition> = parse_ccl_to(ccl).unwrap();
     assert!(typed.contains_key("bat"));
-
-    // Test CclValue conversion
-    let ccl_value = CclValue::Array(vec!["brew".to_string(), "scoop".to_string()]);
-    let json_value: serde_json::Value = ccl_value.into();
-    assert!(json_value.is_array());
 }

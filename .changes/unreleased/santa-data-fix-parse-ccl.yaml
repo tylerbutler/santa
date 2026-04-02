@@ -1,3 +1,3 @@
 project: santa-data
-kind: Changed
+kind: Breaking
 body: Remove unimplemented `parse_ccl()` and `CclValue` from public API

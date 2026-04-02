@@ -1,0 +1,3 @@
+project: sickle
+kind: Added
+body: Add `CclReader` for configured field access with pre-set `BoolOptions` and `ListOptions`
