@@ -1,3 +1,0 @@
-project: santa
-kind: Changed
-body: Use `pub(crate)` visibility for internal items to prevent accidental API surface growth

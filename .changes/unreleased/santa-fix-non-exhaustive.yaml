@@ -1,3 +1,0 @@
-project: santa
-kind: Fixed
-body: Add `#[non_exhaustive]` to `SantaError` enum to allow adding variants without breaking changes

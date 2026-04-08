@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file.
 
+## v0.3.0 - 2026-04-02
+
+
+### Breaking
+
+- Align boolean parsing with CCL spec — case-insensitive in both modes, lenient accepts `on`/`off`/`1`/`0`
+- Consolidate list API into `get_list()`/`get_list_with_options()` and `get_list_typed()`/`get_list_typed_with_options()`, aligning coercion behavior with the CCL spec
+- Remove `get_bool_lenient()` in favor of `get_bool_with_options(key, BoolOptions::new().with_lenient())`
+
+### Added
+
+- Add `CclReader` for configured field access with pre-set `BoolOptions` and `ListOptions`
+
+### Fixed
+
+- Preserve duplicate keys in `MapSerializer::end()` during top-level map serialization
+- Add `#[non_exhaustive]` to `Error` enum to allow adding variants without breaking changes
+
 ## v0.2.0 - 2026-03-27
 
 
