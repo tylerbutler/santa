@@ -1,48 +1,18 @@
-name: Membrowse Memory Report
+name: MemBrowse Memory Report
 
 on:
   pull_request:
-    paths:
-      - 'crates/**'
-      - 'Cargo.toml'
-      - 'Cargo.lock'
-      - '.github/workflows/membrowse-*.yml'
-      - '.github/membrowse-targets.json'
   push:
     branches:
       - main
-    paths:
-      - 'crates/**'
-      - 'Cargo.toml'
-      - 'Cargo.lock'
-      - '.github/workflows/membrowse-*.yml'
-      - '.github/membrowse-targets.json'
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  group: ${{ github.workflow }}-${{ github.event_name == 'push' && github.sha || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
-  load-targets:
-    runs-on: ubuntu-22.04
-    outputs:
-      matrix: ${{ steps.set-matrix.outputs.matrix }}
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # ratchet:actions/checkout@v6
-
-      - name: Load target matrix
-        id: set-matrix
-        run: echo "matrix=$(jq -c '.' .github/membrowse-targets.json)" >> $GITHUB_OUTPUT
-
   analyze:
-    needs: load-targets
     runs-on: ubuntu-22.04
-    strategy:
-      fail-fast: false
-      matrix:
-        include: ${{ fromJson(needs.load-targets.outputs.matrix) }}
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # ratchet:actions/checkout@v6
@@ -51,25 +21,19 @@ jobs:
 
       - uses: ./.github/actions/setup-rust
 
-      - name: Build firmware
-        run: ${{ matrix.build_cmd }}
+      - name: Build
+        run: |
+          CARGO_PROFILE_RELEASE_DEBUG=true CARGO_PROFILE_RELEASE_STRIP=false \
+            RUSTFLAGS="-C link-arg=-Wl,-Map=$PWD/target/release/santa.map" \
+            cargo build --locked --release
 
-      - name: Run Membrowse PR Action
-        id: analyze
+      - name: Run MemBrowse analysis
         continue-on-error: true
-        uses: membrowse/membrowse-action@e80eef8697a04ec41df655d3084eff9ea7bfc6b9 # ratchet:membrowse/membrowse-action@v1
+        uses: membrowse/membrowse-action@145d7bb4f1532ccfed27e1a2565debd22ab4b357
         with:
-          target_name: ${{ matrix.target_name }}
-          elf: ${{ matrix.elf }}
-          ld: ${{ matrix.ld }}
-          linker_vars: ${{ matrix.linker_vars }}
+          target_name: santa-linux-amd64
+          elf: target/release/santa
+          map_file: target/release/santa.map
           api_key: ${{ secrets.MEMBROWSE_API_KEY }}
           api_url: ${{ vars.MEMBROWSE_API_URL }}
           verbose: INFO
-
-      - name: Upload report artifact
-        if: ${{ steps.analyze.outcome == 'success' }}
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # ratchet:actions/upload-artifact@v7.0.0
-        with:
-          name: membrowse-report-${{ matrix.target_name }}
-          path: ${{ steps.analyze.outputs.report_path }}

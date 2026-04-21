@@ -1,37 +1,32 @@
-name: Membrowse PR Comment
+name: MemBrowse PR Comment
 
 on:
   workflow_run:
-    workflows: [Membrowse Memory Report]
-    types: [completed]
-
-permissions:
-  contents: read
-  actions: read
-  pull-requests: write
+    workflows: [MemBrowse Memory Report]
+    types:
+      - completed
 
 jobs:
   comment:
     runs-on: ubuntu-22.04
-    if: github.event.workflow_run.event == 'pull_request' && github.event.workflow_run.conclusion == 'success'
+    # Run even if some builds failed — only skip if the run was cancelled
+    if: >
+      github.event.workflow_run.event == 'pull_request' &&
+      github.event.workflow_run.conclusion != 'cancelled'
+    permissions:
+      contents: read
+      pull-requests: write
+    env:
+      MEMBROWSE_API_KEY: ${{ secrets.MEMBROWSE_API_KEY }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # ratchet:actions/checkout@v6
 
-      - name: Download report artifacts
-        id: download-reports
-        uses: dawidd6/action-download-artifact@2536c51d3d126276eb39f74d6bc9c72ac6ef30d3 # ratchet:dawidd6/action-download-artifact@v16
-        with:
-          run_id: ${{ github.event.workflow_run.id }}
-          name: membrowse-report-.*
-          name_is_regexp: true
-          path: reports
-          if_no_artifact_found: warn
-
       - name: Post combined PR comment
-        if: steps.download-reports.outputs.found_artifact == 'true'
-        uses: membrowse/membrowse-action/comment-action@e80eef8697a04ec41df655d3084eff9ea7bfc6b9 # ratchet:membrowse/membrowse-action/comment-action@v1
+        if: ${{ env.MEMBROWSE_API_KEY != '' }}
+        uses: membrowse/membrowse-action/comment-action@145d7bb4f1532ccfed27e1a2565debd22ab4b357
         with:
-          json_files: "reports/**/*.json"
+          api_key: ${{ secrets.MEMBROWSE_API_KEY }}
+          commit: ${{ github.event.workflow_run.head_sha }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
