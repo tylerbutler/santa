@@ -127,7 +127,7 @@ jobs:
       - name: Check semver compatibility
         id: semver
         continue-on-error: true
-        uses: obi1kenobi/cargo-semver-checks-action@5b298c9520f7096a4683c0bd981a7ac5a7e249ae # ratchet:obi1kenobi/cargo-semver-checks-action@v2
+        uses: obi1kenobi/cargo-semver-checks-action@6b69fcf40e9b5fb17adeb57e4b6ecd020649a239 # ratchet:obi1kenobi/cargo-semver-checks-action@v2
         with:
           baseline-rev: ${{ steps.merge-base.outputs.sha }}
 
@@ -319,7 +319,7 @@ jobs:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # ratchet:actions/checkout@v6
         with:
           fetch-depth: 0
-      - uses: tylerbutler/actions/changie-check@769fc7847a0abf82ee2f724df9b65426dfb159b5 # ratchet:tylerbutler/actions/changie-check@main
+      - uses: tylerbutler/actions/changie-check@c4c45a8284082163bc58623acfc4b3dc98633c3d # ratchet:tylerbutler/actions/changie-check@main
         id: changelog
         with:
           base-sha: ${{ github.event.pull_request.base.sha }}
