@@ -1,0 +1,4 @@
+project: santa
+kind: Security
+body: Replace minreq https-rustls feature with https-native to eliminate rustls-webpki 0.101.7 (RUSTSEC-2026-0098, RUSTSEC-2026-0099)
+time: 2026-04-21T21:40:21.000000+00:00
