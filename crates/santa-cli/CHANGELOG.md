@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## v0.3.4 - 2026-04-22
+
+
+### Security
+
+- Replace minreq https-rustls feature with https-native to eliminate rustls-webpki 0.101.7 (RUSTSEC-2026-0098, RUSTSEC-2026-0099)
+
 ## v0.3.3 - 2026-04-02
 
 
