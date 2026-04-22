@@ -24,7 +24,7 @@ jobs:
 
       - name: Post combined PR comment
         if: ${{ env.MEMBROWSE_API_KEY != '' }}
-        uses: membrowse/membrowse-action/comment-action@145d7bb4f1532ccfed27e1a2565debd22ab4b357
+        uses: membrowse/membrowse-action/comment-action@0b3c301f35a99dfb4b30bfb3358316751439bc1d
         with:
           api_key: ${{ secrets.MEMBROWSE_API_KEY }}
           commit: ${{ github.event.workflow_run.head_sha }}
