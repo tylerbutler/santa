@@ -1,0 +1,3 @@
+project: santa
+kind: Breaking
+body: Change `SantaError::Config` from wrapping `anyhow::Error` to `String`
