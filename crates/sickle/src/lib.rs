@@ -213,6 +213,12 @@ fn is_valid_ccl_key(key: &str) -> bool {
     !key.contains(' ')
 }
 
+/// Maximum recursion depth for nested CCL parsing.
+///
+/// This prevents stack overflow from deeply nested or adversarially crafted input.
+#[cfg(feature = "hierarchy")]
+const MAX_RECURSION_DEPTH: usize = 64;
+
 /// Internal helper: Build a Model from the grouped key-value map
 ///
 /// Following the CCL desugaring rules:
@@ -222,6 +228,20 @@ fn is_valid_ccl_key(key: &str) -> bool {
 /// - Nested CCL is recursively parsed
 #[cfg(feature = "hierarchy")]
 fn build_model(map: indexmap::IndexMap<String, Vec<String>>) -> Result<CclObject> {
+    build_model_with_depth(map, 0)
+}
+
+/// Depth-aware implementation of [`build_model`].
+#[cfg(feature = "hierarchy")]
+fn build_model_with_depth(
+    map: indexmap::IndexMap<String, Vec<String>>,
+    depth: usize,
+) -> Result<CclObject> {
+    if depth > MAX_RECURSION_DEPTH {
+        return Err(Error::ParseError(format!(
+            "maximum recursion depth ({MAX_RECURSION_DEPTH}) exceeded"
+        )));
+    }
     let mut result = indexmap::IndexMap::new();
 
     for (key, values) in map {
@@ -245,8 +265,8 @@ fn build_model(map: indexmap::IndexMap<String, Vec<String>>) -> Result<CclObject
                 // Multiline value containing '=' - might be nested CCL
                 // Only multiline values (with newlines) can be nested structures.
                 // Inline values like "b = c=d" are plain strings, not nested CCL.
-                // Try to parse recursively
-                match load(&value) {
+                // Try to parse recursively with depth tracking
+                match load_with_depth(&value, depth + 1) {
                     Ok(parsed) => {
                         // Check if this looks like valid CCL structure
                         if !parsed.is_empty() {
@@ -265,8 +285,12 @@ fn build_model(map: indexmap::IndexMap<String, Vec<String>>) -> Result<CclObject
                             nested_values.push(CclObject::from_string(value));
                         }
                     }
+                    Err(Error::ParseError(ref msg)) if msg.contains("recursion depth") => {
+                        // Propagate recursion depth errors instead of silently swallowing
+                        return Err(Error::ParseError(msg.clone()));
+                    }
                     Err(_) => {
-                        // Failed to parse, treat as string value
+                        // Failed to parse for other reasons, treat as string value
                         nested_values.push(CclObject::from_string(value));
                     }
                 }
@@ -529,6 +553,23 @@ fn load_with_options_internal(input: &str, options: &ParserOptions) -> Result<Cc
     build_hierarchy(&entries)
 }
 
+/// Depth-aware load used by [`build_model_with_depth`] to thread recursion depth
+/// through the `parse -> build_hierarchy -> build_model` chain.
+#[cfg(feature = "hierarchy")]
+fn load_with_depth(input: &str, depth: usize) -> Result<CclObject> {
+    let entries = parse_with_options_internal(input, &ParserOptions::default())?;
+
+    // Inline build_hierarchy logic so we can pass depth through to build_model_with_depth
+    let mut map: indexmap::IndexMap<String, Vec<String>> = indexmap::IndexMap::new();
+    for entry in &entries {
+        map.entry(entry.key.clone())
+            .or_default()
+            .push(entry.value.clone());
+    }
+
+    build_model_with_depth(map, depth)
+}
+
 #[cfg(feature = "serde-deserialize")]
 pub use de::{from_str, from_str_with_options};
 
@@ -542,3 +583,40 @@ pub use ser::{to_string, to_string_with_config};
 // - api_comments.json (comment preservation)
 // - api_list_access.json (list access and manipulation)
 // - api_proposed_behavior.json (proposed behavior, currently excluded)
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_recursion_depth_limit() {
+        // Build input that would recurse MAX_RECURSION_DEPTH + 1 times.
+        // Each level is a multiline value containing "=" so build_model recurses.
+        let mut input = String::from("a = b");
+        for _ in 0..=MAX_RECURSION_DEPTH {
+            // Wrap the previous input as a nested multiline value
+            let indented: String = input.lines().map(|l| format!("  {l}\n")).collect();
+            input = format!("outer =\n{indented}");
+        }
+
+        let result = load(&input);
+        assert!(
+            result.is_err(),
+            "expected a recursion depth error, got: {result:?}"
+        );
+
+        let err = result.unwrap_err();
+        assert!(
+            err.to_string().contains("recursion depth"),
+            "error should mention recursion depth, got: {err}"
+        );
+    }
+
+    #[test]
+    fn test_normal_nesting_still_works() {
+        // A few levels of nesting should work fine
+        let input = "outer =\n  inner = value";
+        let result = load(input);
+        assert!(result.is_ok(), "moderate nesting should succeed: {result:?}");
+    }
+}

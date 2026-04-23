@@ -1,0 +1,3 @@
+project: sickle
+kind: Fixed
+body: Add recursion depth limit (64 levels) to prevent stack overflow from crafted input
