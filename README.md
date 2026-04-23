@@ -20,8 +20,12 @@ The main Santa command-line application. Install and manage packages across Home
 **For users:** See the [User Guide](docs/user-guide.md) for complete usage instructions.
 
 ```bash
-# Install Santa
-cargo install santa-cli
+# Install Santa (pick one)
+brew install tylerbutler/tap/santa    # Homebrew
+cargo install santa                    # Cargo
+
+# Create your config
+santa init
 
 # Check package status
 santa status
@@ -214,7 +218,7 @@ santa/
 - **Migration Support** - Transparent YAML-to-CCL migration
 
 ### Package Management
-- **Multi-Source** - Support for 7+ package managers
+- **Multi-Source** - Support for Homebrew, Cargo, APT, Pacman, Arch, AUR, DNF, Scoop, Winget, Nix, and Flathub
 - **Async Operations** - High-performance concurrent execution
 - **Intelligent Caching** - Reduces redundant operations
 - **Cross-Platform** - Works on Linux, macOS, Windows
@@ -233,9 +237,13 @@ santa/
 | **Cargo** | All | ✅ Full Support |
 | **APT** | Debian, Ubuntu | ✅ Full Support |
 | **Pacman** | Arch Linux | ✅ Full Support |
+| **Arch** | Arch Linux | ✅ Full Support |
 | **AUR** | Arch Linux | ✅ Full Support |
+| **DNF** | Fedora, RHEL | ✅ Full Support |
 | **Scoop** | Windows | ✅ Full Support |
+| **Winget** | Windows | ✅ Full Support |
 | **Nix** | All | ✅ Full Support |
+| **Flathub** | Linux | ✅ Full Support |
 
 ## Contributing
 
