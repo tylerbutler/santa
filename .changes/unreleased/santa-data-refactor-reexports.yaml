@@ -1,0 +1,3 @@
+project: santa-data
+kind: Changed
+body: Replace glob re-exports with explicit exports for intentional public API surface

@@ -71,6 +71,7 @@ pub enum SourceSpecificConfig {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct SourceConfig {
     /// Override package name for this source
     pub name: Option<String>,
@@ -88,6 +89,7 @@ pub struct SourceConfig {
 pub type SourcesDefinition = HashMap<String, SourceDefinition>;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct SourceDefinition {
     /// Emoji icon to represent this source
     pub emoji: String,
@@ -103,6 +105,7 @@ pub struct SourceDefinition {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct PlatformOverride {
     pub install: Option<String>,
     pub check: Option<String>,
