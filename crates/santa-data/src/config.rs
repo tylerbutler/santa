@@ -65,13 +65,25 @@ where
 }
 
 /// Represents a package name override (renaming packages for specific sources)
+#[non_exhaustive]
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
 pub struct PackageNameOverride {
     pub package: String,
     pub replacement: String,
 }
 
+impl PackageNameOverride {
+    /// Create a new package name override
+    pub fn new(package: impl Into<String>, replacement: impl Into<String>) -> Self {
+        Self {
+            package: package.into(),
+            replacement: replacement.into(),
+        }
+    }
+}
+
 /// Represents a custom package source configuration
+#[non_exhaustive]
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
 pub struct ConfigPackageSource {
     pub name: KnownSources,
@@ -86,6 +98,7 @@ pub struct ConfigPackageSource {
 }
 
 /// Main configuration structure for Santa
+#[non_exhaustive]
 #[derive(Serialize, Deserialize, Clone, Debug, Builder, Validate)]
 #[builder(setter(into))]
 pub struct SantaConfig {
@@ -106,7 +119,39 @@ pub struct SantaConfig {
     pub log_level: u8,
 }
 
+impl ConfigPackageSource {
+    /// Create a new custom package source configuration
+    pub fn new(
+        name: KnownSources,
+        emoji: impl Into<String>,
+        shell_command: impl Into<String>,
+        install_command: impl Into<String>,
+        check_command: impl Into<String>,
+    ) -> Self {
+        Self {
+            name,
+            emoji: emoji.into(),
+            shell_command: shell_command.into(),
+            install_command: install_command.into(),
+            check_command: check_command.into(),
+            prepend_to_package_name: None,
+            overrides: None,
+        }
+    }
+}
+
 impl SantaConfig {
+    /// Create a new SantaConfig with the given sources and packages
+    pub fn new(sources: Vec<KnownSources>, packages: Vec<String>) -> Self {
+        Self {
+            sources,
+            packages,
+            custom_sources: None,
+            _groups: None,
+            log_level: 0,
+        }
+    }
+
     /// Load configuration from a string (CCL format)
     ///
     /// # Example
@@ -198,21 +243,6 @@ impl SantaConfig {
         }
 
         Ok(())
-    }
-}
-
-/// Configuration loader - provides static methods for loading configurations
-pub struct ConfigLoader;
-
-impl ConfigLoader {
-    /// Load configuration from a file path
-    pub fn load_from_path(path: &Path) -> anyhow::Result<SantaConfig> {
-        SantaConfig::load_from(path)
-    }
-
-    /// Load configuration from a string
-    pub fn load_from_str(contents: &str) -> anyhow::Result<SantaConfig> {
-        SantaConfig::load_from_str(contents)
     }
 }
 
@@ -324,16 +354,4 @@ packages =
         );
     }
 
-    #[test]
-    fn test_config_loader_from_str() {
-        let ccl = r#"
-sources =
-  = cargo
-packages =
-  = ripgrep
-        "#;
-
-        let result = ConfigLoader::load_from_str(ccl);
-        assert!(result.is_ok());
-    }
 }
