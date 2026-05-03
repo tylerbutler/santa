@@ -597,13 +597,10 @@ impl CclObject {
     pub fn get_list_with_options(&self, key: &str, options: ListOptions) -> Result<Vec<String>> {
         if let Some(values) = self.0.get(key) {
             if values.len() > 1 {
-                let items: Result<Vec<String>> = values
+                return values
                     .iter()
                     .map(|value| value.as_string().map(ToString::to_string))
                     .collect();
-                if let Ok(items) = items {
-                    return Ok(items);
-                }
             }
         }
 

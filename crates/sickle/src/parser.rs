@@ -65,10 +65,7 @@ fn normalize_multiline_keys(input: &str, preserve_cr: bool) -> String {
             continue;
         }
 
-        // Check if this is a multiline key pattern:
-        // Current line has no '=' and a later line provides the delimiter.
         if !trimmed.is_empty() && !trimmed.contains('=') {
-            // Look ahead for the next line with '=' at SAME OR LESS indentation
             let mut j = i + 1;
             let mut found_equals = false;
             while j < lines.len() {
@@ -84,7 +81,6 @@ fn normalize_multiline_keys(input: &str, preserve_cr: bool) -> String {
                     break;
                 }
 
-                // Another line at same/less indentation without '=' - could be multiline key continuation
                 j += 1;
             }
 
@@ -97,8 +93,6 @@ fn normalize_multiline_keys(input: &str, preserve_cr: bool) -> String {
                     continue;
                 }
 
-                // Join lines from i to j into a single key=value line
-                // Only join lines at the same indentation level
                 let mut key_parts = vec![trimmed];
                 for part_line in lines.iter().take(j).skip(i + 1) {
                     let part_trimmed = part_line.trim();
@@ -117,7 +111,6 @@ fn normalize_multiline_keys(input: &str, preserve_cr: bool) -> String {
             }
         }
 
-        // Normal line - pass through
         result.push_str(line);
         result.push('\n');
         prev_had_complete_entry = is_complete_entry;
@@ -156,37 +149,27 @@ fn trim_start_with_cr_option(s: &str, preserve_cr: bool) -> &str {
 ///
 /// Returns the byte position of `=` if found, or None if no valid delimiter exists.
 fn find_delimiter(s: &str, options: &ParserOptions) -> Option<usize> {
+    let first_equals =
+        || crate::pacman::parse_first_equals_key(s).ok().map(|(_, key)| key.len());
+
     if options.is_strict_spacing() {
-        // Strict spacing: require ` = ` pattern (space before and after equals)
-        // OR ` =` at the end of the string (for empty values like "key =")
-        if let Ok((_, key)) = crate::pacman::parse_spaced_delimiter_key(s) {
-            return Some(key.len() + 1);
-        }
-        // Check for ` =` at end of string (space before equals, nothing after)
-        if s.ends_with(" =") {
-            return Some(s.len() - 1);
-        }
-        None
+        find_spaced_delimiter(s)
     } else if options.prefer_spaced_delimiter() {
-        // Prefer-spaced: try ` = ` first, allowing keys to contain bare `=`
-        // This enables keys like URLs with query params: `https://x.com?q=1 = result`
-        if let Ok((_, key)) = crate::pacman::parse_spaced_delimiter_key(s) {
-            return Some(key.len() + 1);
-        }
-        // Check for ` =` at end of string (empty value)
-        if s.ends_with(" =") {
-            return Some(s.len() - 1);
-        }
-        // Fallback: first bare `=` (no spaced delimiter found)
-        crate::pacman::parse_first_equals_key(s)
-            .ok()
-            .map(|(_, key)| key.len())
+        // Try ` = ` first to allow keys with bare `=` (e.g., URLs with query params)
+        find_spaced_delimiter(s).or_else(first_equals)
     } else {
-        // Loose spacing with FirstEquals: any `=` is a valid delimiter
-        crate::pacman::parse_first_equals_key(s)
-            .ok()
-            .map(|(_, key)| key.len())
+        first_equals()
     }
+}
+
+fn find_spaced_delimiter(s: &str) -> Option<usize> {
+    if let Ok((_, key)) = crate::pacman::parse_spaced_delimiter_key(s) {
+        return Some(key.len() + 1);
+    }
+    if s.ends_with(" =") {
+        return Some(s.len() - 1);
+    }
+    None
 }
 
 /// Trim leading whitespace from value on the same line as the key
