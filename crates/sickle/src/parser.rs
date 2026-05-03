@@ -149,8 +149,11 @@ fn trim_start_with_cr_option(s: &str, preserve_cr: bool) -> &str {
 ///
 /// Returns the byte position of `=` if found, or None if no valid delimiter exists.
 fn find_delimiter(s: &str, options: &ParserOptions) -> Option<usize> {
-    let first_equals =
-        || crate::pacman::parse_first_equals_key(s).ok().map(|(_, key)| key.len());
+    let first_equals = || {
+        crate::pacman::parse_first_equals_key(s)
+            .ok()
+            .map(|(_, key)| key.len())
+    };
 
     if options.is_strict_spacing() {
         find_spaced_delimiter(s)
