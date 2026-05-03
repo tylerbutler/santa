@@ -43,8 +43,8 @@ use crate::Entry;
 ///
 /// Each entry is formatted as `{key} = {value}`, separated by newlines.
 /// - Empty keys produce ` = {value}` (space before `=`)
-/// - Empty values produce `{key} = ` (trailing space after `=`)
-/// - Multiline values (starting with `\n`) produce `{key} = \n  ...`
+/// - Empty values produce `{key} =` (no trailing space)
+/// - Multiline values (starting with `\n`) produce `{key} =\n  ...`
 ///
 /// ## Round-Trip Property
 ///
@@ -61,7 +61,7 @@ use crate::Entry;
 /// let ccl = "name = Alice\nconfig =\n  port = 8080";
 /// let entries = parse(ccl).unwrap();
 /// let output = print(&entries);
-/// assert_eq!(output, "name = Alice\nconfig = \n  port = 8080");
+/// assert_eq!(output, "name = Alice\nconfig =\n  port = 8080");
 /// ```
 pub fn print(entries: &[Entry]) -> String {
     entries
@@ -69,7 +69,13 @@ pub fn print(entries: &[Entry]) -> String {
         .map(|entry| {
             if entry.key.is_empty() {
                 // Empty keys use bare list syntax: `= value` (no leading space)
-                format!("= {}", entry.value)
+                if entry.value.is_empty() {
+                    "=".to_string()
+                } else {
+                    format!("= {}", entry.value)
+                }
+            } else if entry.value.is_empty() || entry.value.starts_with('\n') {
+                format!("{} ={}", entry.key, entry.value)
             } else {
                 format!("{} = {}", entry.key, entry.value)
             }
@@ -324,7 +330,7 @@ mod tests {
         let input = "key = value\nnested =\n  sub = val";
         let entries = crate::parse(input).unwrap();
         let output = print(&entries);
-        assert_eq!(output, "key = value\nnested = \n  sub = val");
+        assert_eq!(output, "key = value\nnested =\n  sub = val");
     }
 
     #[test]
@@ -342,7 +348,7 @@ mod tests {
         let output = print(&entries);
         assert_eq!(
             output,
-            "config = \n  host = localhost\n  port = 8080\n  db =\n    name = mydb\n    user = admin"
+            "config =\n  host = localhost\n  port = 8080\n  db =\n    name = mydb\n    user = admin"
         );
     }
 
@@ -351,7 +357,7 @@ mod tests {
         let input = "script =\n  #!/bin/bash\n  echo hello\n  exit 0";
         let entries = crate::parse(input).unwrap();
         let output = print(&entries);
-        assert_eq!(output, "script = \n  #!/bin/bash\n  echo hello\n  exit 0");
+        assert_eq!(output, "script =\n  #!/bin/bash\n  echo hello\n  exit 0");
     }
 
     #[test]
@@ -359,7 +365,7 @@ mod tests {
         let input = "empty_section =\n\nother = value";
         let entries = crate::parse(input).unwrap();
         let output = print(&entries);
-        assert_eq!(output, "empty_section = \nother = value");
+        assert_eq!(output, "empty_section =\nother = value");
     }
 
     #[test]
@@ -370,7 +376,7 @@ mod tests {
         let output = print(&entries);
         assert_eq!(
             output,
-            "level1 = \n  level2 =\n    level3 =\n      level4 =\n        deep = value\n        = deep_item"
+            "level1 =\n  level2 =\n    level3 =\n      level4 =\n        deep = value\n        = deep_item"
         );
     }
 
@@ -383,7 +389,7 @@ mod tests {
         let output = print(&entries);
         assert_eq!(
             output,
-            "name = Alice\n= first item\nconfig = \n  port = 3000\n= second item\nfinal = value"
+            "name = Alice\n= first item\nconfig =\n  port = 3000\n= second item\nfinal = value"
         );
     }
 
@@ -394,7 +400,7 @@ mod tests {
         let output = print(&entries);
         assert_eq!(
             output,
-            "app = \n  = item1\n  config =\n    = nested_item\n    db =\n      host = localhost\n      = db_item\n  = item2"
+            "app =\n  = item1\n  config =\n    = nested_item\n    db =\n      host = localhost\n      = db_item\n  = item2"
         );
     }
 
@@ -439,7 +445,7 @@ mod tests {
         // Verify print preserves interleaved order
         assert_eq!(
             printed,
-            "name = Alice\n= first item\nconfig = \n  port = 3000\n= second item\nfinal = value"
+            "name = Alice\n= first item\nconfig =\n  port = 3000\n= second item\nfinal = value"
         );
         // Round-trip now works correctly since `= item` at indent 0
         // re-parses as a new entry (not a continuation of the previous one).
