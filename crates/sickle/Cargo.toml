@@ -19,7 +19,7 @@ default = []
 
 
 # Core parsing - parse CCL to flat key-value entries
-parse = ["dep:nom"]
+parse = []
 
 # Hierarchy building - build hierarchical CclObject from entries (includes parse)
 hierarchy = ["parse"]
@@ -61,7 +61,7 @@ unstable = []
 indexmap = { version = "2.13.0", features = ["serde"] }
 
 # Parser combinators for the Pacman parser implementation
-nom = { version = "8", optional = true }
+nom = "8"
 
 # Optional: Serde support for deserialization
 serde = { workspace = true, optional = true }
