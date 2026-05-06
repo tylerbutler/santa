@@ -316,17 +316,9 @@ mod tests {
 
     #[test]
     fn test_platform_display() {
-        let platform_with_distro = Platform {
-            os: OS::Linux,
-            arch: Arch::X64,
-            distro: Some(Distro::Ubuntu),
-        };
+        let platform_with_distro = Platform::new(OS::Linux, Arch::X64, Some(Distro::Ubuntu));
 
-        let platform_without_distro = Platform {
-            os: OS::Macos,
-            arch: Arch::Aarch64,
-            distro: None,
-        };
+        let platform_without_distro = Platform::new(OS::Macos, Arch::Aarch64, None);
 
         let display_with = format!("{platform_with_distro}");
         let display_without = format!("{platform_without_distro}");
@@ -729,31 +721,11 @@ git =
     fn test_platform_with_all_combinations() {
         // Test various platform combinations
         let platforms = vec![
-            Platform {
-                os: OS::Linux,
-                arch: Arch::X64,
-                distro: Some(Distro::Ubuntu),
-            },
-            Platform {
-                os: OS::Linux,
-                arch: Arch::Aarch64,
-                distro: Some(Distro::ArchLinux),
-            },
-            Platform {
-                os: OS::Macos,
-                arch: Arch::X64,
-                distro: None,
-            },
-            Platform {
-                os: OS::Macos,
-                arch: Arch::Aarch64,
-                distro: None,
-            },
-            Platform {
-                os: OS::Windows,
-                arch: Arch::X64,
-                distro: None,
-            },
+            Platform::new(OS::Linux, Arch::X64, Some(Distro::Ubuntu)),
+            Platform::new(OS::Linux, Arch::Aarch64, Some(Distro::ArchLinux)),
+            Platform::new(OS::Macos, Arch::X64, None),
+            Platform::new(OS::Macos, Arch::Aarch64, None),
+            Platform::new(OS::Windows, Arch::X64, None),
         ];
 
         for platform in platforms {

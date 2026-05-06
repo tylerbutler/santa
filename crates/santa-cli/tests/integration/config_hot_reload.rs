@@ -76,13 +76,7 @@ async fn test_missing_config_file() {
 #[tokio::test]
 async fn test_config_validation() {
     // Valid config
-    let valid_config = SantaConfig {
-        sources: vec![KnownSources::Apt],
-        packages: vec!["curl".to_string()],
-        custom_sources: None,
-        _groups: None,
-        log_level: 0,
-    };
+    let valid_config = SantaConfig::new(vec![KnownSources::Apt], vec!["curl".to_string()]);
 
     let result = valid_config.validate_basic();
     assert!(result.is_ok(), "Valid config should pass validation");
@@ -90,13 +84,7 @@ async fn test_config_validation() {
 
 #[tokio::test]
 async fn test_hot_reload_capability() {
-    let _config = SantaConfig {
-        sources: vec![KnownSources::Apt],
-        packages: vec!["curl".to_string()],
-        custom_sources: None,
-        _groups: None,
-        log_level: 0,
-    };
+    let _config = SantaConfig::new(vec![KnownSources::Apt], vec!["curl".to_string()]);
 
     // Santa config should support hot reload
     // Hot reload is always supported for Santa

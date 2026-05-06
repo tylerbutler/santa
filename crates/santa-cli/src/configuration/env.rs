@@ -479,13 +479,7 @@ mod tests {
     #[test]
     fn test_apply_overrides_to_config() {
         let env_config = EnvironmentConfig::default();
-        let base_config = SantaConfig {
-            sources: vec![KnownSources::Apt],
-            packages: vec!["old-package".to_string()],
-            custom_sources: None,
-            _groups: None,
-            log_level: 0,
-        };
+        let base_config = SantaConfig::new(vec![KnownSources::Apt], vec!["old-package".to_string()]);
 
         let overrides = EnvConfigOverrides {
             sources: Some("brew,cargo".to_string()),

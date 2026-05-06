@@ -12,13 +12,7 @@ use std::collections::HashMap;
 
 /// Helper function to create a minimal SantaConfig for tests
 fn minimal_config(sources: Vec<KnownSources>, packages: Vec<String>) -> SantaConfig {
-    SantaConfig {
-        sources,
-        packages,
-        custom_sources: None,
-        _groups: None,
-        log_level: 0,
-    }
+    SantaConfig::new(sources, packages)
 }
 
 /// Test fixture for creating a basic SantaConfig
@@ -218,8 +212,7 @@ mod status_command_tests {
         empty_cache: PackageCache,
     ) {
         // Test with no enabled sources
-        let mut config = SantaConfig {
-            sources: vec![], // No sources enabled
+        let mut config = SantaConfig::new(vec![], // No sources enabled
             packages: vec![],
             custom_sources: None,
             _groups: None,
@@ -274,12 +267,7 @@ mod status_command_tests {
     ) {
         // Create config with specific enabled sources
         let mut config = SantaConfig {
-            sources: vec![KnownSources::Brew],
-            packages: vec!["git".to_string()],
-            custom_sources: None,
-            _groups: None,
-            log_level: 0,
-        };
+            sources: vec![KnownSources::Brew], vec!["git".to_string()]);
 
         let result = status_command(
             &mut config,
@@ -304,13 +292,7 @@ mod status_command_tests {
         populated_cache: PackageCache,
     ) {
         // Test with installed=true flag - should show only installed packages
-        let mut config = SantaConfig {
-            sources: vec![KnownSources::Brew],
-            packages: vec!["git".to_string(), "curl".to_string(), "vim".to_string()],
-            custom_sources: None,
-            _groups: None,
-            log_level: 0,
-        };
+        let mut config = SantaConfig::new(vec![KnownSources::Brew], vec!["git".to_string(), "curl".to_string(), "vim".to_string()]);
 
         let result = status_command(
             &mut config,
@@ -335,13 +317,7 @@ mod status_command_tests {
         populated_cache: PackageCache,
     ) {
         // Test with missing=true flag - should show only missing packages
-        let mut config = SantaConfig {
-            sources: vec![KnownSources::Brew],
-            packages: vec!["git".to_string(), "curl".to_string(), "vim".to_string()],
-            custom_sources: None,
-            _groups: None,
-            log_level: 0,
-        };
+        let mut config = SantaConfig::new(vec![KnownSources::Brew], vec!["git".to_string(), "curl".to_string(), "vim".to_string()]);
 
         let result = status_command(
             &mut config,
@@ -366,13 +342,7 @@ mod status_command_tests {
         empty_cache: PackageCache,
     ) {
         // Test with source filter - should show only specified source
-        let mut config = SantaConfig {
-            sources: vec![KnownSources::Brew],
-            packages: vec!["git".to_string()],
-            custom_sources: None,
-            _groups: None,
-            log_level: 0,
-        };
+        let mut config = SantaConfig::new(vec![KnownSources::Brew], vec!["git".to_string()]);
 
         let result = status_command(
             &mut config,
@@ -397,13 +367,7 @@ mod status_command_tests {
         empty_cache: PackageCache,
     ) {
         // Test with invalid source filter - should return error
-        let mut config = SantaConfig {
-            sources: vec![KnownSources::Brew],
-            packages: vec!["git".to_string()],
-            custom_sources: None,
-            _groups: None,
-            log_level: 0,
-        };
+        let mut config = SantaConfig::new(vec![KnownSources::Brew], vec!["git".to_string()]);
 
         let result = status_command(
             &mut config,

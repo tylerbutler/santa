@@ -227,11 +227,7 @@ fn test_source_definition_get_install_command_no_override() {
         overrides: None,
     };
 
-    let platform = Platform {
-        os: OS::Macos,
-        arch: Arch::Aarch64,
-        distro: None,
-    };
+    let platform = Platform::new(OS::Macos, Arch::Aarch64, None);
 
     assert_eq!(def.get_install_command(&platform), "brew install {package}");
 }
@@ -255,11 +251,7 @@ fn test_source_definition_get_install_command_with_macos_override() {
         overrides: Some(overrides),
     };
 
-    let platform = Platform {
-        os: OS::Macos,
-        arch: Arch::Aarch64,
-        distro: None,
-    };
+    let platform = Platform::new(OS::Macos, Arch::Aarch64, None);
 
     assert_eq!(
         def.get_install_command(&platform),
@@ -286,11 +278,7 @@ fn test_source_definition_get_install_command_with_linux_override() {
         overrides: Some(overrides),
     };
 
-    let platform = Platform {
-        os: OS::Linux,
-        arch: Arch::X64,
-        distro: Some(Distro::Ubuntu),
-    };
+    let platform = Platform::new(OS::Linux, Arch::X64, Some(Distro::Ubuntu));
 
     assert_eq!(
         def.get_install_command(&platform),
@@ -317,11 +305,7 @@ fn test_source_definition_get_install_command_with_windows_override() {
         overrides: Some(overrides),
     };
 
-    let platform = Platform {
-        os: OS::Windows,
-        arch: Arch::X64,
-        distro: None,
-    };
+    let platform = Platform::new(OS::Windows, Arch::X64, None);
 
     assert_eq!(
         def.get_install_command(&platform),
@@ -339,11 +323,7 @@ fn test_source_definition_get_check_command_no_override() {
         overrides: None,
     };
 
-    let platform = Platform {
-        os: OS::Macos,
-        arch: Arch::Aarch64,
-        distro: None,
-    };
+    let platform = Platform::new(OS::Macos, Arch::Aarch64, None);
 
     assert_eq!(def.get_check_command(&platform), "brew list");
 }
@@ -367,11 +347,7 @@ fn test_source_definition_get_check_command_with_override() {
         overrides: Some(overrides),
     };
 
-    let platform = Platform {
-        os: OS::Macos,
-        arch: Arch::Aarch64,
-        distro: None,
-    };
+    let platform = Platform::new(OS::Macos, Arch::Aarch64, None);
 
     assert_eq!(def.get_check_command(&platform), "brew list --cask");
 }

@@ -286,11 +286,7 @@ fn test_platform_default() {
 
 #[test]
 fn test_platform_creation() {
-    let platform = Platform {
-        os: OS::Macos,
-        arch: Arch::Aarch64,
-        distro: None,
-    };
+    let platform = Platform::new(OS::Macos, Arch::Aarch64, None);
 
     assert_eq!(platform.os, OS::Macos);
     assert_eq!(platform.arch, Arch::Aarch64);
@@ -298,22 +294,14 @@ fn test_platform_creation() {
 
 #[test]
 fn test_platform_with_distro() {
-    let platform = Platform {
-        os: OS::Linux,
-        arch: Arch::X64,
-        distro: Some(Distro::Ubuntu),
-    };
+    let platform = Platform::new(OS::Linux, Arch::X64, Some(Distro::Ubuntu));
 
     assert_eq!(platform.distro, Some(Distro::Ubuntu));
 }
 
 #[test]
 fn test_platform_display_without_distro() {
-    let platform = Platform {
-        os: OS::Macos,
-        arch: Arch::Aarch64,
-        distro: None,
-    };
+    let platform = Platform::new(OS::Macos, Arch::Aarch64, None);
 
     let display = format!("{}", platform);
     assert!(display.contains("Macos"));
@@ -322,11 +310,7 @@ fn test_platform_display_without_distro() {
 
 #[test]
 fn test_platform_display_with_distro() {
-    let platform = Platform {
-        os: OS::Linux,
-        arch: Arch::X64,
-        distro: Some(Distro::Ubuntu),
-    };
+    let platform = Platform::new(OS::Linux, Arch::X64, Some(Distro::Ubuntu));
 
     let display = format!("{}", platform);
     assert!(display.contains("Linux"));
@@ -336,23 +320,11 @@ fn test_platform_display_with_distro() {
 
 #[test]
 fn test_platform_equality() {
-    let p1 = Platform {
-        os: OS::Macos,
-        arch: Arch::Aarch64,
-        distro: None,
-    };
+    let p1 = Platform::new(OS::Macos, Arch::Aarch64, None);
 
-    let p2 = Platform {
-        os: OS::Macos,
-        arch: Arch::Aarch64,
-        distro: None,
-    };
+    let p2 = Platform::new(OS::Macos, Arch::Aarch64, None);
 
-    let p3 = Platform {
-        os: OS::Linux,
-        arch: Arch::X64,
-        distro: None,
-    };
+    let p3 = Platform::new(OS::Linux, Arch::X64, None);
 
     assert_eq!(p1, p2);
     assert_ne!(p1, p3);
@@ -360,11 +332,7 @@ fn test_platform_equality() {
 
 #[test]
 fn test_platform_serialization() {
-    let platform = Platform {
-        os: OS::Macos,
-        arch: Arch::Aarch64,
-        distro: Some(Distro::Ubuntu),
-    };
+    let platform = Platform::new(OS::Macos, Arch::Aarch64, Some(Distro::Ubuntu));
 
     let json = serde_json::to_string(&platform).unwrap();
     assert!(json.contains("macos"));
