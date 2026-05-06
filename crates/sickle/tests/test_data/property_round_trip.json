@@ -1,5 +1,5 @@
 {
-  "$schema": "https://raw.githubusercontent.com/CatConfLang/ccl-test-data/v0.6.0/schemas/generated-format.json",
+  "$schema": "https://raw.githubusercontent.com/CatConfLang/ccl-test-data/v1.1.0/schemas/generated-format.json",
   "tests": [
     {
       "behaviors": [],
@@ -32,7 +32,7 @@
       "behaviors": [],
       "expected": {
         "count": 1,
-        "value": "key = value\nnested = \n  sub = val"
+        "value": "key = value\nnested =\n  sub = val"
       },
       "features": [],
       "functions": [
@@ -66,14 +66,7 @@
       "variants": []
     },
     {
-      "behaviors": [
-        "toplevel_indent_strip"
-      ],
-      "conflicts": {
-        "behaviors": [
-          "toplevel_indent_preserve"
-        ]
-      },
+      "behaviors": [],
       "expected": {
         "count": 1,
         "entries": [
@@ -84,7 +77,8 @@
         ]
       },
       "features": [
-        "whitespace"
+        "whitespace",
+        "toplevel_indent_strip"
       ],
       "functions": [
         "parse"
@@ -106,7 +100,8 @@
         "value": true
       },
       "features": [
-        "whitespace"
+        "whitespace",
+        "toplevel_indent_strip"
       ],
       "functions": [
         "parse",
@@ -121,63 +116,6 @@
       "variants": [
         "reference_compliant"
       ]
-    },
-    {
-      "behaviors": [
-        "toplevel_indent_preserve"
-      ],
-      "conflicts": {
-        "behaviors": [
-          "toplevel_indent_strip"
-        ]
-      },
-      "expected": {
-        "count": 2,
-        "entries": [
-          {
-            "key": "key",
-            "value": "value"
-          },
-          {
-            "key": "nested",
-            "value": "\n    sub  =  val"
-          }
-        ]
-      },
-      "features": [
-        "whitespace"
-      ],
-      "functions": [
-        "parse"
-      ],
-      "inputs": [
-        "  key  =  value  \n  nested  = \n    sub  =  val  "
-      ],
-      "name": "round_trip_whitespace_normalization_toplevel_indent_preserve_parse",
-      "source_test": "round_trip_whitespace_normalization_toplevel_indent_preserve",
-      "validation": "parse",
-      "variants": []
-    },
-    {
-      "behaviors": [],
-      "expected": {
-        "count": 1,
-        "value": true
-      },
-      "features": [
-        "whitespace"
-      ],
-      "functions": [
-        "parse",
-        "print"
-      ],
-      "inputs": [
-        "  key  =  value  \n  nested  = \n    sub  =  val  "
-      ],
-      "name": "round_trip_whitespace_normalization_toplevel_indent_preserve_round_trip",
-      "source_test": "round_trip_whitespace_normalization_toplevel_indent_preserve",
-      "validation": "round_trip",
-      "variants": []
     },
     {
       "behaviors": [],
@@ -280,7 +218,7 @@
       "behaviors": [],
       "expected": {
         "count": 1,
-        "value": "config = \n  host = localhost\n  port = 8080\n  db =\n    name = mydb\n    user = admin"
+        "value": "config =\n  host = localhost\n  port = 8080\n  db =\n    name = mydb\n    user = admin"
       },
       "features": [],
       "functions": [
@@ -314,7 +252,9 @@
       "variants": []
     },
     {
-      "behaviors": [],
+      "behaviors": [
+        "multiline_values"
+      ],
       "expected": {
         "count": 1,
         "entries": [
@@ -325,7 +265,7 @@
         ]
       },
       "features": [
-        "multiline"
+        "multiline_continuation"
       ],
       "functions": [
         "parse"
@@ -342,10 +282,10 @@
       "behaviors": [],
       "expected": {
         "count": 1,
-        "value": "script = \n  #!/bin/bash\n  echo hello\n  exit 0"
+        "value": "script =\n  #!/bin/bash\n  echo hello\n  exit 0"
       },
       "features": [
-        "multiline"
+        "multiline_continuation"
       ],
       "functions": [
         "print"
@@ -359,13 +299,15 @@
       "variants": []
     },
     {
-      "behaviors": [],
+      "behaviors": [
+        "multiline_values"
+      ],
       "expected": {
         "count": 1,
         "value": true
       },
       "features": [
-        "multiline"
+        "multiline_continuation"
       ],
       "functions": [
         "parse",
@@ -424,7 +366,7 @@
       "behaviors": [],
       "expected": {
         "count": 1,
-        "value": "name = Alice\n= first item\nconfig = \n  port = 3000\n= second item\nfinal = value"
+        "value": "name = Alice\n= first item\nconfig =\n  port = 3000\n= second item\nfinal = value"
       },
       "features": [
         "empty_keys"
@@ -490,7 +432,7 @@
       "behaviors": [],
       "expected": {
         "count": 1,
-        "value": "app = \n  = item1\n  config =\n    = nested_item\n    db =\n      host = localhost\n      = db_item\n  = item2"
+        "value": "app =\n  = item1\n  config =\n    = nested_item\n    db =\n      host = localhost\n      = db_item\n  = item2"
       },
       "features": [
         "empty_keys"
@@ -556,7 +498,7 @@
       "behaviors": [],
       "expected": {
         "count": 1,
-        "value": "level1 = \n  level2 =\n    level3 =\n      level4 =\n        deep = value\n        = deep_item"
+        "value": "level1 =\n  level2 =\n    level3 =\n      level4 =\n        deep = value\n        = deep_item"
       },
       "features": [
         "empty_keys"
@@ -594,7 +536,9 @@
       "variants": []
     },
     {
-      "behaviors": [],
+      "behaviors": [
+        "multiline_values"
+      ],
       "expected": {
         "count": 2,
         "entries": [
@@ -610,7 +554,7 @@
       },
       "features": [
         "empty_keys",
-        "multiline"
+        "multiline_continuation"
       ],
       "functions": [
         "parse"
@@ -627,11 +571,11 @@
       "behaviors": [],
       "expected": {
         "count": 1,
-        "value": "empty_section = \nother = value"
+        "value": "empty_section =\nother = value"
       },
       "features": [
         "empty_keys",
-        "multiline"
+        "multiline_continuation"
       ],
       "functions": [
         "print"
@@ -645,14 +589,16 @@
       "variants": []
     },
     {
-      "behaviors": [],
+      "behaviors": [
+        "multiline_values"
+      ],
       "expected": {
         "count": 1,
         "value": true
       },
       "features": [
         "empty_keys",
-        "multiline"
+        "multiline_continuation"
       ],
       "functions": [
         "parse",

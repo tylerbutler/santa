@@ -54,8 +54,6 @@ fn normalize_multiline_keys(input: &str, preserve_cr: bool) -> String {
         }
 
         let base = base_indent.unwrap_or(0);
-
-        // Track if this line is a complete key=value entry
         let is_complete_entry = trimmed.contains('=');
 
         // If this line is indented more than base level, it's a continuation value
@@ -67,26 +65,15 @@ fn normalize_multiline_keys(input: &str, preserve_cr: bool) -> String {
             continue;
         }
 
-        // Check if this is a multiline key pattern:
-        // Current line has no '=' AND is at or below base level
-        // AND the previous line was NOT a complete entry (otherwise this is a standalone key)
-        if !trimmed.is_empty() && !trimmed.contains('=') && !prev_had_complete_entry {
-            // Look ahead for the next line with '=' at SAME OR LESS indentation
+        if !trimmed.is_empty() && !trimmed.contains('=') {
             let mut j = i + 1;
             let mut found_equals = false;
             while j < lines.len() {
                 let next_line = lines[j];
                 let next_trimmed = next_line.trim();
-                let next_indent = next_line.len() - next_line.trim_start().len();
-
                 if next_trimmed.is_empty() {
                     j += 1;
                     continue;
-                }
-
-                // If indented MORE than current line, this is a continuation value, not a key
-                if next_indent > line_indent {
-                    break;
                 }
 
                 if next_trimmed.contains('=') {
@@ -94,19 +81,23 @@ fn normalize_multiline_keys(input: &str, preserve_cr: bool) -> String {
                     break;
                 }
 
-                // Another line at same/less indentation without '=' - could be multiline key continuation
                 j += 1;
             }
 
             if found_equals && j < lines.len() {
-                // Join lines from i to j into a single key=value line
-                // Only join lines at the same indentation level
+                if prev_had_complete_entry && !lines[j].trim_start().starts_with('=') {
+                    result.push_str(line);
+                    result.push('\n');
+                    prev_had_complete_entry = is_complete_entry;
+                    i += 1;
+                    continue;
+                }
+
                 let mut key_parts = vec![trimmed];
                 for part_line in lines.iter().take(j).skip(i + 1) {
                     let part_trimmed = part_line.trim();
-                    let part_indent = part_line.len() - part_line.trim_start().len();
 
-                    if !part_trimmed.is_empty() && part_indent <= line_indent {
+                    if !part_trimmed.is_empty() {
                         key_parts.push(part_trimmed);
                     }
                 }
@@ -115,12 +106,11 @@ fn normalize_multiline_keys(input: &str, preserve_cr: bool) -> String {
                 result.push_str(lines[j].trim());
                 result.push('\n');
                 i = j + 1;
-                prev_had_complete_entry = true; // The joined result is a complete entry
+                prev_had_complete_entry = true;
                 continue;
             }
         }
 
-        // Normal line - pass through
         result.push_str(line);
         result.push('\n');
         prev_had_complete_entry = is_complete_entry;
@@ -128,11 +118,6 @@ fn normalize_multiline_keys(input: &str, preserve_cr: bool) -> String {
     }
 
     result
-}
-
-/// Trim only spaces (not tabs) from the start of a string
-fn trim_spaces_start(s: &str) -> &str {
-    s.trim_start_matches(' ')
 }
 
 /// Trim whitespace from a string, optionally preserving CR
@@ -164,33 +149,30 @@ fn trim_start_with_cr_option(s: &str, preserve_cr: bool) -> &str {
 ///
 /// Returns the byte position of `=` if found, or None if no valid delimiter exists.
 fn find_delimiter(s: &str, options: &ParserOptions) -> Option<usize> {
+    let first_equals = || {
+        crate::pacman::parse_first_equals_key(s)
+            .ok()
+            .map(|(_, key)| key.len())
+    };
+
     if options.is_strict_spacing() {
-        // Strict spacing: require ` = ` pattern (space before and after equals)
-        // OR ` =` at the end of the string (for empty values like "key =")
-        if let Some(pos) = s.find(" = ") {
-            return Some(pos + 1);
-        }
-        // Check for ` =` at end of string (space before equals, nothing after)
-        if s.ends_with(" =") {
-            return Some(s.len() - 1);
-        }
-        None
+        find_spaced_delimiter(s)
     } else if options.prefer_spaced_delimiter() {
-        // Prefer-spaced: try ` = ` first, allowing keys to contain bare `=`
-        // This enables keys like URLs with query params: `https://x.com?q=1 = result`
-        if let Some(pos) = s.find(" = ") {
-            return Some(pos + 1);
-        }
-        // Check for ` =` at end of string (empty value)
-        if s.ends_with(" =") {
-            return Some(s.len() - 1);
-        }
-        // Fallback: first bare `=` (no spaced delimiter found)
-        s.find('=')
+        // Try ` = ` first to allow keys with bare `=` (e.g., URLs with query params)
+        find_spaced_delimiter(s).or_else(first_equals)
     } else {
-        // Loose spacing with FirstEquals: any `=` is a valid delimiter
-        s.find('=')
+        first_equals()
     }
+}
+
+fn find_spaced_delimiter(s: &str) -> Option<usize> {
+    if let Ok((_, key)) = crate::pacman::parse_spaced_delimiter_key(s) {
+        return Some(key.len() + 1);
+    }
+    if s.ends_with(" =") {
+        return Some(s.len() - 1);
+    }
+    None
 }
 
 /// Trim leading whitespace from value on the same line as the key
@@ -201,12 +183,12 @@ fn find_delimiter(s: &str, options: &ParserOptions) -> Option<usize> {
 ///
 /// Examples:
 /// - `key = value` → value = `value` (space trimmed)
-/// - `key = \tvalue` with tabs_preserve → value = `\tvalue` (tab is content)
+/// - `key = \tvalue` with tabs_preserve → value = `value` (leading tab is delimiter whitespace)
 /// - `key\t=\tdata` with tabs_to_spaces → value = `data` (tab trimmed)
 fn trim_value(s: &str, options: &ParserOptions) -> String {
     if options.preserve_tabs() {
-        // Only trim spaces, tabs are value content
-        trim_spaces_start(s).to_string()
+        // Leading tabs are delimiter whitespace; interior tabs are value content.
+        s.trim_start_matches([' ', '\t']).to_string()
     } else {
         // Trim all whitespace - tabs are delimiter whitespace (converted later)
         s.trim_start().to_string()

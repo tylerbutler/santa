@@ -1,0 +1,246 @@
+{
+  "$schema": "https://raw.githubusercontent.com/CatConfLang/ccl-test-data/v1.1.0/schemas/generated-format.json",
+  "tests": [
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "entries": [
+          {
+            "key": "key",
+            "value": "value"
+          }
+        ]
+      },
+      "features": [],
+      "functions": [
+        "parse"
+      ],
+      "inputs": [
+        "key = value"
+      ],
+      "name": "model_single_pair_parse",
+      "source_test": "model_single_pair",
+      "validation": "parse",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "key": {
+            "value": {}
+          }
+        }
+      },
+      "features": [],
+      "functions": [
+        "parse_indented",
+        "build_model"
+      ],
+      "inputs": [
+        "key = value"
+      ],
+      "name": "model_single_pair_build_model",
+      "source_test": "model_single_pair",
+      "validation": "build_model",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 2,
+        "entries": [
+          {
+            "key": "item",
+            "value": "first"
+          },
+          {
+            "key": "item",
+            "value": "second"
+          }
+        ]
+      },
+      "features": [],
+      "functions": [
+        "parse"
+      ],
+      "inputs": [
+        "item = first\nitem = second"
+      ],
+      "name": "model_duplicate_keys_merge_to_multi_leaf_parse",
+      "source_test": "model_duplicate_keys_merge_to_multi_leaf",
+      "validation": "parse",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "item": {
+            "first": {},
+            "second": {}
+          }
+        }
+      },
+      "features": [],
+      "functions": [
+        "parse_indented",
+        "build_model"
+      ],
+      "inputs": [
+        "item = first\nitem = second"
+      ],
+      "name": "model_duplicate_keys_merge_to_multi_leaf_build_model",
+      "source_test": "model_duplicate_keys_merge_to_multi_leaf",
+      "validation": "build_model",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 3,
+        "entries": [
+          {
+            "key": "item",
+            "value": "a"
+          },
+          {
+            "key": "item",
+            "value": "b"
+          },
+          {
+            "key": "item",
+            "value": "a"
+          }
+        ]
+      },
+      "features": [],
+      "functions": [
+        "parse"
+      ],
+      "inputs": [
+        "item = a\nitem = b\nitem = a"
+      ],
+      "name": "model_repeated_value_is_idempotent_parse",
+      "source_test": "model_repeated_value_is_idempotent",
+      "validation": "parse",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "item": {
+            "a": {},
+            "b": {}
+          }
+        }
+      },
+      "features": [],
+      "functions": [
+        "parse_indented",
+        "build_model"
+      ],
+      "inputs": [
+        "item = a\nitem = b\nitem = a"
+      ],
+      "name": "model_repeated_value_is_idempotent_build_model",
+      "source_test": "model_repeated_value_is_idempotent",
+      "validation": "build_model",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 2,
+        "entries": [
+          {
+            "key": "host",
+            "value": "localhost"
+          },
+          {
+            "key": "port",
+            "value": "8080"
+          }
+        ]
+      },
+      "features": [],
+      "functions": [
+        "parse"
+      ],
+      "inputs": [
+        "host = localhost\nport = 8080"
+      ],
+      "name": "model_multiple_distinct_keys_parse",
+      "source_test": "model_multiple_distinct_keys",
+      "validation": "parse",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "host": {
+            "localhost": {}
+          },
+          "port": {
+            "8080": {}
+          }
+        }
+      },
+      "features": [],
+      "functions": [
+        "parse_indented",
+        "build_model"
+      ],
+      "inputs": [
+        "host = localhost\nport = 8080"
+      ],
+      "name": "model_multiple_distinct_keys_build_model",
+      "source_test": "model_multiple_distinct_keys",
+      "validation": "build_model",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 0
+      },
+      "features": [],
+      "functions": [
+        "parse"
+      ],
+      "inputs": [
+        ""
+      ],
+      "name": "model_empty_input_parse",
+      "source_test": "model_empty_input",
+      "validation": "parse",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {}
+      },
+      "features": [],
+      "functions": [
+        "parse_indented",
+        "build_model"
+      ],
+      "inputs": [
+        ""
+      ],
+      "name": "model_empty_input_build_model",
+      "source_test": "model_empty_input",
+      "validation": "build_model",
+      "variants": []
+    }
+  ]
+}

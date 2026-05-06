@@ -1,179 +1,20 @@
 {
-  "$schema": "https://raw.githubusercontent.com/CatConfLang/ccl-test-data/v0.6.0/schemas/generated-format.json",
+  "$schema": "https://raw.githubusercontent.com/CatConfLang/ccl-test-data/v1.1.0/schemas/generated-format.json",
   "tests": [
     {
-      "behaviors": [
-        "tabs_as_content"
-      ],
-      "conflicts": {
-        "behaviors": [
-          "tabs_as_whitespace"
-        ]
-      },
+      "behaviors": [],
       "expected": {
         "count": 1,
         "entries": [
           {
             "key": "key",
-            "value": "\tvalue\twith\ttabs"
+            "value": "value\twith\ttabs"
           }
         ]
       },
       "features": [
-        "whitespace"
-      ],
-      "functions": [
-        "parse"
-      ],
-      "inputs": [
-        "key = \tvalue\twith\ttabs"
-      ],
-      "name": "tabs_as_content_in_value_parse",
-      "source_test": "tabs_as_content_in_value",
-      "validation": "parse",
-      "variants": []
-    },
-    {
-      "behaviors": [
-        "tabs_as_content"
-      ],
-      "conflicts": {
-        "behaviors": [
-          "tabs_as_whitespace"
-        ]
-      },
-      "expected": {
-        "count": 1,
-        "object": {
-          "key": "\tvalue\twith\ttabs"
-        }
-      },
-      "features": [
-        "whitespace"
-      ],
-      "functions": [
-        "build_hierarchy"
-      ],
-      "inputs": [
-        "key = \tvalue\twith\ttabs"
-      ],
-      "name": "tabs_as_content_in_value_build_hierarchy",
-      "source_test": "tabs_as_content_in_value",
-      "validation": "build_hierarchy",
-      "variants": []
-    },
-    {
-      "args": [
-        "key"
-      ],
-      "behaviors": [
-        "tabs_as_content"
-      ],
-      "conflicts": {
-        "behaviors": [
-          "tabs_as_whitespace"
-        ]
-      },
-      "expected": {
-        "count": 1,
-        "value": "\tvalue\twith\ttabs"
-      },
-      "features": [
-        "whitespace"
-      ],
-      "functions": [
-        "get_string"
-      ],
-      "inputs": [
-        "key = \tvalue\twith\ttabs"
-      ],
-      "name": "tabs_as_content_in_value_get_string",
-      "source_test": "tabs_as_content_in_value",
-      "validation": "get_string",
-      "variants": []
-    },
-    {
-      "behaviors": [
-        "tabs_as_content"
-      ],
-      "conflicts": {
-        "behaviors": [
-          "tabs_as_whitespace"
-        ]
-      },
-      "expected": {
-        "count": 1,
-        "entries": [
-          {
-            "key": "key",
-            "value": "\tindented"
-          }
-        ]
-      },
-      "features": [
-        "whitespace"
-      ],
-      "functions": [
-        "parse"
-      ],
-      "inputs": [
-        "key = \tindented"
-      ],
-      "name": "tabs_as_content_leading_tab_parse",
-      "source_test": "tabs_as_content_leading_tab",
-      "validation": "parse",
-      "variants": []
-    },
-    {
-      "args": [
-        "key"
-      ],
-      "behaviors": [
-        "tabs_as_content"
-      ],
-      "conflicts": {
-        "behaviors": [
-          "tabs_as_whitespace"
-        ]
-      },
-      "expected": {
-        "count": 1,
-        "value": "\tindented"
-      },
-      "features": [
-        "whitespace"
-      ],
-      "functions": [
-        "get_string"
-      ],
-      "inputs": [
-        "key = \tindented"
-      ],
-      "name": "tabs_as_content_leading_tab_get_string",
-      "source_test": "tabs_as_content_leading_tab",
-      "validation": "get_string",
-      "variants": []
-    },
-    {
-      "behaviors": [
-        "tabs_as_whitespace"
-      ],
-      "conflicts": {
-        "behaviors": [
-          "tabs_as_content"
-        ]
-      },
-      "expected": {
-        "count": 1,
-        "entries": [
-          {
-            "key": "key",
-            "value": "value with tabs"
-          }
-        ]
-      },
-      "features": [
-        "whitespace"
+        "whitespace",
+        "tab_in_value_preserved"
       ],
       "functions": [
         "parse"
@@ -187,24 +28,19 @@
       "variants": []
     },
     {
-      "behaviors": [
-        "tabs_as_whitespace"
-      ],
-      "conflicts": {
-        "behaviors": [
-          "tabs_as_content"
-        ]
-      },
+      "behaviors": [],
       "expected": {
         "count": 1,
         "object": {
-          "key": "value with tabs"
+          "key": "value\twith\ttabs"
         }
       },
       "features": [
-        "whitespace"
+        "whitespace",
+        "tab_in_value_preserved"
       ],
       "functions": [
+        "parse_indented",
         "build_hierarchy"
       ],
       "inputs": [
@@ -216,16 +52,43 @@
       "variants": []
     },
     {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "key": {
+            "value\twith\ttabs": {}
+          }
+        }
+      },
+      "features": [
+        "whitespace",
+        "tab_in_value_preserved"
+      ],
+      "functions": [
+        "parse_indented",
+        "build_model"
+      ],
+      "inputs": [
+        "key = \tvalue\twith\ttabs"
+      ],
+      "name": "tabs_as_whitespace_in_value_build_model",
+      "source_test": "tabs_as_whitespace_in_value",
+      "validation": "build_model",
+      "variants": []
+    },
+    {
       "args": [
         "key"
       ],
       "behaviors": [],
       "expected": {
         "count": 1,
-        "value": "value with tabs"
+        "value": "value\twith\ttabs"
       },
       "features": [
-        "whitespace"
+        "whitespace",
+        "tab_in_value_preserved"
       ],
       "functions": [
         "get_string"
@@ -239,14 +102,7 @@
       "variants": []
     },
     {
-      "behaviors": [
-        "tabs_as_whitespace"
-      ],
-      "conflicts": {
-        "behaviors": [
-          "tabs_as_content"
-        ]
-      },
+      "behaviors": [],
       "expected": {
         "count": 1,
         "entries": [
@@ -294,14 +150,7 @@
       "variants": []
     },
     {
-      "behaviors": [
-        "tabs_as_whitespace"
-      ],
-      "conflicts": {
-        "behaviors": [
-          "tabs_as_content"
-        ]
-      },
+      "behaviors": [],
       "expected": {
         "count": 1,
         "entries": [
@@ -327,11 +176,12 @@
     },
     {
       "behaviors": [
-        "tabs_as_content"
+        "multiline_values",
+        "continuation_tab_to_space"
       ],
       "conflicts": {
         "behaviors": [
-          "tabs_as_whitespace"
+          "continuation_tab_preserve"
         ]
       },
       "expected": {
@@ -339,46 +189,13 @@
         "entries": [
           {
             "key": "section",
-            "value": "\n \tindented_with_tabs\n \tanother_line"
+            "value": "\n  indented_with_tabs\n  another_line"
           }
         ]
       },
       "features": [
         "whitespace",
-        "multiline"
-      ],
-      "functions": [
-        "parse"
-      ],
-      "inputs": [
-        "section =\n \tindented_with_tabs\n \tanother_line"
-      ],
-      "name": "tabs_as_content_multiline_parse",
-      "source_test": "tabs_as_content_multiline",
-      "validation": "parse",
-      "variants": []
-    },
-    {
-      "behaviors": [
-        "tabs_as_whitespace"
-      ],
-      "conflicts": {
-        "behaviors": [
-          "tabs_as_content"
-        ]
-      },
-      "expected": {
-        "count": 1,
-        "entries": [
-          {
-            "key": "section",
-            "value": "\nindented_with_tabs\nanother_line"
-          }
-        ]
-      },
-      "features": [
-        "whitespace",
-        "multiline"
+        "multiline_continuation"
       ],
       "functions": [
         "parse"
@@ -393,11 +210,12 @@
     },
     {
       "behaviors": [
-        "tabs_as_whitespace"
+        "multiline_values",
+        "continuation_tab_to_space"
       ],
       "conflicts": {
         "behaviors": [
-          "tabs_as_content"
+          "continuation_tab_preserve"
         ]
       },
       "expected": {
@@ -405,13 +223,13 @@
         "entries": [
           {
             "key": "section",
-            "value": "\nmixed_indent\nanother_line"
+            "value": "\n  mixed_indent\n  another_line"
           }
         ]
       },
       "features": [
         "whitespace",
-        "multiline"
+        "multiline_continuation"
       ],
       "functions": [
         "parse"
@@ -425,42 +243,7 @@
       "variants": []
     },
     {
-      "behaviors": [
-        "tabs_as_content"
-      ],
-      "conflicts": {
-        "behaviors": [
-          "tabs_as_whitespace"
-        ]
-      },
-      "expected": {
-        "count": 1,
-        "value": "key = \tvalue"
-      },
-      "features": [
-        "whitespace"
-      ],
-      "functions": [
-        "parse",
-        "print"
-      ],
-      "inputs": [
-        "key = \tvalue"
-      ],
-      "name": "tabs_canonical_format_as_content_canonical_format",
-      "source_test": "tabs_canonical_format_as_content",
-      "validation": "canonical_format",
-      "variants": []
-    },
-    {
-      "behaviors": [
-        "tabs_as_whitespace"
-      ],
-      "conflicts": {
-        "behaviors": [
-          "tabs_as_content"
-        ]
-      },
+      "behaviors": [],
       "expected": {
         "count": 1,
         "value": "key = value"
@@ -470,7 +253,8 @@
       ],
       "functions": [
         "parse",
-        "print"
+        "print",
+        "canonical_format"
       ],
       "inputs": [
         "key = \tvalue"
@@ -482,13 +266,14 @@
     },
     {
       "behaviors": [
-        "tabs_as_whitespace",
-        "indent_spaces"
+        "indent_spaces",
+        "multiline_values",
+        "continuation_tab_to_space"
       ],
       "conflicts": {
         "behaviors": [
-          "indent_tabs",
-          "tabs_as_content"
+          "continuation_tab_preserve",
+          "indent_tabs"
         ]
       },
       "expected": {
@@ -497,11 +282,12 @@
       },
       "features": [
         "whitespace",
-        "multiline"
+        "multiline_continuation"
       ],
       "functions": [
         "parse",
-        "print"
+        "print",
+        "canonical_format"
       ],
       "inputs": [
         "section =\n\t\tindented\n\t\tanother"
@@ -515,10 +301,11 @@
       "behaviors": [],
       "expected": {
         "count": 1,
-        "value": "key = value with tabs"
+        "value": "key = value\twith\ttabs"
       },
       "features": [
-        "whitespace"
+        "whitespace",
+        "tab_in_value_preserved"
       ],
       "functions": [
         "parse",
@@ -551,7 +338,8 @@
       ],
       "functions": [
         "parse",
-        "print"
+        "print",
+        "canonical_format"
       ],
       "inputs": [
         "package =\n  = brew\n  = scoop\n  = nix"
@@ -580,13 +368,286 @@
       ],
       "functions": [
         "parse",
-        "print"
+        "print",
+        "canonical_format"
       ],
       "inputs": [
         "app =\n  = item1\n  config =\n    = nested1\n    = nested2\n    deep =\n      = level3a\n      = level3b\n  = item2"
       ],
       "name": "deeply_nested_bare_list_indentation_canonical_format",
       "source_test": "deeply_nested_bare_list_indentation",
+      "validation": "canonical_format",
+      "variants": []
+    },
+    {
+      "behaviors": [
+        "indent_spaces"
+      ],
+      "conflicts": {
+        "behaviors": [
+          "indent_tabs"
+        ]
+      },
+      "expected": {
+        "count": 1,
+        "value": "database =\n  host = localhost\n  port = 5432"
+      },
+      "features": [],
+      "functions": [
+        "print"
+      ],
+      "inputs": [
+        "database =\n  host = localhost\n  port = 5432"
+      ],
+      "name": "print_nested_indent_spaces_print",
+      "source_test": "print_nested_indent_spaces",
+      "validation": "print",
+      "variants": []
+    },
+    {
+      "behaviors": [
+        "indent_spaces"
+      ],
+      "conflicts": {
+        "behaviors": [
+          "indent_tabs"
+        ]
+      },
+      "expected": {
+        "count": 1,
+        "value": "server =\n  database =\n    host = localhost\n    port = 5432\n  cache =\n    enabled = true"
+      },
+      "features": [],
+      "functions": [
+        "print"
+      ],
+      "inputs": [
+        "server =\n  database =\n    host = localhost\n    port = 5432\n  cache =\n    enabled = true"
+      ],
+      "name": "print_deeply_nested_indent_spaces_print",
+      "source_test": "print_deeply_nested_indent_spaces",
+      "validation": "print",
+      "variants": []
+    },
+    {
+      "behaviors": [
+        "indent_tabs"
+      ],
+      "conflicts": {
+        "behaviors": [
+          "indent_spaces"
+        ]
+      },
+      "expected": {
+        "count": 1,
+        "value": "database =\n\thost = localhost\n\tport = 5432"
+      },
+      "features": [],
+      "functions": [
+        "print"
+      ],
+      "inputs": [
+        "database =\n\thost = localhost\n\tport = 5432"
+      ],
+      "name": "print_nested_indent_tabs_print",
+      "source_test": "print_nested_indent_tabs",
+      "validation": "print",
+      "variants": []
+    },
+    {
+      "behaviors": [
+        "indent_tabs"
+      ],
+      "conflicts": {
+        "behaviors": [
+          "indent_spaces"
+        ]
+      },
+      "expected": {
+        "count": 1,
+        "value": "server =\n\tdatabase =\n\t\thost = localhost\n\t\tport = 5432\n\tcache =\n\t\tenabled = true"
+      },
+      "features": [],
+      "functions": [
+        "print"
+      ],
+      "inputs": [
+        "server =\n\tdatabase =\n\t\thost = localhost\n\t\tport = 5432\n\tcache =\n\t\tenabled = true"
+      ],
+      "name": "print_deeply_nested_indent_tabs_print",
+      "source_test": "print_deeply_nested_indent_tabs",
+      "validation": "print",
+      "variants": []
+    },
+    {
+      "behaviors": [
+        "indent_tabs"
+      ],
+      "conflicts": {
+        "behaviors": [
+          "indent_spaces"
+        ]
+      },
+      "expected": {
+        "count": 1,
+        "value": "name = Alice\nconfig =\n\tdebug = true\n\ttimeout = 30\nversion = 1.0"
+      },
+      "features": [],
+      "functions": [
+        "print"
+      ],
+      "inputs": [
+        "name = Alice\nconfig =\n\tdebug = true\n\ttimeout = 30\nversion = 1.0"
+      ],
+      "name": "print_mixed_flat_and_nested_indent_tabs_print",
+      "source_test": "print_mixed_flat_and_nested_indent_tabs",
+      "validation": "print",
+      "variants": []
+    },
+    {
+      "behaviors": [
+        "indent_tabs"
+      ],
+      "conflicts": {
+        "behaviors": [
+          "indent_spaces"
+        ]
+      },
+      "expected": {
+        "count": 1,
+        "value": "a =\n\tfirst =\nm =\n\tmiddle =\nz =\n\tlast =\n"
+      },
+      "features": [],
+      "functions": [
+        "parse",
+        "print",
+        "canonical_format"
+      ],
+      "inputs": [
+        "z = last\na = first\nm = middle"
+      ],
+      "name": "canonical_format_deterministic_indent_tabs_canonical_format",
+      "source_test": "canonical_format_deterministic_indent_tabs",
+      "validation": "canonical_format",
+      "variants": []
+    },
+    {
+      "behaviors": [
+        "indent_tabs"
+      ],
+      "conflicts": {
+        "behaviors": [
+          "indent_spaces"
+        ]
+      },
+      "expected": {
+        "count": 1,
+        "value": "key1 =\n\tvalue1 =\nkey2 =\n\tvalue2 =\nkey3 =\n\tvalue3 =\n"
+      },
+      "features": [],
+      "functions": [
+        "parse",
+        "print",
+        "canonical_format"
+      ],
+      "inputs": [
+        "key1=value1\nkey2  =  value2\nkey3\t=\tvalue3"
+      ],
+      "name": "canonical_format_consistent_spacing_indent_tabs_canonical_format",
+      "source_test": "canonical_format_consistent_spacing_indent_tabs",
+      "validation": "canonical_format",
+      "variants": []
+    },
+    {
+      "behaviors": [
+        "indent_tabs",
+        "multiline_values",
+        "continuation_tab_to_space"
+      ],
+      "conflicts": {
+        "behaviors": [
+          "continuation_tab_preserve",
+          "indent_spaces"
+        ]
+      },
+      "expected": {
+        "count": 1,
+        "value": "section =\n\tindented\n\tanother"
+      },
+      "features": [
+        "whitespace",
+        "multiline_continuation"
+      ],
+      "functions": [
+        "parse",
+        "print",
+        "canonical_format"
+      ],
+      "inputs": [
+        "section =\n\t\tindented\n\t\tanother"
+      ],
+      "name": "tabs_as_whitespace_multiline_canonical_indent_tabs_canonical_format",
+      "source_test": "tabs_as_whitespace_multiline_canonical_indent_tabs",
+      "validation": "canonical_format",
+      "variants": []
+    },
+    {
+      "behaviors": [
+        "indent_tabs"
+      ],
+      "conflicts": {
+        "behaviors": [
+          "indent_spaces"
+        ]
+      },
+      "expected": {
+        "count": 1,
+        "value": "package =\n\t= brew\n\t= scoop\n\t= nix"
+      },
+      "features": [
+        "empty_keys",
+        "whitespace"
+      ],
+      "functions": [
+        "parse",
+        "print",
+        "canonical_format"
+      ],
+      "inputs": [
+        "package =\n\t= brew\n\t= scoop\n\t= nix"
+      ],
+      "name": "nested_bare_list_indentation_tabs_canonical_format",
+      "source_test": "nested_bare_list_indentation_tabs",
+      "validation": "canonical_format",
+      "variants": []
+    },
+    {
+      "behaviors": [
+        "indent_tabs"
+      ],
+      "conflicts": {
+        "behaviors": [
+          "indent_spaces"
+        ]
+      },
+      "expected": {
+        "count": 1,
+        "value": "app =\n\t= item1\n\t= item2\n\tconfig =\n\t\t= nested1\n\t\t= nested2\n\t\tdeep =\n\t\t\t= level3a\n\t\t\t= level3b"
+      },
+      "features": [
+        "empty_keys",
+        "whitespace"
+      ],
+      "functions": [
+        "parse",
+        "print",
+        "canonical_format"
+      ],
+      "inputs": [
+        "app =\n\t= item1\n\tconfig =\n\t\t= nested1\n\t\t= nested2\n\t\tdeep =\n\t\t\t= level3a\n\t\t\t= level3b\n\t= item2"
+      ],
+      "name": "deeply_nested_bare_list_indentation_tabs_canonical_format",
+      "source_test": "deeply_nested_bare_list_indentation_tabs",
       "validation": "canonical_format",
       "variants": []
     },
@@ -646,6 +707,7 @@
         "whitespace"
       ],
       "functions": [
+        "parse_indented",
         "build_hierarchy"
       ],
       "inputs": [
@@ -654,6 +716,41 @@
       "name": "crlf_normalize_to_lf_basic_build_hierarchy",
       "source_test": "crlf_normalize_to_lf_basic",
       "validation": "build_hierarchy",
+      "variants": []
+    },
+    {
+      "behaviors": [
+        "crlf_normalize_to_lf"
+      ],
+      "conflicts": {
+        "behaviors": [
+          "crlf_preserve_literal"
+        ]
+      },
+      "expected": {
+        "count": 1,
+        "object": {
+          "key1": {
+            "value1": {}
+          },
+          "key2": {
+            "value2": {}
+          }
+        }
+      },
+      "features": [
+        "whitespace"
+      ],
+      "functions": [
+        "parse_indented",
+        "build_model"
+      ],
+      "inputs": [
+        "key1 = value1\r\nkey2 = value2\r\n"
+      ],
+      "name": "crlf_normalize_to_lf_basic_build_model",
+      "source_test": "crlf_normalize_to_lf_basic",
+      "validation": "build_model",
       "variants": []
     },
     {
@@ -712,6 +809,7 @@
         "whitespace"
       ],
       "functions": [
+        "parse_indented",
         "build_hierarchy"
       ],
       "inputs": [
@@ -724,7 +822,43 @@
     },
     {
       "behaviors": [
-        "crlf_normalize_to_lf"
+        "crlf_preserve_literal"
+      ],
+      "conflicts": {
+        "behaviors": [
+          "crlf_normalize_to_lf"
+        ]
+      },
+      "expected": {
+        "count": 1,
+        "object": {
+          "key1": {
+            "value1\r": {}
+          },
+          "key2": {
+            "value2\r": {}
+          }
+        }
+      },
+      "features": [
+        "whitespace"
+      ],
+      "functions": [
+        "parse_indented",
+        "build_model"
+      ],
+      "inputs": [
+        "key1 = value1\r\nkey2 = value2\r\n"
+      ],
+      "name": "crlf_preserve_literal_basic_build_model",
+      "source_test": "crlf_preserve_literal_basic",
+      "validation": "build_model",
+      "variants": []
+    },
+    {
+      "behaviors": [
+        "crlf_normalize_to_lf",
+        "multiline_values"
       ],
       "conflicts": {
         "behaviors": [
@@ -742,7 +876,7 @@
       },
       "features": [
         "whitespace",
-        "multiline"
+        "multiline_continuation"
       ],
       "functions": [
         "parse"
@@ -757,7 +891,8 @@
     },
     {
       "behaviors": [
-        "crlf_preserve_literal"
+        "crlf_preserve_literal",
+        "multiline_values"
       ],
       "conflicts": {
         "behaviors": [
@@ -775,7 +910,7 @@
       },
       "features": [
         "whitespace",
-        "multiline"
+        "multiline_continuation"
       ],
       "functions": [
         "parse"
@@ -882,6 +1017,7 @@
         "whitespace"
       ],
       "functions": [
+        "parse_indented",
         "build_hierarchy"
       ],
       "inputs": [
@@ -890,6 +1026,43 @@
       "name": "crlf_nested_structure_build_hierarchy",
       "source_test": "crlf_nested_structure",
       "validation": "build_hierarchy",
+      "variants": []
+    },
+    {
+      "behaviors": [
+        "crlf_normalize_to_lf"
+      ],
+      "conflicts": {
+        "behaviors": [
+          "crlf_preserve_literal"
+        ]
+      },
+      "expected": {
+        "count": 1,
+        "object": {
+          "config": {
+            "host": {
+              "localhost": {}
+            },
+            "port": {
+              "8080": {}
+            }
+          }
+        }
+      },
+      "features": [
+        "whitespace"
+      ],
+      "functions": [
+        "parse_indented",
+        "build_model"
+      ],
+      "inputs": [
+        "config =\r\n  host = localhost\r\n  port = 8080"
+      ],
+      "name": "crlf_nested_structure_build_model",
+      "source_test": "crlf_nested_structure",
+      "validation": "build_model",
       "variants": []
     },
     {
@@ -946,6 +1119,7 @@
         "whitespace"
       ],
       "functions": [
+        "parse_indented",
         "build_hierarchy"
       ],
       "inputs": [
@@ -954,6 +1128,43 @@
       "name": "crlf_preserve_nested_structure_build_hierarchy",
       "source_test": "crlf_preserve_nested_structure",
       "validation": "build_hierarchy",
+      "variants": []
+    },
+    {
+      "behaviors": [
+        "crlf_preserve_literal"
+      ],
+      "conflicts": {
+        "behaviors": [
+          "crlf_normalize_to_lf"
+        ]
+      },
+      "expected": {
+        "count": 1,
+        "object": {
+          "config": {
+            "host": {
+              "localhost\r": {}
+            },
+            "port": {
+              "8080": {}
+            }
+          }
+        }
+      },
+      "features": [
+        "whitespace"
+      ],
+      "functions": [
+        "parse_indented",
+        "build_model"
+      ],
+      "inputs": [
+        "config =\r\n  host = localhost\r\n  port = 8080"
+      ],
+      "name": "crlf_preserve_nested_structure_build_model",
+      "source_test": "crlf_preserve_nested_structure",
+      "validation": "build_model",
       "variants": []
     },
     {
@@ -990,7 +1201,14 @@
       "variants": []
     },
     {
-      "behaviors": [],
+      "behaviors": [
+        "crlf_normalize_to_lf"
+      ],
+      "conflicts": {
+        "behaviors": [
+          "crlf_preserve_literal"
+        ]
+      },
       "expected": {
         "count": 0
       },
@@ -1005,6 +1223,11 @@
         "/= this is a comment\r\n"
       ],
       "name": "crlf_normalize_comment_only_filter",
+      "predicate": {
+        "field": "key",
+        "op": "!=",
+        "value": "/"
+      },
       "source_test": "crlf_normalize_comment_only",
       "validation": "filter",
       "variants": []
@@ -1043,7 +1266,14 @@
       "variants": []
     },
     {
-      "behaviors": [],
+      "behaviors": [
+        "crlf_preserve_literal"
+      ],
+      "conflicts": {
+        "behaviors": [
+          "crlf_normalize_to_lf"
+        ]
+      },
       "expected": {
         "count": 0
       },
@@ -1058,6 +1288,11 @@
         "/= this is a comment\r\n"
       ],
       "name": "crlf_preserve_comment_only_filter",
+      "predicate": {
+        "field": "key",
+        "op": "!=",
+        "value": "/"
+      },
       "source_test": "crlf_preserve_comment_only",
       "validation": "filter",
       "variants": []
@@ -1108,7 +1343,14 @@
       "variants": []
     },
     {
-      "behaviors": [],
+      "behaviors": [
+        "crlf_normalize_to_lf"
+      ],
+      "conflicts": {
+        "behaviors": [
+          "crlf_preserve_literal"
+        ]
+      },
       "expected": {
         "count": 2,
         "entries": [
@@ -1133,6 +1375,11 @@
         "/= Server config\r\nhost = localhost\r\n/= Port setting\r\nport = 8080\r\n"
       ],
       "name": "crlf_normalize_comments_and_values_filter",
+      "predicate": {
+        "field": "key",
+        "op": "!=",
+        "value": "/"
+      },
       "source_test": "crlf_normalize_comments_and_values",
       "validation": "filter",
       "variants": []
@@ -1149,6 +1396,10 @@
       "expected": {
         "count": 1,
         "object": {
+          "/": [
+            "Server config",
+            "Port setting"
+          ],
           "host": "localhost",
           "port": "8080"
         }
@@ -1158,6 +1409,7 @@
         "whitespace"
       ],
       "functions": [
+        "parse_indented",
         "build_hierarchy"
       ],
       "inputs": [
@@ -1166,6 +1418,46 @@
       "name": "crlf_normalize_comments_and_values_build_hierarchy",
       "source_test": "crlf_normalize_comments_and_values",
       "validation": "build_hierarchy",
+      "variants": []
+    },
+    {
+      "behaviors": [
+        "crlf_normalize_to_lf"
+      ],
+      "conflicts": {
+        "behaviors": [
+          "crlf_preserve_literal"
+        ]
+      },
+      "expected": {
+        "count": 1,
+        "object": {
+          "/": {
+            "Port setting": {},
+            "Server config": {}
+          },
+          "host": {
+            "localhost": {}
+          },
+          "port": {
+            "8080": {}
+          }
+        }
+      },
+      "features": [
+        "comments",
+        "whitespace"
+      ],
+      "functions": [
+        "parse_indented",
+        "build_model"
+      ],
+      "inputs": [
+        "/= Server config\r\nhost = localhost\r\n/= Port setting\r\nport = 8080\r\n"
+      ],
+      "name": "crlf_normalize_comments_and_values_build_model",
+      "source_test": "crlf_normalize_comments_and_values",
+      "validation": "build_model",
       "variants": []
     },
     {
@@ -1214,7 +1506,14 @@
       "variants": []
     },
     {
-      "behaviors": [],
+      "behaviors": [
+        "crlf_preserve_literal"
+      ],
+      "conflicts": {
+        "behaviors": [
+          "crlf_normalize_to_lf"
+        ]
+      },
       "expected": {
         "count": 2,
         "entries": [
@@ -1239,6 +1538,11 @@
         "/= Server config\r\nhost = localhost\r\n/= Port setting\r\nport = 8080\r\n"
       ],
       "name": "crlf_preserve_comments_and_values_filter",
+      "predicate": {
+        "field": "key",
+        "op": "!=",
+        "value": "/"
+      },
       "source_test": "crlf_preserve_comments_and_values",
       "validation": "filter",
       "variants": []
@@ -1255,6 +1559,10 @@
       "expected": {
         "count": 1,
         "object": {
+          "/": [
+            "Server config\r",
+            "Port setting\r"
+          ],
           "host": "localhost\r",
           "port": "8080\r"
         }
@@ -1264,6 +1572,7 @@
         "whitespace"
       ],
       "functions": [
+        "parse_indented",
         "build_hierarchy"
       ],
       "inputs": [
@@ -1272,6 +1581,46 @@
       "name": "crlf_preserve_comments_and_values_build_hierarchy",
       "source_test": "crlf_preserve_comments_and_values",
       "validation": "build_hierarchy",
+      "variants": []
+    },
+    {
+      "behaviors": [
+        "crlf_preserve_literal"
+      ],
+      "conflicts": {
+        "behaviors": [
+          "crlf_normalize_to_lf"
+        ]
+      },
+      "expected": {
+        "count": 1,
+        "object": {
+          "/": {
+            "Port setting\r": {},
+            "Server config\r": {}
+          },
+          "host": {
+            "localhost\r": {}
+          },
+          "port": {
+            "8080\r": {}
+          }
+        }
+      },
+      "features": [
+        "comments",
+        "whitespace"
+      ],
+      "functions": [
+        "parse_indented",
+        "build_model"
+      ],
+      "inputs": [
+        "/= Server config\r\nhost = localhost\r\n/= Port setting\r\nport = 8080\r\n"
+      ],
+      "name": "crlf_preserve_comments_and_values_build_model",
+      "source_test": "crlf_preserve_comments_and_values",
+      "validation": "build_model",
       "variants": []
     },
     {
@@ -1316,7 +1665,14 @@
       "variants": []
     },
     {
-      "behaviors": [],
+      "behaviors": [
+        "crlf_normalize_to_lf"
+      ],
+      "conflicts": {
+        "behaviors": [
+          "crlf_preserve_literal"
+        ]
+      },
       "expected": {
         "count": 0
       },
@@ -1331,6 +1687,11 @@
         "/= first comment\r\n/= second comment\r\n/= third comment\r\n"
       ],
       "name": "crlf_normalize_multiple_comments_filter",
+      "predicate": {
+        "field": "key",
+        "op": "!=",
+        "value": "/"
+      },
       "source_test": "crlf_normalize_multiple_comments",
       "validation": "filter",
       "variants": []
@@ -1377,7 +1738,14 @@
       "variants": []
     },
     {
-      "behaviors": [],
+      "behaviors": [
+        "crlf_preserve_literal"
+      ],
+      "conflicts": {
+        "behaviors": [
+          "crlf_normalize_to_lf"
+        ]
+      },
       "expected": {
         "count": 0
       },
@@ -1392,19 +1760,22 @@
         "/= first comment\r\n/= second comment\r\n/= third comment\r\n"
       ],
       "name": "crlf_preserve_multiple_comments_filter",
+      "predicate": {
+        "field": "key",
+        "op": "!=",
+        "value": "/"
+      },
       "source_test": "crlf_preserve_multiple_comments",
       "validation": "filter",
       "variants": []
     },
     {
       "behaviors": [
-        "tabs_as_whitespace",
         "crlf_normalize_to_lf"
       ],
       "conflicts": {
         "behaviors": [
-          "crlf_preserve_literal",
-          "tabs_as_content"
+          "crlf_preserve_literal"
         ]
       },
       "expected": {
@@ -1412,12 +1783,13 @@
         "entries": [
           {
             "key": "key",
-            "value": "value with tabs"
+            "value": "value\twith\ttabs"
           }
         ]
       },
       "features": [
-        "whitespace"
+        "whitespace",
+        "tab_in_value_preserved"
       ],
       "functions": [
         "parse"
@@ -1432,40 +1804,124 @@
     },
     {
       "behaviors": [
-        "tabs_as_content",
-        "crlf_normalize_to_lf"
+        "indent_spaces",
+        "toplevel_indent_strip"
       ],
       "conflicts": {
         "behaviors": [
-          "crlf_preserve_literal",
-          "tabs_as_whitespace"
+          "indent_tabs",
+          "toplevel_indent_preserve"
         ]
       },
       "expected": {
-        "count": 2,
-        "entries": [
-          {
-            "key": "key1",
-            "value": "\tvalue1"
-          },
-          {
-            "key": "key2",
-            "value": "\tvalue2"
-          }
-        ]
+        "count": 1,
+        "value": "key = value\nnested =\n  child = inner"
       },
       "features": [
         "whitespace"
       ],
       "functions": [
-        "parse"
+        "parse",
+        "print",
+        "canonical_format"
       ],
       "inputs": [
-        "key1 = \tvalue1\r\nkey2 = \tvalue2\r\n"
+        "  key = value\n  nested =\n    child = inner"
       ],
-      "name": "behavior_combo_content_tabs_crlf_parse",
-      "source_test": "behavior_combo_content_tabs_crlf",
-      "validation": "parse",
+      "name": "toplevel_indent_strip_canonical_canonical_format",
+      "source_test": "toplevel_indent_strip_canonical",
+      "validation": "canonical_format",
+      "variants": []
+    },
+    {
+      "behaviors": [
+        "indent_spaces",
+        "toplevel_indent_preserve"
+      ],
+      "conflicts": {
+        "behaviors": [
+          "indent_tabs",
+          "toplevel_indent_strip"
+        ]
+      },
+      "expected": {
+        "count": 1,
+        "value": "  key = value\n  nested =\n    child = inner"
+      },
+      "features": [
+        "whitespace"
+      ],
+      "functions": [
+        "parse",
+        "print",
+        "canonical_format"
+      ],
+      "inputs": [
+        "  key = value\n  nested =\n    child = inner"
+      ],
+      "name": "toplevel_indent_preserve_canonical_canonical_format",
+      "source_test": "toplevel_indent_preserve_canonical",
+      "validation": "canonical_format",
+      "variants": []
+    },
+    {
+      "behaviors": [
+        "indent_spaces",
+        "toplevel_indent_strip"
+      ],
+      "conflicts": {
+        "behaviors": [
+          "indent_tabs",
+          "toplevel_indent_preserve"
+        ]
+      },
+      "expected": {
+        "count": 1,
+        "value": "key = value"
+      },
+      "features": [
+        "whitespace"
+      ],
+      "functions": [
+        "parse",
+        "print"
+      ],
+      "inputs": [
+        "  key = value"
+      ],
+      "name": "toplevel_indent_strip_round_trip_round_trip",
+      "source_test": "toplevel_indent_strip_round_trip",
+      "validation": "round_trip",
+      "variants": []
+    },
+    {
+      "behaviors": [
+        "indent_spaces",
+        "toplevel_indent_preserve"
+      ],
+      "conflicts": {
+        "behaviors": [
+          "indent_tabs",
+          "toplevel_indent_strip"
+        ]
+      },
+      "expected": {
+        "count": 1,
+        "value": "  key = value"
+      },
+      "features": [
+        "whitespace"
+      ],
+      "functions": [
+        "parse",
+        "print"
+      ],
+      "inputs": [
+        "  key = value"
+      ],
+      "name": "toplevel_indent_preserve_round_trip_round_trip",
+      "source_test": "toplevel_indent_preserve_round_trip",
+      "validation": "round_trip",
       "variants": []
     }
   ]

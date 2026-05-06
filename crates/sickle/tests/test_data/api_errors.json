@@ -1,5 +1,5 @@
 {
-  "$schema": "https://raw.githubusercontent.com/CatConfLang/ccl-test-data/v0.6.0/schemas/generated-format.json",
+  "$schema": "https://raw.githubusercontent.com/CatConfLang/ccl-test-data/v1.1.0/schemas/generated-format.json",
   "tests": [
     {
       "behaviors": [],
@@ -79,7 +79,7 @@
         "count": 0
       },
       "features": [
-        "multiline"
+        "multiline_continuation"
       ],
       "functions": [
         "parse"
@@ -98,7 +98,7 @@
         "count": 0
       },
       "features": [
-        "multiline"
+        "multiline_continuation"
       ],
       "functions": [
         "parse"
@@ -110,6 +110,27 @@
       "source_test": "multiline_plain_nested_error",
       "validation": "parse",
       "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 0
+      },
+      "features": [
+        "multiline_continuation"
+      ],
+      "functions": [
+        "parse_indented"
+      ],
+      "inputs": [
+        "key1 = value1\n  indented continuation\nkey2 = value2\nnot indented key\n  indented for not indented"
+      ],
+      "name": "mixed_indentation_levels_error_parse_indented",
+      "source_test": "mixed_indentation_levels_error",
+      "validation": "parse_indented",
+      "variants": [
+        "reference_compliant"
+      ]
     }
   ]
 }

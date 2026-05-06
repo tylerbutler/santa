@@ -81,6 +81,9 @@ pub mod options;
 pub mod reader;
 
 #[cfg(feature = "parse")]
+mod pacman;
+
+#[cfg(feature = "parse")]
 mod parser;
 
 #[cfg(feature = "printer")]
@@ -403,48 +406,10 @@ fn parse_indented_with_options_internal(
     // If there are multiple entries at min_indent level, parse flat
     // Otherwise, parse as single entry with raw nested content
     if entries_at_min_indent > 1 {
-        parse_flat_entries(&dedented, options)
+        parser::parse_to_entries(&dedented, options)
     } else {
         parse_single_entry_with_raw_value(&dedented, options)
     }
-}
-
-/// Parse all key=value pairs from input as flat entries, ignoring indentation hierarchy
-#[cfg(feature = "parse")]
-fn parse_flat_entries(input: &str, options: &ParserOptions) -> Result<Vec<Entry>> {
-    let mut entries = Vec::new();
-
-    for line in input.lines() {
-        let trimmed = line.trim();
-
-        // Skip empty lines
-        if trimmed.is_empty() {
-            continue;
-        }
-
-        // Extract key=value pairs or treat lines without '=' as keys with empty values
-        if let Some(eq_pos) = trimmed.find('=') {
-            let key = trimmed[..eq_pos].trim().to_string();
-            let value_raw = &trimmed[eq_pos + 1..];
-            // Use options-aware trimming
-            let value = if options.is_strict_spacing() {
-                // Strict: trim only spaces
-                value_raw
-                    .trim_start_matches(' ')
-                    .trim_end_matches(' ')
-                    .to_string()
-            } else {
-                // Loose: trim all whitespace
-                value_raw.trim().to_string()
-            };
-            entries.push(Entry::new(key, value));
-        } else {
-            // Line without '=' is a key with empty value
-            entries.push(Entry::new(trimmed.to_string(), String::new()));
-        }
-    }
-
-    Ok(entries)
 }
 
 /// Parse input as a single entry, preserving the raw value including indentation

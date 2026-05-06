@@ -561,6 +561,9 @@ impl CclObject {
         // With Vec structure: { "": [CclObject({item1}), CclObject({item2}), ...] }
         if non_comment_keys.len() == 1 && non_comment_keys[0].is_empty() {
             if let Ok(children) = self.get_all("") {
+                if children.len() == 1 && children[0].is_empty() {
+                    return None;
+                }
                 let items: Vec<String> = children
                     .iter()
                     .flat_map(|child| child.keys().filter(|k| !k.starts_with('/')).cloned())
@@ -592,6 +595,15 @@ impl CclObject {
     ///
     /// For typed access, use `get_list_typed()`.
     pub fn get_list_with_options(&self, key: &str, options: ListOptions) -> Result<Vec<String>> {
+        if let Some(values) = self.0.get(key) {
+            if values.len() > 1 {
+                return values
+                    .iter()
+                    .map(|value| value.as_string().map(ToString::to_string))
+                    .collect();
+            }
+        }
+
         let model = self.get(key)?;
 
         // Check if this is a bare list (= item syntax)

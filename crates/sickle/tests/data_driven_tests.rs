@@ -533,14 +533,36 @@ fn test_filter_function() {
         let test_result = std::panic::catch_unwind(|| {
             // Parse the input with options from test behaviors
             let options = options_from_test(test);
-            let model = load_with_options(test.input(), &options).unwrap_or_else(|e| {
+            let entries = parse_with_options(test.input(), &options).unwrap_or_else(|e| {
                 panic!("Test '{}' failed to parse: {}", test.name, e);
             });
+            let filtered: Vec<_> = if let Some(predicate) = &test.predicate {
+                entries
+                    .iter()
+                    .filter(|entry| {
+                        let field_value = match predicate.field.as_str() {
+                            "key" => entry.key.as_str(),
+                            "value" => entry.value.as_str(),
+                            other => panic!(
+                                "Test '{}': unsupported predicate field '{}'",
+                                test.name, other
+                            ),
+                        };
 
-            // For filter tests, we expect the model to filter out comments
-            // and only contain non-comment entries - use public IndexMap field
-            // Removed direct .0 access
-            let count = model.len();
+                        match predicate.op.as_str() {
+                            "==" => field_value == predicate.value,
+                            "!=" => field_value != predicate.value,
+                            other => {
+                                panic!("Test '{}': unsupported predicate op '{}'", test.name, other)
+                            }
+                        }
+                    })
+                    .collect()
+            } else {
+                entries.iter().filter(|entry| entry.key != "/").collect()
+            };
+
+            let count = filtered.len();
             assert_eq!(
                 count, test.expected.count,
                 "Test '{}' expected {} entries, got {}",
@@ -549,12 +571,16 @@ fn test_filter_function() {
 
             // Verify the actual entries match
             for entry in &test.expected.entries {
-                let value = model.get_string(&entry.key).unwrap_or_else(|e| {
-                    panic!(
-                        "Test '{}': failed to get string for key '{}': {}",
-                        test.name, entry.key, e
-                    )
-                });
+                let value = filtered
+                    .iter()
+                    .find(|actual| actual.key == entry.key)
+                    .map(|actual| actual.value.as_str())
+                    .unwrap_or_else(|| {
+                        panic!(
+                            "Test '{}': failed to find filtered key '{}'",
+                            test.name, entry.key
+                        )
+                    });
 
                 assert_eq!(
                     value, entry.value,
@@ -893,7 +919,7 @@ fn test_all_ccl_suites_comprehensive() {
                     }
                     "filter" => {
                         // "filter" validation tests parse the input, then filter out
-                        // comment entries (where key == "/")
+                        // entries using the generated test predicate.
                         if test.expected.error.is_some() {
                             assert!(entries.is_err(), "Test '{}' expected error", test.name);
                         } else {
@@ -901,9 +927,32 @@ fn test_all_ccl_suites_comprehensive() {
                                 panic!("Test '{}' failed to parse: {}", test.name, e);
                             });
 
-                            // Filter out comment entries (key == "/")
-                            let filtered: Vec<_> =
-                                entry_list.iter().filter(|e| e.key != "/").collect();
+                            let filtered: Vec<_> = if let Some(predicate) = &test.predicate {
+                                entry_list
+                                    .iter()
+                                    .filter(|entry| {
+                                        let field_value = match predicate.field.as_str() {
+                                            "key" => entry.key.as_str(),
+                                            "value" => entry.value.as_str(),
+                                            other => panic!(
+                                                "Test '{}': unsupported predicate field '{}'",
+                                                test.name, other
+                                            ),
+                                        };
+
+                                        match predicate.op.as_str() {
+                                            "==" => field_value == predicate.value,
+                                            "!=" => field_value != predicate.value,
+                                            other => panic!(
+                                                "Test '{}': unsupported predicate op '{}'",
+                                                test.name, other
+                                            ),
+                                        }
+                                    })
+                                    .collect()
+                            } else {
+                                entry_list.iter().filter(|e| e.key != "/").collect()
+                            };
 
                             assert_eq!(
                                 filtered.len(),

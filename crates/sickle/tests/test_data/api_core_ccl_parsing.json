@@ -1,5 +1,5 @@
 {
-  "$schema": "https://raw.githubusercontent.com/CatConfLang/ccl-test-data/v0.6.0/schemas/generated-format.json",
+  "$schema": "https://raw.githubusercontent.com/CatConfLang/ccl-test-data/v1.1.0/schemas/generated-format.json",
   "tests": [
     {
       "behaviors": [],
@@ -121,7 +121,9 @@
       "variants": []
     },
     {
-      "behaviors": [],
+      "behaviors": [
+        "multiline_values"
+      ],
       "expected": {
         "count": 2,
         "entries": [
@@ -136,7 +138,7 @@
         ]
       },
       "features": [
-        "multiline"
+        "multiline_continuation"
       ],
       "functions": [
         "parse"
@@ -156,7 +158,7 @@
         "value": "description = First line\n  Second line\n  Third line\ndone = yes"
       },
       "features": [
-        "multiline"
+        "multiline_continuation"
       ],
       "functions": [
         "print"
@@ -202,7 +204,7 @@
       "behaviors": [],
       "expected": {
         "count": 1,
-        "value": "empty = \nother = value"
+        "value": "empty =\nother = value"
       },
       "features": [
         "empty_keys"
@@ -245,7 +247,7 @@
       "behaviors": [],
       "expected": {
         "count": 1,
-        "value": "database = \n  host = localhost\n  port = 5432"
+        "value": "database =\n  host = localhost\n  port = 5432"
       },
       "features": [],
       "functions": [
@@ -344,14 +346,7 @@
       "variants": []
     },
     {
-      "behaviors": [
-        "toplevel_indent_strip"
-      ],
-      "conflicts": {
-        "behaviors": [
-          "toplevel_indent_preserve"
-        ]
-      },
+      "behaviors": [],
       "expected": {
         "count": 1,
         "entries": [
@@ -362,7 +357,8 @@
         ]
       },
       "features": [
-        "whitespace"
+        "whitespace",
+        "toplevel_indent_strip"
       ],
       "functions": [
         "parse"
@@ -403,42 +399,6 @@
       ],
       "name": "leading_whitespace_multiple_entries_parse",
       "source_test": "leading_whitespace_multiple_entries",
-      "validation": "parse",
-      "variants": []
-    },
-    {
-      "behaviors": [
-        "toplevel_indent_preserve"
-      ],
-      "conflicts": {
-        "behaviors": [
-          "toplevel_indent_strip"
-        ]
-      },
-      "expected": {
-        "count": 2,
-        "entries": [
-          {
-            "key": "key",
-            "value": "value"
-          },
-          {
-            "key": "second",
-            "value": "entry"
-          }
-        ]
-      },
-      "features": [
-        "whitespace"
-      ],
-      "functions": [
-        "parse"
-      ],
-      "inputs": [
-        "  key = value\n  second = entry"
-      ],
-      "name": "leading_whitespace_toplevel_indent_preserve_parse",
-      "source_test": "leading_whitespace_toplevel_indent_preserve",
       "validation": "parse",
       "variants": []
     }

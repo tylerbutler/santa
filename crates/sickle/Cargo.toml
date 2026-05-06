@@ -60,6 +60,9 @@ unstable = []
 # Data structures - IndexMap for insertion-order preservation
 indexmap = { version = "2.13.0", features = ["serde"] }
 
+# Parser combinators for the Pacman parser implementation
+nom = "8"
+
 # Optional: Serde support for deserialization
 serde = { workspace = true, optional = true }
 serde_derive = { version = "1.0.228", optional = true }
