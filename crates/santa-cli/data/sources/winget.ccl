@@ -1,0 +1,12 @@
+/= Winget packages (Windows)
+Git.Git =
+Microsoft.VisualStudioCode =
+Mozilla.Firefox =
+7zip.7zip =
+Notepad++.Notepad++ =
+Python.Python.3.12 =
+GoLang.Go =
+Rustlang.Rustup =
+Node.js.LTS =
+JetBrains.Toolbox =
+Docker.DockerDesktop =

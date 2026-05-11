@@ -27,3 +27,9 @@ precise-builds = true
 install-path = "CARGO_HOME"
 # Whether to install an updater program
 install-updater = false
+# Host releases on GitHub
+hosting = ["github"]
+# Homebrew tap to publish formula to
+tap = "tylerbutler/homebrew-tap"
+# Publish jobs to run in CI
+publish-jobs = ["homebrew"]
