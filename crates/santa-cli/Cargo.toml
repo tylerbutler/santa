@@ -31,7 +31,7 @@ clap = { version = "4.5.60", features = ["color", "derive", "cargo", "wrap_help"
 clap-markdown = "0.1.5"
 
 # Shell completion generation for CLI commands
-clap_complete = "4.6.3"
+clap_complete = "4.6.5"
 
 # Terminal color output for user-friendly messages
 colored = "3.1.1"
@@ -71,7 +71,7 @@ tracing-subscriber = { version = "0.3.22", features = ["env-filter"] }
 tabular = "0.2.0"
 
 # Async runtime with process execution and synchronization primitives
-tokio = { version = "1.52.2", features = ["process", "rt-multi-thread", "macros", "time", "sync"] }
+tokio = { version = "1.52.3", features = ["process", "rt-multi-thread", "macros", "time", "sync"] }
 
 # Async utilities and combinators
 futures = "0.3.32"
@@ -123,7 +123,7 @@ tempfile = "3.26"
 proptest = "1.10"
 
 # Integration testing for CLI applications
-assert_cmd = "2.1"
+assert_cmd = "2.2"
 
 # Predicate functions for test assertions
 predicates = "3.1"
