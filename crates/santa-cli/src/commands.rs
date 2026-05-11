@@ -119,7 +119,7 @@ pub async fn status_command(
     if let Some(source_name) = source_filter {
         sources.retain(|s| s.name_str() == source_name);
         if sources.is_empty() {
-            return Err(SantaError::Config(anyhow::anyhow!(
+            return Err(SantaError::Config(format!(
                 "Source '{}' not found or not enabled",
                 source_name
             )));
@@ -487,12 +487,13 @@ pub async fn add_command(
     data: &SantaData,
 ) -> Result<()> {
     // Load current config
-    let mut config = SantaConfig::load_from(config_path)?;
+    let mut config =
+        SantaConfig::load_from(config_path).map_err(|e| SantaError::Config(e.to_string()))?;
 
     // Validate packages exist in database
     for pkg in &package_names {
         if !data.packages.contains_key(pkg) {
-            return Err(SantaError::Config(anyhow::anyhow!(
+            return Err(SantaError::Config(format!(
                 "Package '{}' not found in database",
                 pkg
             )));
@@ -511,7 +512,7 @@ pub async fn add_command(
 
     // Save config back to CCL format
     let ccl_content = sickle::to_string(&config)
-        .map_err(|e| SantaError::Config(anyhow::anyhow!("Failed to serialize config: {}", e)))?;
+        .map_err(|e| SantaError::Config(format!("Failed to serialize config: {}", e)))?;
     std::fs::write(config_path, ccl_content).map_err(SantaError::Io)?;
 
     println!("\nConfiguration updated: {}", config_path.display());
@@ -538,7 +539,8 @@ pub async fn remove_command(
     uninstall: bool,
 ) -> Result<()> {
     // Load current config
-    let mut config = SantaConfig::load_from(config_path)?;
+    let mut config =
+        SantaConfig::load_from(config_path).map_err(|e| SantaError::Config(e.to_string()))?;
 
     // If uninstall requested, handle that first
     if uninstall {
@@ -558,7 +560,7 @@ pub async fn remove_command(
 
     // Save config back to CCL format
     let ccl_content = sickle::to_string(&config)
-        .map_err(|e| SantaError::Config(anyhow::anyhow!("Failed to serialize config: {}", e)))?;
+        .map_err(|e| SantaError::Config(format!("Failed to serialize config: {}", e)))?;
     std::fs::write(config_path, ccl_content).map_err(SantaError::Io)?;
 
     println!("\nRemoved {} package(s) from configuration", removed_count);
