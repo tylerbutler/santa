@@ -36,6 +36,11 @@ serde-serialize = ["printer", "dep:serde", "dep:serde_derive"]
 # Both serde serialization and deserialization
 serde = ["serde-deserialize", "serde-serialize"]
 
+# Comment/format-preserving document edit API (load_document/deserialize/reserialize).
+# Requires both serde directions: deserialize for the typed view, serialize for the
+# canonical form that is merged back into the source document.
+document = ["serde"]
+
 # String interning for memory efficiency with large configs
 intern = ["dep:string-interner"]
 
@@ -45,8 +50,7 @@ intern = ["dep:string-interner"]
 reference_compliant = []
 
 # All features enabled
-full = ["serde", "printer", "intern"]
-
+full = ["serde", "printer", "intern", "document"]
 # Unstable APIs - exposes internal functions for testing/experimentation
 # These APIs may change without notice
 unstable = []
