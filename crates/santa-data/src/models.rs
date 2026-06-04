@@ -102,7 +102,7 @@ impl std::fmt::Display for Platform {
 }
 
 /// Package-specific configuration data
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[non_exhaustive]
 pub struct PackageData {
     pub name: Option<String>,
@@ -120,6 +120,23 @@ impl PackageData {
             after: None,
             pre: None,
             post: None,
+        }
+    }
+
+    /// Create a `PackageData` with the given name override and lifecycle hooks.
+    pub fn with_hooks(
+        name: Option<String>,
+        before: Option<String>,
+        after: Option<String>,
+        pre: Option<String>,
+        post: Option<String>,
+    ) -> Self {
+        PackageData {
+            name,
+            before,
+            after,
+            pre,
+            post,
         }
     }
 }

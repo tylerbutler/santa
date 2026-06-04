@@ -118,13 +118,13 @@ pub fn convert_to_legacy_packages(
                         Some(PackageData::new(name))
                     }
                     super::schemas::SourceSpecificConfig::Complex(config) => {
-                        let mut data = PackageData::default();
-                        data.name = config.name.clone();
-                        data.before = config.pre.clone();
-                        data.after = config.post.clone();
-                        data.pre = config.prefix.clone();
-                        data.post = config.install_suffix.clone();
-                        Some(data)
+                        Some(PackageData::with_hooks(
+                            config.name.clone(),
+                            config.pre.clone(),
+                            config.post.clone(),
+                            config.prefix.clone(),
+                            config.install_suffix.clone(),
+                        ))
                     }
                 }
             } else {

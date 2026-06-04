@@ -856,9 +856,16 @@ git =
 
         // Package with partial source data
         let mut git_sources = HashMap::new();
-        let mut git_data = PackageData::default();
-        git_data.before = Some("echo before".to_string());
-        git_sources.insert(KnownSources::Brew, Some(git_data));
+        git_sources.insert(
+            KnownSources::Brew,
+            Some(PackageData::with_hooks(
+                None,
+                Some("echo before".to_string()),
+                None,
+                None,
+                None,
+            )),
+        );
         git_sources.insert(KnownSources::Apt, None); // Source exists but no data
         packages.insert("git".to_string(), git_sources);
 

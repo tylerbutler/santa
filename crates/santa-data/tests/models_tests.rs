@@ -362,11 +362,13 @@ fn test_package_data_new() {
 
 #[test]
 fn test_package_data_with_hooks() {
-    let mut data = PackageData::new("bat");
-    data.before = Some("echo before".to_string());
-    data.after = Some("echo after".to_string());
-    data.pre = Some("pre-install".to_string());
-    data.post = Some("post-install".to_string());
+    let data = PackageData::with_hooks(
+        Some("bat".to_string()),
+        Some("echo before".to_string()),
+        Some("echo after".to_string()),
+        Some("pre-install".to_string()),
+        Some("post-install".to_string()),
+    );
 
     assert_eq!(data.before, Some("echo before".to_string()));
     assert_eq!(data.after, Some("echo after".to_string()));
