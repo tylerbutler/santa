@@ -15,7 +15,7 @@ jobs:
     steps:
       - name: Generate app token
         id: app-token
-        uses: actions/create-github-app-token@fee1f7d63c2ff003460e3d139729b119787bc349 # ratchet:actions/create-github-app-token@v2
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # ratchet:actions/create-github-app-token@v3.2.0
         with:
           app-id: ${{ secrets.RELEASE_APP_ID }}
           private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
@@ -26,7 +26,7 @@ jobs:
           token: ${{ steps.app-token.outputs.token }}
 
       - name: Install changie
-        uses: miniscruff/changie-action@5036dffa79ffc007110dc7f75eca7ef72780e147 # ratchet:miniscruff/changie-action@v2.1.0
+        uses: miniscruff/changie-action@11bcad388e7973948cbcecb10863baf024d5f607 # ratchet:miniscruff/changie-action@v3.0.0
 
       - name: Check for unreleased changes
         id: check
@@ -54,6 +54,14 @@ jobs:
       - name: Merge changelogs
         if: steps.check.outputs.skipped != 'true'
         run: changie merge
+
+      - name: Set up Rust
+        if: steps.check.outputs.skipped != 'true'
+        uses: ./.github/actions/setup-rust
+
+      - name: Sync Cargo.lock with bumped versions
+        if: steps.check.outputs.skipped != 'true'
+        run: cargo update --workspace
 
       - name: Resolve versions
         if: steps.check.outputs.skipped != 'true'
@@ -97,7 +105,7 @@ jobs:
         uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # ratchet:peter-evans/create-pull-request@v8
         with:
           token: ${{ steps.app-token.outputs.token }}
-          title: "Release ${{ steps.versions.outputs.versions }}"
+          title: "build: release ${{ steps.versions.outputs.versions }}"
           branch: release/next
           commit-message: "chore(release): ${{ steps.versions.outputs.versions }}"
           labels: release

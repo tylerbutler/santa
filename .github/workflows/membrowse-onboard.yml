@@ -21,7 +21,7 @@ jobs:
       - uses: ./.github/actions/setup-rust
 
       - name: Run MemBrowse Onboard Action
-        uses: membrowse/membrowse-action/onboard-action@145d7bb4f1532ccfed27e1a2565debd22ab4b357
+        uses: membrowse/membrowse-action/onboard-action@be80736b0a0439168e2a56160c47e87f0f629da5
         with:
           target_name: santa-linux-amd64
           num_commits: ${{ github.event.inputs.num_commits }}
