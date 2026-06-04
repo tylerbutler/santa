@@ -67,7 +67,11 @@ pub fn print(entries: &[Entry]) -> String {
     entries
         .iter()
         .map(|entry| {
-            if entry.key.is_empty() {
+            if entry.key == "/" {
+                // Comment line: the parser represents `/= text` as key `/` with
+                // the text as the value. Round-trip it as `/= text` (issue #205).
+                format!("/= {}", entry.value)
+            } else if entry.key.is_empty() {
                 // Empty keys use bare list syntax: `= value` (no leading space)
                 format!("= {}", entry.value)
             } else {
@@ -196,8 +200,29 @@ impl CclPrinter {
         indent: usize,
         output: &mut String,
     ) {
+        // Handle explicit blank lines: the NUL sentinel key (see issue #92).
+        if key == crate::model::BLANK_LINE_KEY {
+            output.push('\n');
+            return;
+        }
+
         // Handle blank lines: empty key with empty value
         if key.is_empty() && value.is_empty() {
+            output.push('\n');
+            return;
+        }
+
+        // Handle comment lines parsed from CCL: the parser represents `/= text`
+        // as key `/` with the comment text as a string value. Emit it back as
+        // `/= text` (no space after the slash) to round-trip faithfully (issue
+        // #205).
+        if key == "/" {
+            output.push_str(indent_str);
+            output.push_str("/=");
+            if let Some(text) = value.keys().next() {
+                output.push(' ');
+                output.push_str(text);
+            }
             output.push('\n');
             return;
         }

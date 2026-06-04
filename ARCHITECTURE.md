@@ -117,7 +117,7 @@ User overrides → Source files → Generated index → Defaults
 - Standardized on `tokio` runtime with multi-threaded executor
 - All subprocess execution via `tokio::process::Command`
 - Shared state uses `tokio::sync::RwLock`
-- Professional caching via `moka` with TTL and LRU eviction
+- Caching via `moka` with TTL and LRU eviction
 
 ### Error Handling
 

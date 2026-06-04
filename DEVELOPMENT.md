@@ -354,11 +354,10 @@ Santa uses [release-plz](https://release-plz.dev/) for automated releases:
 
 ## Performance
 
-Santa is designed for high performance:
-- **67-90% faster** than sequential package operations
-- **Async I/O** with tokio for non-blocking operations
-- **Professional caching** via moka with TTL and LRU eviction
-- **Memory efficient** with zero-copy string handling
+Santa runs package-manager queries concurrently:
+- **Concurrent operations** across package managers, rather than sequentially
+- **Async I/O** with tokio for non-blocking subprocess execution
+- **Caching** via moka with TTL and LRU eviction
 
 Run benchmarks:
 ```bash

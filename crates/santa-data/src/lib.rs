@@ -4,7 +4,7 @@
 //! - Core data models (Platform, KnownSources, PackageData, etc.)
 //! - Configuration loading and management (SantaConfig, ConfigLoader)
 //! - CCL schema definitions (PackageDefinition, SourceDefinition, etc.)
-//! - CCL parser that handles both simple and complex formats
+//! - CCL parsing that handles both simple and complex formats
 
 use anyhow::{Context, Result};
 use serde::de::DeserializeOwned;
@@ -13,7 +13,6 @@ use std::collections::HashMap;
 
 pub mod config;
 pub mod models;
-mod parser;
 pub mod schemas;
 
 pub use config::{
@@ -24,7 +23,6 @@ pub use models::{
     Arch, CommandName, Distro, KnownSources, OS, PackageData, PackageDataList, PackageName,
     Platform, SourceName,
 };
-pub use parser::{parse_ccl, CclValue};
 pub use schemas::{
     ComplexPackageDefinition, ConfigDefinition, ConfigSettings, PackageDefinition,
     PlatformOverride, SourceConfig, SourceDefinition, SourceSpecificConfig, SourcesDefinition,
