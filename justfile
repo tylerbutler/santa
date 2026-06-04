@@ -319,11 +319,12 @@ release:
     cargo build --release
 
 # Verify packages can be packaged (validates metadata and structure)
-# Uses --no-verify because path deps may not be published to crates.io yet
+# --no-verify because path deps may not be published to crates.io yet.
+# --workspace co-packages the interdependent crates so bumped, not-yet-published
+# versions resolve from the workspace instead of crates.io; sickle-cli is excluded
+# because it is publish = false and depends on sickle without a version.
 verify-package:
-    cargo package --no-verify -p sickle
-    cargo package --no-verify -p santa-data
-    cargo package --no-verify -p santa
+    cargo package --no-verify --workspace --exclude sickle-cli
 
 # Development Workflow Commands
 # ============================
