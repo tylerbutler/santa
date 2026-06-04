@@ -1,8 +1,10 @@
 # Santa Data
 
-**Data models, schemas, and CCL configuration parser for the Santa package manager.**
+Data models, schemas, and CCL configuration parser for the Santa package manager.
 
-This library provides the core data structures and configuration parsing functionality used by Santa. It's designed to be reusable for other tools that need to work with Santa's configuration format or data models.
+This library provides the data structures and configuration parsing used by
+Santa. It can be reused by other tools that need to work with Santa's
+configuration format or data models.
 
 [![crates.io](https://img.shields.io/crates/v/santa-data.svg)](https://crates.io/crates/santa-data)
 [![Documentation](https://docs.rs/santa-data/badge.svg)](https://docs.rs/santa-data)
@@ -10,11 +12,11 @@ This library provides the core data structures and configuration parsing functio
 
 ## Features
 
-- **CCL Configuration Parser** - Parse Santa's CCL-based configuration files
-- **Data Models** - Strongly-typed models for packages, sources, and configuration
-- **Serde Integration** - Full serialization/deserialization support
-- **Validation** - Built-in validation for configuration data
-- **Builder Patterns** - Ergonomic builders for constructing data models
+- **CCL configuration parser** - Parse Santa's CCL-based configuration files
+- **Data models** - Typed models for packages, sources, and configuration
+- **Serde integration** - Serialization and deserialization support
+- **Validation** - Validation for configuration data
+- **Builders** - Builders for constructing data models
 
 ## Installation
 
@@ -135,10 +137,9 @@ cache =
 
 Santa Data uses the [sickle](https://crates.io/crates/sickle) crate for CCL parsing, which provides:
 
-- Pure Rust CCL parser
+- A pure Rust CCL parser
 - Serde integration
-- Memory-efficient parsing
-- Comprehensive error reporting
+- Error reporting with location information
 
 ## API Documentation
 
