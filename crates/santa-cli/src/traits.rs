@@ -246,6 +246,7 @@ pub trait Cacheable<K, V> {
 
 /// Cache performance statistics
 #[derive(Debug, Clone, Copy)]
+#[non_exhaustive]
 pub struct CacheStats {
     pub entries: usize,
     pub hits: u64,
@@ -253,6 +254,15 @@ pub struct CacheStats {
 }
 
 impl CacheStats {
+    /// Create a new `CacheStats` with the given entry, hit, and miss counts.
+    pub fn new(entries: usize, hits: u64, misses: u64) -> Self {
+        Self {
+            entries,
+            hits,
+            misses,
+        }
+    }
+
     pub fn hit_rate(&self) -> f64 {
         if self.hits + self.misses == 0 {
             0.0

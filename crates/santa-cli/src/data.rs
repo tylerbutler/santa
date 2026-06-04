@@ -576,46 +576,31 @@ mod tests {
         };
 
         // Test with empty config (should return all sources)
-        let empty_config = SantaConfig {
-            sources: vec![],
-            packages: vec![],
-            custom_sources: None,
-            _groups: None,
-            log_level: 0,
-        };
+        let empty_config = SantaConfig::new(vec![], vec![]);
 
         let filtered_empty = data.sources(&empty_config);
         assert_eq!(filtered_empty.len(), 2);
 
         // Test with config containing custom sources (should extend with custom sources)
-        let config_with_custom_sources = SantaConfig {
-            sources: vec![KnownSources::Cargo],
-            packages: vec!["test-package".to_string()],
-            custom_sources: Some(vec![crate::configuration::ConfigPackageSource {
-                name: KnownSources::Cargo,
-                emoji: "📦".to_string(),
-                shell_command: "cargo".to_string(),
-                install_command: "cargo install".to_string(),
-                check_command: "cargo search".to_string(),
-                prepend_to_package_name: None,
-                overrides: None,
-            }]),
-            _groups: None,
-            log_level: 0,
-        };
+        let mut config_with_custom_sources =
+            SantaConfig::new(vec![KnownSources::Cargo], vec!["test-package".to_string()]);
+        config_with_custom_sources.custom_sources =
+            Some(vec![crate::configuration::ConfigPackageSource::new(
+                KnownSources::Cargo,
+                "📦".to_string(),
+                "cargo".to_string(),
+                "cargo install".to_string(),
+                "cargo search".to_string(),
+                None,
+                None,
+            )]);
 
         let filtered_with_custom = data.sources(&config_with_custom_sources);
         // Should be 2 original + 1 custom = 3
         assert_eq!(filtered_with_custom.len(), 3);
 
         // Test with no custom sources (should return original sources only)
-        let config_no_custom = SantaConfig {
-            sources: vec![],
-            packages: vec![],
-            custom_sources: None,
-            _groups: None,
-            log_level: 0,
-        };
+        let config_no_custom = SantaConfig::new(vec![], vec![]);
 
         let filtered_no_custom = data.sources(&config_no_custom);
         assert_eq!(filtered_no_custom.len(), 2);
@@ -845,13 +830,8 @@ git =
         };
 
         // Test with empty custom_sources vector (not None)
-        let mut config = SantaConfig {
-            sources: vec![],
-            packages: vec![],
-            custom_sources: Some(vec![]),
-            _groups: None,
-            log_level: 0,
-        };
+        let mut config = SantaConfig::new(vec![], vec![]);
+        config.custom_sources = Some(vec![]);
 
         let filtered = data.sources(&config);
         assert_eq!(
@@ -876,16 +856,9 @@ git =
 
         // Package with partial source data
         let mut git_sources = HashMap::new();
-        git_sources.insert(
-            KnownSources::Brew,
-            Some(PackageData {
-                name: None, // No name override
-                before: Some("echo before".to_string()),
-                after: None,
-                pre: None,
-                post: None,
-            }),
-        );
+        let mut git_data = PackageData::default();
+        git_data.before = Some("echo before".to_string());
+        git_sources.insert(KnownSources::Brew, Some(git_data));
         git_sources.insert(KnownSources::Apt, None); // Source exists but no data
         packages.insert("git".to_string(), git_sources);
 
@@ -893,13 +866,7 @@ git =
         let mut vim_sources = HashMap::new();
         vim_sources.insert(
             KnownSources::Brew,
-            Some(PackageData {
-                name: Some("vim-override".to_string()),
-                before: None,
-                after: None,
-                pre: None,
-                post: None,
-            }),
+            Some(PackageData::new("vim-override")),
         );
         packages.insert("vim".to_string(), vim_sources);
 

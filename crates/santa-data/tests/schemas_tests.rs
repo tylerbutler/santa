@@ -151,13 +151,13 @@ fn test_source_specific_config_name() {
 
 #[test]
 fn test_source_specific_config_complex() {
-    let config = SourceSpecificConfig::Complex(SourceConfig {
-        name: Some("custom".to_string()),
-        pre: Some("pre-cmd".to_string()),
-        post: Some("post-cmd".to_string()),
-        prefix: Some("prefix-".to_string()),
-        install_suffix: Some("--flag".to_string()),
-    });
+    let config = SourceSpecificConfig::Complex(SourceConfig::new(
+        Some("custom".to_string()),
+        Some("pre-cmd".to_string()),
+        Some("post-cmd".to_string()),
+        Some("prefix-".to_string()),
+        Some("--flag".to_string()),
+    ));
 
     match config {
         SourceSpecificConfig::Complex(c) => {
@@ -174,13 +174,13 @@ fn test_source_specific_config_complex() {
 // SourceConfig tests
 #[test]
 fn test_source_config_full() {
-    let config = SourceConfig {
-        name: Some("override".to_string()),
-        pre: Some("echo pre".to_string()),
-        post: Some("echo post".to_string()),
-        prefix: Some("pkg-".to_string()),
-        install_suffix: Some("--yes".to_string()),
-    };
+    let config = SourceConfig::new(
+        Some("override".to_string()),
+        Some("echo pre".to_string()),
+        Some("echo post".to_string()),
+        Some("pkg-".to_string()),
+        Some("--yes".to_string()),
+    );
 
     assert_eq!(config.name, Some("override".to_string()));
     assert_eq!(config.pre, Some("echo pre".to_string()));
@@ -192,13 +192,13 @@ fn test_source_config_full() {
 // SourceDefinition tests
 #[test]
 fn test_source_definition_basic() {
-    let def = SourceDefinition {
-        emoji: "🍺".to_string(),
-        install: "brew install {package}".to_string(),
-        check: "brew list".to_string(),
-        prefix: None,
-        overrides: None,
-    };
+    let def = SourceDefinition::new(
+        "🍺".to_string(),
+        "brew install {package}".to_string(),
+        "brew list".to_string(),
+        None,
+        None,
+    );
 
     assert_eq!(def.emoji, "🍺");
     assert!(def.install.contains("{package}"));
@@ -206,26 +206,26 @@ fn test_source_definition_basic() {
 
 #[test]
 fn test_source_definition_with_prefix() {
-    let def = SourceDefinition {
-        emoji: "📦".to_string(),
-        install: "scoop install {package}".to_string(),
-        check: "scoop list".to_string(),
-        prefix: Some("bucket/".to_string()),
-        overrides: None,
-    };
+    let def = SourceDefinition::new(
+        "📦".to_string(),
+        "scoop install {package}".to_string(),
+        "scoop list".to_string(),
+        Some("bucket/".to_string()),
+        None,
+    );
 
     assert_eq!(def.prefix, Some("bucket/".to_string()));
 }
 
 #[test]
 fn test_source_definition_get_install_command_no_override() {
-    let def = SourceDefinition {
-        emoji: "🍺".to_string(),
-        install: "brew install {package}".to_string(),
-        check: "brew list".to_string(),
-        prefix: None,
-        overrides: None,
-    };
+    let def = SourceDefinition::new(
+        "🍺".to_string(),
+        "brew install {package}".to_string(),
+        "brew list".to_string(),
+        None,
+        None,
+    );
 
     let platform = Platform::new(OS::Macos, Arch::Aarch64, None);
 
@@ -237,19 +237,16 @@ fn test_source_definition_get_install_command_with_macos_override() {
     let mut overrides = HashMap::new();
     overrides.insert(
         "macos".to_string(),
-        PlatformOverride {
-            install: Some("brew install --cask {package}".to_string()),
-            check: None,
-        },
+        PlatformOverride::new(Some("brew install --cask {package}".to_string()), None),
     );
 
-    let def = SourceDefinition {
-        emoji: "🍺".to_string(),
-        install: "brew install {package}".to_string(),
-        check: "brew list".to_string(),
-        prefix: None,
-        overrides: Some(overrides),
-    };
+    let def = SourceDefinition::new(
+        "🍺".to_string(),
+        "brew install {package}".to_string(),
+        "brew list".to_string(),
+        None,
+        Some(overrides),
+    );
 
     let platform = Platform::new(OS::Macos, Arch::Aarch64, None);
 
@@ -264,19 +261,16 @@ fn test_source_definition_get_install_command_with_linux_override() {
     let mut overrides = HashMap::new();
     overrides.insert(
         "linux".to_string(),
-        PlatformOverride {
-            install: Some("sudo apt install {package}".to_string()),
-            check: None,
-        },
+        PlatformOverride::new(Some("sudo apt install {package}".to_string()), None),
     );
 
-    let def = SourceDefinition {
-        emoji: "📦".to_string(),
-        install: "apt install {package}".to_string(),
-        check: "apt list --installed".to_string(),
-        prefix: None,
-        overrides: Some(overrides),
-    };
+    let def = SourceDefinition::new(
+        "📦".to_string(),
+        "apt install {package}".to_string(),
+        "apt list --installed".to_string(),
+        None,
+        Some(overrides),
+    );
 
     let platform = Platform::new(OS::Linux, Arch::X64, Some(Distro::Ubuntu));
 
@@ -291,19 +285,16 @@ fn test_source_definition_get_install_command_with_windows_override() {
     let mut overrides = HashMap::new();
     overrides.insert(
         "windows".to_string(),
-        PlatformOverride {
-            install: Some("scoop install {package}".to_string()),
-            check: None,
-        },
+        PlatformOverride::new(Some("scoop install {package}".to_string()), None),
     );
 
-    let def = SourceDefinition {
-        emoji: "🪣".to_string(),
-        install: "install {package}".to_string(),
-        check: "list".to_string(),
-        prefix: None,
-        overrides: Some(overrides),
-    };
+    let def = SourceDefinition::new(
+        "🪣".to_string(),
+        "install {package}".to_string(),
+        "list".to_string(),
+        None,
+        Some(overrides),
+    );
 
     let platform = Platform::new(OS::Windows, Arch::X64, None);
 
@@ -315,13 +306,13 @@ fn test_source_definition_get_install_command_with_windows_override() {
 
 #[test]
 fn test_source_definition_get_check_command_no_override() {
-    let def = SourceDefinition {
-        emoji: "🍺".to_string(),
-        install: "brew install {package}".to_string(),
-        check: "brew list".to_string(),
-        prefix: None,
-        overrides: None,
-    };
+    let def = SourceDefinition::new(
+        "🍺".to_string(),
+        "brew install {package}".to_string(),
+        "brew list".to_string(),
+        None,
+        None,
+    );
 
     let platform = Platform::new(OS::Macos, Arch::Aarch64, None);
 
@@ -333,19 +324,16 @@ fn test_source_definition_get_check_command_with_override() {
     let mut overrides = HashMap::new();
     overrides.insert(
         "macos".to_string(),
-        PlatformOverride {
-            install: None,
-            check: Some("brew list --cask".to_string()),
-        },
+        PlatformOverride::new(None, Some("brew list --cask".to_string())),
     );
 
-    let def = SourceDefinition {
-        emoji: "🍺".to_string(),
-        install: "brew install {package}".to_string(),
-        check: "brew list".to_string(),
-        prefix: None,
-        overrides: Some(overrides),
-    };
+    let def = SourceDefinition::new(
+        "🍺".to_string(),
+        "brew install {package}".to_string(),
+        "brew list".to_string(),
+        None,
+        Some(overrides),
+    );
 
     let platform = Platform::new(OS::Macos, Arch::Aarch64, None);
 
@@ -355,11 +343,11 @@ fn test_source_definition_get_check_command_with_override() {
 // ConfigDefinition tests
 #[test]
 fn test_config_definition_basic() {
-    let config = ConfigDefinition {
-        sources: vec!["brew".to_string(), "scoop".to_string()],
-        packages: vec!["bat".to_string(), "ripgrep".to_string()],
-        settings: None,
-    };
+    let config = ConfigDefinition::new(
+        vec!["brew".to_string(), "scoop".to_string()],
+        vec!["bat".to_string(), "ripgrep".to_string()],
+        None,
+    );
 
     assert_eq!(config.sources.len(), 2);
     assert_eq!(config.packages.len(), 2);
@@ -368,17 +356,13 @@ fn test_config_definition_basic() {
 
 #[test]
 fn test_config_definition_with_settings() {
-    let settings = ConfigSettings {
-        auto_update: true,
-        parallel_installs: 5,
-        confirm_before_install: false,
-    };
+    let settings = ConfigSettings::new(true, 5, false);
 
-    let config = ConfigDefinition {
-        sources: vec!["brew".to_string()],
-        packages: vec!["bat".to_string()],
-        settings: Some(settings),
-    };
+    let config = ConfigDefinition::new(
+        vec!["brew".to_string()],
+        vec!["bat".to_string()],
+        Some(settings),
+    );
 
     let s = config.settings.unwrap();
     assert!(s.auto_update);
@@ -389,11 +373,7 @@ fn test_config_definition_with_settings() {
 // ConfigSettings tests
 #[test]
 fn test_config_settings_defaults() {
-    let settings = ConfigSettings {
-        auto_update: false,
-        parallel_installs: 3,
-        confirm_before_install: true,
-    };
+    let settings = ConfigSettings::new(false, 3, true);
 
     assert!(!settings.auto_update);
     assert_eq!(settings.parallel_installs, 3);

@@ -212,12 +212,7 @@ mod status_command_tests {
         empty_cache: PackageCache,
     ) {
         // Test with no enabled sources
-        let mut config = SantaConfig::new(vec![], // No sources enabled
-            packages: vec![],
-            custom_sources: None,
-            _groups: None,
-            log_level: 0,
-        };
+        let mut config = SantaConfig::new(vec![], vec![]);
 
         let result = status_command(
             &mut config,
@@ -266,8 +261,7 @@ mod status_command_tests {
         empty_cache: PackageCache,
     ) {
         // Create config with specific enabled sources
-        let mut config = SantaConfig {
-            sources: vec![KnownSources::Brew], vec!["git".to_string()]);
+        let mut config = SantaConfig::new(vec![KnownSources::Brew], vec!["git".to_string()]);
 
         let result = status_command(
             &mut config,
@@ -553,13 +547,7 @@ mod install_command_tests {
         empty_cache: PackageCache,
     ) {
         // Test with no enabled sources
-        let mut config = SantaConfig {
-            sources: vec![], // No sources enabled
-            packages: vec![],
-            custom_sources: None,
-            _groups: None,
-            log_level: 0,
-        };
+        let mut config = SantaConfig::new(vec![], vec![]);
 
         let temp_dir = std::env::temp_dir();
         let result = install_command(
@@ -585,13 +573,7 @@ mod install_command_tests {
     ) {
         // Test that only enabled sources are processed
         // Use empty packages to avoid terminal interaction
-        let mut config = SantaConfig {
-            sources: vec![KnownSources::Brew],
-            packages: vec![], // Empty packages to avoid installation
-            custom_sources: None,
-            _groups: None,
-            log_level: 0,
-        };
+        let mut config = SantaConfig::new(vec![KnownSources::Brew], vec![]);
 
         let temp_dir = std::env::temp_dir();
         let result = install_command(
@@ -676,13 +658,7 @@ mod install_command_tests {
         empty_cache: PackageCache,
     ) {
         // Test with no packages configured
-        let mut config = SantaConfig {
-            sources: vec![KnownSources::Brew],
-            packages: vec![], // No packages
-            custom_sources: None,
-            _groups: None,
-            log_level: 0,
-        };
+        let mut config = SantaConfig::new(vec![KnownSources::Brew], vec![]);
 
         let temp_dir = std::env::temp_dir();
         let result = install_command(

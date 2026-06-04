@@ -114,20 +114,18 @@ pub fn convert_to_legacy_packages(
                 package_def.get_source_config(source_name)
             {
                 match source_config {
-                    super::schemas::SourceSpecificConfig::Name(name) => Some(PackageData {
-                        name: Some(name.clone()),
-                        before: None,
-                        after: None,
-                        pre: None,
-                        post: None,
-                    }),
-                    super::schemas::SourceSpecificConfig::Complex(config) => Some(PackageData {
-                        name: config.name.clone(),
-                        before: config.pre.clone(),
-                        after: config.post.clone(),
-                        pre: config.prefix.clone(),
-                        post: config.install_suffix.clone(),
-                    }),
+                    super::schemas::SourceSpecificConfig::Name(name) => {
+                        Some(PackageData::new(name))
+                    }
+                    super::schemas::SourceSpecificConfig::Complex(config) => {
+                        let mut data = PackageData::default();
+                        data.name = config.name.clone();
+                        data.before = config.pre.clone();
+                        data.after = config.post.clone();
+                        data.pre = config.prefix.clone();
+                        data.post = config.install_suffix.clone();
+                        Some(data)
+                    }
                 }
             } else {
                 // No specific config, package uses same name
@@ -161,11 +159,7 @@ fn convert_platform_override(
     };
 
     SourceOverrideBuilder::default()
-        .platform(Platform {
-            os,
-            arch: Arch::X64, // Default architecture
-            distro: None,
-        })
+        .platform(Platform::new(os, Arch::X64, None))
         .shell_command(None::<String>)
         .install_command(platform_override.install.clone())
         .check_command(platform_override.check.clone())

@@ -64,10 +64,18 @@ pub enum Distro {
 
 #[derive(Serialize, Deserialize, Debug, Clone, Eq, PartialEq, Hash)]
 #[serde(rename_all = "camelCase")]
+#[non_exhaustive]
 pub struct Platform {
     pub os: OS,
     pub arch: Arch,
     pub distro: Option<Distro>,
+}
+
+impl Platform {
+    /// Create a new `Platform` for the given OS, architecture, and optional distro.
+    pub fn new(os: OS, arch: Arch, distro: Option<Distro>) -> Self {
+        Platform { os, arch, distro }
+    }
 }
 
 impl Default for Platform {
@@ -94,7 +102,8 @@ impl std::fmt::Display for Platform {
 }
 
 /// Package-specific configuration data
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
+#[non_exhaustive]
 pub struct PackageData {
     pub name: Option<String>,
     pub before: Option<String>,
