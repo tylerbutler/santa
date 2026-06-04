@@ -343,7 +343,10 @@ mod tests {
     use std::collections::HashMap;
 
     fn create_test_config() -> SantaConfig {
-        SantaConfig::new(vec![KnownSources::Brew, KnownSources::Cargo], vec!["git".to_string(), "rust".to_string()])
+        SantaConfig::new(
+            vec![KnownSources::Brew, KnownSources::Cargo],
+            vec!["git".to_string(), "rust".to_string()],
+        )
     }
 
     fn create_test_data() -> SantaData {

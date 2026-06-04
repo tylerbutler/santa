@@ -286,7 +286,10 @@ mod status_command_tests {
         populated_cache: PackageCache,
     ) {
         // Test with installed=true flag - should show only installed packages
-        let mut config = SantaConfig::new(vec![KnownSources::Brew], vec!["git".to_string(), "curl".to_string(), "vim".to_string()]);
+        let mut config = SantaConfig::new(
+            vec![KnownSources::Brew],
+            vec!["git".to_string(), "curl".to_string(), "vim".to_string()],
+        );
 
         let result = status_command(
             &mut config,
@@ -311,7 +314,10 @@ mod status_command_tests {
         populated_cache: PackageCache,
     ) {
         // Test with missing=true flag - should show only missing packages
-        let mut config = SantaConfig::new(vec![KnownSources::Brew], vec!["git".to_string(), "curl".to_string(), "vim".to_string()]);
+        let mut config = SantaConfig::new(
+            vec![KnownSources::Brew],
+            vec!["git".to_string(), "curl".to_string(), "vim".to_string()],
+        );
 
         let result = status_command(
             &mut config,

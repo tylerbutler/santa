@@ -871,10 +871,7 @@ git =
 
         // Package with name override
         let mut vim_sources = HashMap::new();
-        vim_sources.insert(
-            KnownSources::Brew,
-            Some(PackageData::new("vim-override")),
-        );
+        vim_sources.insert(KnownSources::Brew, Some(PackageData::new("vim-override")));
         packages.insert("vim".to_string(), vim_sources);
 
         let data = SantaData {

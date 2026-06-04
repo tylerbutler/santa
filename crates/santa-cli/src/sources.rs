@@ -138,7 +138,7 @@ impl PackageCache {
 }
 
 /// Cache statistics for monitoring
-#[non_exhaustive]  
+#[non_exhaustive]
 #[derive(Debug, Clone)]
 pub struct CacheStats {
     pub entries: u64,

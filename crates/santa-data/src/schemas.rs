@@ -235,7 +235,11 @@ impl PlatformOverride {
 
 impl ConfigDefinition {
     /// Create a new `ConfigDefinition` with the given sources, packages, and settings.
-    pub fn new(sources: Vec<String>, packages: Vec<String>, settings: Option<ConfigSettings>) -> Self {
+    pub fn new(
+        sources: Vec<String>,
+        packages: Vec<String>,
+        settings: Option<ConfigSettings>,
+    ) -> Self {
         Self {
             sources,
             packages,

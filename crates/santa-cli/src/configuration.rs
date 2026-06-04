@@ -453,7 +453,10 @@ packages =
             sources: vec![],
         };
 
-        let config = SantaConfig::new(vec![KnownSources::Brew], vec!["nonexistent-package".to_string()]);
+        let config = SantaConfig::new(
+            vec![KnownSources::Brew],
+            vec!["nonexistent-package".to_string()],
+        );
 
         let unknown = config.unknown_packages(&data);
         assert_eq!(unknown.len(), 1);
@@ -513,11 +516,14 @@ packages =
             sources: vec![],
         };
 
-        let config = SantaConfig::new(vec![KnownSources::Brew], vec![
+        let config = SantaConfig::new(
+            vec![KnownSources::Brew],
+            vec![
                 "git".to_string(),
                 "ripgrep".to_string(),
                 "unknown-pkg".to_string(),
-            ]);
+            ],
+        );
 
         let unknown = config.unknown_packages(&data);
         assert_eq!(unknown.len(), 2);

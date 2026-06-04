@@ -110,27 +110,26 @@ pub fn convert_to_legacy_packages(
             };
 
             // Create PackageData based on source configuration
-            let package_data = if let Some(source_config) =
-                package_def.get_source_config(source_name)
-            {
-                match source_config {
-                    super::schemas::SourceSpecificConfig::Name(name) => {
-                        Some(PackageData::new(name))
+            let package_data =
+                if let Some(source_config) = package_def.get_source_config(source_name) {
+                    match source_config {
+                        super::schemas::SourceSpecificConfig::Name(name) => {
+                            Some(PackageData::new(name))
+                        }
+                        super::schemas::SourceSpecificConfig::Complex(config) => {
+                            Some(PackageData::with_hooks(
+                                config.name.clone(),
+                                config.pre.clone(),
+                                config.post.clone(),
+                                config.prefix.clone(),
+                                config.install_suffix.clone(),
+                            ))
+                        }
                     }
-                    super::schemas::SourceSpecificConfig::Complex(config) => {
-                        Some(PackageData::with_hooks(
-                            config.name.clone(),
-                            config.pre.clone(),
-                            config.post.clone(),
-                            config.prefix.clone(),
-                            config.install_suffix.clone(),
-                        ))
-                    }
-                }
-            } else {
-                // No specific config, package uses same name
-                None
-            };
+                } else {
+                    // No specific config, package uses same name
+                    None
+                };
 
             source_map.insert(known_source, package_data);
         }
