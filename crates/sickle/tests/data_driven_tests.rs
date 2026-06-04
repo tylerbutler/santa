@@ -1040,14 +1040,15 @@ fn test_all_ccl_suites_comprehensive() {
                         };
 
                         // Use get_list or get_list_coerced based on test behaviors
-                        let get_list_result = if test
+                        let opts = if test
                             .behaviors
                             .contains(&"list_coercion_enabled".to_string())
                         {
-                            parent_model.get_list_coerced(key)
+                            sickle::model::ListOptions::new().with_coerce()
                         } else {
-                            parent_model.get_list(key)
+                            sickle::model::ListOptions::new()
                         };
+                        let get_list_result = parent_model.get_list_with_options(key, opts);
 
                         if test.expected.error.is_some() {
                             assert!(
@@ -1161,10 +1162,13 @@ fn test_all_ccl_suites_comprehensive() {
                             (&model, test.args.first().unwrap())
                         };
 
-                        // Use get_bool or get_bool_lenient based on test behaviors
+                        // Use get_bool or get_bool_with_options based on test behaviors
                         let bool_result = if test.behaviors.contains(&"boolean_lenient".to_string())
                         {
-                            parent_model.get_bool_lenient(key)
+                            parent_model.get_bool_with_options(
+                                key,
+                                sickle::BoolOptions::new().with_lenient(),
+                            )
                         } else {
                             parent_model.get_bool(key)
                         };

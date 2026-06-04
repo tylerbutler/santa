@@ -6,7 +6,7 @@ use std::process;
 use crate::input::InputSource;
 
 #[derive(clap::Args)]
-pub struct ValidateArgs {
+pub(crate) struct ValidateArgs {
     /// Input file (reads from stdin if omitted or -)
     pub file: Option<PathBuf>,
 
@@ -15,7 +15,7 @@ pub struct ValidateArgs {
     pub quiet: bool,
 }
 
-pub fn run(args: ValidateArgs) -> Result<()> {
+pub(crate) fn run(args: ValidateArgs) -> Result<()> {
     let source = InputSource::from_arg(args.file.as_deref());
     let input = source.read()?;
 

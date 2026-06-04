@@ -121,3 +121,24 @@ When working on this project:
 
 - The CCL format is documented at ccl.tylerbutler.com.
 - When creating PRs, be succinct in the descriptions. Complete, yes, but succinct. No need to include lots of detsil about testing or implementation choices.
+
+## Cargo Package Names
+- `santa` = crates/santa-cli (the main binary + library)
+- `santa-data` = crates/santa-data
+- `sickle` = crates/sickle (CCL parser library)
+- `sickle-cli` = crates/sickle-cli
+
+## Environment Quirks
+- mise shims shadow `~/.cargo/bin/cargo`. To run cargo directly, bypass mise:
+  `PATH="$HOME/.cargo/bin:$(echo $PATH | tr ':' '\n' | grep -v mise | tr '\n' ':')" cargo <cmd>`
+- Rust is installed via rustup, NOT mise (mise.toml has no rust entry)
+
+## Changelog (changie)
+- Fragments go in `.changes/unreleased/<project>-<description>.yaml`
+- Format: `project: <key>\nkind: <kind>\nbody: <description>`
+- Projects: `santa`, `santa-data`, `sickle`, `sickle-cli`
+- Kinds: Breaking, Added, Fixed, Performance, Changed, Reverted, Dependencies, Security
+- `commit-types.json` is the source of truth for commitlint; regenerate with `python3 scripts/generate-commitlint-config.py`
+
+## Known CI/Lint Issues
+- sickle tests have pre-existing `approx_constant` clippy errors (PI approximation in test data) — ignore these

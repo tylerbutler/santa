@@ -69,7 +69,8 @@ where
 }
 
 /// Deserialize a Model into a type T
-pub fn from_model<'de, T>(model: CclObject) -> Result<T>
+#[allow(dead_code)]
+pub(crate) fn from_model<'de, T>(model: CclObject) -> Result<T>
 where
     T: Deserialize<'de>,
 {
@@ -78,13 +79,13 @@ where
 }
 
 /// A structure that deserializes CCL into Rust values
-pub struct Deserializer {
+pub(crate) struct Deserializer {
     model: CclObject,
 }
 
 impl Deserializer {
     /// Create a new deserializer from a Model
-    pub fn from_model(model: CclObject) -> Self {
+    pub(crate) fn from_model(model: CclObject) -> Self {
         Deserializer { model }
     }
 }
@@ -554,15 +555,23 @@ impl<'de, 'a> MapAccess<'de> for MapDeserializer<'a> {
     where
         K: DeserializeSeed<'de>,
     {
-        match self.iter.next() {
-            Some((key, vec)) => {
-                // Take the first value from the Vec (serde expects single values per key)
-                self.value = vec.first();
-                // Store the full Vec for potential list deserialization
-                self.full_vec = Some(vec);
-                seed.deserialize(key.as_str().into_deserializer()).map(Some)
+        // Skip CCL trivia keys: comments are parsed as key `/` and explicit blank
+        // lines use the NUL sentinel. For struct deserialization these are unknown
+        // fields that serde would ignore anyway; for map deserialization every
+        // entry is significant, so they must be skipped here or a comment inside a
+        // map (e.g. a `BTreeMap` of named sources) would fail to deserialize.
+        loop {
+            match self.iter.next() {
+                Some((key, _)) if key == "/" || key == crate::model::BLANK_LINE_KEY => continue,
+                Some((key, vec)) => {
+                    // Take the first value from the Vec (serde expects single values per key)
+                    self.value = vec.first();
+                    // Store the full Vec for potential list deserialization
+                    self.full_vec = Some(vec);
+                    return seed.deserialize(key.as_str().into_deserializer()).map(Some);
+                }
+                None => return Ok(None),
             }
-            None => Ok(None),
         }
     }
 
@@ -598,7 +607,7 @@ impl<'de, 'a> MapAccess<'de> for MapDeserializer<'a> {
 
 /// Custom error type for deserialization
 #[derive(Debug, Clone)]
-pub struct DeError {
+pub(crate) struct DeError {
     msg: String,
 }
 
