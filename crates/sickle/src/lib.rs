@@ -615,6 +615,9 @@ mod tests {
         // A few levels of nesting should work fine
         let input = "outer =\n  inner = value";
         let result = load(input);
-        assert!(result.is_ok(), "moderate nesting should succeed: {result:?}");
+        assert!(
+            result.is_ok(),
+            "moderate nesting should succeed: {result:?}"
+        );
     }
 }
