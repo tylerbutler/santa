@@ -1,3 +1,0 @@
-project: sickle
-kind: Breaking
-body: Remove `get_bool_lenient()` in favor of `get_bool_with_options(key, BoolOptions::new().with_lenient())`

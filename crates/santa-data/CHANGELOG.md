@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## v0.4.0 - 2026-04-02
+
+
+### Breaking
+
+- Remove unimplemented `parse_ccl()` and `CclValue` from public API
+
 ## v0.3.3 - 2026-03-27
 
 
