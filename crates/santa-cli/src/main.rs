@@ -649,14 +649,7 @@ pub async fn run() -> Result<(), anyhow::Error> {
             handle_sources_command(sources_cmd, &config).await?;
         }
         Commands::Tui => {
-            santa::tui::run_tui(
-                config,
-                data,
-                execution_mode,
-                script_format,
-                output_dir,
-            )
-            .await?;
+            santa::tui::run_tui(config, data, execution_mode, script_format, output_dir).await?;
         }
     }
 

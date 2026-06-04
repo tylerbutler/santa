@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file.
 
+## v0.3.4 - 2026-04-22
+
+
+### Security
+
+- Replace minreq https-rustls feature with https-native to eliminate rustls-webpki 0.101.7 (RUSTSEC-2026-0098, RUSTSEC-2026-0099)
+
+## v0.3.3 - 2026-04-02
+
+
+### Fixed
+
+- Add `#[non_exhaustive]` to `SantaError` enum to allow adding variants without breaking changes
+
+### Changed
+
+- Use `pub(crate)` visibility for internal items to prevent accidental API surface growth
+
 ## v0.3.2 - 2026-02-05
 
 Baseline version established for changie migration.

@@ -28,7 +28,7 @@ jobs:
           tools: just
 
       - name: Install ruff
-        uses: astral-sh/ruff-action@4919ec5cf1f49eff0871dbcea0da843445b837e6 # ratchet:astral-sh/ruff-action@v3
+        uses: astral-sh/ruff-action@0ce1b0bf8b818ef400413f810f8a11cdbda0034b # ratchet:astral-sh/ruff-action@v4.0.0
         with:
           args: "--version"
 
@@ -127,7 +127,7 @@ jobs:
       - name: Check semver compatibility
         id: semver
         continue-on-error: true
-        uses: obi1kenobi/cargo-semver-checks-action@5b298c9520f7096a4683c0bd981a7ac5a7e249ae # ratchet:obi1kenobi/cargo-semver-checks-action@v2
+        uses: obi1kenobi/cargo-semver-checks-action@6b69fcf40e9b5fb17adeb57e4b6ecd020649a239 # ratchet:obi1kenobi/cargo-semver-checks-action@v2
         with:
           baseline-rev: ${{ steps.merge-base.outputs.sha }}
 
@@ -138,7 +138,7 @@ jobs:
 
       - name: Comment on PR with breaking changes
         if: steps.result.outputs.has_breaking == 'true'
-        uses: marocchino/sticky-pull-request-comment@70d2764d1a7d5d9560b100cbea0077fc8f633987 # ratchet:marocchino/sticky-pull-request-comment@v3.0.2
+        uses: marocchino/sticky-pull-request-comment@0ea0beb66eb9baf113663a64ec522f60e49231c0 # ratchet:marocchino/sticky-pull-request-comment@v3.0.4
         with:
           header: semver-check
           message: |
@@ -157,7 +157,7 @@ jobs:
 
       - name: Remove comment if no breaking changes
         if: steps.result.outputs.has_breaking == 'false'
-        uses: marocchino/sticky-pull-request-comment@70d2764d1a7d5d9560b100cbea0077fc8f633987 # ratchet:marocchino/sticky-pull-request-comment@v3.0.2
+        uses: marocchino/sticky-pull-request-comment@0ea0beb66eb9baf113663a64ec522f60e49231c0 # ratchet:marocchino/sticky-pull-request-comment@v3.0.4
         with:
           header: semver-check
           delete: true
@@ -202,7 +202,7 @@ jobs:
           echo "$SIZE" > binary-size.txt
           echo "Main binary size: $SIZE bytes"
       - name: Upload binary size artifact
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # ratchet:actions/upload-artifact@v7.0.0
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # ratchet:actions/upload-artifact@v7.0.1
         with:
           name: binary-size-main
           path: binary-size.txt
@@ -234,7 +234,7 @@ jobs:
 
       - name: Download main binary size artifact
         id: download-main-size
-        uses: dawidd6/action-download-artifact@2536c51d3d126276eb39f74d6bc9c72ac6ef30d3 # ratchet:dawidd6/action-download-artifact@v16
+        uses: dawidd6/action-download-artifact@b6e2e70617bc3265edd6dab6c906732b2f1ae151 # ratchet:dawidd6/action-download-artifact@v21
         with:
           workflow: pr.yml
           branch: main
@@ -264,7 +264,7 @@ jobs:
 
       - name: Comment on PR with size change
         if: steps.main-size.outputs.bytes != '0' && steps.diff.outputs.significant == 'true'
-        uses: marocchino/sticky-pull-request-comment@70d2764d1a7d5d9560b100cbea0077fc8f633987 # ratchet:marocchino/sticky-pull-request-comment@v3.0.2
+        uses: marocchino/sticky-pull-request-comment@0ea0beb66eb9baf113663a64ec522f60e49231c0 # ratchet:marocchino/sticky-pull-request-comment@v3.0.4
         with:
           header: binary-size
           message: |
@@ -287,7 +287,7 @@ jobs:
 
       - name: Remove size comment if not significant
         if: steps.main-size.outputs.bytes != '0' && steps.diff.outputs.significant == 'false'
-        uses: marocchino/sticky-pull-request-comment@70d2764d1a7d5d9560b100cbea0077fc8f633987 # ratchet:marocchino/sticky-pull-request-comment@v3.0.2
+        uses: marocchino/sticky-pull-request-comment@0ea0beb66eb9baf113663a64ec522f60e49231c0 # ratchet:marocchino/sticky-pull-request-comment@v3.0.4
         with:
           header: binary-size
           delete: true
@@ -319,7 +319,7 @@ jobs:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # ratchet:actions/checkout@v6
         with:
           fetch-depth: 0
-      - uses: tylerbutler/actions/changie-check@769fc7847a0abf82ee2f724df9b65426dfb159b5 # ratchet:tylerbutler/actions/changie-check@main
+      - uses: tylerbutler/actions/changie-check@ee7def5950abcf0a519add705a95719ab345c05e # ratchet:tylerbutler/actions/changie-check@main
         id: changelog
         with:
           base-sha: ${{ github.event.pull_request.base.sha }}
@@ -327,7 +327,7 @@ jobs:
           projects: santa,santa-data,sickle,sickle-cli
       - name: Comment with changelog preview
         if: steps.changelog.outputs.has-entries == 'true'
-        uses: marocchino/sticky-pull-request-comment@70d2764d1a7d5d9560b100cbea0077fc8f633987 # ratchet:marocchino/sticky-pull-request-comment@v3.0.2
+        uses: marocchino/sticky-pull-request-comment@0ea0beb66eb9baf113663a64ec522f60e49231c0 # ratchet:marocchino/sticky-pull-request-comment@v3.0.4
         with:
           header: changelog
           message: |
@@ -338,7 +338,7 @@ jobs:
             ${{ steps.changelog.outputs.preview }}
       - name: Comment about missing changelog
         if: steps.changelog.outputs.has-entries == 'false' && steps.changelog.outputs.needs-entry == 'true'
-        uses: marocchino/sticky-pull-request-comment@70d2764d1a7d5d9560b100cbea0077fc8f633987 # ratchet:marocchino/sticky-pull-request-comment@v3.0.2
+        uses: marocchino/sticky-pull-request-comment@0ea0beb66eb9baf113663a64ec522f60e49231c0 # ratchet:marocchino/sticky-pull-request-comment@v3.0.4
         with:
           header: changelog
           message: |
@@ -353,7 +353,7 @@ jobs:
             ```
       - name: Remove changelog comment
         if: steps.changelog.outputs.has-entries == 'false' && steps.changelog.outputs.needs-entry == 'false'
-        uses: marocchino/sticky-pull-request-comment@70d2764d1a7d5d9560b100cbea0077fc8f633987 # ratchet:marocchino/sticky-pull-request-comment@v3.0.2
+        uses: marocchino/sticky-pull-request-comment@0ea0beb66eb9baf113663a64ec522f60e49231c0 # ratchet:marocchino/sticky-pull-request-comment@v3.0.4
         with:
           header: changelog
           delete: true

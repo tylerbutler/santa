@@ -128,8 +128,7 @@ pub async fn run_tui(
                                         app.phase = AppPhase::Message(msg);
                                     }
                                     Err(e) => {
-                                        app.phase =
-                                            AppPhase::Message(format!("Error: {e}"));
+                                        app.phase = AppPhase::Message(format!("Error: {e}"));
                                     }
                                 }
                             }

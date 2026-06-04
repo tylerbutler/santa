@@ -53,10 +53,10 @@ fn render_main(frame: &mut Frame, app: &App) {
     // Layout: header(3) + sources(variable) + packages(fill) + footer(3)
     let source_height = 3 + (app.sources.len() as u16).div_ceil(2);
     let chunks = Layout::vertical([
-        Constraint::Length(3),              // header
-        Constraint::Length(source_height),  // sources
+        Constraint::Length(3),             // header
+        Constraint::Length(source_height), // sources
         Constraint::Min(8),                // packages table
-        Constraint::Length(3),              // footer
+        Constraint::Length(3),             // footer
     ])
     .split(area);
 
@@ -77,12 +77,19 @@ fn render_header(frame: &mut Frame, area: Rect, app: &App) {
         Span::raw("│ "),
         Span::styled(format!("{total}"), Style::default().fg(Color::White).bold()),
         Span::raw(" packages, "),
-        Span::styled(format!("{installed}"), Style::default().fg(Color::Green).bold()),
+        Span::styled(
+            format!("{installed}"),
+            Style::default().fg(Color::Green).bold(),
+        ),
         Span::raw(" installed, "),
         Span::styled(
             format!("{missing}"),
             Style::default()
-                .fg(if missing > 0 { Color::Yellow } else { Color::Green })
+                .fg(if missing > 0 {
+                    Color::Yellow
+                } else {
+                    Color::Green
+                })
                 .bold(),
         ),
         Span::raw(" missing "),

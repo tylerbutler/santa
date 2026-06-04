@@ -168,8 +168,14 @@ impl App {
         // Build source info
         let mut source_infos = Vec::new();
         for source in &enabled_sources {
-            let available = which::which(source.shell_command().split_whitespace().next().unwrap_or(""))
-                .is_ok();
+            let available = which::which(
+                source
+                    .shell_command()
+                    .split_whitespace()
+                    .next()
+                    .unwrap_or(""),
+            )
+            .is_ok();
             let assigned: Vec<&PackageRow> = packages
                 .iter()
                 .filter(|p| &p.source == source.name())

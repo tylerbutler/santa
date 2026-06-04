@@ -5,12 +5,12 @@ use std::path::PathBuf;
 use crate::input::InputSource;
 
 #[derive(clap::Args)]
-pub struct ViewArgs {
+pub(crate) struct ViewArgs {
     /// Input file (reads from stdin if omitted or -)
     pub file: Option<PathBuf>,
 }
 
-pub fn run(args: ViewArgs) -> Result<()> {
+pub(crate) fn run(args: ViewArgs) -> Result<()> {
     let source = InputSource::from_arg(args.file.as_deref());
     let input = source.read()?;
 
