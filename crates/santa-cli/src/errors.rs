@@ -10,6 +10,7 @@ use thiserror::Error;
 /// This enum covers all the major error categories that can occur during
 /// package management operations, configuration loading, caching, and more.
 #[derive(Debug, Error)]
+#[non_exhaustive]
 pub enum SantaError {
     /// Configuration-related errors (file parsing, validation, etc.)
     #[error("Configuration error: {0}")]

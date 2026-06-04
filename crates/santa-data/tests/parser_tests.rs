@@ -1,7 +1,6 @@
 //! Comprehensive tests for CCL parser functionality
 
 use santa_data::*;
-use serde_json::Value;
 
 #[test]
 fn test_empty_input() {
@@ -196,62 +195,6 @@ complex2 =
     assert!(result["simple2"].is_array());
     assert!(result["complex1"].is_object());
     assert!(result["complex2"].is_object());
-}
-
-#[test]
-fn test_ccl_value_to_json_string() {
-    let ccl_val = CclValue::String("test".to_string());
-    let json_val: Value = ccl_val.into();
-    assert_eq!(json_val.as_str().unwrap(), "test");
-}
-
-#[test]
-fn test_ccl_value_to_json_array() {
-    let ccl_val = CclValue::Array(vec!["brew".to_string(), "scoop".to_string()]);
-    let json_val: Value = ccl_val.into();
-    let arr = json_val.as_array().unwrap();
-    assert_eq!(arr.len(), 2);
-    assert_eq!(arr[0].as_str().unwrap(), "brew");
-    assert_eq!(arr[1].as_str().unwrap(), "scoop");
-}
-
-#[test]
-fn test_ccl_value_to_json_object() {
-    let ccl_val = CclValue::Object(vec![
-        ("key1".to_string(), CclValue::String("value1".to_string())),
-        (
-            "key2".to_string(),
-            CclValue::Array(vec!["a".to_string(), "b".to_string()]),
-        ),
-    ]);
-    let json_val: Value = ccl_val.into();
-    let obj = json_val.as_object().unwrap();
-    assert_eq!(obj["key1"].as_str().unwrap(), "value1");
-    assert!(obj["key2"].is_array());
-}
-
-#[test]
-fn test_ccl_value_equality() {
-    let val1 = CclValue::String("test".to_string());
-    let val2 = CclValue::String("test".to_string());
-    let val3 = CclValue::String("other".to_string());
-
-    assert_eq!(val1, val2);
-    assert_ne!(val1, val3);
-}
-
-#[test]
-fn test_ccl_value_clone() {
-    let original = CclValue::Array(vec!["brew".to_string()]);
-    let cloned = original.clone();
-    assert_eq!(original, cloned);
-}
-
-#[test]
-fn test_parse_ccl_not_implemented() {
-    let result = parse_ccl("test");
-    assert!(result.is_err());
-    assert!(result.unwrap_err().contains("not yet implemented"));
 }
 
 #[test]

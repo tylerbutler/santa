@@ -4,7 +4,7 @@
 //! - Core data models (Platform, KnownSources, PackageData, etc.)
 //! - Configuration loading and management (SantaConfig, ConfigLoader)
 //! - CCL schema definitions (PackageDefinition, SourceDefinition, etc.)
-//! - CCL parser that handles both simple and complex formats
+//! - CCL parsing that handles both simple and complex formats
 
 use anyhow::{Context, Result};
 use serde::de::DeserializeOwned;
@@ -13,12 +13,10 @@ use std::collections::HashMap;
 
 pub mod config;
 pub mod models;
-mod parser;
 pub mod schemas;
 
 pub use config::*;
 pub use models::*;
-pub use parser::{parse_ccl, CclValue};
 pub use schemas::*;
 
 /// Parse CCL string into a HashMap where values can be either arrays or objects

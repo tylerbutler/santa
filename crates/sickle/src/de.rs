@@ -488,9 +488,16 @@ impl<'de> de::Deserializer<'de> for &mut Deserializer {
     }
 }
 
-/// Check if a string contains CCL list syntax (lines starting with '=')
+/// Check if a string contains CCL bare-list syntax (lines starting with `= ` or bare `=`).
+///
+/// The CCL bare-list pattern is `= value` (equals followed by a space then a value)
+/// or a bare `=` (empty list item). This rejects values that merely contain `=` as
+/// the first character (like `=3` or `== comparison`).
 fn is_list_syntax(s: &str) -> bool {
-    s.lines().any(|line| line.trim().starts_with('='))
+    s.lines().any(|line| {
+        let trimmed = line.trim();
+        trimmed.starts_with("= ") || trimmed == "="
+    })
 }
 
 struct StringSeqDeserializer {
@@ -555,15 +562,23 @@ impl<'de, 'a> MapAccess<'de> for MapDeserializer<'a> {
     where
         K: DeserializeSeed<'de>,
     {
-        match self.iter.next() {
-            Some((key, vec)) => {
-                // Take the first value from the Vec (serde expects single values per key)
-                self.value = vec.first();
-                // Store the full Vec for potential list deserialization
-                self.full_vec = Some(vec);
-                seed.deserialize(key.as_str().into_deserializer()).map(Some)
+        // Skip CCL trivia keys: comments are parsed as key `/` and explicit blank
+        // lines use the NUL sentinel. For struct deserialization these are unknown
+        // fields that serde would ignore anyway; for map deserialization every
+        // entry is significant, so they must be skipped here or a comment inside a
+        // map (e.g. a `BTreeMap` of named sources) would fail to deserialize.
+        loop {
+            match self.iter.next() {
+                Some((key, _)) if key == "/" || key == crate::model::BLANK_LINE_KEY => continue,
+                Some((key, vec)) => {
+                    // Take the first value from the Vec (serde expects single values per key)
+                    self.value = vec.first();
+                    // Store the full Vec for potential list deserialization
+                    self.full_vec = Some(vec);
+                    return seed.deserialize(key.as_str().into_deserializer()).map(Some);
+                }
+                None => return Ok(None),
             }
-            None => Ok(None),
         }
     }
 
@@ -884,6 +899,28 @@ command = npm list --depth=0
                 panic!("Failed to deserialize value with =: {:?}", e);
             }
         }
+    }
+
+    #[test]
+    fn test_is_list_syntax_detects_bare_list() {
+        // Standard list items: `= value`
+        assert!(is_list_syntax("= item1\n= item2"));
+        assert!(is_list_syntax("  = item1"));
+        // Bare `=` (empty list item)
+        assert!(is_list_syntax("="));
+        assert!(is_list_syntax("  =  "));
+    }
+
+    #[test]
+    fn test_is_list_syntax_rejects_false_positives() {
+        // Value starting with `=` but no space (not list syntax)
+        assert!(!is_list_syntax("=3"));
+        assert!(!is_list_syntax("=value"));
+        // Comparison operators
+        assert!(!is_list_syntax("== comparison"));
+        assert!(!is_list_syntax("=== strict"));
+        // Equals embedded in a value (not at line start after trim)
+        assert!(!is_list_syntax("npm list --depth=0"));
     }
 }
 
