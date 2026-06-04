@@ -4,7 +4,7 @@ members = ["cargo:."]
 # Config for 'dist'
 [dist]
 # The preferred dist version to use in CI (Cargo.toml SemVer syntax)
-cargo-dist-version = "0.30.2"
+cargo-dist-version = "0.32.0"
 # CI backends to support
 ci = "github"
 # A prefix git tags must include for dist to care about them
@@ -17,8 +17,10 @@ cargo-auditable = true
 github-attestations = true
 # Generate CycloneDX SBOM (bom.xml) for supply chain transparency
 cargo-cyclonedx = true
-# Generate OmniBOR artifact IDs for provenance tracking
-omnibor = true
+# OmniBOR disabled: cargo-dist pins omnibor-cli v0.7.0, which has no
+# aarch64-unknown-linux-gnu artifact, breaking that release target. Provenance
+# is already covered by github-attestations and cargo-cyclonedx (SBOM).
+omnibor = false
 # Target platforms to build apps for (Rust target-triple syntax)
 targets = ["aarch64-apple-darwin", "aarch64-unknown-linux-gnu", "x86_64-apple-darwin", "x86_64-unknown-linux-gnu", "x86_64-pc-windows-msvc"]
 # Build only the required packages, and individually
