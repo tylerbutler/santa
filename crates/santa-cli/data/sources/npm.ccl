@@ -1,4 +1,4 @@
-/= NPM packages
+/= Npm packages
 auto-install =
 generate =
 generate-license =
@@ -10,6 +10,6 @@ tiged =
 vsts-npm-auth =
 yarn =
 
-/= Packages with install suffix
+/= Packages with install config
 @fluidframework/build-tools =
   install_suffix = @latest

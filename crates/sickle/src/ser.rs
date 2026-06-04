@@ -51,7 +51,7 @@ where
 }
 
 /// A structure that serializes Rust values into CCL
-pub struct Serializer {
+pub(crate) struct Serializer {
     /// The current key being serialized (for map entries)
     current_key: Option<String>,
     /// Stack of nested objects being built
@@ -93,7 +93,7 @@ impl Default for Serializer {
 
 /// Custom error type for serialization
 #[derive(Debug, Clone)]
-pub struct SerError {
+pub(crate) struct SerError {
     msg: String,
 }
 
@@ -260,11 +260,6 @@ impl<'a> ser::Serializer for &'a mut Serializer {
     where
         T: ?Sized + Serialize,
     {
-        // Store the variant name as the key
-        let key = self.current_key.take();
-        if let Some(k) = key {
-            self.current_key = Some(k);
-        }
         self.current_key = Some(variant.to_string());
         value.serialize(self)
     }
@@ -276,6 +271,7 @@ impl<'a> ser::Serializer for &'a mut Serializer {
         Ok(SeqSerializer {
             ser: self,
             items: Vec::new(),
+            nested_items: Vec::new(),
         })
     }
 
@@ -286,6 +282,7 @@ impl<'a> ser::Serializer for &'a mut Serializer {
         Ok(SeqSerializer {
             ser: self,
             items: Vec::new(),
+            nested_items: Vec::new(),
         })
     }
 
@@ -297,6 +294,7 @@ impl<'a> ser::Serializer for &'a mut Serializer {
         Ok(SeqSerializer {
             ser: self,
             items: Vec::new(),
+            nested_items: Vec::new(),
         })
     }
 
@@ -310,6 +308,7 @@ impl<'a> ser::Serializer for &'a mut Serializer {
         Ok(SeqSerializer {
             ser: self,
             items: Vec::new(),
+            nested_items: Vec::new(),
         })
     }
 
@@ -359,9 +358,12 @@ impl<'a> ser::Serializer for &'a mut Serializer {
 }
 
 /// Serializer for sequences (Vec, arrays, etc.)
-pub struct SeqSerializer<'a> {
+pub(crate) struct SeqSerializer<'a> {
     ser: &'a mut Serializer,
+    /// Simple string items (for `Vec<String>`, `Vec<i32>`, etc.)
     items: Vec<String>,
+    /// Complex nested items (for `Vec<Struct>`, `Vec<HashMap>`, etc.)
+    nested_items: Vec<CclObject>,
 }
 
 impl<'a> ser::SerializeSeq for SeqSerializer<'a> {
@@ -372,16 +374,29 @@ impl<'a> ser::SerializeSeq for SeqSerializer<'a> {
     where
         T: ?Sized + Serialize,
     {
-        // Serialize the element to a string
+        // Serialize the element using a fresh serializer
         let mut element_ser = Serializer::new();
         element_ser.current_key = Some(String::new());
         value.serialize(&mut element_ser)?;
 
         // Extract the value from the serialized result
         let model = element_ser.into_model();
-        if let Some((_, inner)) = model.iter().next() {
-            if let Some((val, _)) = inner.iter().next() {
-                self.items.push(val.clone());
+
+        // Look for the empty-key entry (where serialize put our value)
+        if let Some((_, values)) = model.iter_map().find(|(k, _)| k.is_empty()) {
+            if let Some(inner) = values.first() {
+                // Check if it's a simple string value: single key with empty children
+                if inner.len() == 1 {
+                    if let Some((key, children)) = inner.iter_map().next() {
+                        if children.iter().all(|c| c.is_empty()) {
+                            // Simple string value - add to items list
+                            self.items.push(key.clone());
+                            return Ok(());
+                        }
+                    }
+                }
+                // Complex nested object - add to nested_items
+                self.nested_items.push(inner.clone());
             }
         }
         Ok(())
@@ -389,7 +404,16 @@ impl<'a> ser::SerializeSeq for SeqSerializer<'a> {
 
     fn end(self) -> std::result::Result<(), Self::Error> {
         if let Some(key) = self.ser.current_key.take() {
-            self.ser.current_object().insert_list(&key, self.items);
+            if !self.nested_items.is_empty() {
+                // Create list of nested objects using bare list syntax
+                // Each nested object becomes a child under an empty key
+                let mut list_obj = CclObject::new();
+                let map = list_obj.inner_mut();
+                map.insert("".to_string(), self.nested_items);
+                self.ser.current_object().insert_object(&key, list_obj);
+            } else if !self.items.is_empty() {
+                self.ser.current_object().insert_list(&key, self.items);
+            }
         }
         Ok(())
     }
@@ -444,7 +468,7 @@ impl<'a> ser::SerializeTupleVariant for SeqSerializer<'a> {
 }
 
 /// Serializer for maps and structs
-pub struct MapSerializer<'a> {
+pub(crate) struct MapSerializer<'a> {
     ser: &'a mut Serializer,
     /// The key under which this map/struct will be inserted (for nested structs)
     parent_key: Option<String>,
@@ -487,10 +511,11 @@ impl<'a> ser::SerializeMap for MapSerializer<'a> {
                 // Nested map/struct: insert under the parent key
                 self.ser.current_object().insert_object(&key, completed);
             } else {
-                // Top-level map, merge into current
+                // Top-level map, merge into current preserving all values per key
                 let current = self.ser.current_object();
-                for (k, v) in completed.iter() {
-                    current.insert_object(k, v.clone());
+                let current_map = current.inner_mut();
+                for (k, values) in completed.iter_map() {
+                    current_map.insert(k.clone(), values.clone());
                 }
             }
         }
@@ -1499,6 +1524,82 @@ mod serde_validation_tests {
     }
 
     #[test]
+    fn test_issue_69_hashmap_string_string_roundtrip() {
+        use std::collections::HashMap;
+
+        let mut map: HashMap<String, String> = HashMap::new();
+        map.insert("key1".to_string(), "value1".to_string());
+        map.insert("key2".to_string(), "value2".to_string());
+
+        let ccl = to_string(&map).unwrap();
+        let deserialized: HashMap<String, String> = crate::from_str(&ccl).unwrap();
+        assert_eq!(map, deserialized);
+    }
+
+    #[test]
+    fn test_issue_68_hashmap_struct_roundtrip() {
+        use std::collections::HashMap;
+
+        #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
+        struct ConfigValue {
+            name: String,
+            value: i32,
+        }
+
+        let mut map: HashMap<String, ConfigValue> = HashMap::new();
+        map.insert(
+            "item1".to_string(),
+            ConfigValue {
+                name: "first".to_string(),
+                value: 1,
+            },
+        );
+        map.insert(
+            "item2".to_string(),
+            ConfigValue {
+                name: "second".to_string(),
+                value: 2,
+            },
+        );
+
+        let ccl = to_string(&map).unwrap();
+        let deserialized: HashMap<String, ConfigValue> = crate::from_str(&ccl).unwrap();
+        assert_eq!(map, deserialized);
+    }
+
+    #[test]
+    fn test_issue_67_vec_struct_roundtrip() {
+        #[derive(Serialize, Deserialize, Debug, PartialEq)]
+        struct Item {
+            name: String,
+            value: i32,
+        }
+
+        #[derive(Serialize, Deserialize, Debug, PartialEq)]
+        struct Container {
+            #[serde(default)]
+            items: Vec<Item>,
+        }
+
+        let original = Container {
+            items: vec![
+                Item {
+                    name: "first".to_string(),
+                    value: 1,
+                },
+                Item {
+                    name: "second".to_string(),
+                    value: 2,
+                },
+            ],
+        };
+
+        let ccl = to_string(&original).unwrap();
+        let deserialized: Container = crate::from_str(&ccl).unwrap();
+        assert_eq!(original, deserialized);
+    }
+
+    #[test]
     fn test_roundtrip_all_integer_types() {
         #[derive(Serialize, Deserialize, Debug, PartialEq)]
         struct AllInts {
@@ -1648,5 +1749,51 @@ mod serde_validation_tests {
             crate::Error::ValueError(msg) => assert_eq!(msg, "serialization failed"),
             _ => panic!("Expected ValueError"),
         }
+    }
+
+    // ===========================================
+    // Duplicate Key Preservation (Issue #95)
+    // ===========================================
+
+    #[test]
+    fn test_map_serializer_preserves_duplicate_keys() {
+        // Build a CclObject with duplicate keys manually, then serialize it
+        // and verify all values survive the round-trip through MapSerializer::end()
+        let mut obj = CclObject::new();
+        let map = obj.inner_mut();
+        map.insert(
+            "name".to_string(),
+            vec![
+                CclObject::from_string("alice"),
+                CclObject::from_string("bob"),
+            ],
+        );
+        map.insert("version".to_string(), vec![CclObject::from_string("1.0")]);
+
+        let printer = crate::printer::CclPrinter::new();
+        let output = printer.print(&obj);
+
+        // Both "alice" and "bob" must appear in the output
+        assert!(
+            output.contains("alice"),
+            "First duplicate key value 'alice' should be preserved in output: {output}"
+        );
+        assert!(
+            output.contains("bob"),
+            "Second duplicate key value 'bob' should be preserved in output: {output}"
+        );
+    }
+
+    #[test]
+    fn test_hashmap_serialization_merges_into_current_preserving_values() {
+        // Serialize a HashMap through serde; this exercises MapSerializer::end()
+        // with the top-level merge path (no parent_key).
+        let mut map = HashMap::new();
+        map.insert("key1".to_string(), "value1".to_string());
+        map.insert("key2".to_string(), "value2".to_string());
+
+        let ccl = to_string(&map).unwrap();
+        assert!(ccl.contains("key1 = value1"), "key1 missing from: {ccl}");
+        assert!(ccl.contains("key2 = value2"), "key2 missing from: {ccl}");
     }
 }

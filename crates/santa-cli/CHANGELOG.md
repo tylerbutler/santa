@@ -2,6 +2,46 @@
 
 All notable changes to this project will be documented in this file.
 
+## v0.3.4 - 2026-04-22
+
+
+### Security
+
+- Replace minreq https-rustls feature with https-native to eliminate rustls-webpki 0.101.7 (RUSTSEC-2026-0098, RUSTSEC-2026-0099)
+
+## v0.3.3 - 2026-04-02
+
+
+### Fixed
+
+- Add `#[non_exhaustive]` to `SantaError` enum to allow adding variants without breaking changes
+
+### Changed
+
+- Use `pub(crate)` visibility for internal items to prevent accidental API surface growth
+
+## v0.3.2 - 2026-02-05
+
+Baseline version established for changie migration.
+
+## [santa-v0.3.2] - 2026-01-31
+
+### Documentation
+
+- Remove stale dates and stats from CLAUDE.md (#72)
+
+## [santa-v0.3.1] - 2026-01-18
+
+### Bug Fixes
+
+- Resolve clippy dead code warnings in schemas.rs
+
+### Features
+
+- Package discovery pipeline with Repology integration (#46)
+
+## [santa-v0.3.0] - 2025-12-16
+
 ### Features
 
 - Add --markdown-help flag for documentation generation (#39)
@@ -10,23 +50,11 @@ All notable changes to this project will be documented in this file.
 
 - Reorganize package data by source (#45)
 
-
 ### Performance
 
 - Replace ureq and tera with lighter alternatives (#47)
 
-
-### Refactoring
-
-- Remove serde_yaml dependency and migration module (#50)
-
-
-### Testing
-
-- Add tests (#60)
-
-- Add E2E test suite and fix SANTA_CONFIG_PATH handling (#54)
-
+## [santa-v0.2.0] - 2025-12-01
 
 ### Bug Fixes
 
@@ -34,44 +62,31 @@ All notable changes to this project will be documented in this file.
 
 - Resolve source-specific package names in status check (#31)
 
+## [santa-v0.1.4] - 2025-11-17
+
+No notable changes in this release.
+
+## [santa-v0.1.3] - 2025-11-17
 
 ### Features
 
 - Enhance workspace configuration and CI for multi-package best practices (#23)
 
+## [santa-v0.1.2] - 2025-11-17
 
 ### Bug Fixes
 
 - Make source system extensible without code changes (#19)
 
-
-### Bug Fixes
-
-- Move templates into santa-cli crate for cargo packaging
-
-
-### Bug Fixes
-
-- Add version requirement for santa-data dependency
-
-- Correct README path in santa-cli Cargo.toml (#9)
-
-
-### Refactoring
-
-- Remove unused dependencies and fix clippy warnings (#12)
-
-- Remove unused code (#13)
-
+## [santa-v0.1.1] - 2025-11-17
 
 ### Bug Fixes
 
 - Add Windows package manager to default config sources (#8)
 
+- Add version requirement for santa-data dependency
 
-### Refactoring
+- Correct README path in santa-cli Cargo.toml (#9)
 
-- Migrate to workspace structure with CCL-only configuration (#5)
-
-- Migrate to workspace structure with santa-data crate (#6)
+- Move templates into santa-cli crate for cargo packaging
 

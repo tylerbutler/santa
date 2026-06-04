@@ -1,0 +1,39 @@
+name: MemBrowse Memory Report
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name == 'push' && github.sha || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  analyze:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # ratchet:actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - uses: ./.github/actions/setup-rust
+
+      - name: Build
+        run: |
+          CARGO_PROFILE_RELEASE_DEBUG=true CARGO_PROFILE_RELEASE_STRIP=false \
+            RUSTFLAGS="-C link-arg=-Wl,-Map=$PWD/target/release/santa.map" \
+            cargo build --locked --release
+
+      - name: Run MemBrowse analysis
+        continue-on-error: true
+        uses: membrowse/membrowse-action@be80736b0a0439168e2a56160c47e87f0f629da5
+        with:
+          target_name: santa-linux-amd64
+          elf: target/release/santa
+          map_file: target/release/santa.map
+          api_key: ${{ secrets.MEMBROWSE_API_KEY }}
+          api_url: ${{ vars.MEMBROWSE_API_URL }}
+          verbose: INFO

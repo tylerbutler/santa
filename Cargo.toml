@@ -4,10 +4,11 @@ members = [
     "crates/santa-cli",
     "crates/santa-data",
     "crates/sickle",
+    "crates/sickle-cli",
 ]
 
 [workspace.package]
-version = "0.3.0"
+version = "0.3.2"
 edition = "2021"
 authors = ["Tyler Butler <tyler@tylerbutler.com>"]
 license = "MIT"
@@ -19,22 +20,22 @@ readme = "README.md"
 
 [workspace.dependencies]
 # Error handling
-anyhow = "1.0.99"
+anyhow = "1.0.102"
 thiserror = "1.0"
 
 # Serialization
-serde = { version = "1.0.219", features = ["derive"] }
+serde = { version = "1.0.228", features = ["derive"] }
 serde_json = "1.0"
-serde-enum-str = "0.2.5"
+serde-enum-str = "0.5.0"
 
 # CLI
 clap = { version = "4.5", features = ["color", "derive", "cargo", "wrap_help"] }
-clap_complete = "4.5"
-colored = "2"
-dialoguer = "0.11.0"
+clap_complete = "4.6"
+colored = "3"
+dialoguer = "0.12.0"
 
 # Async
-tokio = { version = "1.47", features = ["process", "rt-multi-thread", "macros", "time", "sync"] }
+tokio = { version = "1.52", features = ["process", "rt-multi-thread", "macros", "time", "sync"] }
 futures = "0.3"
 
 # Logging
@@ -58,16 +59,16 @@ powershell_script = "1.1"
 chrono = { version = "0.4", features = ["serde"] }
 
 # HTTP client (lightweight, minimal deps)
-minreq = { version = "2.12", features = ["https-rustls"] }
+minreq = { version = "2.14", features = ["https-rustls"] }
 
 # Dev dependencies
-rstest = "0.18"
-tempfile = "3.21"
-proptest = "1.7"
+rstest = "0.26"
+tempfile = "3.26"
+proptest = "1.10"
 mockall = "0.12"
-assert_cmd = "2.0"
+assert_cmd = "2.2"
 predicates = "3.1"
-criterion = { version = "0.5", features = ["html_reports", "async_tokio"] }
+criterion = { version = "0.8", features = ["html_reports", "async_tokio"] }
 
 [profile.release]
 lto = true
@@ -76,3 +77,7 @@ strip = true
 [profile.dist]
 inherits = "release"
 lto = "thin"
+
+[profile.bloat]
+inherits = "release"
+panic = "unwind"

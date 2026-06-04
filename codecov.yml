@@ -67,3 +67,5 @@ ignore:
   - "**/tests.rs"
   - "**/test_*.rs"
   - "**/test_helpers.rs"
+  # Dev-tools binaries are not published
+  - "crates/santa-cli/src/bin/"

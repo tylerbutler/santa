@@ -1,0 +1,36 @@
+name: Onboard to MemBrowse
+
+on:
+  workflow_dispatch:
+    inputs:
+      num_commits:
+        description: 'Number of commits to process'
+        required: true
+        default: '100'
+        type: string
+
+jobs:
+  onboard:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # ratchet:actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - uses: ./.github/actions/setup-rust
+
+      - name: Run MemBrowse Onboard Action
+        uses: membrowse/membrowse-action/onboard-action@be80736b0a0439168e2a56160c47e87f0f629da5
+        with:
+          target_name: santa-linux-amd64
+          num_commits: ${{ github.event.inputs.num_commits }}
+          build_script: |
+            CARGO_PROFILE_RELEASE_DEBUG=true CARGO_PROFILE_RELEASE_STRIP=false \
+              RUSTFLAGS="-C link-arg=-Wl,-Map=$PWD/target/release/santa.map" \
+              cargo build --locked --release
+          elf: target/release/santa
+          map_file: target/release/santa.map
+          binary_search: 'true'
+          api_key: ${{ secrets.MEMBROWSE_API_KEY }}
+          api_url: ${{ vars.MEMBROWSE_API_URL }}

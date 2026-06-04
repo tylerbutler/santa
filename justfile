@@ -60,11 +60,68 @@ build *ARGS='':
 build-release *ARGS='':
     cargo build --release {{ARGS}}
 
-# Generate package index from source files
-generate-index:
-    @echo "📋 Generating package index from source files..."
-    cargo run --bin generate-index
-    @echo "✅ Package index generated at crates/santa-cli/data/known_packages.ccl"
+# Generate package index from source files (verified packages only)
+generate-index *ARGS='':
+    @cargo run --quiet --features dev-tools --bin generate-index -- {{ARGS}}
+
+# Migrate packages from known_packages.ccl to source files
+migrate-sources:
+    @echo "📋 Migrating packages to source files..."
+    @cargo run --quiet --features dev-tools --bin migrate-sources
+    @echo "✅ Packages migrated to crates/santa-cli/data/sources/"
+
+# Merge verified packages into source files
+merge-verified:
+    @echo "📋 Merging verified packages into source files..."
+    @cargo run --quiet --features dev-tools --bin merge-verified
+    @echo "✅ Verified packages merged"
+
+# Collect packages from all sources
+collect-packages *ARGS='':
+    @echo "📦 Collecting packages from sources..."
+    @cargo run --quiet --features dev-tools --bin collect-packages -- {{ARGS}}
+
+# Cross-reference and score packages
+crossref-packages *ARGS='':
+    @echo "🔗 Cross-referencing packages..."
+    @cargo run --quiet --features dev-tools --bin crossref-packages -- {{ARGS}}
+
+# Verify package availability
+verify-packages *ARGS='':
+    @echo "✓ Verifying packages..."
+    @cargo run --quiet --features dev-tools --bin verify-packages -- {{ARGS}}
+
+# Fetch package name mappings from Repology
+fetch-repology *ARGS='':
+    @cargo run --quiet --features dev-tools --bin fetch-repology -- {{ARGS}}
+
+# Full package discovery pipeline
+pipeline:
+    @echo "Running full package discovery pipeline..."
+    just collect-packages
+    just crossref-packages --top=500
+    just verify-packages
+    just build-repology-cache --from-crossref 200
+    just validate-cached
+    just merge-verified
+    just generate-index
+    @echo "Pipeline complete"
+
+# Query Repology for top packages from crossref and update source files
+fetch-repology-from-crossref limit='100':
+    @cargo run --quiet --features dev-tools --bin fetch-repology -- query --from-crossref {{limit}} --update
+
+# Build Repology cache from crossref or source files
+build-repology-cache *ARGS='':
+    @cargo run --quiet --features dev-tools --bin fetch-repology -- build-cache {{ARGS}}
+
+# Validate source CCL files using cached Repology data (fast)
+validate-cached *ARGS='all':
+    @cargo run --quiet --features dev-tools --bin fetch-repology -- validate {{ARGS}} --from-cache
+
+# Validate source CCL files against Repology live API (slow)
+validate-sources *SOURCES='all':
+    @cargo run --quiet --features dev-tools --bin fetch-repology -- validate {{SOURCES}}
 
 # Build for CI with specific target
 ci-build TARGET='x86_64-unknown-linux-gnu' *ARGS='':
@@ -105,33 +162,66 @@ test-unit:
 test-integration:
     cargo test --test '*'
 
-# Run tests with all features enabled
+# Run tests with all features enabled (excluding reference_compliant)
 test-all *ARGS='':
-    cargo test --all-features {{ARGS}}
+    @echo "🧪 Running tests with all features..."
+    cargo test --features full,unstable {{ARGS}}
 
 # Run tests in watch mode
 test-watch:
     cargo watch -x test
 
-# Run tests with coverage (outputs lcov.info)
+# Run tests with coverage reporting (uses nextest for speed)
 test-coverage:
-    cargo llvm-cov nextest --all-features --workspace --lcov --output-path lcov.info
+    @echo "🧪 Running tests with coverage (nextest + llvm-cov)..."
+    cargo llvm-cov nextest --features full,unstable --workspace --lcov --output-path coverage/lcov.info
+    cargo llvm-cov report --html --output-dir coverage/html
+    @echo "📊 Coverage reports generated:"
+    @echo "  - LCOV: coverage/lcov.info"
+    @echo "  - HTML: coverage/html/index.html"
+
+# Run sickle data-driven tests with coverage
+test-coverage-sickle:
+    @echo "🧪 Running sickle data-driven tests with coverage..."
+    cargo llvm-cov nextest -p sickle --features full,unstable \
+      --lcov --output-path coverage/sickle-lcov.info \
+      -E 'binary(data_driven_tests)'
+    cargo llvm-cov report --html --output-dir coverage/sickle-html
+    @echo "📊 Sickle coverage: coverage/sickle-html/index.html"
 
 # Generate HTML coverage report (run after test-coverage)
 coverage-report:
     cargo llvm-cov report --html --output-dir target/llvm-cov/html
 
-# Download CCL test data from ccl-test-data repository
+# Download CCL test data from latest ccl-test-data release
 download-ccl-tests:
-    @echo "📥 Downloading CCL test data from ccl-test-data repository..."
-    @echo "Cloning repository to temporary location..."
-    @rm -rf /tmp/ccl-test-data
-    @git clone --depth 1 --quiet https://github.com/tylerbutler/ccl-test-data.git /tmp/ccl-test-data
-    @mkdir -p crates/sickle/tests/test_data
-    @echo "Copying test files..."
-    @cp /tmp/ccl-test-data/generated_tests/*.json crates/sickle/tests/test_data/
-    @rm -rf /tmp/ccl-test-data
-    @echo "✅ Downloaded all test files to crates/sickle/tests/test_data/"
+    #!/usr/bin/env bash
+    set -euo pipefail
+    echo "📥 Downloading CCL test data from latest release..."
+    echo "Fetching latest release information..."
+    mkdir -p crates/sickle/tests/test_data
+    VERSION=$(curl -sL https://api.github.com/repos/CatConfLang/ccl-test-data/releases/latest | jq -r '.tag_name')
+    echo "Downloading generated test data zip from $VERSION release..."
+    
+    # Get the zip file URL for generated tests
+    ZIP_URL=$(curl -sL https://api.github.com/repos/CatConfLang/ccl-test-data/releases/latest | \
+    jq -r '.assets[] | select(.name | contains("generated")) | .browser_download_url')
+    
+    # Create temporary directory for extraction
+    TEMP_DIR=$(mktemp -d)
+    trap "rm -rf $TEMP_DIR" EXIT
+    
+    # Download and extract the zip file
+    echo "Downloading $ZIP_URL..."
+    curl -sL "$ZIP_URL" -o "$TEMP_DIR/generated-tests.zip"
+    echo "Extracting test files..."
+    unzip -q "$TEMP_DIR/generated-tests.zip" -d "$TEMP_DIR/"
+    
+    # Copy JSON files to test data directory
+    echo "Copying test files to crates/sickle/tests/test_data/"
+    find "$TEMP_DIR" -name "*.json" -exec cp {} crates/sickle/tests/test_data/ \;
+    
+    echo "✅ Downloaded and extracted all test files to crates/sickle/tests/test_data/"
 
 # Run CCL test suites with detailed results from all JSON test files
 test-ccl:
@@ -158,6 +248,7 @@ lint *ARGS='':
 # Format code
 format *ARGS='':
     cargo fmt --all -- {{ARGS}}
+    ruff format scripts/
 
 # Auto-fix formatting and simple lint issues
 fix:
@@ -165,8 +256,12 @@ fix:
     cargo clippy --fix --allow-dirty --allow-staged
     cargo fix --allow-dirty --allow-staged
 
-# Check for unused dependencies (requires nightly)
+# Install development tool dependencies
 deps:
+    mise install
+
+# Check for unused dependencies (requires nightly + cargo-udeps)
+udeps:
     cargo +nightly udeps
 
 # Security audit
@@ -196,6 +291,26 @@ docs:
 docs-check:
     RUSTDOCFLAGS="-D warnings" cargo doc --no-deps --document-private-items --workspace
 
+# Changelog Commands
+# ==================
+
+# Create a new changelog entry
+change:
+    changie new
+
+# Preview the next version changelog
+changelog-preview:
+    changie batch auto --dry-run
+
+# Regenerate all configs from commit-types.json (single source of truth)
+generate-configs:
+    python3 scripts/generate-cliff-configs.py
+    python3 scripts/generate-commitlint-config.py
+
+# Check that generated configs are in sync with commit-types.json
+check-configs:
+    python3 scripts/check-configs-sync.py
+
 # Release Commands
 # ===============
 
@@ -204,11 +319,12 @@ release:
     cargo build --release
 
 # Verify packages can be packaged (validates metadata and structure)
-# Uses --no-verify because path deps may not be published to crates.io yet
+# --no-verify because path deps may not be published to crates.io yet.
+# --workspace co-packages the interdependent crates so bumped, not-yet-published
+# versions resolve from the workspace instead of crates.io; sickle-cli is excluded
+# because it is publish = false and depends on sickle without a version.
 verify-package:
-    cargo package --no-verify -p sickle
-    cargo package --no-verify -p santa-data
-    cargo package --no-verify -p santa
+    cargo package --no-verify --workspace --exclude sickle-cli
 
 # Development Workflow Commands
 # ============================
@@ -225,6 +341,7 @@ pr:
     just format --check
     just docs-check
     just lint
+    just check-configs
     just test-coverage
     just audit
     just build
@@ -243,13 +360,34 @@ main:
 # =============================
 
 # Run cargo-bloated on santa and sickle, save to metrics/ (Linux only)
+# Note: sickle is built as dylib temporarily for analysis (not in Cargo.toml to support panic=abort downstream)
 [linux]
 bloat:
     cargo bloated -p santa --bin=santa --output crates | tee metrics/bloat.txt
+    cargo rustc -p sickle --lib --all-features --release --crate-type=dylib
     cargo bloated -p sickle --lib --all-features --output crates | tee metrics/bloat-sickle.txt
 
-# Record release binary size to metrics/binary-size.txt
-[linux]
+# Get size of a binary in bytes (for CI)
+[unix]
+binary-size binary:
+    @python3 scripts/binary-size-diff.py size "{{binary}}"
+
+# Compare two binary sizes and output to GITHUB_OUTPUT (for PR CI)
+[unix]
+binary-size-compare current_size baseline_size:
+    python3 scripts/binary-size-diff.py compare "{{current_size}}" "{{baseline_size}}" --github-output "$GITHUB_OUTPUT"
+
+# Record binary size to metrics and output diff to GITHUB_OUTPUT (for release CI)
+[unix]
+binary-size-record binary:
+    python3 scripts/binary-size-diff.py record \
+        --binary "{{binary}}" \
+        --metrics metrics/binary-size.txt \
+        --label santa \
+        --github-output "$GITHUB_OUTPUT"
+
+# Record release binary size to metrics/binary-size.txt (local use)
+[unix]
 record-size:
     #!/usr/bin/env bash
     set -euo pipefail
@@ -258,9 +396,61 @@ record-size:
         echo "Release binary not found. Run 'just build-release' first."
         exit 1
     fi
-    VERSION=$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[] | select(.name == "santa") | .version')
-    SIZE=$(stat --format="%s" "$BINARY")
-    HUMAN=$(numfmt --to=iec --suffix=B "$SIZE")
-    DATE=$(date +%Y-%m-%d)
-    echo "$DATE v$VERSION $SIZE $HUMAN" >> metrics/binary-size.txt
-    echo "Recorded: $DATE v$VERSION $SIZE ($HUMAN)"
+    python3 scripts/binary-size-diff.py record \
+        --binary "$BINARY" \
+        --metrics metrics/binary-size.txt \
+        --label santa
+
+# Compare current binary size against last recorded size in metrics (local use)
+[unix]
+size-diff:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    echo "📦 Building release binary..."
+    cargo build --release --quiet
+    python3 scripts/binary-size-diff.py compare \
+        --binary target/release/santa \
+        --metrics metrics/binary-size.txt
+
+# Compare binary size against main by building both (slower but accurate)
+[unix]
+size-diff-full:
+    #!/usr/bin/env bash
+    set -euo pipefail
+
+    # Save current branch
+    CURRENT_BRANCH=$(git branch --show-current)
+    if [ -z "$CURRENT_BRANCH" ]; then
+        CURRENT_BRANCH=$(git rev-parse HEAD)
+    fi
+
+    echo "📦 Building release binary for current branch ($CURRENT_BRANCH)..."
+    cargo build --release --quiet
+    PR_BINARY=$(mktemp)
+    cp target/release/santa "$PR_BINARY"
+
+    # Stash any uncommitted changes
+    STASH_NEEDED=false
+    if ! git diff --quiet || ! git diff --cached --quiet; then
+        echo "Stashing uncommitted changes..."
+        git stash push -m "size-diff-full temporary stash"
+        STASH_NEEDED=true
+    fi
+
+    # Build main
+    echo "📦 Building release binary for main..."
+    git checkout main --quiet
+    cargo build --release --quiet
+
+    # Compare and cleanup
+    echo ""
+    python3 scripts/binary-size-diff.py compare \
+        --binary "$PR_BINARY" \
+        --baseline target/release/santa
+
+    # Restore original branch
+    git checkout "$CURRENT_BRANCH" --quiet
+    if [ "$STASH_NEEDED" = true ]; then
+        git stash pop --quiet
+    fi
+    rm -f "$PR_BINARY"

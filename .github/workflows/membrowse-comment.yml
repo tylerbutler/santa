@@ -1,0 +1,32 @@
+name: MemBrowse PR Comment
+
+on:
+  workflow_run:
+    workflows: [MemBrowse Memory Report]
+    types:
+      - completed
+
+jobs:
+  comment:
+    runs-on: ubuntu-22.04
+    # Run even if some builds failed — only skip if the run was cancelled
+    if: >
+      github.event.workflow_run.event == 'pull_request' &&
+      github.event.workflow_run.conclusion != 'cancelled'
+    permissions:
+      contents: read
+      pull-requests: write
+    env:
+      MEMBROWSE_API_KEY: ${{ secrets.MEMBROWSE_API_KEY }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # ratchet:actions/checkout@v6
+
+      - name: Post combined PR comment
+        if: ${{ env.MEMBROWSE_API_KEY != '' }}
+        uses: membrowse/membrowse-action/comment-action@be80736b0a0439168e2a56160c47e87f0f629da5
+        with:
+          api_key: ${{ secrets.MEMBROWSE_API_KEY }}
+          commit: ${{ github.event.workflow_run.head_sha }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

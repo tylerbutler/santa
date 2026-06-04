@@ -1,6 +1,6 @@
 [package]
 name = "santa-data"
-version.workspace = true
+version = "0.4.0"
 edition.workspace = true
 authors.workspace = true
 license.workspace = true
@@ -10,7 +10,7 @@ description = "Data models and CCL parser for Santa package manager"
 categories = ["data-structures", "parser-implementations", "development-tools"]
 keywords = ["ccl", "package-data", "santa", "configuration"]
 documentation = "https://docs.rs/santa-data"
-readme.workspace = true
+readme = "README.md"
 publish = true
 
 # cargo-dist: This package is a library only, no binaries to distribute
@@ -21,11 +21,11 @@ dist = false
 serde = { workspace = true }
 serde_json = { workspace = true }
 anyhow = { workspace = true }
-sickle = { version = "0.1.1", path = "../sickle", features = ["serde"] }
+sickle = { version = "0.4.0", path = "../sickle", features = ["serde"] }
 serde-enum-str = { workspace = true }
 derive_more = { workspace = true }
 
 # Configuration loading dependencies
 derive_builder = "0.20.2"
 validator = { version = "0.20", features = ["derive"] }
-tracing = "0.1.43"
+tracing = "0.1.44"

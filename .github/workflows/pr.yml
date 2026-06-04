@@ -7,6 +7,9 @@ on:
     branches: [main]
     types: [opened, synchronize, reopened, ready_for_review, converted_to_draft]
 
+permissions:
+  pull-requests: write
+
 jobs:
   format:
     name: Format Check
@@ -14,7 +17,7 @@ jobs:
     if: github.event_name == 'push' || github.event.pull_request.draft == false
     steps:
       - name: Checkout repository
-        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # ratchet:actions/checkout@v5
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # ratchet:actions/checkout@v6
 
       - uses: ./.github/actions/setup-rust
         with:
@@ -23,6 +26,11 @@ jobs:
       - uses: ./.github/actions/install-tools
         with:
           tools: just
+
+      - name: Install ruff
+        uses: astral-sh/ruff-action@0ce1b0bf8b818ef400413f810f8a11cdbda0034b # ratchet:astral-sh/ruff-action@v4.0.0
+        with:
+          args: "--version"
 
       - name: Check formatting
         run: just format --check
@@ -36,7 +44,7 @@ jobs:
     if: github.event_name == 'push' || github.event.pull_request.draft == false
     steps:
       - name: Checkout repository
-        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # ratchet:actions/checkout@v5
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # ratchet:actions/checkout@v6
 
       - uses: ./.github/actions/setup-rust
         with:
@@ -55,7 +63,7 @@ jobs:
     if: github.event_name == 'pull_request' && github.event.pull_request.draft == false
     steps:
       - name: Checkout repository
-        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # ratchet:actions/checkout@v5
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # ratchet:actions/checkout@v6
 
       - uses: ./.github/actions/setup-rust
 
@@ -86,13 +94,14 @@ jobs:
     if: github.event_name == 'push' || github.event.pull_request.draft == false
     steps:
       - name: Checkout repository
-        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # ratchet:actions/checkout@v5
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # ratchet:actions/checkout@v6
 
       - uses: ./.github/actions/setup-rust
 
       - uses: ./.github/actions/install-tools
         with:
-          tools: just,cargo-audit,cargo-deny
+          # cargo-deny 0.18.6+ required for CVSS 4.0 support
+          tools: just,cargo-audit,cargo-deny@0.18.9
 
       - name: Security audit
         run: just audit
@@ -103,15 +112,9 @@ jobs:
     if: github.event_name == 'pull_request' && github.event.pull_request.draft == false
     steps:
       - name: Checkout repository
-        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # ratchet:actions/checkout@v5
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # ratchet:actions/checkout@v6
         with:
           fetch-depth: 0 # Required for cargo-semver-checks
-
-      - uses: ./.github/actions/setup-rust
-
-      - uses: ./.github/actions/install-tools
-        with:
-          tools: just,cargo-semver-checks
 
       - name: Get merge base
         id: merge-base
@@ -123,35 +126,27 @@ jobs:
 
       - name: Check semver compatibility
         id: semver
+        continue-on-error: true
+        uses: obi1kenobi/cargo-semver-checks-action@6b69fcf40e9b5fb17adeb57e4b6ecd020649a239 # ratchet:obi1kenobi/cargo-semver-checks-action@v2
+        with:
+          baseline-rev: ${{ steps.merge-base.outputs.sha }}
+
+      - name: Set output for comment
+        id: result
         run: |
-          set +e
-          # Compare against the merge base with main, not the last published version
-          OUTPUT=$(cargo semver-checks --baseline-rev ${{ steps.merge-base.outputs.sha }} --color never 2>&1)
-          EXIT_CODE=$?
-          echo "$OUTPUT"
-          # Save output for comment (escape for multiline)
-          {
-            echo "output<<EOF"
-            echo "$OUTPUT"
-            echo "EOF"
-          } >> "$GITHUB_OUTPUT"
-          echo "has_breaking=$([[ $EXIT_CODE -ne 0 ]] && echo true || echo false)" >> "$GITHUB_OUTPUT"
-          # Always exit 0 - this is informational only, breaking changes are reported via PR comment
-          exit 0
+          echo "has_breaking=${{ steps.semver.outcome == 'failure' }}" >> "$GITHUB_OUTPUT"
 
       - name: Comment on PR with breaking changes
-        if: steps.semver.outputs.has_breaking == 'true'
-        uses: marocchino/sticky-pull-request-comment@773744901bac0e8cbb5a0dc842800d45e9b2b405 # ratchet:marocchino/sticky-pull-request-comment@v2
+        if: steps.result.outputs.has_breaking == 'true'
+        uses: marocchino/sticky-pull-request-comment@0ea0beb66eb9baf113663a64ec522f60e49231c0 # ratchet:marocchino/sticky-pull-request-comment@v3.0.4
         with:
           header: semver-check
           message: |
             ## ⚠️ Semver Breaking Changes Detected
 
-            This PR introduces API changes that may be semver-incompatible (compared to main branch):
+            This PR introduces API changes that may be semver-incompatible (compared to main branch).
 
-            ```
-            ${{ steps.semver.outputs.output }}
-            ```
+            Check the workflow logs for details on what changed.
 
             <details>
             <summary>What does this mean?</summary>
@@ -161,8 +156,8 @@ jobs:
             </details>
 
       - name: Remove comment if no breaking changes
-        if: steps.semver.outputs.has_breaking == 'false'
-        uses: marocchino/sticky-pull-request-comment@773744901bac0e8cbb5a0dc842800d45e9b2b405 # ratchet:marocchino/sticky-pull-request-comment@v2
+        if: steps.result.outputs.has_breaking == 'false'
+        uses: marocchino/sticky-pull-request-comment@0ea0beb66eb9baf113663a64ec522f60e49231c0 # ratchet:marocchino/sticky-pull-request-comment@v3.0.4
         with:
           header: semver-check
           delete: true
@@ -173,7 +168,7 @@ jobs:
     if: github.event_name == 'push' || github.event.pull_request.draft == false
     steps:
       - name: Checkout repository
-        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # ratchet:actions/checkout@v5
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # ratchet:actions/checkout@v6
 
       - uses: ./.github/actions/setup-rust
 
@@ -191,13 +186,119 @@ jobs:
           echo "Analyzing santa-cli dependencies..."
           cargo tree -p santa --depth 3
 
+  # Record binary size on main pushes for PR comparisons
+  binary-size-record:
+    name: Record Binary Size
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # ratchet:actions/checkout@v6
+      - uses: ./.github/actions/setup-rust
+      - name: Build release binary
+        run: cargo build --release
+      - name: Record binary size
+        run: |
+          SIZE=$(stat -c%s target/release/santa)
+          echo "$SIZE" > binary-size.txt
+          echo "Main binary size: $SIZE bytes"
+      - name: Upload binary size artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # ratchet:actions/upload-artifact@v7.0.1
+        with:
+          name: binary-size-main
+          path: binary-size.txt
+          retention-days: 90
+
+  # Compare PR binary size against recorded main size
+  binary-size:
+    name: Binary Size (Informational)
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' && github.event.pull_request.draft == false
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # ratchet:actions/checkout@v6
+
+      - uses: ./.github/actions/setup-rust
+
+      - name: Build PR release binary
+        run: cargo build --release
+
+      - uses: ./.github/actions/install-tools
+        with:
+          tools: just
+
+      - name: Get PR binary size
+        id: pr-size
+        run: |
+          SIZE=$(just binary-size target/release/santa)
+          echo "bytes=$SIZE" >> "$GITHUB_OUTPUT"
+          echo "PR binary size: $SIZE bytes"
+
+      - name: Download main binary size artifact
+        id: download-main-size
+        uses: dawidd6/action-download-artifact@b6e2e70617bc3265edd6dab6c906732b2f1ae151 # ratchet:dawidd6/action-download-artifact@v21
+        with:
+          workflow: pr.yml
+          branch: main
+          name: binary-size-main
+          path: main-size
+          if_no_artifact_found: warn
+
+      - name: Get main binary size
+        id: main-size
+        run: |
+          if [ -f main-size/binary-size.txt ]; then
+            SIZE=$(cat main-size/binary-size.txt)
+            echo "bytes=$SIZE" >> "$GITHUB_OUTPUT"
+            echo "Main binary size: $SIZE bytes"
+          else
+            echo "::warning::No main binary size artifact found, skipping comparison"
+            echo "bytes=0" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Calculate size difference
+        if: steps.main-size.outputs.bytes != '0'
+        id: diff
+        env:
+          PR_SIZE: ${{ steps.pr-size.outputs.bytes }}
+          MAIN_SIZE: ${{ steps.main-size.outputs.bytes }}
+        run: just binary-size-compare "$PR_SIZE" "$MAIN_SIZE"
+
+      - name: Comment on PR with size change
+        if: steps.main-size.outputs.bytes != '0' && steps.diff.outputs.significant == 'true'
+        uses: marocchino/sticky-pull-request-comment@0ea0beb66eb9baf113663a64ec522f60e49231c0 # ratchet:marocchino/sticky-pull-request-comment@v3.0.4
+        with:
+          header: binary-size
+          message: |
+            ## Binary Size Change
+
+            | Metric | Value |
+            |--------|-------|
+            | This PR | ${{ steps.diff.outputs.pr_size }} |
+            | main | ${{ steps.diff.outputs.main_size }} |
+            | Change | ${{ steps.diff.outputs.diff }} (${{ steps.diff.outputs.percent }}) |
+
+            <details>
+            <summary>What does this mean?</summary>
+
+            Binary size increased significantly. This may be expected for new features,
+            but consider reviewing if the change seems disproportionate to the code changes.
+
+            Common causes: new dependencies, removed LTO/stripping, debug symbols, large static data.
+            </details>
+
+      - name: Remove size comment if not significant
+        if: steps.main-size.outputs.bytes != '0' && steps.diff.outputs.significant == 'false'
+        uses: marocchino/sticky-pull-request-comment@0ea0beb66eb9baf113663a64ec522f60e49231c0 # ratchet:marocchino/sticky-pull-request-comment@v3.0.4
+        with:
+          header: binary-size
+          delete: true
+
   package-isolation:
     name: Package Isolation
     runs-on: ubuntu-latest
     if: github.event_name == 'push'
     steps:
       - name: Checkout repository
-        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # ratchet:actions/checkout@v5
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # ratchet:actions/checkout@v6
 
       - uses: ./.github/actions/setup-rust
 
@@ -209,3 +310,50 @@ jobs:
           cargo test -p santa-data --no-fail-fast
           echo "Testing sickle in isolation..."
           cargo test -p sickle --no-fail-fast
+
+  changelog:
+    name: Changelog
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' && github.event.pull_request.draft == false
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # ratchet:actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - uses: tylerbutler/actions/changie-check@ee7def5950abcf0a519add705a95719ab345c05e # ratchet:tylerbutler/actions/changie-check@main
+        id: changelog
+        with:
+          base-sha: ${{ github.event.pull_request.base.sha }}
+          head-sha: ${{ github.event.pull_request.head.sha }}
+          projects: santa,santa-data,sickle,sickle-cli
+      - name: Comment with changelog preview
+        if: steps.changelog.outputs.has-entries == 'true'
+        uses: marocchino/sticky-pull-request-comment@0ea0beb66eb9baf113663a64ec522f60e49231c0 # ratchet:marocchino/sticky-pull-request-comment@v3.0.4
+        with:
+          header: changelog
+          message: |
+            ## Changelog Preview
+
+            This PR adds the following changelog entries:
+
+            ${{ steps.changelog.outputs.preview }}
+      - name: Comment about missing changelog
+        if: steps.changelog.outputs.has-entries == 'false' && steps.changelog.outputs.needs-entry == 'true'
+        uses: marocchino/sticky-pull-request-comment@0ea0beb66eb9baf113663a64ec522f60e49231c0 # ratchet:marocchino/sticky-pull-request-comment@v3.0.4
+        with:
+          header: changelog
+          message: |
+            ## Missing Changelog Entry
+
+            This PR includes commits with types that typically require a changelog entry (`${{ steps.changelog.outputs.commit-types-found }}`), but no changie fragment was found.
+
+            To add one, run:
+
+            ```
+            changie new
+            ```
+      - name: Remove changelog comment
+        if: steps.changelog.outputs.has-entries == 'false' && steps.changelog.outputs.needs-entry == 'false'
+        uses: marocchino/sticky-pull-request-comment@0ea0beb66eb9baf113663a64ec522f60e49231c0 # ratchet:marocchino/sticky-pull-request-comment@v3.0.4
+        with:
+          header: changelog
+          delete: true

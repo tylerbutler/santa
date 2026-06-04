@@ -1,0 +1,8 @@
+# Collected and generated data (can be regenerated with `just collect-packages`)
+raw/*.json
+crossref_results.json
+verified_packages.json
+repology_cache.json
+
+# Cache directories
+.cache/

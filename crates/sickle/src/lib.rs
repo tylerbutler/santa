@@ -66,6 +66,7 @@
 //! - `serde-deserialize`: Serde deserialization (`from_str`) - includes `hierarchy`
 //! - `serde-serialize`: Serde serialization (`to_string`) - includes `printer`
 //! - `serde`: Both serialization and deserialization
+//! - `document`: Comment/format-preserving edit API ([`load_document`], [`Document`])
 //! - `intern`: String interning for memory efficiency with large configs
 //! - `full`: Enable all features
 //!
@@ -77,6 +78,8 @@
 
 pub mod error;
 pub mod model;
+pub mod options;
+pub mod reader;
 
 #[cfg(feature = "parse")]
 mod parser;
@@ -90,11 +93,22 @@ pub mod de;
 #[cfg(feature = "serde-serialize")]
 pub mod ser;
 
+#[cfg(feature = "document")]
+pub mod document;
+
+#[cfg(feature = "document")]
+pub use document::{load_document, Document};
+
 pub use error::{Error, Result};
-pub use model::{CclObject, Entry};
+pub use model::{BoolOptions, CclObject, Entry, ListOptions};
+pub use reader::CclReader;
+
+// Re-export options types for crate-internal use
+// ParserOptions is pub(crate) for now until API stabilizes
+pub use options::{CrlfBehavior, DelimiterStrategy, ParserOptions, SpacingBehavior, TabBehavior};
 
 #[cfg(feature = "printer")]
-pub use printer::{CclPrinter, PrinterConfig};
+pub use printer::{print, round_trip, CclPrinter, PrinterConfig};
 
 /// Parse a CCL string into a flat list of entries
 ///
@@ -121,17 +135,31 @@ pub use printer::{CclPrinter, PrinterConfig};
 /// ```
 #[cfg(feature = "parse")]
 pub fn parse(input: &str) -> Result<Vec<Entry>> {
-    let map = parser::parse_to_map(input)?;
+    parse_with_options_internal(input, &ParserOptions::default())
+}
 
-    // Convert BTreeMap<String, Vec<String>> to Vec<Entry>
-    let mut entries = Vec::new();
-    for (key, values) in map {
-        for value in values {
-            entries.push(Entry::new(key.clone(), value));
-        }
-    }
+/// Parse a CCL string into a flat list of entries with custom options
+///
+/// This allows configuring parsing behavior such as:
+/// - Spacing around `=` (strict vs loose)
+/// - Tab handling (preserve vs convert to spaces)
+/// - CRLF handling (preserve vs normalize to LF)
+///
+/// Requires the `parse` and `unstable` features.
+///
+/// **Note**: This API is unstable and may change. Use [`parse`] for stable API.
+#[cfg(all(feature = "parse", feature = "unstable"))]
+pub fn parse_with_options(input: &str, options: &ParserOptions) -> Result<Vec<Entry>> {
+    parse_with_options_internal(input, options)
+}
 
-    Ok(entries)
+/// Internal implementation of parse_with_options
+#[cfg(feature = "parse")]
+fn parse_with_options_internal(input: &str, options: &ParserOptions) -> Result<Vec<Entry>> {
+    // Return entries in original insertion order (not grouped by key).
+    // This preserves interleaving of duplicate keys, which is essential
+    // for structure-preserving print(): print(parse(x)) == x
+    parser::parse_to_entries(input, options)
 }
 
 /// Build a hierarchical Model from a flat list of entries
@@ -169,17 +197,17 @@ pub fn build_hierarchy(entries: &[Entry]) -> Result<CclObject> {
     build_model(map)
 }
 
-/// Check if a string looks like a valid CCL key
-/// Valid keys: alphanumeric, underscores, dots, hyphens (not leading), slashes for comments
+/// Check if a string looks like a valid CCL key for recursive parsing detection.
+///
+/// When a value contains `=`, we try parsing it as nested CCL. If the parser doesn't
+/// find a valid ` = ` delimiter, the entire string becomes a single key. We detect this
+/// by rejecting keys with spaces — real CCL keys from nested structures won't have spaces
+/// since the ` = ` delimiter consumes them. Keys may contain special characters like
+/// `/`, `\`, `:`, `@`, `#`, `[]`, `()` etc.
 #[cfg(feature = "hierarchy")]
 fn is_valid_ccl_key(key: &str) -> bool {
     if key.is_empty() {
         return true; // Empty keys are valid (for lists)
-    }
-
-    // Comment keys are valid
-    if key.starts_with('/') {
-        return true;
     }
 
     // Must not start with a hyphen (command-line flag)
@@ -187,9 +215,9 @@ fn is_valid_ccl_key(key: &str) -> bool {
         return false;
     }
 
-    // Must consist of: alphanumeric, underscore, dot, or hyphen (not leading)
-    key.chars()
-        .all(|c| c.is_alphanumeric() || c == '_' || c == '.' || c == '-')
+    // Keys with spaces are likely unparsed value strings, not real CCL keys.
+    // When the parser doesn't find ` = `, the whole line becomes a "key" — reject those.
+    !key.contains(' ')
 }
 
 /// Internal helper: Build a Model from the grouped key-value map
@@ -204,14 +232,14 @@ fn build_model(map: indexmap::IndexMap<String, Vec<String>>) -> Result<CclObject
     let mut result = indexmap::IndexMap::new();
 
     for (key, values) in map {
-        // Reference implementation iterates hash tables in reverse insertion order
-        // Reverse ONLY for non-empty duplicate keys
+        // Reference implementation iterates hash tables in lexical order
+        // Sort ONLY for non-empty duplicate keys
         // Empty keys (bare list items) maintain insertion order
         #[cfg(feature = "reference_compliant")]
         let values = {
             let mut v = values;
             if v.len() > 1 && !key.is_empty() {
-                v.reverse();
+                v.sort();
             }
             v
         };
@@ -220,8 +248,10 @@ fn build_model(map: indexmap::IndexMap<String, Vec<String>>) -> Result<CclObject
         let mut nested_values = Vec::new();
 
         for value in values {
-            if value.contains('=') {
-                // Contains '=' - might be nested CCL
+            if value.contains('\n') && value.contains('=') {
+                // Multiline value containing '=' - might be nested CCL
+                // Only multiline values (with newlines) can be nested structures.
+                // Inline values like "b = c=d" are plain strings, not nested CCL.
                 // Try to parse recursively
                 match load(&value) {
                     Ok(parsed) => {
@@ -306,6 +336,27 @@ fn build_model(map: indexmap::IndexMap<String, Vec<String>>) -> Result<CclObject
 /// ```
 #[cfg(feature = "parse")]
 pub fn parse_indented(input: &str) -> Result<Vec<Entry>> {
+    parse_indented_with_options_internal(input, &ParserOptions::default())
+}
+
+/// Parse a CCL value string with automatic prefix detection and custom options
+///
+/// Like [`parse_indented`], but allows configuring parsing behavior.
+///
+/// Requires the `parse` and `unstable` features.
+///
+/// **Note**: This API is unstable and may change. Use [`parse_indented`] for stable API.
+#[cfg(all(feature = "parse", feature = "unstable"))]
+pub fn parse_indented_with_options(input: &str, options: &ParserOptions) -> Result<Vec<Entry>> {
+    parse_indented_with_options_internal(input, options)
+}
+
+/// Internal implementation of parse_indented_with_options
+#[cfg(feature = "parse")]
+fn parse_indented_with_options_internal(
+    input: &str,
+    options: &ParserOptions,
+) -> Result<Vec<Entry>> {
     // Find the minimum indentation level (common prefix)
     let min_indent = input
         .lines()
@@ -314,18 +365,33 @@ pub fn parse_indented(input: &str) -> Result<Vec<Entry>> {
         .min()
         .unwrap_or(0);
 
-    // Remove the common prefix from all lines and expand tabs to spaces
+    // Remove the common prefix from all lines
+    // Tab handling depends on options
     let dedented = input
         .lines()
         .map(|line| {
-            // First expand tabs to spaces (treat each tab as 1 space for character-level dedenting)
-            let expanded = line.replace('\t', " ");
-            if expanded.trim().is_empty() {
-                expanded
-            } else if expanded.len() > min_indent {
-                expanded[min_indent..].to_string()
+            // For dedenting calculation, we always need tabs converted to spaces
+            // to properly calculate character positions
+            let for_dedent = line.replace('\t', " ");
+
+            if for_dedent.trim().is_empty() {
+                // Empty/whitespace line: preserve original if preserving tabs, else use converted
+                options.process_tabs(line).into_owned()
+            } else if for_dedent.len() > min_indent {
+                if options.preserve_tabs() {
+                    // Preserve original line but remove min_indent chars
+                    if line.len() > min_indent {
+                        line[min_indent..].to_string()
+                    } else {
+                        line.trim_start().to_string()
+                    }
+                } else {
+                    for_dedent[min_indent..].to_string()
+                }
+            } else if options.preserve_tabs() {
+                line.trim_start().to_string()
             } else {
-                expanded.trim_start().to_string()
+                for_dedent.trim_start().to_string()
             }
         })
         .collect::<Vec<_>>()
@@ -344,15 +410,15 @@ pub fn parse_indented(input: &str) -> Result<Vec<Entry>> {
     // If there are multiple entries at min_indent level, parse flat
     // Otherwise, parse as single entry with raw nested content
     if entries_at_min_indent > 1 {
-        parse_flat_entries(&dedented)
+        parse_flat_entries(&dedented, options)
     } else {
-        parse_single_entry_with_raw_value(&dedented)
+        parse_single_entry_with_raw_value(&dedented, options)
     }
 }
 
 /// Parse all key=value pairs from input as flat entries, ignoring indentation hierarchy
 #[cfg(feature = "parse")]
-fn parse_flat_entries(input: &str) -> Result<Vec<Entry>> {
+fn parse_flat_entries(input: &str, options: &ParserOptions) -> Result<Vec<Entry>> {
     let mut entries = Vec::new();
 
     for line in input.lines() {
@@ -366,7 +432,18 @@ fn parse_flat_entries(input: &str) -> Result<Vec<Entry>> {
         // Extract key=value pairs or treat lines without '=' as keys with empty values
         if let Some(eq_pos) = trimmed.find('=') {
             let key = trimmed[..eq_pos].trim().to_string();
-            let value = trimmed[eq_pos + 1..].trim().to_string();
+            let value_raw = &trimmed[eq_pos + 1..];
+            // Use options-aware trimming
+            let value = if options.is_strict_spacing() {
+                // Strict: trim only spaces
+                value_raw
+                    .trim_start_matches(' ')
+                    .trim_end_matches(' ')
+                    .to_string()
+            } else {
+                // Loose: trim all whitespace
+                value_raw.trim().to_string()
+            };
             entries.push(Entry::new(key, value));
         } else {
             // Line without '=' is a key with empty value
@@ -379,7 +456,7 @@ fn parse_flat_entries(input: &str) -> Result<Vec<Entry>> {
 
 /// Parse input as a single entry, preserving the raw value including indentation
 #[cfg(feature = "parse")]
-fn parse_single_entry_with_raw_value(input: &str) -> Result<Vec<Entry>> {
+fn parse_single_entry_with_raw_value(input: &str, options: &ParserOptions) -> Result<Vec<Entry>> {
     // Find the first line with '='
     let mut lines = input.lines();
     let first_line = lines.next().unwrap_or("");
@@ -392,13 +469,15 @@ fn parse_single_entry_with_raw_value(input: &str) -> Result<Vec<Entry>> {
         let remaining_lines: Vec<&str> = lines.collect();
         let value = if !remaining_lines.is_empty() {
             // Combine first line value with remaining lines
-            if first_value.trim().is_empty() {
+            let joined = if first_value.trim().is_empty() {
                 // First line has no value after '=', so value is just the remaining lines
                 "\n".to_string() + &remaining_lines.join("\n")
             } else {
                 // First line has a value, append remaining lines
                 first_value + "\n" + &remaining_lines.join("\n")
-            }
+            };
+            // Process tabs based on options
+            options.process_tabs(&joined).into_owned()
         } else {
             first_value
         };
@@ -413,7 +492,7 @@ fn parse_single_entry_with_raw_value(input: &str) -> Result<Vec<Entry>> {
     }
 }
 
-/// Load and parse a CCL document into a hierarchical Model
+/// Load and parse a CCL document into a hierarchical Model using default options
 ///
 /// This is a convenience function that combines `parse()` and `build_hierarchy()`.
 /// Equivalent to: `build_hierarchy(&parse(input)?)`
@@ -435,15 +514,33 @@ fn parse_single_entry_with_raw_value(input: &str) -> Result<Vec<Entry>> {
 /// ```
 #[cfg(feature = "hierarchy")]
 pub fn load(input: &str) -> Result<CclObject> {
-    let entries = parse(input)?;
+    load_with_options_internal(input, &ParserOptions::default())
+}
+
+/// Load and parse a CCL document with custom options
+///
+/// This is a convenience function that combines `parse_with_options()` and `build_hierarchy()`.
+///
+/// Requires the `hierarchy` and `unstable` features.
+///
+/// **Note**: This API is unstable and may change. Use [`load`] for stable API.
+#[cfg(all(feature = "hierarchy", feature = "unstable"))]
+pub fn load_with_options(input: &str, options: &ParserOptions) -> Result<CclObject> {
+    load_with_options_internal(input, options)
+}
+
+/// Internal implementation of load_with_options
+#[cfg(feature = "hierarchy")]
+fn load_with_options_internal(input: &str, options: &ParserOptions) -> Result<CclObject> {
+    let entries = parse_with_options_internal(input, options)?;
     build_hierarchy(&entries)
 }
 
 #[cfg(feature = "serde-deserialize")]
-pub use de::from_str;
+pub use de::{from_str, from_str_with_options};
 
 #[cfg(feature = "serde-serialize")]
-pub use ser::to_string;
+pub use ser::{to_string, to_string_with_config};
 
 // Unit tests removed - all functionality is covered by data-driven tests in:
 // - api_core_ccl_parsing.json (basic parsing, multiline values, equals in values)

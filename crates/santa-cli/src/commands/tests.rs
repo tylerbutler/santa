@@ -1161,12 +1161,20 @@ packages =
         .await;
         assert!(result.is_ok(), "remove_command should succeed");
 
-        // Verify all packages were removed - config should have empty packages
+        // Verify all packages were removed - config should not contain the package names
         let updated_content = std::fs::read_to_string(temp_file.path()).unwrap();
-        // The packages section should be empty or minimal
+        // After removing all packages, none of the original packages should remain
         assert!(
-            updated_content.contains("packages"),
-            "Config should still have packages section"
+            !updated_content.contains("= git"),
+            "Config should not contain git after removal"
+        );
+        assert!(
+            !updated_content.contains("= vim"),
+            "Config should not contain vim after removal"
+        );
+        assert!(
+            !updated_content.contains("= curl"),
+            "Config should not contain curl after removal"
         );
     }
 }

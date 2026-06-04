@@ -110,6 +110,7 @@ pub struct PlatformOverride {
 
 /// Configuration matching config_schema.yaml
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[allow(dead_code)]
 pub struct ConfigDefinition {
     /// List of package sources to use (in priority order)
     pub sources: Vec<String>,
@@ -121,6 +122,7 @@ pub struct ConfigDefinition {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[allow(dead_code)]
 pub struct ConfigSettings {
     /// Automatically update packages
     #[serde(default)]
@@ -133,9 +135,11 @@ pub struct ConfigSettings {
     pub confirm_before_install: bool,
 }
 
+#[allow(dead_code)]
 fn default_parallel_installs() -> u8 {
     3
 }
+#[allow(dead_code)]
 fn default_true() -> bool {
     true
 }

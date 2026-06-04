@@ -1,13 +1,22 @@
 /target
-.claude
+.claude/*
+!.claude/skills/
+crates/**/.claude/
 .serena
+.worktrees
 
 # CycloneDX SBOM files (if generated locally)
 *.cdx.xml
 *.cdx.json
 
+# Generated install scripts (safe mode test artifacts)
+santa_install_*.sh
+santa_install_*.ps1
+santa_install_*.bat
+
 # Coverage outputs
-coverage/
+coverage/*
+!coverage/.gitkeep
 lcov.info
 *.profraw
 *.profdata

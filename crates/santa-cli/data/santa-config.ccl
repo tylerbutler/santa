@@ -7,6 +7,8 @@
 sources =
   = brew
   = scoop
+  = npm
+  = apt
   = cargo
 
 /= Default packages to install
