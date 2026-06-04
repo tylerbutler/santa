@@ -98,7 +98,6 @@ pub struct ConfigPackageSource {
 }
 
 /// Main configuration structure for Santa
-#[non_exhaustive]
 #[derive(Serialize, Deserialize, Clone, Debug, Builder, Validate)]
 #[builder(setter(into))]
 pub struct SantaConfig {

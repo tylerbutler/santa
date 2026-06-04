@@ -599,15 +599,13 @@ mod tests {
         let config_with_custom_sources = SantaConfig {
             sources: vec![KnownSources::Cargo],
             packages: vec!["test-package".to_string()],
-            custom_sources: Some(vec![crate::configuration::ConfigPackageSource {
-                name: KnownSources::Cargo,
-                emoji: "📦".to_string(),
-                shell_command: "cargo".to_string(),
-                install_command: "cargo install".to_string(),
-                check_command: "cargo search".to_string(),
-                prepend_to_package_name: None,
-                overrides: None,
-            }]),
+            custom_sources: Some(vec![crate::configuration::ConfigPackageSource::new(
+                KnownSources::Cargo,
+                "📦",
+                "cargo",
+                "cargo install",
+                "cargo search",
+            )]),
             _groups: None,
             log_level: 0,
         };
