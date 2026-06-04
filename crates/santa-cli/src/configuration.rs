@@ -249,7 +249,9 @@ impl SantaConfigLoader {
         let config: SantaConfig =
             sickle::from_str(&contents).map_err(|e| SantaError::Config(e.to_string()))?;
 
-        config.validate_basic().map_err(|e| SantaError::Config(e.to_string()))?;
+        config
+            .validate_basic()
+            .map_err(|e| SantaError::Config(e.to_string()))?;
         Ok(config)
     }
 
