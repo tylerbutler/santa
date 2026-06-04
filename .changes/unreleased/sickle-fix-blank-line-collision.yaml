@@ -1,3 +1,0 @@
-project: sickle
-kind: Fixed
-body: Stop `CclObject::add_blank_line()` from overwriting bare list (`= item`) entries by using a collision-free sentinel key, and ignore comment/blank trivia keys when deserializing maps so comments inside a map no longer break deserialization
