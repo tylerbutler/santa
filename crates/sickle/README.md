@@ -1,14 +1,14 @@
 # Sickle
 
-A robust Rust parser for **CCL** (Categorical Configuration Language) with optional Serde support.
+A Rust parser for **CCL** (Categorical Configuration Language) with optional Serde support.
 
 ## Features
 
-- **Pure Rust implementation** - Zero unsafe code
+- **Pure Rust implementation** - No unsafe code
 - **Two API styles** - Direct `Model` navigation or Serde deserialization
-- **Complete CCL support** - Lists, nested records, multiline values, comments
-- **Memory efficient** - Optional string interning via feature flag
-- **Well-tested** - Comprehensive test suite with property-based tests
+- **CCL support** - Lists, nested records, multiline values, comments
+- **Optional string interning** via a feature flag
+- **Tested** - Includes property-based tests
 
 ## Quick Start
 

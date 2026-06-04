@@ -11,6 +11,13 @@ use serde::{Deserialize, Serialize};
 // Type Aliases - prevent confusion between single-value and multi-value maps
 // ============================================================================
 
+/// Sentinel key used to represent an explicit blank line in a [`CclObject`].
+///
+/// Real CCL keys can never contain a NUL byte, so this marker is collision-free
+/// with parsed content (notably the empty key `""` used by bare list items).
+/// The printer renders an entry with this key as a blank line.
+pub(crate) const BLANK_LINE_KEY: &str = "\u{0}blank";
+
 /// The internal storage type for CclObject - maps keys to a Vec of values.
 /// Each key can have multiple values, preserving duplicate key semantics.
 pub(crate) type CclMap = IndexMap<String, Vec<CclObject>>;
@@ -332,9 +339,16 @@ impl CclObject {
     /// // When printed, adds visual separation
     /// ```
     pub fn add_blank_line(&mut self) {
-        // Use a unique blank line marker that won't conflict with actual empty keys
-        // The printer will handle this specially
-        self.0.insert("".to_string(), vec![CclObject::empty()]);
+        // Use a sentinel key that cannot collide with real CCL keys. The empty
+        // key `""` is used by bare list items (`= item`), so inserting `""` here
+        // would silently overwrite existing list data (see issue #92). The NUL
+        // sentinel can never appear in parsed CCL, and the printer renders it as
+        // a blank line. Append (rather than insert) so multiple blank lines and
+        // any pre-existing sentinel entries are preserved.
+        self.0
+            .entry(BLANK_LINE_KEY.to_string())
+            .or_default()
+            .push(CclObject::empty());
     }
 
     // ========================================================================
@@ -554,8 +568,12 @@ impl CclObject {
     ///
     /// Returns `Some(items)` if this is a bare list, `None` otherwise.
     pub(crate) fn as_bare_list(&self) -> Option<Vec<String>> {
-        // Filter out comment keys (starting with '/') when checking for bare lists
-        let non_comment_keys: Vec<&String> = self.keys().filter(|k| !k.starts_with('/')).collect();
+        // Filter out comment keys (starting with '/') and blank-line sentinels
+        // when checking for bare lists.
+        let non_comment_keys: Vec<&String> = self
+            .keys()
+            .filter(|k| !k.starts_with('/') && *k != BLANK_LINE_KEY)
+            .collect();
 
         // Handle bare list syntax: single empty-key child containing the list items
         // With Vec structure: { "": [CclObject({item1}), CclObject({item2}), ...] }
@@ -563,7 +581,12 @@ impl CclObject {
             if let Ok(children) = self.get_all("") {
                 let items: Vec<String> = children
                     .iter()
-                    .flat_map(|child| child.keys().filter(|k| !k.starts_with('/')).cloned())
+                    .flat_map(|child| {
+                        child
+                            .keys()
+                            .filter(|k| !k.starts_with('/') && *k != BLANK_LINE_KEY)
+                            .cloned()
+                    })
                     .collect();
                 return Some(items);
             }

@@ -1,3 +1,0 @@
-project: sickle
-kind: Breaking
-body: Align boolean parsing with CCL spec — case-insensitive in both modes, lenient accepts `on`/`off`/`1`/`0`
