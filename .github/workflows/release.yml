@@ -55,6 +55,14 @@ jobs:
         if: steps.check.outputs.skipped != 'true'
         run: changie merge
 
+      - name: Set up Rust
+        if: steps.check.outputs.skipped != 'true'
+        uses: ./.github/actions/setup-rust
+
+      - name: Sync Cargo.lock with bumped versions
+        if: steps.check.outputs.skipped != 'true'
+        run: cargo update --workspace
+
       - name: Resolve versions
         if: steps.check.outputs.skipped != 'true'
         id: versions
