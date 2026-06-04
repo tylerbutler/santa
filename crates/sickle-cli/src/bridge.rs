@@ -1,7 +1,7 @@
 use serde_json::Value;
 use sickle::CclObject;
 
-pub fn ccl_to_value(obj: &CclObject) -> Value {
+pub(crate) fn ccl_to_value(obj: &CclObject) -> Value {
     if obj.is_empty() {
         return Value::String(String::new());
     }
@@ -41,7 +41,7 @@ pub fn ccl_to_value(obj: &CclObject) -> Value {
     Value::Object(map)
 }
 
-pub fn value_to_ccl_string(value: &Value) -> String {
+pub(crate) fn value_to_ccl_string(value: &Value) -> String {
     value_to_ccl_lines(value, 0).join("\n")
 }
 
@@ -112,7 +112,7 @@ fn scalar_to_string(value: &Value) -> String {
     }
 }
 
-pub fn has_comments(ccl_text: &str) -> bool {
+pub(crate) fn has_comments(ccl_text: &str) -> bool {
     ccl_text.lines().any(|line| {
         let trimmed = line.trim();
         trimmed.starts_with("/=") || trimmed.starts_with("/ =")

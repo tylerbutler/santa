@@ -69,7 +69,8 @@ where
 }
 
 /// Deserialize a Model into a type T
-pub fn from_model<'de, T>(model: CclObject) -> Result<T>
+#[allow(dead_code)]
+pub(crate) fn from_model<'de, T>(model: CclObject) -> Result<T>
 where
     T: Deserialize<'de>,
 {
@@ -78,13 +79,13 @@ where
 }
 
 /// A structure that deserializes CCL into Rust values
-pub struct Deserializer {
+pub(crate) struct Deserializer {
     model: CclObject,
 }
 
 impl Deserializer {
     /// Create a new deserializer from a Model
-    pub fn from_model(model: CclObject) -> Self {
+    pub(crate) fn from_model(model: CclObject) -> Self {
         Deserializer { model }
     }
 }
@@ -401,6 +402,14 @@ impl<'de> de::Deserializer<'de> for &mut Deserializer {
             }
         }
 
+        // Fallback: single scalar value → one-element sequence
+        if let Ok(s) = self.model.as_string() {
+            let seq = StringSeqDeserializer {
+                iter: vec![s.to_owned()].into_iter(),
+            };
+            return visitor.visit_seq(seq);
+        }
+
         Err(DeError::custom("expected a list"))
     }
 
@@ -479,9 +488,16 @@ impl<'de> de::Deserializer<'de> for &mut Deserializer {
     }
 }
 
-/// Check if a string contains CCL list syntax (lines starting with '=')
+/// Check if a string contains CCL bare-list syntax (lines starting with `= ` or bare `=`).
+///
+/// The CCL bare-list pattern is `= value` (equals followed by a space then a value)
+/// or a bare `=` (empty list item). This rejects values that merely contain `=` as
+/// the first character (like `=3` or `== comparison`).
 fn is_list_syntax(s: &str) -> bool {
-    s.lines().any(|line| line.trim().starts_with('='))
+    s.lines().any(|line| {
+        let trimmed = line.trim();
+        trimmed.starts_with("= ") || trimmed == "="
+    })
 }
 
 struct StringSeqDeserializer {
@@ -546,15 +562,23 @@ impl<'de, 'a> MapAccess<'de> for MapDeserializer<'a> {
     where
         K: DeserializeSeed<'de>,
     {
-        match self.iter.next() {
-            Some((key, vec)) => {
-                // Take the first value from the Vec (serde expects single values per key)
-                self.value = vec.first();
-                // Store the full Vec for potential list deserialization
-                self.full_vec = Some(vec);
-                seed.deserialize(key.as_str().into_deserializer()).map(Some)
+        // Skip CCL trivia keys: comments are parsed as key `/` and explicit blank
+        // lines use the NUL sentinel. For struct deserialization these are unknown
+        // fields that serde would ignore anyway; for map deserialization every
+        // entry is significant, so they must be skipped here or a comment inside a
+        // map (e.g. a `BTreeMap` of named sources) would fail to deserialize.
+        loop {
+            match self.iter.next() {
+                Some((key, _)) if key == "/" || key == crate::model::BLANK_LINE_KEY => continue,
+                Some((key, vec)) => {
+                    // Take the first value from the Vec (serde expects single values per key)
+                    self.value = vec.first();
+                    // Store the full Vec for potential list deserialization
+                    self.full_vec = Some(vec);
+                    return seed.deserialize(key.as_str().into_deserializer()).map(Some);
+                }
+                None => return Ok(None),
             }
-            None => Ok(None),
         }
     }
 
@@ -590,7 +614,7 @@ impl<'de, 'a> MapAccess<'de> for MapDeserializer<'a> {
 
 /// Custom error type for deserialization
 #[derive(Debug, Clone)]
-pub struct DeError {
+pub(crate) struct DeError {
     msg: String,
 }
 
@@ -876,6 +900,28 @@ command = npm list --depth=0
             }
         }
     }
+
+    #[test]
+    fn test_is_list_syntax_detects_bare_list() {
+        // Standard list items: `= value`
+        assert!(is_list_syntax("= item1\n= item2"));
+        assert!(is_list_syntax("  = item1"));
+        // Bare `=` (empty list item)
+        assert!(is_list_syntax("="));
+        assert!(is_list_syntax("  =  "));
+    }
+
+    #[test]
+    fn test_is_list_syntax_rejects_false_positives() {
+        // Value starting with `=` but no space (not list syntax)
+        assert!(!is_list_syntax("=3"));
+        assert!(!is_list_syntax("=value"));
+        // Comparison operators
+        assert!(!is_list_syntax("== comparison"));
+        assert!(!is_list_syntax("=== strict"));
+        // Equals embedded in a value (not at line start after trim)
+        assert!(!is_list_syntax("npm list --depth=0"));
+    }
 }
 
 /// Comprehensive serde_test validation for the CCL deserializer.
@@ -1106,19 +1152,42 @@ mod serde_validation_tests {
     }
 
     #[test]
-    fn test_vec_single_item_limitation() {
-        // Known limitation: A single value is not distinguishable from a scalar
-        // in CCL's key-value model. To get a single-item list, you need the
-        // explicit list syntax or use duplicate keys.
+    fn test_vec_single_item() {
+        // A single scalar value should coerce into a one-element Vec
         let ccl = "items = only_one";
-        #[allow(dead_code)]
-        #[derive(Deserialize, Debug)]
+        #[derive(Deserialize, PartialEq, Debug)]
         struct S {
             items: Vec<String>,
         }
-        let result: Result<S> = from_str(ccl);
-        // This currently fails because a single value looks like a scalar, not a list
-        assert!(result.is_err());
+        let s: S = from_str(ccl).unwrap();
+        assert_eq!(s.items, vec!["only_one"]);
+    }
+
+    #[test]
+    fn test_vec_single_item_integer() {
+        let ccl = "count = 42";
+        #[derive(Deserialize, PartialEq, Debug)]
+        struct S {
+            count: Vec<i64>,
+        }
+        let s: S = from_str(ccl).unwrap();
+        assert_eq!(s.count, vec![42]);
+    }
+
+    #[test]
+    fn test_hashmap_string_vec_mixed() {
+        // Single and multi-value keys should both work as Vec values
+        let ccl = "mappings =\n  foo = bar\n  baz = qux\n  baz = quux";
+        #[derive(Deserialize, PartialEq, Debug)]
+        struct S {
+            mappings: HashMap<String, Vec<String>>,
+        }
+        let s: S = from_str(ccl).unwrap();
+        assert_eq!(s.mappings.get("foo").unwrap(), &vec!["bar"]);
+        let baz = s.mappings.get("baz").unwrap();
+        assert_eq!(baz.len(), 2);
+        assert!(baz.contains(&"qux".to_string()));
+        assert!(baz.contains(&"quux".to_string()));
     }
 
     #[test]

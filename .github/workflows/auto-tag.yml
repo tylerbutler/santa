@@ -4,6 +4,11 @@ on:
   pull_request:
     types: [closed]
     branches: [main]
+  workflow_dispatch:
+    inputs:
+      crates:
+        description: 'Space-separated tags to publish (e.g. "sickle-v0.2.0 santa-data-v0.3.3")'
+        required: true
 
 permissions:
   contents: write
@@ -12,30 +17,48 @@ jobs:
   tag:
     if: github.event.pull_request.merged && contains(github.event.pull_request.labels.*.name, 'release')
     runs-on: ubuntu-latest
+    outputs:
+      created_tags: ${{ steps.tags.outputs.created_tags }}
     steps:
-      - uses: actions/checkout@v6
+      - name: Generate app token
+        id: app-token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # ratchet:actions/create-github-app-token@v3.2.0
+        with:
+          app-id: ${{ secrets.RELEASE_APP_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # ratchet:actions/checkout@v6
         with:
           fetch-depth: 0
-
-      - name: Install changie
-        uses: miniscruff/changie-action@v2.1.0
+          token: ${{ steps.app-token.outputs.token }}
 
       - name: Create tags for released projects
+        id: tags
         run: |
           CREATED_TAGS=""
+
+          # Map changie project keys to Cargo.toml paths and tag prefixes
+          declare -A CRATE_PATH=(
+            [santa]="crates/santa-cli/Cargo.toml"
+            [santa-data]="crates/santa-data/Cargo.toml"
+            [sickle]="crates/sickle/Cargo.toml"
+          )
+
           for project in santa santa-data sickle; do
-            version=$(changie latest --project "$project" 2>/dev/null || true)
-            if [ -z "$version" ]; then
-              echo "Could not resolve version for $project, skipping"
+            cargo_file="${CRATE_PATH[$project]}"
+            ver=$(sed -n 's/^version = "\(.*\)"/\1/p' "$cargo_file")
+            if [ -z "$ver" ]; then
+              echo "Could not read version for $project from $cargo_file, skipping"
               continue
             fi
-            if git tag -l "$version" | grep -q .; then
-              echo "Tag $version already exists, skipping"
+            tag="${project}-v${ver}"
+            if git tag -l "$tag" | grep -q .; then
+              echo "Tag $tag already exists, skipping"
               continue
             fi
-            git tag "$version"
-            CREATED_TAGS="${CREATED_TAGS:+$CREATED_TAGS }$version"
-            echo "Created tag: $version"
+            git tag "$tag"
+            CREATED_TAGS="${CREATED_TAGS:+$CREATED_TAGS }$tag"
+            echo "Created tag: $tag"
           done
 
           if [ -n "$CREATED_TAGS" ]; then
@@ -49,3 +72,58 @@ jobs:
             echo "No new tags needed"
             echo "### No New Tags" >> "$GITHUB_STEP_SUMMARY"
           fi
+
+          echo "created_tags=$CREATED_TAGS" >> "$GITHUB_OUTPUT"
+
+  publish:
+    needs: tag
+    if: always() && (needs.tag.outputs.created_tags != '' || github.event_name == 'workflow_dispatch')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # ratchet:actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8 # ratchet:dtolnay/rust-toolchain@stable
+
+      - name: Publish crates
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+          CREATED_TAGS: ${{ github.event.inputs.crates || needs.tag.outputs.created_tags }}
+        run: |
+          # Publish in dependency order: sickle -> santa-data -> santa
+          for project in sickle santa-data santa; do
+            case "$project" in
+              santa) tag_prefix="santa-v"; package="santa" ;;
+              santa-data) tag_prefix="santa-data-v"; package="santa-data" ;;
+              sickle) tag_prefix="sickle-v"; package="sickle" ;;
+            esac
+
+            # Check if this project was tagged in this release
+            if ! echo "$CREATED_TAGS" | grep -q "$tag_prefix"; then
+              echo "No new tag for $project, skipping publish"
+              continue
+            fi
+
+            echo "Publishing $package to crates.io..."
+            cargo publish -p "$package" --no-verify
+            echo "Published $package"
+
+            # Wait for crates.io index to update before publishing dependents
+            echo "Waiting for crates.io index to update..."
+            sleep 30
+          done
+
+          echo "### Crates Published" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          for project in sickle santa-data santa; do
+            case "$project" in
+              santa) tag_prefix="santa-v" ;;
+              santa-data) tag_prefix="santa-data-v" ;;
+              sickle) tag_prefix="sickle-v" ;;
+            esac
+            if echo "$CREATED_TAGS" | grep -q "$tag_prefix"; then
+              echo "- \`$project\`" >> "$GITHUB_STEP_SUMMARY"
+            fi
+          done
