@@ -1,0 +1,3 @@
+project: sickle
+kind: Fixed
+body: Round-trip top-level comments faithfully as `/= text` instead of reformatting them to `/ = text` in both the `print` and `CclPrinter` pipelines
