@@ -1,0 +1,3 @@
+project: sickle
+kind: Added
+body: Add comment/format-preserving document API (`load_document`, `Document::deserialize`, `Document::reserialize`) behind the `document` feature, so read-modify-write cycles keep hand-written comments, blank lines, key order, and formatting where data is unchanged
