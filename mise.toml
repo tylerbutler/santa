@@ -5,3 +5,10 @@ python = "3"  # For scripts (binary-size-diff.py, etc.)
 ruff = "latest"
 
 "github:cargo-bins/cargo-binstall" = "1"  # Latest 1.x
+
+# Dev tools installed via cargo-binstall
+"cargo:cargo-llvm-cov" = "latest"
+"cargo:cargo-nextest" = "latest"
+"cargo:cargo-audit" = "latest"
+"cargo:cargo-deny" = "latest"
+"cargo:cargo-semver-checks" = "latest"
