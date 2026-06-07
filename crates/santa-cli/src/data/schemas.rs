@@ -71,6 +71,7 @@ pub enum SourceSpecificConfig {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct SourceConfig {
     /// Override package name for this source
     pub name: Option<String>,
@@ -88,6 +89,7 @@ pub struct SourceConfig {
 pub type SourcesDefinition = HashMap<String, SourceDefinition>;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct SourceDefinition {
     /// Emoji icon to represent this source
     pub emoji: String,
@@ -103,6 +105,7 @@ pub struct SourceDefinition {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct PlatformOverride {
     pub install: Option<String>,
     pub check: Option<String>,
@@ -111,6 +114,7 @@ pub struct PlatformOverride {
 /// Configuration matching config_schema.yaml
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[allow(dead_code)]
+#[non_exhaustive]
 pub struct ConfigDefinition {
     /// List of package sources to use (in priority order)
     pub sources: Vec<String>,
@@ -123,6 +127,7 @@ pub struct ConfigDefinition {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[allow(dead_code)]
+#[non_exhaustive]
 pub struct ConfigSettings {
     /// Automatically update packages
     #[serde(default)]
@@ -180,6 +185,23 @@ impl ComplexPackageDefinition {
 }
 
 impl SourceDefinition {
+    /// Create a new `SourceDefinition` with the given fields.
+    pub fn new(
+        emoji: String,
+        install: String,
+        check: String,
+        prefix: Option<String>,
+        overrides: Option<HashMap<String, PlatformOverride>>,
+    ) -> Self {
+        Self {
+            emoji,
+            install,
+            check,
+            prefix,
+            overrides,
+        }
+    }
+
     /// Get the appropriate command for the current platform
     pub fn get_install_command(&self, platform: &Platform) -> &str {
         if let Some(overrides) = &self.overrides {

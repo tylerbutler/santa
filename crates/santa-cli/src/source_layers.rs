@@ -45,6 +45,7 @@ impl std::fmt::Display for SourceOrigin {
 
 /// A source with its origin tracked
 #[derive(Debug, Clone)]
+#[non_exhaustive]
 pub struct LayeredSource {
     pub name: String,
     pub definition: crate::data::schemas::SourceDefinition,

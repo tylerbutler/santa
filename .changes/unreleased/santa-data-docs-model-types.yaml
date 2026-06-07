@@ -1,0 +1,3 @@
+project: santa-data
+kind: Changed
+body: Add documentation comments to all public model types
