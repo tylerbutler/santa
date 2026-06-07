@@ -100,6 +100,7 @@ pub struct ConfigPackageSource {
 /// Main configuration structure for Santa
 #[derive(Serialize, Deserialize, Clone, Debug, Builder, Validate)]
 #[builder(setter(into))]
+#[non_exhaustive]
 pub struct SantaConfig {
     #[validate(length(min = 1, message = "At least one source must be configured"))]
     pub sources: Vec<KnownSources>,
@@ -119,28 +120,32 @@ pub struct SantaConfig {
 }
 
 impl ConfigPackageSource {
-    /// Create a new custom package source configuration
+    /// Create a new `ConfigPackageSource` describing a custom package source.
     pub fn new(
         name: KnownSources,
-        emoji: impl Into<String>,
-        shell_command: impl Into<String>,
-        install_command: impl Into<String>,
-        check_command: impl Into<String>,
+        emoji: String,
+        shell_command: String,
+        install_command: String,
+        check_command: String,
+        prepend_to_package_name: Option<String>,
+        overrides: Option<Vec<PackageNameOverride>>,
     ) -> Self {
         Self {
             name,
-            emoji: emoji.into(),
-            shell_command: shell_command.into(),
-            install_command: install_command.into(),
-            check_command: check_command.into(),
-            prepend_to_package_name: None,
-            overrides: None,
+            emoji,
+            shell_command,
+            install_command,
+            check_command,
+            prepend_to_package_name,
+            overrides,
         }
     }
 }
 
 impl SantaConfig {
-    /// Create a new SantaConfig with the given sources and packages
+    /// Create a new `SantaConfig` from the given sources and packages. The
+    /// `custom_sources`, `_groups`, and `log_level` fields are initialized to
+    /// their defaults.
     pub fn new(sources: Vec<KnownSources>, packages: Vec<String>) -> Self {
         Self {
             sources,

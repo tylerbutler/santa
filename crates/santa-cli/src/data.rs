@@ -316,17 +316,9 @@ mod tests {
 
     #[test]
     fn test_platform_display() {
-        let platform_with_distro = Platform {
-            os: OS::Linux,
-            arch: Arch::X64,
-            distro: Some(Distro::Ubuntu),
-        };
+        let platform_with_distro = Platform::new(OS::Linux, Arch::X64, Some(Distro::Ubuntu));
 
-        let platform_without_distro = Platform {
-            os: OS::Macos,
-            arch: Arch::Aarch64,
-            distro: None,
-        };
+        let platform_without_distro = Platform::new(OS::Macos, Arch::Aarch64, None);
 
         let display_with = format!("{platform_with_distro}");
         let display_without = format!("{platform_without_distro}");
@@ -584,44 +576,31 @@ mod tests {
         };
 
         // Test with empty config (should return all sources)
-        let empty_config = SantaConfig {
-            sources: vec![],
-            packages: vec![],
-            custom_sources: None,
-            _groups: None,
-            log_level: 0,
-        };
+        let empty_config = SantaConfig::new(vec![], vec![]);
 
         let filtered_empty = data.sources(&empty_config);
         assert_eq!(filtered_empty.len(), 2);
 
         // Test with config containing custom sources (should extend with custom sources)
-        let config_with_custom_sources = SantaConfig {
-            sources: vec![KnownSources::Cargo],
-            packages: vec!["test-package".to_string()],
-            custom_sources: Some(vec![crate::configuration::ConfigPackageSource::new(
+        let mut config_with_custom_sources =
+            SantaConfig::new(vec![KnownSources::Cargo], vec!["test-package".to_string()]);
+        config_with_custom_sources.custom_sources =
+            Some(vec![crate::configuration::ConfigPackageSource::new(
                 KnownSources::Cargo,
-                "📦",
-                "cargo",
-                "cargo install",
-                "cargo search",
-            )]),
-            _groups: None,
-            log_level: 0,
-        };
+                "📦".to_string(),
+                "cargo".to_string(),
+                "cargo install".to_string(),
+                "cargo search".to_string(),
+                None,
+                None,
+            )]);
 
         let filtered_with_custom = data.sources(&config_with_custom_sources);
         // Should be 2 original + 1 custom = 3
         assert_eq!(filtered_with_custom.len(), 3);
 
         // Test with no custom sources (should return original sources only)
-        let config_no_custom = SantaConfig {
-            sources: vec![],
-            packages: vec![],
-            custom_sources: None,
-            _groups: None,
-            log_level: 0,
-        };
+        let config_no_custom = SantaConfig::new(vec![], vec![]);
 
         let filtered_no_custom = data.sources(&config_no_custom);
         assert_eq!(filtered_no_custom.len(), 2);
@@ -727,31 +706,11 @@ git =
     fn test_platform_with_all_combinations() {
         // Test various platform combinations
         let platforms = vec![
-            Platform {
-                os: OS::Linux,
-                arch: Arch::X64,
-                distro: Some(Distro::Ubuntu),
-            },
-            Platform {
-                os: OS::Linux,
-                arch: Arch::Aarch64,
-                distro: Some(Distro::ArchLinux),
-            },
-            Platform {
-                os: OS::Macos,
-                arch: Arch::X64,
-                distro: None,
-            },
-            Platform {
-                os: OS::Macos,
-                arch: Arch::Aarch64,
-                distro: None,
-            },
-            Platform {
-                os: OS::Windows,
-                arch: Arch::X64,
-                distro: None,
-            },
+            Platform::new(OS::Linux, Arch::X64, Some(Distro::Ubuntu)),
+            Platform::new(OS::Linux, Arch::Aarch64, Some(Distro::ArchLinux)),
+            Platform::new(OS::Macos, Arch::X64, None),
+            Platform::new(OS::Macos, Arch::Aarch64, None),
+            Platform::new(OS::Windows, Arch::X64, None),
         ];
 
         for platform in platforms {
@@ -871,13 +830,8 @@ git =
         };
 
         // Test with empty custom_sources vector (not None)
-        let mut config = SantaConfig {
-            sources: vec![],
-            packages: vec![],
-            custom_sources: Some(vec![]),
-            _groups: None,
-            log_level: 0,
-        };
+        let mut config = SantaConfig::new(vec![], vec![]);
+        config.custom_sources = Some(vec![]);
 
         let filtered = data.sources(&config);
         assert_eq!(
@@ -904,29 +858,20 @@ git =
         let mut git_sources = HashMap::new();
         git_sources.insert(
             KnownSources::Brew,
-            Some(PackageData {
-                name: None, // No name override
-                before: Some("echo before".to_string()),
-                after: None,
-                pre: None,
-                post: None,
-            }),
+            Some(PackageData::with_hooks(
+                None,
+                Some("echo before".to_string()),
+                None,
+                None,
+                None,
+            )),
         );
         git_sources.insert(KnownSources::Apt, None); // Source exists but no data
         packages.insert("git".to_string(), git_sources);
 
         // Package with name override
         let mut vim_sources = HashMap::new();
-        vim_sources.insert(
-            KnownSources::Brew,
-            Some(PackageData {
-                name: Some("vim-override".to_string()),
-                before: None,
-                after: None,
-                pre: None,
-                post: None,
-            }),
-        );
+        vim_sources.insert(KnownSources::Brew, Some(PackageData::new("vim-override")));
         packages.insert("vim".to_string(), vim_sources);
 
         let data = SantaData {
