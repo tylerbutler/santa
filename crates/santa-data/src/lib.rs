@@ -20,8 +20,8 @@ pub use config::{
     SourceList,
 };
 pub use models::{
-    Arch, CommandName, Distro, KnownSources, OS, PackageData, PackageDataList, PackageName,
-    Platform, SourceName,
+    Arch, CommandName, Distro, KnownSources, PackageData, PackageDataList, PackageName, Platform,
+    SourceName, OS,
 };
 pub use schemas::{
     ComplexPackageDefinition, ConfigDefinition, ConfigSettings, PackageDefinition,
