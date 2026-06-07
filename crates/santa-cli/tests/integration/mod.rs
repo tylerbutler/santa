@@ -9,7 +9,6 @@ pub mod command_execution;
 pub mod config_hot_reload;
 
 use santa::errors::{Result, SantaError};
-use santa::traits::PackageManager;
 
 /// Mock package source for testing without executing real commands
 #[derive(Debug, Clone)]
@@ -43,9 +42,7 @@ impl MockPackageSource {
     }
 }
 
-impl PackageManager for MockPackageSource {
-    type Error = SantaError;
-
+impl MockPackageSource {
     fn name(&self) -> String {
         self.name.clone()
     }
@@ -98,5 +95,9 @@ impl PackageManager for MockPackageSource {
 
     fn supports_batch_install(&self) -> bool {
         true
+    }
+
+    fn requires_elevation(&self) -> bool {
+        false
     }
 }

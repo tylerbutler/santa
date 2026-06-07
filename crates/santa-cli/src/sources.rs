@@ -832,6 +832,8 @@ impl std::fmt::Display for PackageSource {
 
 // Trait implementations for PackageSource
 
+impl crate::traits::private::Sealed for PackageSource {}
+
 impl PackageManager for PackageSource {
     type Error = SantaError;
 
