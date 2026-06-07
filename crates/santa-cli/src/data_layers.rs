@@ -55,6 +55,7 @@ impl std::fmt::Display for DataOrigin {
 
 /// A source with its origin tracked
 #[derive(Debug, Clone)]
+#[non_exhaustive]
 pub struct LayeredSource {
     pub name: String,
     pub definition: SourceDefinition,
@@ -63,6 +64,7 @@ pub struct LayeredSource {
 
 /// A package with its origin tracked
 #[derive(Debug, Clone)]
+#[non_exhaustive]
 pub struct LayeredPackage {
     pub name: String,
     pub definition: PackageDefinition,
@@ -71,6 +73,7 @@ pub struct LayeredPackage {
 
 /// Result of an update operation
 #[derive(Debug, Clone)]
+#[non_exhaustive]
 pub struct UpdateResult {
     pub sources_updated: bool,
     pub packages_updated: bool,

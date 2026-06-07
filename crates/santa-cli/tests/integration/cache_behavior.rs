@@ -32,11 +32,7 @@ where
     pub fn new() -> Self {
         Self {
             data: Arc::new(RwLock::new(HashMap::new())),
-            stats: Arc::new(RwLock::new(CacheStats {
-                entries: 0,
-                hits: 0,
-                misses: 0,
-            })),
+            stats: Arc::new(RwLock::new(CacheStats::new(0, 0, 0))),
         }
     }
 }

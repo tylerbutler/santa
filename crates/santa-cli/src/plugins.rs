@@ -14,6 +14,7 @@ use crate::data::SantaData;
 ///
 /// Plugin metadata information
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct PluginMetadata {
     /// Plugin name
     pub name: String,
@@ -394,13 +395,7 @@ mod tests {
     use crate::data::KnownSources;
 
     fn create_test_config() -> SantaConfig {
-        SantaConfig {
-            sources: vec![KnownSources::Brew],
-            packages: vec!["git".to_string()],
-            custom_sources: None,
-            _groups: None,
-            log_level: 0,
-        }
+        SantaConfig::new(vec![KnownSources::Brew], vec!["git".to_string()])
     }
 
     fn create_test_data() -> SantaData {
