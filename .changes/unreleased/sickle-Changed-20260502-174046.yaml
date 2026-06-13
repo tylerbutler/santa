@@ -1,0 +1,4 @@
+project: sickle
+kind: Changed
+body: Align Sickle parsing, printing, and generated CCL test coverage with upstream CCL behavior.
+time: 2026-05-02T17:40:46.577301-07:00

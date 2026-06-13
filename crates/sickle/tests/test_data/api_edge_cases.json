@@ -1,5 +1,5 @@
 {
-  "$schema": "https://raw.githubusercontent.com/CatConfLang/ccl-test-data/v0.6.0/schemas/generated-format.json",
+  "$schema": "https://raw.githubusercontent.com/CatConfLang/ccl-test-data/v1.1.0/schemas/generated-format.json",
   "tests": [
     {
       "behaviors": [],
@@ -375,46 +375,7 @@
       "variants": []
     },
     {
-      "behaviors": [
-        "tabs_as_content"
-      ],
-      "conflicts": {
-        "behaviors": [
-          "tabs_as_whitespace"
-        ]
-      },
-      "expected": {
-        "count": 1,
-        "entries": [
-          {
-            "key": "key",
-            "value": "\tvalue"
-          }
-        ]
-      },
-      "features": [
-        "whitespace"
-      ],
-      "functions": [
-        "parse"
-      ],
-      "inputs": [
-        "\tkey\t=\tvalue"
-      ],
-      "name": "key_with_tabs_parse",
-      "source_test": "key_with_tabs",
-      "validation": "parse",
-      "variants": []
-    },
-    {
-      "behaviors": [
-        "tabs_as_content"
-      ],
-      "conflicts": {
-        "behaviors": [
-          "tabs_as_whitespace"
-        ]
-      },
+      "behaviors": [],
       "expected": {
         "count": 1,
         "entries": [
@@ -467,70 +428,6 @@
       "variants": []
     },
     {
-      "behaviors": [
-        "tabs_as_content"
-      ],
-      "conflicts": {
-        "behaviors": [
-          "tabs_as_whitespace"
-        ]
-      },
-      "expected": {
-        "count": 1,
-        "entries": [
-          {
-            "key": "text",
-            "value": "First\n   four spaces\n\ttab preserved"
-          }
-        ]
-      },
-      "features": [
-        "whitespace"
-      ],
-      "functions": [
-        "parse_indented"
-      ],
-      "inputs": [
-        "text = First\n    four spaces\n \ttab preserved"
-      ],
-      "name": "spaces_vs_tabs_continuation_parse_indented",
-      "source_test": "spaces_vs_tabs_continuation",
-      "validation": "parse_indented",
-      "variants": []
-    },
-    {
-      "behaviors": [
-        "tabs_as_content"
-      ],
-      "conflicts": {
-        "behaviors": [
-          "tabs_as_whitespace"
-        ]
-      },
-      "expected": {
-        "count": 1,
-        "entries": [
-          {
-            "key": "text",
-            "value": "First\n   four spaces\n\ttab preserved"
-          }
-        ]
-      },
-      "features": [
-        "whitespace"
-      ],
-      "functions": [
-        "parse_indented"
-      ],
-      "inputs": [
-        "text = First\n    four spaces\n \ttab preserved"
-      ],
-      "name": "spaces_vs_tabs_continuation_ocaml_reference_parse_indented",
-      "source_test": "spaces_vs_tabs_continuation_ocaml_reference",
-      "validation": "parse_indented",
-      "variants": []
-    },
-    {
       "behaviors": [],
       "expected": {
         "count": 1,
@@ -568,7 +465,7 @@
         ]
       },
       "features": [
-        "empty_keys",
+        "multiline_keys",
         "whitespace"
       ],
       "functions": [
@@ -594,7 +491,7 @@
         ]
       },
       "features": [
-        "empty_keys",
+        "multiline_keys",
         "whitespace"
       ],
       "functions": [
@@ -605,6 +502,164 @@
       ],
       "name": "complex_multi_newline_whitespace_parse",
       "source_test": "complex_multi_newline_whitespace",
+      "validation": "parse",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "entries": [
+          {
+            "key": "my key",
+            "value": "val"
+          }
+        ]
+      },
+      "features": [
+        "multiline_keys",
+        "whitespace"
+      ],
+      "functions": [
+        "parse"
+      ],
+      "inputs": [
+        "my\n key\n= val"
+      ],
+      "name": "multiline_key_with_spaces_parse",
+      "source_test": "multiline_key_with_spaces",
+      "validation": "parse",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "entries": [
+          {
+            "key": "a b c",
+            "value": "val"
+          }
+        ]
+      },
+      "features": [
+        "multiline_keys"
+      ],
+      "functions": [
+        "parse"
+      ],
+      "inputs": [
+        "a\n b\n c\n= val"
+      ],
+      "name": "multiline_key_three_lines_parse",
+      "source_test": "multiline_key_three_lines",
+      "validation": "parse",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "entries": [
+          {
+            "key": "key",
+            "value": ""
+          }
+        ]
+      },
+      "features": [
+        "multiline_keys",
+        "empty_keys"
+      ],
+      "functions": [
+        "parse"
+      ],
+      "inputs": [
+        "key\n="
+      ],
+      "name": "multiline_key_empty_value_parse",
+      "source_test": "multiline_key_empty_value",
+      "validation": "parse",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 2,
+        "entries": [
+          {
+            "key": "first",
+            "value": "val1"
+          },
+          {
+            "key": "key",
+            "value": "val2"
+          }
+        ]
+      },
+      "features": [
+        "multiline_keys"
+      ],
+      "functions": [
+        "parse"
+      ],
+      "inputs": [
+        "first = val1\nkey\n= val2"
+      ],
+      "name": "multiline_key_with_regular_entry_parse",
+      "source_test": "multiline_key_with_regular_entry",
+      "validation": "parse",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "entries": [
+          {
+            "key": "key",
+            "value": "val"
+          }
+        ]
+      },
+      "features": [
+        "multiline_keys",
+        "whitespace"
+      ],
+      "functions": [
+        "parse"
+      ],
+      "inputs": [
+        "key\n\n= val"
+      ],
+      "name": "multiline_key_blank_lines_between_parse",
+      "source_test": "multiline_key_blank_lines_between",
+      "validation": "parse",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "entries": [
+          {
+            "key": "key",
+            "value": "val"
+          }
+        ]
+      },
+      "features": [
+        "multiline_keys",
+        "whitespace"
+      ],
+      "functions": [
+        "parse"
+      ],
+      "inputs": [
+        "key\n\t= val"
+      ],
+      "name": "multiline_key_tabs_in_continuation_parse",
+      "source_test": "multiline_key_tabs_in_continuation",
       "validation": "parse",
       "variants": []
     },
@@ -730,7 +785,9 @@
       "variants": []
     },
     {
-      "behaviors": [],
+      "behaviors": [
+        "multiline_values"
+      ],
       "expected": {
         "count": 1,
         "entries": [
@@ -741,7 +798,7 @@
         ]
       },
       "features": [
-        "multiline"
+        "multiline_continuation"
       ],
       "functions": [
         "parse"
@@ -755,7 +812,9 @@
       "variants": []
     },
     {
-      "behaviors": [],
+      "behaviors": [
+        "multiline_values"
+      ],
       "expected": {
         "count": 1,
         "entries": [
@@ -766,7 +825,7 @@
         ]
       },
       "features": [
-        "multiline"
+        "multiline_continuation"
       ],
       "functions": [
         "parse_indented"
@@ -912,6 +971,7 @@
         "empty_keys"
       ],
       "functions": [
+        "parse_indented",
         "build_hierarchy"
       ],
       "inputs": [
@@ -920,6 +980,66 @@
       "name": "ocaml_stress_test_original_build_hierarchy",
       "source_test": "ocaml_stress_test_original",
       "validation": "build_hierarchy",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "/": {
+            "This is a CCL document": {}
+          },
+          "database": {
+            "enabled": {
+              "true": {}
+            },
+            "limits": {
+              "cpu": {
+                "1500mi": {}
+              },
+              "memory": {
+                "10Gb": {}
+              }
+            },
+            "ports": {
+              "": {
+                "8000": {},
+                "8001": {},
+                "8002": {}
+              }
+            }
+          },
+          "title": {
+            "CCL Example": {}
+          },
+          "user": {
+            "createdAt": {
+              "2024-12-31": {}
+            },
+            "guestId": {
+              "42": {}
+            },
+            "login": {
+              "chshersh": {}
+            }
+          }
+        }
+      },
+      "features": [
+        "comments",
+        "empty_keys"
+      ],
+      "functions": [
+        "parse_indented",
+        "build_model"
+      ],
+      "inputs": [
+        "/= This is a CCL document\ntitle = CCL Example\n\ndatabase =\n  enabled = true\n  ports =\n    = 8000\n    = 8001\n    = 8002\n  limits =\n    cpu = 1500mi\n    memory = 10Gb\n\nuser =\n  guestId = 42\n\nuser =\n  login = chshersh\n  createdAt = 2024-12-31"
+      ],
+      "name": "ocaml_stress_test_original_build_model",
+      "source_test": "ocaml_stress_test_original",
+      "validation": "build_model",
       "variants": []
     },
     {
@@ -982,6 +1102,7 @@
       },
       "features": [],
       "functions": [
+        "parse_indented",
         "build_hierarchy"
       ],
       "inputs": [
@@ -993,11 +1114,41 @@
       "variants": []
     },
     {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "mappings": {
+            "config/settings.json": {
+              ".vscode/settings.json": {}
+            },
+            "src/template.env": {
+              ".env": {}
+            }
+          }
+        }
+      },
+      "features": [],
+      "functions": [
+        "parse_indented",
+        "build_model"
+      ],
+      "inputs": [
+        "mappings =\n  config/settings.json = .vscode/settings.json\n  src/template.env = .env"
+      ],
+      "name": "forward_slashes_in_map_keys_build_model",
+      "source_test": "forward_slashes_in_map_keys",
+      "validation": "build_model",
+      "variants": []
+    },
+    {
       "args": [
         "mappings",
         "config/settings.json"
       ],
-      "behaviors": [],
+      "behaviors": [
+        "path_traversal"
+      ],
       "expected": {
         "count": 1,
         "value": ".vscode/settings.json"
@@ -1050,6 +1201,7 @@
       },
       "features": [],
       "functions": [
+        "parse_indented",
         "build_hierarchy"
       ],
       "inputs": [
@@ -1058,6 +1210,34 @@
       "name": "backslashes_in_map_keys_build_hierarchy",
       "source_test": "backslashes_in_map_keys",
       "validation": "build_hierarchy",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "paths": {
+            "C:\\Users\\config": {
+              "user_settings": {}
+            },
+            "D:\\data\\file.txt": {
+              "backup": {}
+            }
+          }
+        }
+      },
+      "features": [],
+      "functions": [
+        "parse_indented",
+        "build_model"
+      ],
+      "inputs": [
+        "paths =\n  C:\\Users\\config = user_settings\n  D:\\data\\file.txt = backup"
+      ],
+      "name": "backslashes_in_map_keys_build_model",
+      "source_test": "backslashes_in_map_keys",
+      "validation": "build_model",
       "variants": []
     },
     {
@@ -1096,6 +1276,7 @@
       },
       "features": [],
       "functions": [
+        "parse_indented",
         "build_hierarchy"
       ],
       "inputs": [
@@ -1104,6 +1285,34 @@
       "name": "colons_in_map_keys_build_hierarchy",
       "source_test": "colons_in_map_keys",
       "validation": "build_hierarchy",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "timestamps": {
+            "12:30:45": {
+              "morning": {}
+            },
+            "23:59:59": {
+              "midnight": {}
+            }
+          }
+        }
+      },
+      "features": [],
+      "functions": [
+        "parse_indented",
+        "build_model"
+      ],
+      "inputs": [
+        "timestamps =\n  12:30:45 = morning\n  23:59:59 = midnight"
+      ],
+      "name": "colons_in_map_keys_build_model",
+      "source_test": "colons_in_map_keys",
+      "validation": "build_model",
       "variants": []
     },
     {
@@ -1142,6 +1351,7 @@
       },
       "features": [],
       "functions": [
+        "parse_indented",
         "build_hierarchy"
       ],
       "inputs": [
@@ -1150,6 +1360,34 @@
       "name": "hyphens_in_map_keys_build_hierarchy",
       "source_test": "hyphens_in_map_keys",
       "validation": "build_hierarchy",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "packages": {
+            "another-lib": {
+              "2.3.4": {}
+            },
+            "my-package-name": {
+              "1.0.0": {}
+            }
+          }
+        }
+      },
+      "features": [],
+      "functions": [
+        "parse_indented",
+        "build_model"
+      ],
+      "inputs": [
+        "packages =\n  my-package-name = 1.0.0\n  another-lib = 2.3.4"
+      ],
+      "name": "hyphens_in_map_keys_build_model",
+      "source_test": "hyphens_in_map_keys",
+      "validation": "build_model",
       "variants": []
     },
     {
@@ -1188,6 +1426,7 @@
       },
       "features": [],
       "functions": [
+        "parse_indented",
         "build_hierarchy"
       ],
       "inputs": [
@@ -1196,6 +1435,34 @@
       "name": "at_signs_in_map_keys_build_hierarchy",
       "source_test": "at_signs_in_map_keys",
       "validation": "build_hierarchy",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "emails": {
+            "admin@test.org": {
+              "secondary": {}
+            },
+            "user@example.com": {
+              "primary": {}
+            }
+          }
+        }
+      },
+      "features": [],
+      "functions": [
+        "parse_indented",
+        "build_model"
+      ],
+      "inputs": [
+        "emails =\n  user@example.com = primary\n  admin@test.org = secondary"
+      ],
+      "name": "at_signs_in_map_keys_build_model",
+      "source_test": "at_signs_in_map_keys",
+      "validation": "build_model",
       "variants": []
     },
     {
@@ -1234,6 +1501,7 @@
       },
       "features": [],
       "functions": [
+        "parse_indented",
         "build_hierarchy"
       ],
       "inputs": [
@@ -1242,6 +1510,34 @@
       "name": "hash_in_map_keys_build_hierarchy",
       "source_test": "hash_in_map_keys",
       "validation": "build_hierarchy",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "issues": {
+            "bug#456": {
+              "closed": {}
+            },
+            "issue#123": {
+              "open": {}
+            }
+          }
+        }
+      },
+      "features": [],
+      "functions": [
+        "parse_indented",
+        "build_model"
+      ],
+      "inputs": [
+        "issues =\n  issue#123 = open\n  bug#456 = closed"
+      ],
+      "name": "hash_in_map_keys_build_model",
+      "source_test": "hash_in_map_keys",
+      "validation": "build_model",
       "variants": []
     },
     {
@@ -1280,6 +1576,7 @@
       },
       "features": [],
       "functions": [
+        "parse_indented",
         "build_hierarchy"
       ],
       "inputs": [
@@ -1288,6 +1585,34 @@
       "name": "brackets_in_map_keys_build_hierarchy",
       "source_test": "brackets_in_map_keys",
       "validation": "build_hierarchy",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "arrays": {
+            "items[0]": {
+              "first": {}
+            },
+            "items[1]": {
+              "second": {}
+            }
+          }
+        }
+      },
+      "features": [],
+      "functions": [
+        "parse_indented",
+        "build_model"
+      ],
+      "inputs": [
+        "arrays =\n  items[0] = first\n  items[1] = second"
+      ],
+      "name": "brackets_in_map_keys_build_model",
+      "source_test": "brackets_in_map_keys",
+      "validation": "build_model",
       "variants": []
     },
     {
@@ -1326,6 +1651,7 @@
       },
       "features": [],
       "functions": [
+        "parse_indented",
         "build_hierarchy"
       ],
       "inputs": [
@@ -1334,6 +1660,34 @@
       "name": "parentheses_in_map_keys_build_hierarchy",
       "source_test": "parentheses_in_map_keys",
       "validation": "build_hierarchy",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "functions": {
+            "init()": {
+              "setup": {}
+            },
+            "run(args)": {
+              "execute": {}
+            }
+          }
+        }
+      },
+      "features": [],
+      "functions": [
+        "parse_indented",
+        "build_model"
+      ],
+      "inputs": [
+        "functions =\n  init() = setup\n  run(args) = execute"
+      ],
+      "name": "parentheses_in_map_keys_build_model",
+      "source_test": "parentheses_in_map_keys",
+      "validation": "build_model",
       "variants": []
     },
     {
@@ -1373,6 +1727,7 @@
       },
       "features": [],
       "functions": [
+        "parse_indented",
         "build_hierarchy"
       ],
       "inputs": [
@@ -1381,6 +1736,37 @@
       "name": "mixed_special_chars_in_keys_build_hierarchy",
       "source_test": "mixed_special_chars_in_keys",
       "validation": "build_hierarchy",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "complex": {
+            "file#v1.2.3": {
+              "release": {}
+            },
+            "path\\to\\[item]": {
+              "location": {}
+            },
+            "user@host:8080/api": {
+              "endpoint": {}
+            }
+          }
+        }
+      },
+      "features": [],
+      "functions": [
+        "parse_indented",
+        "build_model"
+      ],
+      "inputs": [
+        "complex =\n  user@host:8080/api = endpoint\n  file#v1.2.3 = release\n  path\\to\\[item] = location"
+      ],
+      "name": "mixed_special_chars_in_keys_build_model",
+      "source_test": "mixed_special_chars_in_keys",
+      "validation": "build_model",
       "variants": []
     },
     {
@@ -1419,6 +1805,7 @@
       },
       "features": [],
       "functions": [
+        "parse_indented",
         "build_hierarchy"
       ],
       "inputs": [
@@ -1427,6 +1814,34 @@
       "name": "url_like_keys_build_hierarchy",
       "source_test": "url_like_keys",
       "validation": "build_hierarchy",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "endpoints": {
+            "http://localhost:3000/test": {
+              "development": {}
+            },
+            "https://api.example.com/v1": {
+              "production": {}
+            }
+          }
+        }
+      },
+      "features": [],
+      "functions": [
+        "parse_indented",
+        "build_model"
+      ],
+      "inputs": [
+        "endpoints =\n  https://api.example.com/v1 = production\n  http://localhost:3000/test = development"
+      ],
+      "name": "url_like_keys_build_model",
+      "source_test": "url_like_keys",
+      "validation": "build_model",
       "variants": []
     },
     {
@@ -1462,6 +1877,7 @@
       },
       "features": [],
       "functions": [
+        "parse_indented",
         "build_hierarchy"
       ],
       "inputs": [
@@ -1470,6 +1886,29 @@
       "name": "relative_path_parent_parent_build_hierarchy",
       "source_test": "relative_path_parent_parent",
       "validation": "build_hierarchy",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "../..": {
+            "up_two_levels": {}
+          }
+        }
+      },
+      "features": [],
+      "functions": [
+        "parse_indented",
+        "build_model"
+      ],
+      "inputs": [
+        "../.. = up_two_levels"
+      ],
+      "name": "relative_path_parent_parent_build_model",
+      "source_test": "relative_path_parent_parent",
+      "validation": "build_model",
       "variants": []
     },
     {
@@ -1505,6 +1944,7 @@
       },
       "features": [],
       "functions": [
+        "parse_indented",
         "build_hierarchy"
       ],
       "inputs": [
@@ -1513,6 +1953,29 @@
       "name": "relative_path_parent_build_hierarchy",
       "source_test": "relative_path_parent",
       "validation": "build_hierarchy",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "../": {
+            "parent_dir": {}
+          }
+        }
+      },
+      "features": [],
+      "functions": [
+        "parse_indented",
+        "build_model"
+      ],
+      "inputs": [
+        "../ = parent_dir"
+      ],
+      "name": "relative_path_parent_build_model",
+      "source_test": "relative_path_parent",
+      "validation": "build_model",
       "variants": []
     },
     {
@@ -1548,6 +2011,7 @@
       },
       "features": [],
       "functions": [
+        "parse_indented",
         "build_hierarchy"
       ],
       "inputs": [
@@ -1556,6 +2020,29 @@
       "name": "relative_path_single_dot_build_hierarchy",
       "source_test": "relative_path_single_dot",
       "validation": "build_hierarchy",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          ".": {
+            "current_dir": {}
+          }
+        }
+      },
+      "features": [],
+      "functions": [
+        "parse_indented",
+        "build_model"
+      ],
+      "inputs": [
+        ". = current_dir"
+      ],
+      "name": "relative_path_single_dot_build_model",
+      "source_test": "relative_path_single_dot",
+      "validation": "build_model",
       "variants": []
     },
     {
@@ -1591,6 +2078,7 @@
       },
       "features": [],
       "functions": [
+        "parse_indented",
         "build_hierarchy"
       ],
       "inputs": [
@@ -1599,6 +2087,29 @@
       "name": "double_slash_build_hierarchy",
       "source_test": "double_slash",
       "validation": "build_hierarchy",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "//": {
+            "double_slash_value": {}
+          }
+        }
+      },
+      "features": [],
+      "functions": [
+        "parse_indented",
+        "build_model"
+      ],
+      "inputs": [
+        "// = double_slash_value"
+      ],
+      "name": "double_slash_build_model",
+      "source_test": "double_slash",
+      "validation": "build_model",
       "variants": []
     },
     {
@@ -1634,6 +2145,7 @@
       },
       "features": [],
       "functions": [
+        "parse_indented",
         "build_hierarchy"
       ],
       "inputs": [
@@ -1642,6 +2154,29 @@
       "name": "relative_path_in_value_build_hierarchy",
       "source_test": "relative_path_in_value",
       "validation": "build_hierarchy",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "path": {
+            "../../src": {}
+          }
+        }
+      },
+      "features": [],
+      "functions": [
+        "parse_indented",
+        "build_model"
+      ],
+      "inputs": [
+        "path = ../../src"
+      ],
+      "name": "relative_path_in_value_build_model",
+      "source_test": "relative_path_in_value",
+      "validation": "build_model",
       "variants": []
     },
     {
@@ -1701,6 +2236,7 @@
       },
       "features": [],
       "functions": [
+        "parse_indented",
         "build_hierarchy"
       ],
       "inputs": [
@@ -1712,11 +2248,41 @@
       "variants": []
     },
     {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "mappings": {
+            "../../config": {
+              "../../data": {}
+            },
+            "../foo": {
+              "../bar": {}
+            }
+          }
+        }
+      },
+      "features": [],
+      "functions": [
+        "parse_indented",
+        "build_model"
+      ],
+      "inputs": [
+        "mappings =\n  ../foo = ../bar\n  ../../config = ../../data"
+      ],
+      "name": "relative_path_in_nested_value_build_model",
+      "source_test": "relative_path_in_nested_value",
+      "validation": "build_model",
+      "variants": []
+    },
+    {
       "args": [
         "mappings",
         "../foo"
       ],
-      "behaviors": [],
+      "behaviors": [
+        "path_traversal"
+      ],
       "expected": {
         "count": 1,
         "value": "../bar"
@@ -1769,6 +2335,7 @@
       },
       "features": [],
       "functions": [
+        "parse_indented",
         "build_hierarchy"
       ],
       "inputs": [
@@ -1777,6 +2344,34 @@
       "name": "double_slash_in_nested_build_hierarchy",
       "source_test": "double_slash_in_nested",
       "validation": "build_hierarchy",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "urls": {
+            "//api": {
+              "//backup": {}
+            },
+            "//server": {
+              "/root": {}
+            }
+          }
+        }
+      },
+      "features": [],
+      "functions": [
+        "parse_indented",
+        "build_model"
+      ],
+      "inputs": [
+        "urls =\n  //api = //backup\n  //server = /root"
+      ],
+      "name": "double_slash_in_nested_build_model",
+      "source_test": "double_slash_in_nested",
+      "validation": "build_model",
       "variants": []
     },
     {
@@ -1817,6 +2412,7 @@
       },
       "features": [],
       "functions": [
+        "parse_indented",
         "build_hierarchy"
       ],
       "inputs": [
@@ -1828,12 +2424,44 @@
       "variants": []
     },
     {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "config": {
+            "build": {
+              "cache": {
+                "../.cache": {}
+              },
+              "output": {
+                "../../dist": {}
+              }
+            }
+          }
+        }
+      },
+      "features": [],
+      "functions": [
+        "parse_indented",
+        "build_model"
+      ],
+      "inputs": [
+        "config =\n  build = \n    output = ../../dist\n    cache = ../.cache"
+      ],
+      "name": "relative_paths_deeply_nested_build_model",
+      "source_test": "relative_paths_deeply_nested",
+      "validation": "build_model",
+      "variants": []
+    },
+    {
       "args": [
         "config",
         "build",
         "cache"
       ],
-      "behaviors": [],
+      "behaviors": [
+        "path_traversal"
+      ],
       "expected": {
         "count": 1,
         "value": "../.cache"
@@ -1888,6 +2516,7 @@
       },
       "features": [],
       "functions": [
+        "parse_indented",
         "build_hierarchy"
       ],
       "inputs": [
@@ -1899,12 +2528,44 @@
       "variants": []
     },
     {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "imports": {
+            "..": {
+              "main": {
+                "../src/main": {}
+              },
+              "test": {
+                "../tests": {}
+              }
+            }
+          }
+        }
+      },
+      "features": [],
+      "functions": [
+        "parse_indented",
+        "build_model"
+      ],
+      "inputs": [
+        "imports =\n  .. = \n    main = ../src/main\n    test = ../tests"
+      ],
+      "name": "relative_paths_as_nested_keys_build_model",
+      "source_test": "relative_paths_as_nested_keys",
+      "validation": "build_model",
+      "variants": []
+    },
+    {
       "args": [
         "imports",
         "..",
         "main"
       ],
-      "behaviors": [],
+      "behaviors": [
+        "path_traversal"
+      ],
       "expected": {
         "count": 1,
         "value": "../src/main"
@@ -1962,6 +2623,7 @@
       },
       "features": [],
       "functions": [
+        "parse_indented",
         "build_hierarchy"
       ],
       "inputs": [
@@ -1973,12 +2635,49 @@
       "variants": []
     },
     {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "paths": {
+            "absolute": {
+              "root": {
+                "/": {}
+              }
+            },
+            "relative": {
+              "current": {
+                ".": {}
+              },
+              "up": {
+                "../../": {}
+              }
+            }
+          }
+        }
+      },
+      "features": [],
+      "functions": [
+        "parse_indented",
+        "build_model"
+      ],
+      "inputs": [
+        "paths =\n  relative = \n    up = ../../\n    current = .\n  absolute = \n    root = /"
+      ],
+      "name": "mixed_relative_and_absolute_nested_build_model",
+      "source_test": "mixed_relative_and_absolute_nested",
+      "validation": "build_model",
+      "variants": []
+    },
+    {
       "args": [
         "paths",
         "relative",
         "up"
       ],
-      "behaviors": [],
+      "behaviors": [
+        "path_traversal"
+      ],
       "expected": {
         "count": 1,
         "value": "../../"
@@ -2036,6 +2735,7 @@
       },
       "features": [],
       "functions": [
+        "parse_indented",
         "build_hierarchy"
       ],
       "inputs": [
@@ -2047,12 +2747,49 @@
       "variants": []
     },
     {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "servers": {
+            "primary": {
+              "api": {
+                "//api.example.com": {}
+              },
+              "cdn": {
+                "//cdn.example.com": {}
+              }
+            },
+            "secondary": {
+              "//internal": {
+                "//backup.example.com": {}
+              }
+            }
+          }
+        }
+      },
+      "features": [],
+      "functions": [
+        "parse_indented",
+        "build_model"
+      ],
+      "inputs": [
+        "servers =\n  primary = \n    api = //api.example.com\n    cdn = //cdn.example.com\n  secondary = \n    //internal = //backup.example.com"
+      ],
+      "name": "double_slash_deeply_nested_build_model",
+      "source_test": "double_slash_deeply_nested",
+      "validation": "build_model",
+      "variants": []
+    },
+    {
       "args": [
         "servers",
         "primary",
         "api"
       ],
-      "behaviors": [],
+      "behaviors": [
+        "path_traversal"
+      ],
       "expected": {
         "count": 1,
         "value": "//api.example.com"
@@ -2102,6 +2839,7 @@
       },
       "features": [],
       "functions": [
+        "parse_indented",
         "build_hierarchy"
       ],
       "inputs": [
@@ -2110,6 +2848,29 @@
       "name": "url_as_key_build_hierarchy",
       "source_test": "url_as_key",
       "validation": "build_hierarchy",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "https://api.example.com": {
+            "production": {}
+          }
+        }
+      },
+      "features": [],
+      "functions": [
+        "parse_indented",
+        "build_model"
+      ],
+      "inputs": [
+        "https://api.example.com = production"
+      ],
+      "name": "url_as_key_build_model",
+      "source_test": "url_as_key",
+      "validation": "build_model",
       "variants": []
     },
     {
@@ -2166,6 +2927,7 @@
       },
       "features": [],
       "functions": [
+        "parse_indented",
         "build_hierarchy"
       ],
       "inputs": [
@@ -2174,6 +2936,29 @@
       "name": "url_with_port_as_key_build_hierarchy",
       "source_test": "url_with_port_as_key",
       "validation": "build_hierarchy",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "http://localhost:8080": {
+            "dev": {}
+          }
+        }
+      },
+      "features": [],
+      "functions": [
+        "parse_indented",
+        "build_model"
+      ],
+      "inputs": [
+        "http://localhost:8080 = dev"
+      ],
+      "name": "url_with_port_as_key_build_model",
+      "source_test": "url_with_port_as_key",
+      "validation": "build_model",
       "variants": []
     },
     {
@@ -2209,6 +2994,7 @@
       },
       "features": [],
       "functions": [
+        "parse_indented",
         "build_hierarchy"
       ],
       "inputs": [
@@ -2217,6 +3003,29 @@
       "name": "url_with_path_as_key_build_hierarchy",
       "source_test": "url_with_path_as_key",
       "validation": "build_hierarchy",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "https://api.example.com/v1/users": {
+            "users_endpoint": {}
+          }
+        }
+      },
+      "features": [],
+      "functions": [
+        "parse_indented",
+        "build_model"
+      ],
+      "inputs": [
+        "https://api.example.com/v1/users = users_endpoint"
+      ],
+      "name": "url_with_path_as_key_build_model",
+      "source_test": "url_with_path_as_key",
+      "validation": "build_model",
       "variants": []
     },
     {
@@ -2252,6 +3061,7 @@
       },
       "features": [],
       "functions": [
+        "parse_indented",
         "build_hierarchy"
       ],
       "inputs": [
@@ -2260,6 +3070,29 @@
       "name": "url_in_value_build_hierarchy",
       "source_test": "url_in_value",
       "validation": "build_hierarchy",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "endpoint": {
+            "https://api.example.com/v1/data": {}
+          }
+        }
+      },
+      "features": [],
+      "functions": [
+        "parse_indented",
+        "build_model"
+      ],
+      "inputs": [
+        "endpoint = https://api.example.com/v1/data"
+      ],
+      "name": "url_in_value_build_model",
+      "source_test": "url_in_value",
+      "validation": "build_model",
       "variants": []
     },
     {
@@ -2319,6 +3152,7 @@
       },
       "features": [],
       "functions": [
+        "parse_indented",
         "build_hierarchy"
       ],
       "inputs": [
@@ -2330,11 +3164,41 @@
       "variants": []
     },
     {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "mappings": {
+            "https://api.example.com": {
+              "https://prod.example.com": {}
+            },
+            "https://staging.example.com": {
+              "https://stage.example.com": {}
+            }
+          }
+        }
+      },
+      "features": [],
+      "functions": [
+        "parse_indented",
+        "build_model"
+      ],
+      "inputs": [
+        "mappings =\n  https://api.example.com = https://prod.example.com\n  https://staging.example.com = https://stage.example.com"
+      ],
+      "name": "urls_as_nested_keys_and_values_build_model",
+      "source_test": "urls_as_nested_keys_and_values",
+      "validation": "build_model",
+      "variants": []
+    },
+    {
       "args": [
         "mappings",
         "https://api.example.com"
       ],
-      "behaviors": [],
+      "behaviors": [
+        "path_traversal"
+      ],
       "expected": {
         "count": 1,
         "value": "https://prod.example.com"
@@ -2394,6 +3258,7 @@
       },
       "features": [],
       "functions": [
+        "parse_indented",
         "build_hierarchy"
       ],
       "inputs": [
@@ -2405,13 +3270,52 @@
       "variants": []
     },
     {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "config": {
+            "services": {
+              "api": {
+                "backup": {
+                  "https://backup.example.com": {}
+                },
+                "url": {
+                  "https://api.example.com": {}
+                }
+              },
+              "cdn": {
+                "url": {
+                  "https://cdn.example.com": {}
+                }
+              }
+            }
+          }
+        }
+      },
+      "features": [],
+      "functions": [
+        "parse_indented",
+        "build_model"
+      ],
+      "inputs": [
+        "config =\n  services = \n    api = \n      url = https://api.example.com\n      backup = https://backup.example.com\n    cdn = \n      url = https://cdn.example.com"
+      ],
+      "name": "urls_deeply_nested_build_model",
+      "source_test": "urls_deeply_nested",
+      "validation": "build_model",
+      "variants": []
+    },
+    {
       "args": [
         "config",
         "services",
         "api",
         "url"
       ],
-      "behaviors": [],
+      "behaviors": [
+        "path_traversal"
+      ],
       "expected": {
         "count": 1,
         "value": "https://api.example.com"
@@ -2475,6 +3379,7 @@
       },
       "features": [],
       "functions": [
+        "parse_indented",
         "build_hierarchy"
       ],
       "inputs": [
@@ -2483,6 +3388,36 @@
       "name": "url_with_query_params_as_key_build_hierarchy",
       "source_test": "url_with_query_params_as_key",
       "validation": "build_hierarchy",
+      "variants": []
+    },
+    {
+      "behaviors": [
+        "delimiter_prefer_spaced"
+      ],
+      "conflicts": {
+        "behaviors": [
+          "delimiter_first_equals"
+        ]
+      },
+      "expected": {
+        "count": 1,
+        "object": {
+          "https://api.example.com/search?q=test&page=1": {
+            "search_results": {}
+          }
+        }
+      },
+      "features": [],
+      "functions": [
+        "parse_indented",
+        "build_model"
+      ],
+      "inputs": [
+        "https://api.example.com/search?q=test&page=1 = search_results"
+      ],
+      "name": "url_with_query_params_as_key_build_model",
+      "source_test": "url_with_query_params_as_key",
+      "validation": "build_model",
       "variants": []
     },
     {
@@ -2532,6 +3467,7 @@
       },
       "features": [],
       "functions": [
+        "parse_indented",
         "build_hierarchy"
       ],
       "inputs": [
@@ -2540,6 +3476,36 @@
       "name": "delimiter_first_url_with_query_params_build_hierarchy",
       "source_test": "delimiter_first_url_with_query_params",
       "validation": "build_hierarchy",
+      "variants": []
+    },
+    {
+      "behaviors": [
+        "delimiter_first_equals"
+      ],
+      "conflicts": {
+        "behaviors": [
+          "delimiter_prefer_spaced"
+        ]
+      },
+      "expected": {
+        "count": 1,
+        "object": {
+          "https://api.example.com/search?q": {
+            "test&page=1 = search_results": {}
+          }
+        }
+      },
+      "features": [],
+      "functions": [
+        "parse_indented",
+        "build_model"
+      ],
+      "inputs": [
+        "https://api.example.com/search?q=test&page=1 = search_results"
+      ],
+      "name": "delimiter_first_url_with_query_params_build_model",
+      "source_test": "delimiter_first_url_with_query_params",
+      "validation": "build_model",
       "variants": []
     },
     {
@@ -2589,6 +3555,7 @@
       },
       "features": [],
       "functions": [
+        "parse_indented",
         "build_hierarchy"
       ],
       "inputs": [
@@ -2597,6 +3564,36 @@
       "name": "delimiter_first_multiple_equals_build_hierarchy",
       "source_test": "delimiter_first_multiple_equals",
       "validation": "build_hierarchy",
+      "variants": []
+    },
+    {
+      "behaviors": [
+        "delimiter_first_equals"
+      ],
+      "conflicts": {
+        "behaviors": [
+          "delimiter_prefer_spaced"
+        ]
+      },
+      "expected": {
+        "count": 1,
+        "object": {
+          "a": {
+            "b = c=d": {}
+          }
+        }
+      },
+      "features": [],
+      "functions": [
+        "parse_indented",
+        "build_model"
+      ],
+      "inputs": [
+        "a=b = c=d"
+      ],
+      "name": "delimiter_first_multiple_equals_build_model",
+      "source_test": "delimiter_first_multiple_equals",
+      "validation": "build_model",
       "variants": []
     },
     {
@@ -2646,6 +3643,7 @@
       },
       "features": [],
       "functions": [
+        "parse_indented",
         "build_hierarchy"
       ],
       "inputs": [
@@ -2654,6 +3652,36 @@
       "name": "delimiter_first_empty_value_build_hierarchy",
       "source_test": "delimiter_first_empty_value",
       "validation": "build_hierarchy",
+      "variants": []
+    },
+    {
+      "behaviors": [
+        "delimiter_first_equals"
+      ],
+      "conflicts": {
+        "behaviors": [
+          "delimiter_prefer_spaced"
+        ]
+      },
+      "expected": {
+        "count": 1,
+        "object": {
+          "a": {
+            "b =": {}
+          }
+        }
+      },
+      "features": [],
+      "functions": [
+        "parse_indented",
+        "build_model"
+      ],
+      "inputs": [
+        "a=b ="
+      ],
+      "name": "delimiter_first_empty_value_build_model",
+      "source_test": "delimiter_first_empty_value",
+      "validation": "build_model",
       "variants": []
     },
     {
@@ -2703,6 +3731,7 @@
       },
       "features": [],
       "functions": [
+        "parse_indented",
         "build_hierarchy"
       ],
       "inputs": [
@@ -2711,6 +3740,36 @@
       "name": "delimiter_spaced_multiple_equals_build_hierarchy",
       "source_test": "delimiter_spaced_multiple_equals",
       "validation": "build_hierarchy",
+      "variants": []
+    },
+    {
+      "behaviors": [
+        "delimiter_prefer_spaced"
+      ],
+      "conflicts": {
+        "behaviors": [
+          "delimiter_first_equals"
+        ]
+      },
+      "expected": {
+        "count": 1,
+        "object": {
+          "a=b": {
+            "c=d": {}
+          }
+        }
+      },
+      "features": [],
+      "functions": [
+        "parse_indented",
+        "build_model"
+      ],
+      "inputs": [
+        "a=b = c=d"
+      ],
+      "name": "delimiter_spaced_multiple_equals_build_model",
+      "source_test": "delimiter_spaced_multiple_equals",
+      "validation": "build_model",
       "variants": []
     },
     {
@@ -2760,6 +3819,7 @@
       },
       "features": [],
       "functions": [
+        "parse_indented",
         "build_hierarchy"
       ],
       "inputs": [
@@ -2768,6 +3828,36 @@
       "name": "delimiter_spaced_fallback_no_space_build_hierarchy",
       "source_test": "delimiter_spaced_fallback_no_space",
       "validation": "build_hierarchy",
+      "variants": []
+    },
+    {
+      "behaviors": [
+        "delimiter_prefer_spaced"
+      ],
+      "conflicts": {
+        "behaviors": [
+          "delimiter_first_equals"
+        ]
+      },
+      "expected": {
+        "count": 1,
+        "object": {
+          "key": {
+            "value": {}
+          }
+        }
+      },
+      "features": [],
+      "functions": [
+        "parse_indented",
+        "build_model"
+      ],
+      "inputs": [
+        "key=value"
+      ],
+      "name": "delimiter_spaced_fallback_no_space_build_model",
+      "source_test": "delimiter_spaced_fallback_no_space",
+      "validation": "build_model",
       "variants": []
     },
     {
@@ -2817,6 +3907,7 @@
       },
       "features": [],
       "functions": [
+        "parse_indented",
         "build_hierarchy"
       ],
       "inputs": [
@@ -2825,6 +3916,36 @@
       "name": "delimiter_spaced_empty_value_build_hierarchy",
       "source_test": "delimiter_spaced_empty_value",
       "validation": "build_hierarchy",
+      "variants": []
+    },
+    {
+      "behaviors": [
+        "delimiter_prefer_spaced"
+      ],
+      "conflicts": {
+        "behaviors": [
+          "delimiter_first_equals"
+        ]
+      },
+      "expected": {
+        "count": 1,
+        "object": {
+          "a=b": {
+            "": {}
+          }
+        }
+      },
+      "features": [],
+      "functions": [
+        "parse_indented",
+        "build_model"
+      ],
+      "inputs": [
+        "a=b ="
+      ],
+      "name": "delimiter_spaced_empty_value_build_model",
+      "source_test": "delimiter_spaced_empty_value",
+      "validation": "build_model",
       "variants": []
     },
     {
@@ -2860,6 +3981,7 @@
       },
       "features": [],
       "functions": [
+        "parse_indented",
         "build_hierarchy"
       ],
       "inputs": [
@@ -2868,6 +3990,29 @@
       "name": "url_with_fragment_as_key_build_hierarchy",
       "source_test": "url_with_fragment_as_key",
       "validation": "build_hierarchy",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "https://docs.example.com/guide#section-1": {
+            "docs_section_1": {}
+          }
+        }
+      },
+      "features": [],
+      "functions": [
+        "parse_indented",
+        "build_model"
+      ],
+      "inputs": [
+        "https://docs.example.com/guide#section-1 = docs_section_1"
+      ],
+      "name": "url_with_fragment_as_key_build_model",
+      "source_test": "url_with_fragment_as_key",
+      "validation": "build_model",
       "variants": []
     }
   ]

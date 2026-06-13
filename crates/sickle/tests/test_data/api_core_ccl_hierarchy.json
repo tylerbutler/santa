@@ -1,5 +1,5 @@
 {
-  "$schema": "https://raw.githubusercontent.com/CatConfLang/ccl-test-data/v0.6.0/schemas/generated-format.json",
+  "$schema": "https://raw.githubusercontent.com/CatConfLang/ccl-test-data/v1.1.0/schemas/generated-format.json",
   "tests": [
     {
       "behaviors": [],
@@ -39,6 +39,7 @@
       },
       "features": [],
       "functions": [
+        "parse_indented",
         "build_hierarchy"
       ],
       "inputs": [
@@ -47,6 +48,32 @@
       "name": "basic_object_construction_build_hierarchy",
       "source_test": "basic_object_construction",
       "validation": "build_hierarchy",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "age": {
+            "42": {}
+          },
+          "name": {
+            "Alice": {}
+          }
+        }
+      },
+      "features": [],
+      "functions": [
+        "parse_indented",
+        "build_model"
+      ],
+      "inputs": [
+        "name = Alice\nage = 42"
+      ],
+      "name": "basic_object_construction_build_model",
+      "source_test": "basic_object_construction",
+      "validation": "build_model",
       "variants": []
     },
     {
@@ -108,6 +135,7 @@
       },
       "features": [],
       "functions": [
+        "parse_indented",
         "build_hierarchy"
       ],
       "inputs": [
@@ -122,7 +150,42 @@
       "behaviors": [],
       "expected": {
         "count": 1,
-        "value": "server = \n  database =\n    host = localhost\n    port = 5432\n  cache =\n    enabled = true"
+        "object": {
+          "server": {
+            "cache": {
+              "enabled": {
+                "true": {}
+              }
+            },
+            "database": {
+              "host": {
+                "localhost": {}
+              },
+              "port": {
+                "5432": {}
+              }
+            }
+          }
+        }
+      },
+      "features": [],
+      "functions": [
+        "parse_indented",
+        "build_model"
+      ],
+      "inputs": [
+        "server =\n  database =\n    host = localhost\n    port = 5432\n  cache =\n    enabled = true"
+      ],
+      "name": "deep_nested_objects_build_model",
+      "source_test": "deep_nested_objects",
+      "validation": "build_model",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "value": "server =\n  database =\n    host = localhost\n    port = 5432\n  cache =\n    enabled = true"
       },
       "features": [],
       "functions": [
@@ -181,6 +244,7 @@
       },
       "features": [],
       "functions": [
+        "parse_indented",
         "build_hierarchy"
       ],
       "inputs": [
@@ -189,6 +253,31 @@
       "name": "duplicate_keys_to_lists_build_hierarchy",
       "source_test": "duplicate_keys_to_lists",
       "validation": "build_hierarchy",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "item": {
+            "first": {},
+            "second": {},
+            "third": {}
+          }
+        }
+      },
+      "features": [],
+      "functions": [
+        "parse_indented",
+        "build_model"
+      ],
+      "inputs": [
+        "item = first\nitem = second\nitem = third"
+      ],
+      "name": "duplicate_keys_to_lists_build_model",
+      "source_test": "duplicate_keys_to_lists",
+      "validation": "build_model",
       "variants": []
     },
     {
@@ -248,6 +337,7 @@
       },
       "features": [],
       "functions": [
+        "parse_indented",
         "build_hierarchy"
       ],
       "inputs": [
@@ -262,7 +352,36 @@
       "behaviors": [],
       "expected": {
         "count": 1,
-        "value": "config = \n  server = web1\n  server = web2\n  port = 80"
+        "object": {
+          "config": {
+            "port": {
+              "80": {}
+            },
+            "server": {
+              "web1": {},
+              "web2": {}
+            }
+          }
+        }
+      },
+      "features": [],
+      "functions": [
+        "parse_indented",
+        "build_model"
+      ],
+      "inputs": [
+        "config =\n  server = web1\n  server = web2\n  port = 80"
+      ],
+      "name": "nested_duplicate_keys_build_model",
+      "source_test": "nested_duplicate_keys",
+      "validation": "build_model",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "value": "config =\n  server = web1\n  server = web2\n  port = 80"
       },
       "features": [],
       "functions": [
@@ -322,6 +441,7 @@
       },
       "features": [],
       "functions": [
+        "parse_indented",
         "build_hierarchy"
       ],
       "inputs": [
@@ -336,7 +456,41 @@
       "behaviors": [],
       "expected": {
         "count": 1,
-        "value": "name = Alice\nconfig = \n  debug = true\n  timeout = 30\nversion = 1.0"
+        "object": {
+          "config": {
+            "debug": {
+              "true": {}
+            },
+            "timeout": {
+              "30": {}
+            }
+          },
+          "name": {
+            "Alice": {}
+          },
+          "version": {
+            "1.0": {}
+          }
+        }
+      },
+      "features": [],
+      "functions": [
+        "parse_indented",
+        "build_model"
+      ],
+      "inputs": [
+        "name = Alice\nconfig =\n  debug = true\n  timeout = 30\nversion = 1.0"
+      ],
+      "name": "mixed_flat_and_nested_build_model",
+      "source_test": "mixed_flat_and_nested",
+      "validation": "build_model",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "value": "name = Alice\nconfig =\n  debug = true\n  timeout = 30\nversion = 1.0"
       },
       "features": [],
       "functions": [
@@ -395,6 +549,7 @@
       },
       "features": [],
       "functions": [
+        "parse_indented",
         "build_hierarchy"
       ],
       "inputs": [
@@ -409,7 +564,46 @@
       "behaviors": [],
       "expected": {
         "count": 1,
-        "value": "environments = \n  prod =\n    server = web1\n    server = web2\n    port = 80\n  dev =\n    server = localhost\n    port = 3000"
+        "object": {
+          "environments": {
+            "dev": {
+              "port": {
+                "3000": {}
+              },
+              "server": {
+                "localhost": {}
+              }
+            },
+            "prod": {
+              "port": {
+                "80": {}
+              },
+              "server": {
+                "web1": {},
+                "web2": {}
+              }
+            }
+          }
+        }
+      },
+      "features": [],
+      "functions": [
+        "parse_indented",
+        "build_model"
+      ],
+      "inputs": [
+        "environments =\n  prod =\n    server = web1\n    server = web2\n    port = 80\n  dev =\n    server = localhost\n    port = 3000"
+      ],
+      "name": "nested_objects_with_lists_build_model",
+      "source_test": "nested_objects_with_lists",
+      "validation": "build_model",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "value": "environments =\n  prod =\n    server = web1\n    server = web2\n    port = 80\n  dev =\n    server = localhost\n    port = 3000"
       },
       "features": [],
       "functions": [
@@ -473,6 +667,7 @@
       },
       "features": [],
       "functions": [
+        "parse_indented",
         "build_hierarchy"
       ],
       "inputs": [
@@ -484,6 +679,37 @@
       "variants": []
     },
     {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "config": {
+            "environments": {
+              "production": {
+                "servers": {
+                  "api1": {},
+                  "web1": {},
+                  "web2": {}
+                }
+              }
+            }
+          }
+        }
+      },
+      "features": [],
+      "functions": [
+        "parse_indented",
+        "build_model"
+      ],
+      "inputs": [
+        "config =\n  environments =\n    production =\n      servers = web1\n      servers = web2\n      servers = api1"
+      ],
+      "name": "deeply_nested_list_build_model",
+      "source_test": "deeply_nested_list",
+      "validation": "build_model",
+      "variants": []
+    },
+    {
       "args": [
         "config",
         "environments",
@@ -492,7 +718,8 @@
       ],
       "behaviors": [
         "list_coercion_disabled",
-        "array_order_lexicographic"
+        "array_order_lexicographic",
+        "path_traversal"
       ],
       "conflicts": {
         "behaviors": [

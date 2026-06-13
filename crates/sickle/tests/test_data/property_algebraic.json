@@ -1,5 +1,5 @@
 {
-  "$schema": "https://raw.githubusercontent.com/CatConfLang/ccl-test-data/v0.6.0/schemas/generated-format.json",
+  "$schema": "https://raw.githubusercontent.com/CatConfLang/ccl-test-data/v1.1.0/schemas/generated-format.json",
   "tests": [
     {
       "behaviors": [],
@@ -9,7 +9,8 @@
       },
       "features": [],
       "functions": [
-        "compose_associative"
+        "parse",
+        "compose"
       ],
       "inputs": [
         "a = 1",
@@ -29,7 +30,8 @@
       },
       "features": [],
       "functions": [
-        "compose_associative"
+        "parse",
+        "compose"
       ],
       "inputs": [
         "config =\n  host = localhost",
@@ -51,7 +53,8 @@
         "empty_keys"
       ],
       "functions": [
-        "compose_associative"
+        "parse",
+        "compose"
       ],
       "inputs": [
         "= item1",
@@ -71,7 +74,8 @@
       },
       "features": [],
       "functions": [
-        "identity_left"
+        "parse",
+        "compose"
       ],
       "inputs": [
         "",
@@ -90,7 +94,8 @@
       },
       "features": [],
       "functions": [
-        "identity_right"
+        "parse",
+        "compose"
       ],
       "inputs": [
         "key = value\nnested =\n  sub = val",
@@ -109,7 +114,8 @@
       },
       "features": [],
       "functions": [
-        "identity_left"
+        "parse",
+        "compose"
       ],
       "inputs": [
         "",
@@ -128,7 +134,8 @@
       },
       "features": [],
       "functions": [
-        "identity_right"
+        "parse",
+        "compose"
       ],
       "inputs": [
         "config =\n  database =\n    host = localhost\n    port = 5432\n  cache =\n    redis = true",
@@ -149,7 +156,8 @@
         "empty_keys"
       ],
       "functions": [
-        "identity_left"
+        "parse",
+        "compose"
       ],
       "inputs": [
         "",
@@ -170,7 +178,8 @@
         "empty_keys"
       ],
       "functions": [
-        "identity_right"
+        "parse",
+        "compose"
       ],
       "inputs": [
         "= item1\n= item2\n= item3",
@@ -272,7 +281,7 @@
       "behaviors": [],
       "expected": {
         "count": 1,
-        "value": "config = \n  host = localhost\n  port = 8080\n  db =\n    name = mydb\n    user = admin"
+        "value": "config =\n  host = localhost\n  port = 8080\n  db =\n    name = mydb\n    user = admin"
       },
       "features": [],
       "functions": [
@@ -346,7 +355,7 @@
       "behaviors": [],
       "expected": {
         "count": 1,
-        "value": " = item1\n = item2\nconfig = \n  nested =\n    deep = value\n  list =\n    = a\n    = b\n    = c\nfinal = end"
+        "value": "= item1\n= item2\nconfig =\n  nested =\n    deep = value\n  list =\n    = a\n    = b\n    = c\nfinal = end"
       },
       "features": [
         "empty_keys"

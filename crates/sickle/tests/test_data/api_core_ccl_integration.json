@@ -1,5 +1,5 @@
 {
-  "$schema": "https://raw.githubusercontent.com/CatConfLang/ccl-test-data/v0.6.0/schemas/generated-format.json",
+  "$schema": "https://raw.githubusercontent.com/CatConfLang/ccl-test-data/v1.1.0/schemas/generated-format.json",
   "tests": [
     {
       "behaviors": [],
@@ -39,6 +39,7 @@
       },
       "features": [],
       "functions": [
+        "parse_indented",
         "build_hierarchy"
       ],
       "inputs": [
@@ -47,6 +48,32 @@
       "name": "complete_basic_workflow_build_hierarchy",
       "source_test": "complete_basic_workflow",
       "validation": "build_hierarchy",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "age": {
+            "42": {}
+          },
+          "name": {
+            "Alice": {}
+          }
+        }
+      },
+      "features": [],
+      "functions": [
+        "parse_indented",
+        "build_model"
+      ],
+      "inputs": [
+        "name = Alice\nage = 42"
+      ],
+      "name": "complete_basic_workflow_build_model",
+      "source_test": "complete_basic_workflow",
+      "validation": "build_model",
       "variants": []
     },
     {
@@ -104,6 +131,7 @@
       },
       "features": [],
       "functions": [
+        "parse_indented",
         "build_hierarchy"
       ],
       "inputs": [
@@ -118,7 +146,38 @@
       "behaviors": [],
       "expected": {
         "count": 1,
-        "value": "database = \n  host = localhost\n  port = 5432\n  enabled = true"
+        "object": {
+          "database": {
+            "enabled": {
+              "true": {}
+            },
+            "host": {
+              "localhost": {}
+            },
+            "port": {
+              "5432": {}
+            }
+          }
+        }
+      },
+      "features": [],
+      "functions": [
+        "parse_indented",
+        "build_model"
+      ],
+      "inputs": [
+        "database =\n  host = localhost\n  port = 5432\n  enabled = true"
+      ],
+      "name": "complete_nested_workflow_build_model",
+      "source_test": "complete_nested_workflow",
+      "validation": "build_model",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "value": "database =\n  host = localhost\n  port = 5432\n  enabled = true"
       },
       "features": [],
       "functions": [
@@ -181,6 +240,7 @@
       },
       "features": [],
       "functions": [
+        "parse_indented",
         "build_hierarchy"
       ],
       "inputs": [
@@ -195,7 +255,46 @@
       "behaviors": [],
       "expected": {
         "count": 1,
-        "value": "app = MyApp\nversion = 1.0.0\nconfig = \n  debug = true\n  features =\n    feature1 = enabled\n    feature2 = disabled"
+        "object": {
+          "app": {
+            "MyApp": {}
+          },
+          "config": {
+            "debug": {
+              "true": {}
+            },
+            "features": {
+              "feature1": {
+                "enabled": {}
+              },
+              "feature2": {
+                "disabled": {}
+              }
+            }
+          },
+          "version": {
+            "1.0.0": {}
+          }
+        }
+      },
+      "features": [],
+      "functions": [
+        "parse_indented",
+        "build_model"
+      ],
+      "inputs": [
+        "app = MyApp\nversion = 1.0.0\nconfig =\n  debug = true\n  features =\n    feature1 = enabled\n    feature2 = disabled"
+      ],
+      "name": "complete_mixed_workflow_build_model",
+      "source_test": "complete_mixed_workflow",
+      "validation": "build_model",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "value": "app = MyApp\nversion = 1.0.0\nconfig =\n  debug = true\n  features =\n    feature1 = enabled\n    feature2 = disabled"
       },
       "features": [],
       "functions": [
@@ -265,6 +364,7 @@
       },
       "features": [],
       "functions": [
+        "parse_indented",
         "build_hierarchy"
       ],
       "inputs": [
@@ -279,7 +379,40 @@
       "behaviors": [],
       "expected": {
         "count": 1,
-        "value": "servers = \n  server = web1\n  server = web2\n  server = web3\nports = \n  port = 80\n  port = 443"
+        "object": {
+          "ports": {
+            "port": {
+              "443": {},
+              "80": {}
+            }
+          },
+          "servers": {
+            "server": {
+              "web1": {},
+              "web2": {},
+              "web3": {}
+            }
+          }
+        }
+      },
+      "features": [],
+      "functions": [
+        "parse_indented",
+        "build_model"
+      ],
+      "inputs": [
+        "servers =\n  server = web1\n  server = web2\n  server = web3\nports =\n  port = 80\n  port = 443"
+      ],
+      "name": "complete_lists_workflow_build_model",
+      "source_test": "complete_lists_workflow",
+      "validation": "build_model",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "value": "servers =\n  server = web1\n  server = web2\n  server = web3\nports =\n  port = 80\n  port = 443"
       },
       "features": [],
       "functions": [
@@ -349,6 +482,7 @@
       },
       "features": [],
       "functions": [
+        "parse_indented",
         "build_hierarchy"
       ],
       "inputs": [
@@ -363,7 +497,40 @@
       "behaviors": [],
       "expected": {
         "count": 1,
-        "value": "servers = \n  server = web1\n  server = web2\n  server = web3\nports = \n  port = 80\n  port = 443"
+        "object": {
+          "ports": {
+            "port": {
+              "443": {},
+              "80": {}
+            }
+          },
+          "servers": {
+            "server": {
+              "web1": {},
+              "web2": {},
+              "web3": {}
+            }
+          }
+        }
+      },
+      "features": [],
+      "functions": [
+        "parse_indented",
+        "build_model"
+      ],
+      "inputs": [
+        "servers =\n  server = web1\n  server = web2\n  server = web3\nports =\n  port = 80\n  port = 443"
+      ],
+      "name": "complete_lists_workflow_lexicographic_build_model",
+      "source_test": "complete_lists_workflow_lexicographic",
+      "validation": "build_model",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "value": "servers =\n  server = web1\n  server = web2\n  server = web3\nports =\n  port = 80\n  port = 443"
       },
       "features": [],
       "functions": [
@@ -378,7 +545,9 @@
       "variants": []
     },
     {
-      "behaviors": [],
+      "behaviors": [
+        "multiline_values"
+      ],
       "expected": {
         "count": 2,
         "entries": [
@@ -393,7 +562,7 @@
         ]
       },
       "features": [
-        "multiline"
+        "multiline_continuation"
       ],
       "functions": [
         "parse"
@@ -407,7 +576,9 @@
       "variants": []
     },
     {
-      "behaviors": [],
+      "behaviors": [
+        "multiline_values"
+      ],
       "expected": {
         "count": 1,
         "object": {
@@ -421,9 +592,10 @@
         }
       },
       "features": [
-        "multiline"
+        "multiline_continuation"
       ],
       "functions": [
+        "parse_indented",
         "build_hierarchy"
       ],
       "inputs": [
@@ -435,13 +607,50 @@
       "variants": []
     },
     {
+      "behaviors": [
+        "multiline_values"
+      ],
+      "expected": {
+        "count": 1,
+        "object": {
+          "config": {
+            "settings": {
+              "value1": {
+                "one": {}
+              },
+              "value2": {
+                "two": {}
+              }
+            }
+          },
+          "description": {
+            "Welcome to our app\n  This is a multi-line description\n  With several lines": {}
+          }
+        }
+      },
+      "features": [
+        "multiline_continuation"
+      ],
+      "functions": [
+        "parse_indented",
+        "build_model"
+      ],
+      "inputs": [
+        "description = Welcome to our app\n  This is a multi-line description\n  With several lines\nconfig =\n  settings =\n    value1 = one\n    value2 = two"
+      ],
+      "name": "complete_multiline_workflow_build_model",
+      "source_test": "complete_multiline_workflow",
+      "validation": "build_model",
+      "variants": []
+    },
+    {
       "behaviors": [],
       "expected": {
         "count": 1,
-        "value": "description = Welcome to our app\n  This is a multi-line description\n  With several lines\nconfig = \n  settings =\n    value1 = one\n    value2 = two"
+        "value": "description = Welcome to our app\n  This is a multi-line description\n  With several lines\nconfig =\n  settings =\n    value1 = one\n    value2 = two"
       },
       "features": [
-        "multiline"
+        "multiline_continuation"
       ],
       "functions": [
         "print"
@@ -531,6 +740,7 @@
       },
       "features": [],
       "functions": [
+        "parse_indented",
         "build_hierarchy"
       ],
       "inputs": [
@@ -545,7 +755,80 @@
       "behaviors": [],
       "expected": {
         "count": 1,
-        "value": "service = MyMicroservice\nversion = 2.1.0\ndatabase = \n  host = db.example.com\n  port = 5432\n  credentials =\n    user = service_user\n    password = secret123\n  pools =\n    read = 5\n    write = 2\nlogging = \n  level = info\n  outputs =\n    output = console\n    output = file\n    output = syslog\nfeatures = \n  feature_a = enabled\n  feature_b = disabled\n  feature_c = experimental"
+        "object": {
+          "database": {
+            "credentials": {
+              "password": {
+                "secret123": {}
+              },
+              "user": {
+                "service_user": {}
+              }
+            },
+            "host": {
+              "db.example.com": {}
+            },
+            "pools": {
+              "read": {
+                "5": {}
+              },
+              "write": {
+                "2": {}
+              }
+            },
+            "port": {
+              "5432": {}
+            }
+          },
+          "features": {
+            "feature_a": {
+              "enabled": {}
+            },
+            "feature_b": {
+              "disabled": {}
+            },
+            "feature_c": {
+              "experimental": {}
+            }
+          },
+          "logging": {
+            "level": {
+              "info": {}
+            },
+            "outputs": {
+              "output": {
+                "console": {},
+                "file": {},
+                "syslog": {}
+              }
+            }
+          },
+          "service": {
+            "MyMicroservice": {}
+          },
+          "version": {
+            "2.1.0": {}
+          }
+        }
+      },
+      "features": [],
+      "functions": [
+        "parse_indented",
+        "build_model"
+      ],
+      "inputs": [
+        "service = MyMicroservice\nversion = 2.1.0\ndatabase =\n  host = db.example.com\n  port = 5432\n  credentials =\n    user = service_user\n    password = secret123\n  pools =\n    read = 5\n    write = 2\nlogging =\n  level = info\n  outputs =\n    output = console\n    output = file\n    output = syslog\nfeatures =\n  feature_a = enabled\n  feature_b = disabled\n  feature_c = experimental"
+      ],
+      "name": "real_world_complete_workflow_build_model",
+      "source_test": "real_world_complete_workflow",
+      "validation": "build_model",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "value": "service = MyMicroservice\nversion = 2.1.0\ndatabase =\n  host = db.example.com\n  port = 5432\n  credentials =\n    user = service_user\n    password = secret123\n  pools =\n    read = 5\n    write = 2\nlogging =\n  level = info\n  outputs =\n    output = console\n    output = file\n    output = syslog\nfeatures =\n  feature_a = enabled\n  feature_b = disabled\n  feature_c = experimental"
       },
       "features": [],
       "functions": [

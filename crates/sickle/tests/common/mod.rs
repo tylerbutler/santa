@@ -213,6 +213,9 @@ pub struct TestCase {
     /// Source test name
     #[serde(default)]
     pub source_test: String,
+    /// Predicate used by filter validation tests.
+    #[serde(default)]
+    pub predicate: Option<Predicate>,
 }
 
 impl TestCase {
@@ -251,6 +254,14 @@ pub struct ExpectedOutput {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Entry {
     pub key: String,
+    pub value: String,
+}
+
+/// Predicate for filter validation tests.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Predicate {
+    pub field: String,
+    pub op: String,
     pub value: String,
 }
 

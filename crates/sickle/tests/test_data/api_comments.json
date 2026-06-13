@@ -1,5 +1,5 @@
 {
-  "$schema": "https://raw.githubusercontent.com/CatConfLang/ccl-test-data/v0.6.0/schemas/generated-format.json",
+  "$schema": "https://raw.githubusercontent.com/CatConfLang/ccl-test-data/v1.1.0/schemas/generated-format.json",
   "tests": [
     {
       "behaviors": [],
@@ -79,6 +79,11 @@
         "/= This is an environment section\nport = 8080\nserve = index.html\n/= Database section\nmode = in-memory\nconnections = 16"
       ],
       "name": "comment_extension_filter",
+      "predicate": {
+        "field": "key",
+        "op": "!=",
+        "value": "/"
+      },
       "source_test": "comment_extension",
       "validation": "filter",
       "variants": []
@@ -123,6 +128,11 @@
         "/= this is a comment"
       ],
       "name": "comment_syntax_slash_equals_filter",
+      "predicate": {
+        "field": "key",
+        "op": "!=",
+        "value": "/"
+      },
       "source_test": "comment_syntax_slash_equals",
       "validation": "filter",
       "variants": []
@@ -207,6 +217,11 @@
         "== Database Config ==\n/= Connection settings\nhost = localhost\n=== Cache Config ===\n/= Redis configuration\nport = 6379"
       ],
       "name": "section_headers_with_comments_filter",
+      "predicate": {
+        "field": "key",
+        "op": "!=",
+        "value": "/"
+      },
       "source_test": "section_headers_with_comments",
       "validation": "filter",
       "variants": []

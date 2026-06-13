@@ -1,0 +1,302 @@
+{
+  "$schema": "https://raw.githubusercontent.com/CatConfLang/ccl-test-data/v1.1.0/schemas/generated-format.json",
+  "tests": [
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 3,
+        "entries": [
+          {
+            "key": "host",
+            "value": "localhost"
+          },
+          {
+            "key": "port",
+            "value": "8080"
+          },
+          {
+            "key": "mode",
+            "value": "debug"
+          }
+        ]
+      },
+      "features": [],
+      "functions": [
+        "parse"
+      ],
+      "inputs": [
+        "host = localhost\nport = 8080\nmode = debug"
+      ],
+      "name": "filter_by_key_equality_parse",
+      "source_test": "filter_by_key_equality",
+      "validation": "parse",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "entries": [
+          {
+            "key": "port",
+            "value": "8080"
+          }
+        ]
+      },
+      "features": [],
+      "functions": [
+        "filter"
+      ],
+      "inputs": [
+        "host = localhost\nport = 8080\nmode = debug"
+      ],
+      "name": "filter_by_key_equality_filter",
+      "predicate": {
+        "field": "key",
+        "op": "==",
+        "value": "port"
+      },
+      "source_test": "filter_by_key_equality",
+      "validation": "filter",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 3,
+        "entries": [
+          {
+            "key": "name",
+            "value": "app"
+          },
+          {
+            "key": "description",
+            "value": ""
+          },
+          {
+            "key": "version",
+            "value": "1.0"
+          }
+        ]
+      },
+      "features": [
+        "empty_keys"
+      ],
+      "functions": [
+        "parse"
+      ],
+      "inputs": [
+        "name = app\ndescription =\nversion = 1.0"
+      ],
+      "name": "filter_by_value_not_empty_parse",
+      "source_test": "filter_by_value_not_empty",
+      "validation": "parse",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 2,
+        "entries": [
+          {
+            "key": "name",
+            "value": "app"
+          },
+          {
+            "key": "version",
+            "value": "1.0"
+          }
+        ]
+      },
+      "features": [
+        "empty_keys"
+      ],
+      "functions": [
+        "filter"
+      ],
+      "inputs": [
+        "name = app\ndescription =\nversion = 1.0"
+      ],
+      "name": "filter_by_value_not_empty_filter",
+      "predicate": {
+        "field": "value",
+        "op": "!=",
+        "value": ""
+      },
+      "source_test": "filter_by_value_not_empty",
+      "validation": "filter",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 3,
+        "entries": [
+          {
+            "key": "debug",
+            "value": "true"
+          },
+          {
+            "key": "verbose",
+            "value": "false"
+          },
+          {
+            "key": "logging",
+            "value": "true"
+          }
+        ]
+      },
+      "features": [],
+      "functions": [
+        "parse"
+      ],
+      "inputs": [
+        "debug = true\nverbose = false\nlogging = true"
+      ],
+      "name": "filter_by_value_equality_parse",
+      "source_test": "filter_by_value_equality",
+      "validation": "parse",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 2,
+        "entries": [
+          {
+            "key": "debug",
+            "value": "true"
+          },
+          {
+            "key": "logging",
+            "value": "true"
+          }
+        ]
+      },
+      "features": [],
+      "functions": [
+        "filter"
+      ],
+      "inputs": [
+        "debug = true\nverbose = false\nlogging = true"
+      ],
+      "name": "filter_by_value_equality_filter",
+      "predicate": {
+        "field": "value",
+        "op": "==",
+        "value": "true"
+      },
+      "source_test": "filter_by_value_equality",
+      "validation": "filter",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 2,
+        "entries": [
+          {
+            "key": "host",
+            "value": "localhost"
+          },
+          {
+            "key": "port",
+            "value": "8080"
+          }
+        ]
+      },
+      "features": [],
+      "functions": [
+        "parse"
+      ],
+      "inputs": [
+        "host = localhost\nport = 8080"
+      ],
+      "name": "filter_no_matches_parse",
+      "source_test": "filter_no_matches",
+      "validation": "parse",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 0
+      },
+      "features": [],
+      "functions": [
+        "filter"
+      ],
+      "inputs": [
+        "host = localhost\nport = 8080"
+      ],
+      "name": "filter_no_matches_filter",
+      "predicate": {
+        "field": "key",
+        "op": "==",
+        "value": "nonexistent"
+      },
+      "source_test": "filter_no_matches",
+      "validation": "filter",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 2,
+        "entries": [
+          {
+            "key": "host",
+            "value": "localhost"
+          },
+          {
+            "key": "port",
+            "value": "8080"
+          }
+        ]
+      },
+      "features": [],
+      "functions": [
+        "parse"
+      ],
+      "inputs": [
+        "host = localhost\nport = 8080"
+      ],
+      "name": "filter_keeps_all_parse",
+      "source_test": "filter_keeps_all",
+      "validation": "parse",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 2,
+        "entries": [
+          {
+            "key": "host",
+            "value": "localhost"
+          },
+          {
+            "key": "port",
+            "value": "8080"
+          }
+        ]
+      },
+      "features": [],
+      "functions": [
+        "filter"
+      ],
+      "inputs": [
+        "host = localhost\nport = 8080"
+      ],
+      "name": "filter_keeps_all_filter",
+      "predicate": {
+        "field": "key",
+        "op": "!=",
+        "value": "nonexistent"
+      },
+      "source_test": "filter_keeps_all",
+      "validation": "filter",
+      "variants": []
+    }
+  ]
+}

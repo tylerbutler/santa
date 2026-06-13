@@ -1,8 +1,10 @@
 {
-  "$schema": "https://raw.githubusercontent.com/CatConfLang/ccl-test-data/v0.6.0/schemas/generated-format.json",
+  "$schema": "https://raw.githubusercontent.com/CatConfLang/ccl-test-data/v1.1.0/schemas/generated-format.json",
   "tests": [
     {
-      "behaviors": [],
+      "behaviors": [
+        "multiline_values"
+      ],
       "expected": {
         "count": 2,
         "entries": [
@@ -18,7 +20,7 @@
       },
       "features": [
         "empty_keys",
-        "multiline"
+        "multiline_continuation"
       ],
       "functions": [
         "parse_indented"
@@ -29,8 +31,38 @@
       "name": "multiline_section_header_value_parse_indented",
       "source_test": "multiline_section_header_value",
       "validation": "parse_indented",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 2,
+        "entries": [
+          {
+            "key": "",
+            "value": "= Section Header ="
+          },
+          {
+            "key": "prefix for next key\nkey",
+            "value": "value"
+          }
+        ]
+      },
+      "features": [
+        "empty_keys",
+        "multiline_keys"
+      ],
+      "functions": [
+        "parse"
+      ],
+      "inputs": [
+        "== Section Header =\nprefix for next key\nkey = value"
+      ],
+      "name": "unindented_line_does_not_continue_value_parse",
+      "source_test": "unindented_line_does_not_continue_value",
+      "validation": "parse",
       "variants": [
-        "proposed_behavior"
+        "reference_compliant"
       ]
     },
     {
@@ -40,32 +72,35 @@
         "entries": [
           {
             "key": "",
-            "value": "= Section Header =\nThis continues the header"
+            "value": "= Section Header ="
           },
           {
-            "key": "key",
+            "key": "prefix for next key\nkey",
             "value": "value"
           }
         ]
       },
       "features": [
-        "empty_keys"
+        "empty_keys",
+        "multiline_keys"
       ],
       "functions": [
         "parse_indented"
       ],
       "inputs": [
-        "== Section Header =\nThis continues the header\nkey = value"
+        "== Section Header =\nprefix for next key\nkey = value"
       ],
-      "name": "unindented_multiline_becomes_continuation_parse_indented",
-      "source_test": "unindented_multiline_becomes_continuation",
+      "name": "unindented_line_does_not_continue_value_parse_indented",
+      "source_test": "unindented_line_does_not_continue_value",
       "validation": "parse_indented",
       "variants": [
-        "proposed_behavior"
+        "reference_compliant"
       ]
     },
     {
-      "behaviors": [],
+      "behaviors": [
+        "multiline_values"
+      ],
       "expected": {
         "count": 2,
         "entries": [
@@ -80,7 +115,7 @@
         ]
       },
       "features": [
-        "multiline"
+        "multiline_continuation"
       ],
       "functions": [
         "parse_indented"
@@ -91,12 +126,18 @@
       "name": "indented_line_is_continuation_parse_indented",
       "source_test": "indented_line_is_continuation",
       "validation": "parse_indented",
-      "variants": [
-        "proposed_behavior"
-      ]
+      "variants": []
     },
     {
-      "behaviors": [],
+      "behaviors": [
+        "array_order_insertion",
+        "multiline_values"
+      ],
+      "conflicts": {
+        "behaviors": [
+          "array_order_lexicographic"
+        ]
+      },
       "expected": {
         "count": 1,
         "object": {
@@ -107,9 +148,10 @@
         }
       },
       "features": [
-        "multiline"
+        "multiline_continuation"
       ],
       "functions": [
+        "parse_indented",
         "build_hierarchy"
       ],
       "inputs": [
@@ -118,19 +160,47 @@
       "name": "indented_line_is_continuation_build_hierarchy",
       "source_test": "indented_line_is_continuation",
       "validation": "build_hierarchy",
-      "variants": [
-        "proposed_behavior"
-      ]
+      "variants": []
+    },
+    {
+      "behaviors": [
+        "multiline_values"
+      ],
+      "expected": {
+        "count": 1,
+        "object": {
+          "descriptions": {
+            "Another item": {},
+            "First line\n  second line": {}
+          }
+        }
+      },
+      "features": [
+        "multiline_continuation"
+      ],
+      "functions": [
+        "parse_indented",
+        "build_model"
+      ],
+      "inputs": [
+        "descriptions = First line\n  second line\ndescriptions = Another item"
+      ],
+      "name": "indented_line_is_continuation_build_model",
+      "source_test": "indented_line_is_continuation",
+      "validation": "build_model",
+      "variants": []
     },
     {
       "args": [
         "descriptions"
       ],
       "behaviors": [
-        "list_coercion_enabled"
+        "list_coercion_enabled",
+        "array_order_insertion"
       ],
       "conflicts": {
         "behaviors": [
+          "array_order_lexicographic",
           "list_coercion_disabled"
         ]
       },
@@ -142,7 +212,7 @@
         ]
       },
       "features": [
-        "multiline"
+        "multiline_continuation"
       ],
       "functions": [
         "get_list"
@@ -153,78 +223,7 @@
       "name": "indented_line_is_continuation_get_list",
       "source_test": "indented_line_is_continuation",
       "validation": "get_list",
-      "variants": [
-        "proposed_behavior"
-      ]
-    },
-    {
-      "behaviors": [],
-      "expected": {
-        "count": 4,
-        "entries": [
-          {
-            "key": "key1",
-            "value": "value1\n  indented continuation"
-          },
-          {
-            "key": "key2",
-            "value": "value2"
-          },
-          {
-            "key": "not indented key",
-            "value": ""
-          },
-          {
-            "key": "indented for not indented",
-            "value": ""
-          }
-        ]
-      },
-      "features": [
-        "multiline",
-        "empty_keys"
-      ],
-      "functions": [
-        "parse_indented"
-      ],
-      "inputs": [
-        "key1 = value1\n  indented continuation\nkey2 = value2\nnot indented key\n  indented for not indented"
-      ],
-      "name": "mixed_indentation_levels_parse_indented",
-      "source_test": "mixed_indentation_levels",
-      "validation": "parse_indented",
-      "variants": [
-        "proposed_behavior"
-      ]
-    },
-    {
-      "behaviors": [],
-      "expected": {
-        "count": 1,
-        "object": {
-          "key1": "value1\n  indented continuation",
-          "key2": "value2",
-          "not indented key": {
-            "indented for not indented": ""
-          }
-        }
-      },
-      "features": [
-        "multiline",
-        "empty_keys"
-      ],
-      "functions": [
-        "build_hierarchy"
-      ],
-      "inputs": [
-        "key1 = value1\n  indented continuation\nkey2 = value2\nnot indented key\n  indented for not indented"
-      ],
-      "name": "mixed_indentation_levels_build_hierarchy",
-      "source_test": "mixed_indentation_levels",
-      "validation": "build_hierarchy",
-      "variants": [
-        "proposed_behavior"
-      ]
+      "variants": []
     },
     {
       "behaviors": [],
@@ -247,9 +246,7 @@
       "name": "single_item_as_list_parse",
       "source_test": "single_item_as_list",
       "validation": "parse",
-      "variants": [
-        "proposed_behavior"
-      ]
+      "variants": []
     },
     {
       "behaviors": [],
@@ -261,6 +258,7 @@
       },
       "features": [],
       "functions": [
+        "parse_indented",
         "build_hierarchy"
       ],
       "inputs": [
@@ -269,9 +267,30 @@
       "name": "single_item_as_list_build_hierarchy",
       "source_test": "single_item_as_list",
       "validation": "build_hierarchy",
-      "variants": [
-        "proposed_behavior"
-      ]
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "item": {
+            "single": {}
+          }
+        }
+      },
+      "features": [],
+      "functions": [
+        "parse_indented",
+        "build_model"
+      ],
+      "inputs": [
+        "item = single"
+      ],
+      "name": "single_item_as_list_build_model",
+      "source_test": "single_item_as_list",
+      "validation": "build_model",
+      "variants": []
     },
     {
       "args": [
@@ -301,9 +320,7 @@
       "name": "single_item_as_list_get_list",
       "source_test": "single_item_as_list",
       "validation": "get_list",
-      "variants": [
-        "proposed_behavior"
-      ]
+      "variants": []
     },
     {
       "behaviors": [],
@@ -334,12 +351,17 @@
       "name": "mixed_duplicate_single_keys_parse",
       "source_test": "mixed_duplicate_single_keys",
       "validation": "parse",
-      "variants": [
-        "proposed_behavior"
-      ]
+      "variants": []
     },
     {
-      "behaviors": [],
+      "behaviors": [
+        "array_order_insertion"
+      ],
+      "conflicts": {
+        "behaviors": [
+          "array_order_lexicographic"
+        ]
+      },
       "expected": {
         "count": 1,
         "object": {
@@ -352,6 +374,7 @@
       },
       "features": [],
       "functions": [
+        "parse_indented",
         "build_hierarchy"
       ],
       "inputs": [
@@ -360,19 +383,46 @@
       "name": "mixed_duplicate_single_keys_build_hierarchy",
       "source_test": "mixed_duplicate_single_keys",
       "validation": "build_hierarchy",
-      "variants": [
-        "proposed_behavior"
-      ]
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "host": {
+            "localhost": {}
+          },
+          "ports": {
+            "443": {},
+            "80": {}
+          }
+        }
+      },
+      "features": [],
+      "functions": [
+        "parse_indented",
+        "build_model"
+      ],
+      "inputs": [
+        "ports = 80\nports = 443\nhost = localhost"
+      ],
+      "name": "mixed_duplicate_single_keys_build_model",
+      "source_test": "mixed_duplicate_single_keys",
+      "validation": "build_model",
+      "variants": []
     },
     {
       "args": [
         "host"
       ],
       "behaviors": [
-        "list_coercion_enabled"
+        "list_coercion_enabled",
+        "array_order_insertion"
       ],
       "conflicts": {
         "behaviors": [
+          "array_order_lexicographic",
           "list_coercion_disabled"
         ]
       },
@@ -392,9 +442,7 @@
       "name": "mixed_duplicate_single_keys_get_list",
       "source_test": "mixed_duplicate_single_keys",
       "validation": "get_list",
-      "variants": [
-        "proposed_behavior"
-      ]
+      "variants": []
     },
     {
       "behaviors": [],
@@ -417,9 +465,7 @@
       "name": "nested_list_access_parse",
       "source_test": "nested_list_access",
       "validation": "parse",
-      "variants": [
-        "proposed_behavior"
-      ]
+      "variants": []
     },
     {
       "behaviors": [],
@@ -437,6 +483,7 @@
       },
       "features": [],
       "functions": [
+        "parse_indented",
         "build_hierarchy"
       ],
       "inputs": [
@@ -445,9 +492,36 @@
       "name": "nested_list_access_build_hierarchy",
       "source_test": "nested_list_access",
       "validation": "build_hierarchy",
-      "variants": [
-        "proposed_behavior"
-      ]
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "database": {
+            "hosts": {
+              "primary": {},
+              "secondary": {}
+            },
+            "port": {
+              "5432": {}
+            }
+          }
+        }
+      },
+      "features": [],
+      "functions": [
+        "parse_indented",
+        "build_model"
+      ],
+      "inputs": [
+        "database =\n  hosts = primary\n  hosts = secondary\n  port = 5432"
+      ],
+      "name": "nested_list_access_build_model",
+      "source_test": "nested_list_access",
+      "validation": "build_model",
+      "variants": []
     },
     {
       "args": [
@@ -455,7 +529,8 @@
         "port"
       ],
       "behaviors": [
-        "list_coercion_enabled"
+        "list_coercion_enabled",
+        "path_traversal"
       ],
       "conflicts": {
         "behaviors": [
@@ -478,9 +553,7 @@
       "name": "nested_list_access_get_list",
       "source_test": "nested_list_access",
       "validation": "get_list",
-      "variants": [
-        "proposed_behavior"
-      ]
+      "variants": []
     },
     {
       "behaviors": [],
@@ -503,12 +576,17 @@
       "name": "empty_list_parse",
       "source_test": "empty_list",
       "validation": "parse",
-      "variants": [
-        "proposed_behavior"
-      ]
+      "variants": []
     },
     {
-      "behaviors": [],
+      "behaviors": [
+        "array_order_insertion"
+      ],
+      "conflicts": {
+        "behaviors": [
+          "array_order_lexicographic"
+        ]
+      },
       "expected": {
         "count": 1,
         "object": {
@@ -517,6 +595,7 @@
       },
       "features": [],
       "functions": [
+        "parse_indented",
         "build_hierarchy"
       ],
       "inputs": [
@@ -525,19 +604,42 @@
       "name": "empty_list_build_hierarchy",
       "source_test": "empty_list",
       "validation": "build_hierarchy",
-      "variants": [
-        "proposed_behavior"
-      ]
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "empty_list": {
+            "": {}
+          }
+        }
+      },
+      "features": [],
+      "functions": [
+        "parse_indented",
+        "build_model"
+      ],
+      "inputs": [
+        "empty_list ="
+      ],
+      "name": "empty_list_build_model",
+      "source_test": "empty_list",
+      "validation": "build_model",
+      "variants": []
     },
     {
       "args": [
         "empty_list"
       ],
       "behaviors": [
-        "list_coercion_enabled"
+        "list_coercion_enabled",
+        "array_order_insertion"
       ],
       "conflicts": {
         "behaviors": [
+          "array_order_lexicographic",
           "list_coercion_disabled"
         ]
       },
@@ -557,9 +659,7 @@
       "name": "empty_list_get_list",
       "source_test": "empty_list",
       "validation": "get_list",
-      "variants": [
-        "proposed_behavior"
-      ]
+      "variants": []
     },
     {
       "behaviors": [],
@@ -594,12 +694,17 @@
       "name": "list_with_numbers_parse",
       "source_test": "list_with_numbers",
       "validation": "parse",
-      "variants": [
-        "proposed_behavior"
-      ]
+      "variants": []
     },
     {
-      "behaviors": [],
+      "behaviors": [
+        "array_order_insertion"
+      ],
+      "conflicts": {
+        "behaviors": [
+          "array_order_lexicographic"
+        ]
+      },
       "expected": {
         "count": 1,
         "object": {
@@ -613,6 +718,7 @@
       },
       "features": [],
       "functions": [
+        "parse_indented",
         "build_hierarchy"
       ],
       "inputs": [
@@ -621,19 +727,45 @@
       "name": "list_with_numbers_build_hierarchy",
       "source_test": "list_with_numbers",
       "validation": "build_hierarchy",
-      "variants": [
-        "proposed_behavior"
-      ]
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "numbers": {
+            "-17": {},
+            "0": {},
+            "1": {},
+            "42": {}
+          }
+        }
+      },
+      "features": [],
+      "functions": [
+        "parse_indented",
+        "build_model"
+      ],
+      "inputs": [
+        "numbers = 1\nnumbers = 42\nnumbers = -17\nnumbers = 0"
+      ],
+      "name": "list_with_numbers_build_model",
+      "source_test": "list_with_numbers",
+      "validation": "build_model",
+      "variants": []
     },
     {
       "args": [
         "numbers"
       ],
       "behaviors": [
-        "list_coercion_enabled"
+        "list_coercion_enabled",
+        "array_order_insertion"
       ],
       "conflicts": {
         "behaviors": [
+          "array_order_lexicographic",
           "list_coercion_disabled"
         ]
       },
@@ -656,9 +788,7 @@
       "name": "list_with_numbers_get_list",
       "source_test": "list_with_numbers",
       "validation": "get_list",
-      "variants": [
-        "proposed_behavior"
-      ]
+      "variants": []
     },
     {
       "behaviors": [],
@@ -693,12 +823,17 @@
       "name": "list_with_booleans_parse",
       "source_test": "list_with_booleans",
       "validation": "parse",
-      "variants": [
-        "proposed_behavior"
-      ]
+      "variants": []
     },
     {
-      "behaviors": [],
+      "behaviors": [
+        "array_order_insertion"
+      ],
+      "conflicts": {
+        "behaviors": [
+          "array_order_lexicographic"
+        ]
+      },
       "expected": {
         "count": 1,
         "object": {
@@ -712,6 +847,7 @@
       },
       "features": [],
       "functions": [
+        "parse_indented",
         "build_hierarchy"
       ],
       "inputs": [
@@ -720,19 +856,45 @@
       "name": "list_with_booleans_build_hierarchy",
       "source_test": "list_with_booleans",
       "validation": "build_hierarchy",
-      "variants": [
-        "proposed_behavior"
-      ]
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "flags": {
+            "false": {},
+            "no": {},
+            "true": {},
+            "yes": {}
+          }
+        }
+      },
+      "features": [],
+      "functions": [
+        "parse_indented",
+        "build_model"
+      ],
+      "inputs": [
+        "flags = true\nflags = false\nflags = yes\nflags = no"
+      ],
+      "name": "list_with_booleans_build_model",
+      "source_test": "list_with_booleans",
+      "validation": "build_model",
+      "variants": []
     },
     {
       "args": [
         "flags"
       ],
       "behaviors": [
-        "list_coercion_enabled"
+        "list_coercion_enabled",
+        "array_order_insertion"
       ],
       "conflicts": {
         "behaviors": [
+          "array_order_lexicographic",
           "list_coercion_disabled"
         ]
       },
@@ -755,9 +917,7 @@
       "name": "list_with_booleans_get_list",
       "source_test": "list_with_booleans",
       "validation": "get_list",
-      "variants": [
-        "proposed_behavior"
-      ]
+      "variants": []
     },
     {
       "behaviors": [],
@@ -794,12 +954,17 @@
       "name": "list_with_whitespace_parse",
       "source_test": "list_with_whitespace",
       "validation": "parse",
-      "variants": [
-        "proposed_behavior"
-      ]
+      "variants": []
     },
     {
-      "behaviors": [],
+      "behaviors": [
+        "array_order_insertion"
+      ],
+      "conflicts": {
+        "behaviors": [
+          "array_order_lexicographic"
+        ]
+      },
       "expected": {
         "count": 1,
         "object": {
@@ -815,6 +980,7 @@
         "whitespace"
       ],
       "functions": [
+        "parse_indented",
         "build_hierarchy"
       ],
       "inputs": [
@@ -823,19 +989,46 @@
       "name": "list_with_whitespace_build_hierarchy",
       "source_test": "list_with_whitespace",
       "validation": "build_hierarchy",
-      "variants": [
-        "proposed_behavior"
-      ]
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "items": {
+            "": {},
+            "normal": {},
+            "spaced": {}
+          }
+        }
+      },
+      "features": [
+        "whitespace"
+      ],
+      "functions": [
+        "parse_indented",
+        "build_model"
+      ],
+      "inputs": [
+        "items =   spaced   \nitems = normal\nitems =\nitems =   "
+      ],
+      "name": "list_with_whitespace_build_model",
+      "source_test": "list_with_whitespace",
+      "validation": "build_model",
+      "variants": []
     },
     {
       "args": [
         "items"
       ],
       "behaviors": [
-        "list_coercion_enabled"
+        "list_coercion_enabled",
+        "array_order_insertion"
       ],
       "conflicts": {
         "behaviors": [
+          "array_order_lexicographic",
           "list_coercion_disabled"
         ]
       },
@@ -860,9 +1053,7 @@
       "name": "list_with_whitespace_get_list",
       "source_test": "list_with_whitespace",
       "validation": "get_list",
-      "variants": [
-        "proposed_behavior"
-      ]
+      "variants": []
     },
     {
       "behaviors": [],
@@ -899,12 +1090,17 @@
       "name": "list_with_unicode_parse",
       "source_test": "list_with_unicode",
       "validation": "parse",
-      "variants": [
-        "proposed_behavior"
-      ]
+      "variants": []
     },
     {
-      "behaviors": [],
+      "behaviors": [
+        "array_order_insertion"
+      ],
+      "conflicts": {
+        "behaviors": [
+          "array_order_lexicographic"
+        ]
+      },
       "expected": {
         "count": 1,
         "object": {
@@ -920,6 +1116,7 @@
         "unicode"
       ],
       "functions": [
+        "parse_indented",
         "build_hierarchy"
       ],
       "inputs": [
@@ -928,19 +1125,47 @@
       "name": "list_with_unicode_build_hierarchy",
       "source_test": "list_with_unicode",
       "validation": "build_hierarchy",
-      "variants": [
-        "proposed_behavior"
-      ]
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "names": {
+            "François": {},
+            "José": {},
+            "العربية": {},
+            "张三": {}
+          }
+        }
+      },
+      "features": [
+        "unicode"
+      ],
+      "functions": [
+        "parse_indented",
+        "build_model"
+      ],
+      "inputs": [
+        "names = 张三\nnames = José\nnames = François\nnames = العربية"
+      ],
+      "name": "list_with_unicode_build_model",
+      "source_test": "list_with_unicode",
+      "validation": "build_model",
+      "variants": []
     },
     {
       "args": [
         "names"
       ],
       "behaviors": [
-        "list_coercion_enabled"
+        "list_coercion_enabled",
+        "array_order_insertion"
       ],
       "conflicts": {
         "behaviors": [
+          "array_order_lexicographic",
           "list_coercion_disabled"
         ]
       },
@@ -965,9 +1190,7 @@
       "name": "list_with_unicode_get_list",
       "source_test": "list_with_unicode",
       "validation": "get_list",
-      "variants": [
-        "proposed_behavior"
-      ]
+      "variants": []
     },
     {
       "behaviors": [],
@@ -1002,12 +1225,17 @@
       "name": "list_with_special_characters_parse",
       "source_test": "list_with_special_characters",
       "validation": "parse",
-      "variants": [
-        "proposed_behavior"
-      ]
+      "variants": []
     },
     {
-      "behaviors": [],
+      "behaviors": [
+        "array_order_insertion"
+      ],
+      "conflicts": {
+        "behaviors": [
+          "array_order_lexicographic"
+        ]
+      },
       "expected": {
         "count": 1,
         "object": {
@@ -1021,6 +1249,7 @@
       },
       "features": [],
       "functions": [
+        "parse_indented",
         "build_hierarchy"
       ],
       "inputs": [
@@ -1029,19 +1258,45 @@
       "name": "list_with_special_characters_build_hierarchy",
       "source_test": "list_with_special_characters",
       "validation": "build_hierarchy",
-      "variants": [
-        "proposed_behavior"
-      ]
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "symbols": {
+            "!^&*()": {},
+            "<>=+": {},
+            "@#$%": {},
+            "[]{}|": {}
+          }
+        }
+      },
+      "features": [],
+      "functions": [
+        "parse_indented",
+        "build_model"
+      ],
+      "inputs": [
+        "symbols = @#$%\nsymbols = !^&*()\nsymbols = []{}|\nsymbols = <>=+"
+      ],
+      "name": "list_with_special_characters_build_model",
+      "source_test": "list_with_special_characters",
+      "validation": "build_model",
+      "variants": []
     },
     {
       "args": [
         "symbols"
       ],
       "behaviors": [
-        "list_coercion_enabled"
+        "list_coercion_enabled",
+        "array_order_insertion"
       ],
       "conflicts": {
         "behaviors": [
+          "array_order_lexicographic",
           "list_coercion_disabled"
         ]
       },
@@ -1064,12 +1319,12 @@
       "name": "list_with_special_characters_get_list",
       "source_test": "list_with_special_characters",
       "validation": "get_list",
-      "variants": [
-        "proposed_behavior"
-      ]
+      "variants": []
     },
     {
-      "behaviors": [],
+      "behaviors": [
+        "multiline_values"
+      ],
       "expected": {
         "count": 4,
         "entries": [
@@ -1092,7 +1347,7 @@
         ]
       },
       "features": [
-        "multiline"
+        "multiline_continuation"
       ],
       "functions": [
         "parse_indented"
@@ -1103,12 +1358,18 @@
       "name": "list_multiline_values_parse_indented",
       "source_test": "list_multiline_values",
       "validation": "parse_indented",
-      "variants": [
-        "proposed_behavior"
-      ]
+      "variants": []
     },
     {
-      "behaviors": [],
+      "behaviors": [
+        "array_order_insertion",
+        "multiline_values"
+      ],
+      "conflicts": {
+        "behaviors": [
+          "array_order_lexicographic"
+        ]
+      },
       "expected": {
         "count": 1,
         "object": {
@@ -1121,9 +1382,10 @@
         }
       },
       "features": [
-        "multiline"
+        "multiline_continuation"
       ],
       "functions": [
+        "parse_indented",
         "build_hierarchy"
       ],
       "inputs": [
@@ -1132,19 +1394,51 @@
       "name": "list_multiline_values_build_hierarchy",
       "source_test": "list_multiline_values",
       "validation": "build_hierarchy",
-      "variants": [
-        "proposed_behavior"
-      ]
+      "variants": []
+    },
+    {
+      "behaviors": [
+        "multiline_values"
+      ],
+      "expected": {
+        "count": 1,
+        "object": {
+          "descriptions": {
+            "Another item": {},
+            "First line": {},
+            "Third item": {}
+          },
+          "second line": {
+            "": {}
+          }
+        }
+      },
+      "features": [
+        "multiline_continuation"
+      ],
+      "functions": [
+        "parse_indented",
+        "build_model"
+      ],
+      "inputs": [
+        "descriptions = First line\nsecond line\ndescriptions = Another item\ndescriptions = Third item"
+      ],
+      "name": "list_multiline_values_build_model",
+      "source_test": "list_multiline_values",
+      "validation": "build_model",
+      "variants": []
     },
     {
       "args": [
         "descriptions"
       ],
       "behaviors": [
-        "list_coercion_enabled"
+        "list_coercion_enabled",
+        "array_order_insertion"
       ],
       "conflicts": {
         "behaviors": [
+          "array_order_lexicographic",
           "list_coercion_disabled"
         ]
       },
@@ -1157,7 +1451,7 @@
         ]
       },
       "features": [
-        "multiline"
+        "multiline_continuation"
       ],
       "functions": [
         "get_list"
@@ -1168,46 +1462,16 @@
       "name": "list_multiline_values_get_list",
       "source_test": "list_multiline_values",
       "validation": "get_list",
-      "variants": [
-        "proposed_behavior"
-      ]
+      "variants": []
     },
     {
       "behaviors": [],
       "expected": {
-        "count": 11,
+        "count": 4,
         "entries": [
           {
             "key": "config",
-            "value": ""
-          },
-          {
-            "key": "servers",
-            "value": "web1"
-          },
-          {
-            "key": "servers",
-            "value": "web2"
-          },
-          {
-            "key": "database",
-            "value": ""
-          },
-          {
-            "key": "hosts",
-            "value": "primary"
-          },
-          {
-            "key": "hosts",
-            "value": "backup"
-          },
-          {
-            "key": "port",
-            "value": "5432"
-          },
-          {
-            "key": "cache",
-            "value": "redis"
+            "value": "\n  servers = web1\n  servers = web2\n  database =\n    hosts = primary\n    hosts = backup\n    port = 5432\n  cache = redis"
           },
           {
             "key": "features",
@@ -1233,12 +1497,17 @@
       "name": "complex_mixed_list_scenarios_parse_indented",
       "source_test": "complex_mixed_list_scenarios",
       "validation": "parse_indented",
-      "variants": [
-        "proposed_behavior"
-      ]
+      "variants": []
     },
     {
-      "behaviors": [],
+      "behaviors": [
+        "array_order_insertion"
+      ],
+      "conflicts": {
+        "behaviors": [
+          "array_order_lexicographic"
+        ]
+      },
       "expected": {
         "count": 1,
         "object": {
@@ -1265,6 +1534,7 @@
       },
       "features": [],
       "functions": [
+        "parse_indented",
         "build_hierarchy"
       ],
       "inputs": [
@@ -1273,19 +1543,63 @@
       "name": "complex_mixed_list_scenarios_build_hierarchy",
       "source_test": "complex_mixed_list_scenarios",
       "validation": "build_hierarchy",
-      "variants": [
-        "proposed_behavior"
-      ]
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "config": {
+            "cache": {
+              "redis": {}
+            },
+            "database": {
+              "hosts": {
+                "backup": {},
+                "primary": {}
+              },
+              "port": {
+                "5432": {}
+              }
+            },
+            "servers": {
+              "web1": {},
+              "web2": {}
+            }
+          },
+          "features": {
+            "api": {},
+            "auth": {},
+            "ui": {}
+          }
+        }
+      },
+      "features": [],
+      "functions": [
+        "parse_indented",
+        "build_model"
+      ],
+      "inputs": [
+        "config =\n  servers = web1\n  servers = web2\n  database =\n    hosts = primary\n    hosts = backup\n    port = 5432\n  cache = redis\nfeatures = auth\nfeatures = api\nfeatures = ui"
+      ],
+      "name": "complex_mixed_list_scenarios_build_model",
+      "source_test": "complex_mixed_list_scenarios",
+      "validation": "build_model",
+      "variants": []
     },
     {
       "args": [
         "features"
       ],
       "behaviors": [
-        "list_coercion_enabled"
+        "list_coercion_enabled",
+        "array_order_insertion",
+        "path_traversal"
       ],
       "conflicts": {
         "behaviors": [
+          "array_order_lexicographic",
           "list_coercion_disabled"
         ]
       },
@@ -1307,9 +1621,7 @@
       "name": "complex_mixed_list_scenarios_get_list",
       "source_test": "complex_mixed_list_scenarios",
       "validation": "get_list",
-      "variants": [
-        "proposed_behavior"
-      ]
+      "variants": []
     },
     {
       "behaviors": [],
@@ -1332,9 +1644,7 @@
       "name": "list_path_traversal_protection_parse",
       "source_test": "list_path_traversal_protection",
       "validation": "parse",
-      "variants": [
-        "proposed_behavior"
-      ]
+      "variants": []
     },
     {
       "behaviors": [],
@@ -1346,6 +1656,7 @@
       },
       "features": [],
       "functions": [
+        "parse_indented",
         "build_hierarchy"
       ],
       "inputs": [
@@ -1354,9 +1665,30 @@
       "name": "list_path_traversal_protection_build_hierarchy",
       "source_test": "list_path_traversal_protection",
       "validation": "build_hierarchy",
-      "variants": [
-        "proposed_behavior"
-      ]
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "safe": {
+            "value": {}
+          }
+        }
+      },
+      "features": [],
+      "functions": [
+        "parse_indented",
+        "build_model"
+      ],
+      "inputs": [
+        "safe = value"
+      ],
+      "name": "list_path_traversal_protection_build_model",
+      "source_test": "list_path_traversal_protection",
+      "validation": "build_model",
+      "variants": []
     },
     {
       "args": [
@@ -1386,9 +1718,7 @@
       "name": "list_path_traversal_protection_get_list",
       "source_test": "list_path_traversal_protection",
       "validation": "get_list",
-      "variants": [
-        "proposed_behavior"
-      ]
+      "variants": []
     },
     {
       "behaviors": [],
@@ -1411,9 +1741,7 @@
       "name": "parse_empty_value_parse",
       "source_test": "parse_empty_value",
       "validation": "parse",
-      "variants": [
-        "proposed_behavior"
-      ]
+      "variants": []
     },
     {
       "behaviors": [],
@@ -1425,6 +1753,7 @@
       },
       "features": [],
       "functions": [
+        "parse_indented",
         "build_hierarchy"
       ],
       "inputs": [
@@ -1433,9 +1762,30 @@
       "name": "parse_empty_value_build_hierarchy",
       "source_test": "parse_empty_value",
       "validation": "build_hierarchy",
-      "variants": [
-        "proposed_behavior"
-      ]
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "empty_key": {
+            "": {}
+          }
+        }
+      },
+      "features": [],
+      "functions": [
+        "parse_indented",
+        "build_model"
+      ],
+      "inputs": [
+        "empty_key ="
+      ],
+      "name": "parse_empty_value_build_model",
+      "source_test": "parse_empty_value",
+      "validation": "build_model",
+      "variants": []
     },
     {
       "args": [
@@ -1456,9 +1806,7 @@
       "name": "parse_empty_value_get_string",
       "source_test": "parse_empty_value",
       "validation": "get_string",
-      "variants": [
-        "proposed_behavior"
-      ]
+      "variants": []
     }
   ]
 }

@@ -1,5 +1,5 @@
 {
-  "$schema": "https://raw.githubusercontent.com/CatConfLang/ccl-test-data/v0.6.0/schemas/generated-format.json",
+  "$schema": "https://raw.githubusercontent.com/CatConfLang/ccl-test-data/v1.1.0/schemas/generated-format.json",
   "tests": [
     {
       "behaviors": [],
@@ -38,6 +38,7 @@
         "optional_typed_accessors"
       ],
       "functions": [
+        "parse_indented",
         "build_hierarchy"
       ],
       "inputs": [
@@ -46,6 +47,31 @@
       "name": "parse_basic_integer_build_hierarchy",
       "source_test": "parse_basic_integer",
       "validation": "build_hierarchy",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "port": {
+            "8080": {}
+          }
+        }
+      },
+      "features": [
+        "optional_typed_accessors"
+      ],
+      "functions": [
+        "parse_indented",
+        "build_model"
+      ],
+      "inputs": [
+        "port = 8080"
+      ],
+      "name": "parse_basic_integer_build_model",
+      "source_test": "parse_basic_integer",
+      "validation": "build_model",
       "variants": []
     },
     {
@@ -108,6 +134,7 @@
         "optional_typed_accessors"
       ],
       "functions": [
+        "parse_indented",
         "build_hierarchy"
       ],
       "inputs": [
@@ -116,6 +143,31 @@
       "name": "parse_basic_float_build_hierarchy",
       "source_test": "parse_basic_float",
       "validation": "build_hierarchy",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "temperature": {
+            "98.6": {}
+          }
+        }
+      },
+      "features": [
+        "optional_typed_accessors"
+      ],
+      "functions": [
+        "parse_indented",
+        "build_model"
+      ],
+      "inputs": [
+        "temperature = 98.6"
+      ],
+      "name": "parse_basic_float_build_model",
+      "source_test": "parse_basic_float",
+      "validation": "build_model",
       "variants": []
     },
     {
@@ -178,6 +230,7 @@
         "optional_typed_accessors"
       ],
       "functions": [
+        "parse_indented",
         "build_hierarchy"
       ],
       "inputs": [
@@ -186,6 +239,31 @@
       "name": "parse_boolean_true_build_hierarchy",
       "source_test": "parse_boolean_true",
       "validation": "build_hierarchy",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "enabled": {
+            "true": {}
+          }
+        }
+      },
+      "features": [
+        "optional_typed_accessors"
+      ],
+      "functions": [
+        "parse_indented",
+        "build_model"
+      ],
+      "inputs": [
+        "enabled = true"
+      ],
+      "name": "parse_boolean_true_build_model",
+      "source_test": "parse_boolean_true",
+      "validation": "build_model",
       "variants": []
     },
     {
@@ -257,6 +335,7 @@
         "optional_typed_accessors"
       ],
       "functions": [
+        "parse_indented",
         "build_hierarchy"
       ],
       "inputs": [
@@ -265,6 +344,31 @@
       "name": "parse_boolean_yes_build_hierarchy",
       "source_test": "parse_boolean_yes",
       "validation": "build_hierarchy",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "active": {
+            "yes": {}
+          }
+        }
+      },
+      "features": [
+        "optional_typed_accessors"
+      ],
+      "functions": [
+        "parse_indented",
+        "build_model"
+      ],
+      "inputs": [
+        "active = yes"
+      ],
+      "name": "parse_boolean_yes_build_model",
+      "source_test": "parse_boolean_yes",
+      "validation": "build_model",
       "variants": []
     },
     {
@@ -334,6 +438,7 @@
         "optional_typed_accessors"
       ],
       "functions": [
+        "parse_indented",
         "build_hierarchy"
       ],
       "inputs": [
@@ -342,6 +447,31 @@
       "name": "parse_boolean_yes_strict_literal_build_hierarchy",
       "source_test": "parse_boolean_yes_strict_literal",
       "validation": "build_hierarchy",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "active": {
+            "yes": {}
+          }
+        }
+      },
+      "features": [
+        "optional_typed_accessors"
+      ],
+      "functions": [
+        "parse_indented",
+        "build_model"
+      ],
+      "inputs": [
+        "active = yes"
+      ],
+      "name": "parse_boolean_yes_strict_literal_build_model",
+      "source_test": "parse_boolean_yes_strict_literal",
+      "validation": "build_model",
       "variants": []
     },
     {
@@ -410,6 +540,7 @@
         "optional_typed_accessors"
       ],
       "functions": [
+        "parse_indented",
         "build_hierarchy"
       ],
       "inputs": [
@@ -418,6 +549,31 @@
       "name": "parse_boolean_false_build_hierarchy",
       "source_test": "parse_boolean_false",
       "validation": "build_hierarchy",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "disabled": {
+            "false": {}
+          }
+        }
+      },
+      "features": [
+        "optional_typed_accessors"
+      ],
+      "functions": [
+        "parse_indented",
+        "build_model"
+      ],
+      "inputs": [
+        "disabled = false"
+      ],
+      "name": "parse_boolean_false_build_model",
+      "source_test": "parse_boolean_false",
+      "validation": "build_model",
       "variants": []
     },
     {
@@ -485,6 +641,7 @@
       },
       "features": [],
       "functions": [
+        "parse_indented",
         "build_hierarchy"
       ],
       "inputs": [
@@ -493,6 +650,29 @@
       "name": "parse_string_fallback_build_hierarchy",
       "source_test": "parse_string_fallback",
       "validation": "build_hierarchy",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "name": {
+            "Alice": {}
+          }
+        }
+      },
+      "features": [],
+      "functions": [
+        "parse_indented",
+        "build_model"
+      ],
+      "inputs": [
+        "name = Alice"
+      ],
+      "name": "parse_string_fallback_build_model",
+      "source_test": "parse_string_fallback",
+      "validation": "build_model",
       "variants": []
     },
     {
@@ -553,6 +733,7 @@
         "optional_typed_accessors"
       ],
       "functions": [
+        "parse_indented",
         "build_hierarchy"
       ],
       "inputs": [
@@ -561,6 +742,31 @@
       "name": "parse_negative_integer_build_hierarchy",
       "source_test": "parse_negative_integer",
       "validation": "build_hierarchy",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "offset": {
+            "-42": {}
+          }
+        }
+      },
+      "features": [
+        "optional_typed_accessors"
+      ],
+      "functions": [
+        "parse_indented",
+        "build_model"
+      ],
+      "inputs": [
+        "offset = -42"
+      ],
+      "name": "parse_negative_integer_build_model",
+      "source_test": "parse_negative_integer",
+      "validation": "build_model",
       "variants": []
     },
     {
@@ -635,6 +841,7 @@
         "optional_typed_accessors"
       ],
       "functions": [
+        "parse_indented",
         "build_hierarchy"
       ],
       "inputs": [
@@ -643,6 +850,38 @@
       "name": "parse_zero_values_build_hierarchy",
       "source_test": "parse_zero_values",
       "validation": "build_hierarchy",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "count": {
+            "0": {}
+          },
+          "disabled": {
+            "no": {}
+          },
+          "distance": {
+            "0.0": {}
+          }
+        }
+      },
+      "features": [
+        "empty_keys",
+        "optional_typed_accessors"
+      ],
+      "functions": [
+        "parse_indented",
+        "build_model"
+      ],
+      "inputs": [
+        "count = 0\ndistance = 0.0\ndisabled = no"
+      ],
+      "name": "parse_zero_values_build_model",
+      "source_test": "parse_zero_values",
+      "validation": "build_model",
       "variants": []
     },
     {
@@ -773,6 +1012,7 @@
         "optional_typed_accessors"
       ],
       "functions": [
+        "parse_indented",
         "build_hierarchy"
       ],
       "inputs": [
@@ -781,6 +1021,38 @@
       "name": "parse_zero_values_strict_literal_build_hierarchy",
       "source_test": "parse_zero_values_strict_literal",
       "validation": "build_hierarchy",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "count": {
+            "0": {}
+          },
+          "disabled": {
+            "no": {}
+          },
+          "distance": {
+            "0.0": {}
+          }
+        }
+      },
+      "features": [
+        "empty_keys",
+        "optional_typed_accessors"
+      ],
+      "functions": [
+        "parse_indented",
+        "build_model"
+      ],
+      "inputs": [
+        "count = 0\ndistance = 0.0\ndisabled = no"
+      ],
+      "name": "parse_zero_values_strict_literal_build_model",
+      "source_test": "parse_zero_values_strict_literal",
+      "validation": "build_model",
       "variants": []
     },
     {
@@ -928,6 +1200,7 @@
         "optional_typed_accessors"
       ],
       "functions": [
+        "parse_indented",
         "build_hierarchy"
       ],
       "inputs": [
@@ -936,6 +1209,49 @@
       "name": "parse_boolean_variants_build_hierarchy",
       "source_test": "parse_boolean_variants",
       "validation": "build_hierarchy",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "flag1": {
+            "yes": {}
+          },
+          "flag2": {
+            "on": {}
+          },
+          "flag3": {
+            "1": {}
+          },
+          "flag4": {
+            "false": {}
+          },
+          "flag5": {
+            "no": {}
+          },
+          "flag6": {
+            "off": {}
+          },
+          "flag7": {
+            "0": {}
+          }
+        }
+      },
+      "features": [
+        "optional_typed_accessors"
+      ],
+      "functions": [
+        "parse_indented",
+        "build_model"
+      ],
+      "inputs": [
+        "flag1 = yes\nflag2 = on\nflag3 = 1\nflag4 = false\nflag5 = no\nflag6 = off\nflag7 = 0"
+      ],
+      "name": "parse_boolean_variants_build_model",
+      "source_test": "parse_boolean_variants",
+      "validation": "build_model",
       "variants": []
     },
     {
@@ -1058,6 +1374,7 @@
         "optional_typed_accessors"
       ],
       "functions": [
+        "parse_indented",
         "build_hierarchy"
       ],
       "inputs": [
@@ -1066,6 +1383,49 @@
       "name": "parse_boolean_variants_strict_literal_build_hierarchy",
       "source_test": "parse_boolean_variants_strict_literal",
       "validation": "build_hierarchy",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "flag1": {
+            "yes": {}
+          },
+          "flag2": {
+            "on": {}
+          },
+          "flag3": {
+            "1": {}
+          },
+          "flag4": {
+            "false": {}
+          },
+          "flag5": {
+            "no": {}
+          },
+          "flag6": {
+            "off": {}
+          },
+          "flag7": {
+            "0": {}
+          }
+        }
+      },
+      "features": [
+        "optional_typed_accessors"
+      ],
+      "functions": [
+        "parse_indented",
+        "build_model"
+      ],
+      "inputs": [
+        "flag1 = yes\nflag2 = on\nflag3 = 1\nflag4 = false\nflag5 = no\nflag6 = off\nflag7 = 0"
+      ],
+      "name": "parse_boolean_variants_strict_literal_build_model",
+      "source_test": "parse_boolean_variants_strict_literal",
+      "validation": "build_model",
       "variants": []
     },
     {
@@ -1177,6 +1537,7 @@
         "optional_typed_accessors"
       ],
       "functions": [
+        "parse_indented",
         "build_hierarchy"
       ],
       "inputs": [
@@ -1185,6 +1546,43 @@
       "name": "parse_mixed_types_build_hierarchy",
       "source_test": "parse_mixed_types",
       "validation": "build_hierarchy",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "debug": {
+            "off": {}
+          },
+          "host": {
+            "localhost": {}
+          },
+          "port": {
+            "8080": {}
+          },
+          "ssl": {
+            "true": {}
+          },
+          "timeout": {
+            "30.5": {}
+          }
+        }
+      },
+      "features": [
+        "optional_typed_accessors"
+      ],
+      "functions": [
+        "parse_indented",
+        "build_model"
+      ],
+      "inputs": [
+        "host = localhost\nport = 8080\nssl = true\ntimeout = 30.5\ndebug = off"
+      ],
+      "name": "parse_mixed_types_build_model",
+      "source_test": "parse_mixed_types",
+      "validation": "build_model",
       "variants": []
     },
     {
@@ -1343,6 +1741,7 @@
         "optional_typed_accessors"
       ],
       "functions": [
+        "parse_indented",
         "build_hierarchy"
       ],
       "inputs": [
@@ -1351,6 +1750,43 @@
       "name": "parse_mixed_types_strict_literal_build_hierarchy",
       "source_test": "parse_mixed_types_strict_literal",
       "validation": "build_hierarchy",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "debug": {
+            "off": {}
+          },
+          "host": {
+            "localhost": {}
+          },
+          "port": {
+            "8080": {}
+          },
+          "ssl": {
+            "true": {}
+          },
+          "timeout": {
+            "30.5": {}
+          }
+        }
+      },
+      "features": [
+        "optional_typed_accessors"
+      ],
+      "functions": [
+        "parse_indented",
+        "build_model"
+      ],
+      "inputs": [
+        "host = localhost\nport = 8080\nssl = true\ntimeout = 30.5\ndebug = off"
+      ],
+      "name": "parse_mixed_types_strict_literal_build_model",
+      "source_test": "parse_mixed_types_strict_literal",
+      "validation": "build_model",
       "variants": []
     },
     {
@@ -1496,6 +1932,7 @@
         "optional_typed_accessors"
       ],
       "functions": [
+        "parse_indented",
         "build_hierarchy"
       ],
       "inputs": [
@@ -1504,6 +1941,35 @@
       "name": "parse_with_whitespace_build_hierarchy",
       "source_test": "parse_with_whitespace",
       "validation": "build_hierarchy",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "flag": {
+            "true": {}
+          },
+          "number": {
+            "42": {}
+          }
+        }
+      },
+      "features": [
+        "whitespace",
+        "optional_typed_accessors"
+      ],
+      "functions": [
+        "parse_indented",
+        "build_model"
+      ],
+      "inputs": [
+        "number =   42   \nflag =  true  "
+      ],
+      "name": "parse_with_whitespace_build_model",
+      "source_test": "parse_with_whitespace",
+      "validation": "build_model",
       "variants": []
     },
     {
@@ -1606,6 +2072,7 @@
         "optional_typed_accessors"
       ],
       "functions": [
+        "parse_indented",
         "build_hierarchy"
       ],
       "inputs": [
@@ -1614,6 +2081,40 @@
       "name": "parse_with_conservative_options_build_hierarchy",
       "source_test": "parse_with_conservative_options",
       "validation": "build_hierarchy",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "decimal": {
+            "3.14": {}
+          },
+          "flag": {
+            "true": {}
+          },
+          "number": {
+            "42": {}
+          },
+          "text": {
+            "hello": {}
+          }
+        }
+      },
+      "features": [
+        "optional_typed_accessors"
+      ],
+      "functions": [
+        "parse_indented",
+        "build_model"
+      ],
+      "inputs": [
+        "number = 42\ndecimal = 3.14\nflag = true\ntext = hello"
+      ],
+      "name": "parse_with_conservative_options_build_model",
+      "source_test": "parse_with_conservative_options",
+      "validation": "build_model",
       "variants": []
     },
     {
@@ -1699,6 +2200,7 @@
         "optional_typed_accessors"
       ],
       "functions": [
+        "parse_indented",
         "build_hierarchy"
       ],
       "inputs": [
@@ -1707,6 +2209,31 @@
       "name": "parse_integer_error_build_hierarchy",
       "source_test": "parse_integer_error",
       "validation": "build_hierarchy",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "port": {
+            "not_a_number": {}
+          }
+        }
+      },
+      "features": [
+        "optional_typed_accessors"
+      ],
+      "functions": [
+        "parse_indented",
+        "build_model"
+      ],
+      "inputs": [
+        "port = not_a_number"
+      ],
+      "name": "parse_integer_error_build_model",
+      "source_test": "parse_integer_error",
+      "validation": "build_model",
       "variants": []
     },
     {
@@ -1768,6 +2295,7 @@
         "optional_typed_accessors"
       ],
       "functions": [
+        "parse_indented",
         "build_hierarchy"
       ],
       "inputs": [
@@ -1776,6 +2304,31 @@
       "name": "parse_float_error_build_hierarchy",
       "source_test": "parse_float_error",
       "validation": "build_hierarchy",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "temperature": {
+            "invalid": {}
+          }
+        }
+      },
+      "features": [
+        "optional_typed_accessors"
+      ],
+      "functions": [
+        "parse_indented",
+        "build_model"
+      ],
+      "inputs": [
+        "temperature = invalid"
+      ],
+      "name": "parse_float_error_build_model",
+      "source_test": "parse_float_error",
+      "validation": "build_model",
       "variants": []
     },
     {
@@ -1837,6 +2390,7 @@
         "optional_typed_accessors"
       ],
       "functions": [
+        "parse_indented",
         "build_hierarchy"
       ],
       "inputs": [
@@ -1845,6 +2399,31 @@
       "name": "parse_boolean_error_build_hierarchy",
       "source_test": "parse_boolean_error",
       "validation": "build_hierarchy",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "enabled": {
+            "maybe": {}
+          }
+        }
+      },
+      "features": [
+        "optional_typed_accessors"
+      ],
+      "functions": [
+        "parse_indented",
+        "build_model"
+      ],
+      "inputs": [
+        "enabled = maybe"
+      ],
+      "name": "parse_boolean_error_build_model",
+      "source_test": "parse_boolean_error",
+      "validation": "build_model",
       "variants": []
     },
     {
@@ -1909,6 +2488,7 @@
       },
       "features": [],
       "functions": [
+        "parse_indented",
         "build_hierarchy"
       ],
       "inputs": [
@@ -1917,6 +2497,29 @@
       "name": "parse_missing_path_error_build_hierarchy",
       "source_test": "parse_missing_path_error",
       "validation": "build_hierarchy",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "existing": {
+            "value": {}
+          }
+        }
+      },
+      "features": [],
+      "functions": [
+        "parse_indented",
+        "build_model"
+      ],
+      "inputs": [
+        "existing = value"
+      ],
+      "name": "parse_missing_path_error_build_model",
+      "source_test": "parse_missing_path_error",
+      "validation": "build_model",
       "variants": []
     },
     {
@@ -2267,6 +2870,7 @@
         "optional_typed_accessors"
       ],
       "functions": [
+        "parse_indented",
         "build_hierarchy"
       ],
       "inputs": [
@@ -2275,6 +2879,39 @@
       "name": "boolean_nested_object_build_hierarchy",
       "source_test": "boolean_nested_object",
       "validation": "build_hierarchy",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "config": {
+            "debug": {
+              "true": {}
+            },
+            "experimental": {
+              "yes": {}
+            },
+            "verbose": {
+              "false": {}
+            }
+          }
+        }
+      },
+      "features": [
+        "optional_typed_accessors"
+      ],
+      "functions": [
+        "parse_indented",
+        "build_model"
+      ],
+      "inputs": [
+        "config =\n  debug = true\n  verbose = false\n  experimental = yes"
+      ],
+      "name": "boolean_nested_object_build_model",
+      "source_test": "boolean_nested_object",
+      "validation": "build_model",
       "variants": []
     },
     {
@@ -2440,6 +3077,7 @@
         "optional_typed_accessors"
       ],
       "functions": [
+        "parse_indented",
         "build_hierarchy"
       ],
       "inputs": [
@@ -2448,6 +3086,36 @@
       "name": "type_mismatch_nested_path_build_hierarchy",
       "source_test": "type_mismatch_nested_path",
       "validation": "build_hierarchy",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "config": {
+            "count": {
+              "abc": {}
+            },
+            "name": {
+              "test": {}
+            }
+          }
+        }
+      },
+      "features": [
+        "optional_typed_accessors"
+      ],
+      "functions": [
+        "parse_indented",
+        "build_model"
+      ],
+      "inputs": [
+        "config =\n  name = test\n  count = abc"
+      ],
+      "name": "type_mismatch_nested_path_build_model",
+      "source_test": "type_mismatch_nested_path",
+      "validation": "build_model",
       "variants": []
     },
     {
@@ -2502,6 +3170,994 @@
       "name": "boolean_empty_value_error_get_bool",
       "source_test": "boolean_empty_value_error",
       "validation": "get_bool",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "entries": [
+          {
+            "key": "server",
+            "value": "\n  port = 8080\n  max_connections = 1000"
+          }
+        ]
+      },
+      "features": [
+        "optional_typed_accessors"
+      ],
+      "functions": [
+        "parse"
+      ],
+      "inputs": [
+        "server =\n  port = 8080\n  max_connections = 1000"
+      ],
+      "name": "nested_get_int_parse",
+      "source_test": "nested_get_int",
+      "validation": "parse",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "server": {
+            "max_connections": "1000",
+            "port": "8080"
+          }
+        }
+      },
+      "features": [
+        "optional_typed_accessors"
+      ],
+      "functions": [
+        "parse_indented",
+        "build_hierarchy"
+      ],
+      "inputs": [
+        "server =\n  port = 8080\n  max_connections = 1000"
+      ],
+      "name": "nested_get_int_build_hierarchy",
+      "source_test": "nested_get_int",
+      "validation": "build_hierarchy",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "server": {
+            "max_connections": {
+              "1000": {}
+            },
+            "port": {
+              "8080": {}
+            }
+          }
+        }
+      },
+      "features": [
+        "optional_typed_accessors"
+      ],
+      "functions": [
+        "parse_indented",
+        "build_model"
+      ],
+      "inputs": [
+        "server =\n  port = 8080\n  max_connections = 1000"
+      ],
+      "name": "nested_get_int_build_model",
+      "source_test": "nested_get_int",
+      "validation": "build_model",
+      "variants": []
+    },
+    {
+      "args": [
+        "server",
+        "max_connections"
+      ],
+      "behaviors": [
+        "path_traversal"
+      ],
+      "expected": {
+        "count": 1,
+        "value": 1000
+      },
+      "features": [
+        "optional_typed_accessors"
+      ],
+      "functions": [
+        "get_int"
+      ],
+      "inputs": [
+        "server =\n  port = 8080\n  max_connections = 1000"
+      ],
+      "name": "nested_get_int_get_int",
+      "source_test": "nested_get_int",
+      "validation": "get_int",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "entries": [
+          {
+            "key": "config",
+            "value": "\n  database =\n    pool =\n      min = 5\n      max = 50"
+          }
+        ]
+      },
+      "features": [
+        "optional_typed_accessors"
+      ],
+      "functions": [
+        "parse"
+      ],
+      "inputs": [
+        "config =\n  database =\n    pool =\n      min = 5\n      max = 50"
+      ],
+      "name": "deeply_nested_get_int_parse",
+      "source_test": "deeply_nested_get_int",
+      "validation": "parse",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "config": {
+            "database": {
+              "pool": {
+                "max": "50",
+                "min": "5"
+              }
+            }
+          }
+        }
+      },
+      "features": [
+        "optional_typed_accessors"
+      ],
+      "functions": [
+        "parse_indented",
+        "build_hierarchy"
+      ],
+      "inputs": [
+        "config =\n  database =\n    pool =\n      min = 5\n      max = 50"
+      ],
+      "name": "deeply_nested_get_int_build_hierarchy",
+      "source_test": "deeply_nested_get_int",
+      "validation": "build_hierarchy",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "config": {
+            "database": {
+              "pool": {
+                "max": {
+                  "50": {}
+                },
+                "min": {
+                  "5": {}
+                }
+              }
+            }
+          }
+        }
+      },
+      "features": [
+        "optional_typed_accessors"
+      ],
+      "functions": [
+        "parse_indented",
+        "build_model"
+      ],
+      "inputs": [
+        "config =\n  database =\n    pool =\n      min = 5\n      max = 50"
+      ],
+      "name": "deeply_nested_get_int_build_model",
+      "source_test": "deeply_nested_get_int",
+      "validation": "build_model",
+      "variants": []
+    },
+    {
+      "args": [
+        "config",
+        "database",
+        "pool",
+        "max"
+      ],
+      "behaviors": [
+        "path_traversal"
+      ],
+      "expected": {
+        "count": 1,
+        "value": 50
+      },
+      "features": [
+        "optional_typed_accessors"
+      ],
+      "functions": [
+        "get_int"
+      ],
+      "inputs": [
+        "config =\n  database =\n    pool =\n      min = 5\n      max = 50"
+      ],
+      "name": "deeply_nested_get_int_get_int",
+      "source_test": "deeply_nested_get_int",
+      "validation": "get_int",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "entries": [
+          {
+            "key": "metrics",
+            "value": "\n  cpu_threshold = 0.85\n  memory_limit = 2.5"
+          }
+        ]
+      },
+      "features": [
+        "optional_typed_accessors"
+      ],
+      "functions": [
+        "parse"
+      ],
+      "inputs": [
+        "metrics =\n  cpu_threshold = 0.85\n  memory_limit = 2.5"
+      ],
+      "name": "nested_get_float_parse",
+      "source_test": "nested_get_float",
+      "validation": "parse",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "metrics": {
+            "cpu_threshold": "0.85",
+            "memory_limit": "2.5"
+          }
+        }
+      },
+      "features": [
+        "optional_typed_accessors"
+      ],
+      "functions": [
+        "parse_indented",
+        "build_hierarchy"
+      ],
+      "inputs": [
+        "metrics =\n  cpu_threshold = 0.85\n  memory_limit = 2.5"
+      ],
+      "name": "nested_get_float_build_hierarchy",
+      "source_test": "nested_get_float",
+      "validation": "build_hierarchy",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "metrics": {
+            "cpu_threshold": {
+              "0.85": {}
+            },
+            "memory_limit": {
+              "2.5": {}
+            }
+          }
+        }
+      },
+      "features": [
+        "optional_typed_accessors"
+      ],
+      "functions": [
+        "parse_indented",
+        "build_model"
+      ],
+      "inputs": [
+        "metrics =\n  cpu_threshold = 0.85\n  memory_limit = 2.5"
+      ],
+      "name": "nested_get_float_build_model",
+      "source_test": "nested_get_float",
+      "validation": "build_model",
+      "variants": []
+    },
+    {
+      "args": [
+        "metrics",
+        "memory_limit"
+      ],
+      "behaviors": [
+        "path_traversal"
+      ],
+      "expected": {
+        "count": 1,
+        "value": 2.5
+      },
+      "features": [
+        "optional_typed_accessors"
+      ],
+      "functions": [
+        "get_float"
+      ],
+      "inputs": [
+        "metrics =\n  cpu_threshold = 0.85\n  memory_limit = 2.5"
+      ],
+      "name": "nested_get_float_get_float",
+      "source_test": "nested_get_float",
+      "validation": "get_float",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "entries": [
+          {
+            "key": "app",
+            "value": "\n  scoring =\n    weights =\n      relevance = 0.6\n      freshness = 0.4"
+          }
+        ]
+      },
+      "features": [
+        "optional_typed_accessors"
+      ],
+      "functions": [
+        "parse"
+      ],
+      "inputs": [
+        "app =\n  scoring =\n    weights =\n      relevance = 0.6\n      freshness = 0.4"
+      ],
+      "name": "deeply_nested_get_float_parse",
+      "source_test": "deeply_nested_get_float",
+      "validation": "parse",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "app": {
+            "scoring": {
+              "weights": {
+                "freshness": "0.4",
+                "relevance": "0.6"
+              }
+            }
+          }
+        }
+      },
+      "features": [
+        "optional_typed_accessors"
+      ],
+      "functions": [
+        "parse_indented",
+        "build_hierarchy"
+      ],
+      "inputs": [
+        "app =\n  scoring =\n    weights =\n      relevance = 0.6\n      freshness = 0.4"
+      ],
+      "name": "deeply_nested_get_float_build_hierarchy",
+      "source_test": "deeply_nested_get_float",
+      "validation": "build_hierarchy",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "app": {
+            "scoring": {
+              "weights": {
+                "freshness": {
+                  "0.4": {}
+                },
+                "relevance": {
+                  "0.6": {}
+                }
+              }
+            }
+          }
+        }
+      },
+      "features": [
+        "optional_typed_accessors"
+      ],
+      "functions": [
+        "parse_indented",
+        "build_model"
+      ],
+      "inputs": [
+        "app =\n  scoring =\n    weights =\n      relevance = 0.6\n      freshness = 0.4"
+      ],
+      "name": "deeply_nested_get_float_build_model",
+      "source_test": "deeply_nested_get_float",
+      "validation": "build_model",
+      "variants": []
+    },
+    {
+      "args": [
+        "app",
+        "scoring",
+        "weights",
+        "freshness"
+      ],
+      "behaviors": [
+        "path_traversal"
+      ],
+      "expected": {
+        "count": 1,
+        "value": 0.4
+      },
+      "features": [
+        "optional_typed_accessors"
+      ],
+      "functions": [
+        "get_float"
+      ],
+      "inputs": [
+        "app =\n  scoring =\n    weights =\n      relevance = 0.6\n      freshness = 0.4"
+      ],
+      "name": "deeply_nested_get_float_get_float",
+      "source_test": "deeply_nested_get_float",
+      "validation": "get_float",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "entries": [
+          {
+            "key": "feature_flags",
+            "value": "\n  dark_mode = true\n  beta_access = false"
+          }
+        ]
+      },
+      "features": [
+        "optional_typed_accessors"
+      ],
+      "functions": [
+        "parse"
+      ],
+      "inputs": [
+        "feature_flags =\n  dark_mode = true\n  beta_access = false"
+      ],
+      "name": "nested_get_bool_parse",
+      "source_test": "nested_get_bool",
+      "validation": "parse",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "feature_flags": {
+            "beta_access": "false",
+            "dark_mode": "true"
+          }
+        }
+      },
+      "features": [
+        "optional_typed_accessors"
+      ],
+      "functions": [
+        "parse_indented",
+        "build_hierarchy"
+      ],
+      "inputs": [
+        "feature_flags =\n  dark_mode = true\n  beta_access = false"
+      ],
+      "name": "nested_get_bool_build_hierarchy",
+      "source_test": "nested_get_bool",
+      "validation": "build_hierarchy",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "feature_flags": {
+            "beta_access": {
+              "false": {}
+            },
+            "dark_mode": {
+              "true": {}
+            }
+          }
+        }
+      },
+      "features": [
+        "optional_typed_accessors"
+      ],
+      "functions": [
+        "parse_indented",
+        "build_model"
+      ],
+      "inputs": [
+        "feature_flags =\n  dark_mode = true\n  beta_access = false"
+      ],
+      "name": "nested_get_bool_build_model",
+      "source_test": "nested_get_bool",
+      "validation": "build_model",
+      "variants": []
+    },
+    {
+      "args": [
+        "feature_flags",
+        "beta_access"
+      ],
+      "behaviors": [
+        "boolean_strict",
+        "boolean_lenient",
+        "path_traversal"
+      ],
+      "conflicts": {
+        "behaviors": [
+          "boolean_lenient",
+          "boolean_strict"
+        ]
+      },
+      "expected": {
+        "count": 1,
+        "value": false
+      },
+      "features": [
+        "optional_typed_accessors"
+      ],
+      "functions": [
+        "get_bool"
+      ],
+      "inputs": [
+        "feature_flags =\n  dark_mode = true\n  beta_access = false"
+      ],
+      "name": "nested_get_bool_get_bool",
+      "source_test": "nested_get_bool",
+      "validation": "get_bool",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "entries": [
+          {
+            "key": "services",
+            "value": "\n  auth =\n    settings =\n      require_mfa = true\n      allow_anonymous = false"
+          }
+        ]
+      },
+      "features": [
+        "optional_typed_accessors"
+      ],
+      "functions": [
+        "parse"
+      ],
+      "inputs": [
+        "services =\n  auth =\n    settings =\n      require_mfa = true\n      allow_anonymous = false"
+      ],
+      "name": "deeply_nested_get_bool_parse",
+      "source_test": "deeply_nested_get_bool",
+      "validation": "parse",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "services": {
+            "auth": {
+              "settings": {
+                "allow_anonymous": "false",
+                "require_mfa": "true"
+              }
+            }
+          }
+        }
+      },
+      "features": [
+        "optional_typed_accessors"
+      ],
+      "functions": [
+        "parse_indented",
+        "build_hierarchy"
+      ],
+      "inputs": [
+        "services =\n  auth =\n    settings =\n      require_mfa = true\n      allow_anonymous = false"
+      ],
+      "name": "deeply_nested_get_bool_build_hierarchy",
+      "source_test": "deeply_nested_get_bool",
+      "validation": "build_hierarchy",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "services": {
+            "auth": {
+              "settings": {
+                "allow_anonymous": {
+                  "false": {}
+                },
+                "require_mfa": {
+                  "true": {}
+                }
+              }
+            }
+          }
+        }
+      },
+      "features": [
+        "optional_typed_accessors"
+      ],
+      "functions": [
+        "parse_indented",
+        "build_model"
+      ],
+      "inputs": [
+        "services =\n  auth =\n    settings =\n      require_mfa = true\n      allow_anonymous = false"
+      ],
+      "name": "deeply_nested_get_bool_build_model",
+      "source_test": "deeply_nested_get_bool",
+      "validation": "build_model",
+      "variants": []
+    },
+    {
+      "args": [
+        "services",
+        "auth",
+        "settings",
+        "allow_anonymous"
+      ],
+      "behaviors": [
+        "boolean_strict",
+        "boolean_lenient",
+        "path_traversal"
+      ],
+      "conflicts": {
+        "behaviors": [
+          "boolean_lenient",
+          "boolean_strict"
+        ]
+      },
+      "expected": {
+        "count": 1,
+        "value": false
+      },
+      "features": [
+        "optional_typed_accessors"
+      ],
+      "functions": [
+        "get_bool"
+      ],
+      "inputs": [
+        "services =\n  auth =\n    settings =\n      require_mfa = true\n      allow_anonymous = false"
+      ],
+      "name": "deeply_nested_get_bool_get_bool",
+      "source_test": "deeply_nested_get_bool",
+      "validation": "get_bool",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "entries": [
+          {
+            "key": "database",
+            "value": "\n  host = localhost\n  name = mydb"
+          }
+        ]
+      },
+      "features": [],
+      "functions": [
+        "parse"
+      ],
+      "inputs": [
+        "database =\n  host = localhost\n  name = mydb"
+      ],
+      "name": "nested_get_string_basic_parse",
+      "source_test": "nested_get_string_basic",
+      "validation": "parse",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "database": {
+            "host": "localhost",
+            "name": "mydb"
+          }
+        }
+      },
+      "features": [],
+      "functions": [
+        "parse_indented",
+        "build_hierarchy"
+      ],
+      "inputs": [
+        "database =\n  host = localhost\n  name = mydb"
+      ],
+      "name": "nested_get_string_basic_build_hierarchy",
+      "source_test": "nested_get_string_basic",
+      "validation": "build_hierarchy",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "database": {
+            "host": {
+              "localhost": {}
+            },
+            "name": {
+              "mydb": {}
+            }
+          }
+        }
+      },
+      "features": [],
+      "functions": [
+        "parse_indented",
+        "build_model"
+      ],
+      "inputs": [
+        "database =\n  host = localhost\n  name = mydb"
+      ],
+      "name": "nested_get_string_basic_build_model",
+      "source_test": "nested_get_string_basic",
+      "validation": "build_model",
+      "variants": []
+    },
+    {
+      "args": [
+        "database",
+        "name"
+      ],
+      "behaviors": [
+        "path_traversal"
+      ],
+      "expected": {
+        "count": 1,
+        "value": "mydb"
+      },
+      "features": [],
+      "functions": [
+        "get_string"
+      ],
+      "inputs": [
+        "database =\n  host = localhost\n  name = mydb"
+      ],
+      "name": "nested_get_string_basic_get_string",
+      "source_test": "nested_get_string_basic",
+      "validation": "get_string",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "entries": [
+          {
+            "key": "server",
+            "value": "\n  host = 0.0.0.0\n  port = 3000\n  debug = true\n  rate_limit = 1.5"
+          }
+        ]
+      },
+      "features": [
+        "optional_typed_accessors"
+      ],
+      "functions": [
+        "parse"
+      ],
+      "inputs": [
+        "server =\n  host = 0.0.0.0\n  port = 3000\n  debug = true\n  rate_limit = 1.5"
+      ],
+      "name": "nested_mixed_typed_access_parse",
+      "source_test": "nested_mixed_typed_access",
+      "validation": "parse",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "server": {
+            "debug": "true",
+            "host": "0.0.0.0",
+            "port": "3000",
+            "rate_limit": "1.5"
+          }
+        }
+      },
+      "features": [
+        "optional_typed_accessors"
+      ],
+      "functions": [
+        "parse_indented",
+        "build_hierarchy"
+      ],
+      "inputs": [
+        "server =\n  host = 0.0.0.0\n  port = 3000\n  debug = true\n  rate_limit = 1.5"
+      ],
+      "name": "nested_mixed_typed_access_build_hierarchy",
+      "source_test": "nested_mixed_typed_access",
+      "validation": "build_hierarchy",
+      "variants": []
+    },
+    {
+      "behaviors": [],
+      "expected": {
+        "count": 1,
+        "object": {
+          "server": {
+            "debug": {
+              "true": {}
+            },
+            "host": {
+              "0.0.0.0": {}
+            },
+            "port": {
+              "3000": {}
+            },
+            "rate_limit": {
+              "1.5": {}
+            }
+          }
+        }
+      },
+      "features": [
+        "optional_typed_accessors"
+      ],
+      "functions": [
+        "parse_indented",
+        "build_model"
+      ],
+      "inputs": [
+        "server =\n  host = 0.0.0.0\n  port = 3000\n  debug = true\n  rate_limit = 1.5"
+      ],
+      "name": "nested_mixed_typed_access_build_model",
+      "source_test": "nested_mixed_typed_access",
+      "validation": "build_model",
+      "variants": []
+    },
+    {
+      "args": [
+        "server",
+        "host"
+      ],
+      "behaviors": [
+        "path_traversal"
+      ],
+      "expected": {
+        "count": 1,
+        "value": "0.0.0.0"
+      },
+      "features": [
+        "optional_typed_accessors"
+      ],
+      "functions": [
+        "get_string"
+      ],
+      "inputs": [
+        "server =\n  host = 0.0.0.0\n  port = 3000\n  debug = true\n  rate_limit = 1.5"
+      ],
+      "name": "nested_mixed_typed_access_get_string",
+      "source_test": "nested_mixed_typed_access",
+      "validation": "get_string",
+      "variants": []
+    },
+    {
+      "args": [
+        "server",
+        "port"
+      ],
+      "behaviors": [
+        "path_traversal"
+      ],
+      "expected": {
+        "count": 1,
+        "value": 3000
+      },
+      "features": [
+        "optional_typed_accessors"
+      ],
+      "functions": [
+        "get_int"
+      ],
+      "inputs": [
+        "server =\n  host = 0.0.0.0\n  port = 3000\n  debug = true\n  rate_limit = 1.5"
+      ],
+      "name": "nested_mixed_typed_access_get_int",
+      "source_test": "nested_mixed_typed_access",
+      "validation": "get_int",
+      "variants": []
+    },
+    {
+      "args": [
+        "server",
+        "debug"
+      ],
+      "behaviors": [
+        "boolean_strict",
+        "boolean_lenient",
+        "path_traversal"
+      ],
+      "conflicts": {
+        "behaviors": [
+          "boolean_lenient",
+          "boolean_strict"
+        ]
+      },
+      "expected": {
+        "count": 1,
+        "value": true
+      },
+      "features": [
+        "optional_typed_accessors"
+      ],
+      "functions": [
+        "get_bool"
+      ],
+      "inputs": [
+        "server =\n  host = 0.0.0.0\n  port = 3000\n  debug = true\n  rate_limit = 1.5"
+      ],
+      "name": "nested_mixed_typed_access_get_bool",
+      "source_test": "nested_mixed_typed_access",
+      "validation": "get_bool",
+      "variants": []
+    },
+    {
+      "args": [
+        "server",
+        "rate_limit"
+      ],
+      "behaviors": [
+        "path_traversal"
+      ],
+      "expected": {
+        "count": 1,
+        "value": 1.5
+      },
+      "features": [
+        "optional_typed_accessors"
+      ],
+      "functions": [
+        "get_float"
+      ],
+      "inputs": [
+        "server =\n  host = 0.0.0.0\n  port = 3000\n  debug = true\n  rate_limit = 1.5"
+      ],
+      "name": "nested_mixed_typed_access_get_float",
+      "source_test": "nested_mixed_typed_access",
+      "validation": "get_float",
       "variants": []
     }
   ]
