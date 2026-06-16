@@ -109,6 +109,12 @@ minreq = { version = "2.14.1", features = ["https-native"] }
 # Regular expressions for parsing (dev-tools only)
 regex = { version = "1", optional = true }
 
+# Terminal UI framework for interactive package management
+ratatui = "0.29"
+
+# Cross-platform terminal manipulation for TUI backend
+crossterm = "0.28"
+
 # Update checking for crates.io releases
 tiny-update-check = "1"
 

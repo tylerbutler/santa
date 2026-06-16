@@ -91,6 +91,7 @@ pub mod script_generator;
 pub mod source_layers;
 pub mod sources;
 pub mod traits;
+pub mod tui;
 
 /// Catalog utilities for dev-tools binaries
 #[cfg(feature = "dev-tools")]

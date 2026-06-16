@@ -60,6 +60,10 @@ build *ARGS='':
 build-release *ARGS='':
     cargo build --release {{ARGS}}
 
+# Launch the interactive TUI
+tui *ARGS='':
+    @cargo run --quiet -p santa -- tui {{ARGS}}
+
 # Generate package index from source files (verified packages only)
 generate-index *ARGS='':
     @cargo run --quiet --features dev-tools --bin generate-index -- {{ARGS}}
