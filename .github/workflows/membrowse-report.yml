@@ -29,7 +29,7 @@ jobs:
 
       - name: Run MemBrowse analysis
         continue-on-error: true
-        uses: membrowse/membrowse-action@be80736b0a0439168e2a56160c47e87f0f629da5
+        uses: membrowse/membrowse-action@33e6edd865cbb0c31c6abce4ece5eef9faf061b1
         with:
           target_name: santa-linux-amd64
           elf: target/release/santa
