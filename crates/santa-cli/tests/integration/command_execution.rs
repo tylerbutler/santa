@@ -4,7 +4,6 @@
 //! including error cases, timeout handling, and concurrent operations.
 
 use super::MockPackageSource;
-use santa::traits::PackageManager;
 use tokio::time::{timeout, Duration};
 
 #[tokio::test]

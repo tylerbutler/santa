@@ -309,13 +309,7 @@ packages =
             "../../../etc/passwd".to_string(),
         ];
 
-        let config = SantaConfig {
-            sources: vec![KnownSources::Brew],
-            packages: dangerous_names.clone(),
-            custom_sources: None,
-            _groups: None,
-            log_level: 0,
-        };
+        let config = SantaConfig::new(vec![KnownSources::Brew], dangerous_names.clone());
 
         // Config should load but we need to ensure these names are sanitized later
         let result = config.validate_basic();
@@ -445,13 +439,7 @@ packages =
             sources: vec![],
         };
 
-        let config = SantaConfig {
-            sources: vec![KnownSources::Brew],
-            packages: vec!["git".to_string()],
-            custom_sources: None,
-            _groups: None,
-            log_level: 0,
-        };
+        let config = SantaConfig::new(vec![KnownSources::Brew], vec!["git".to_string()]);
 
         let unknown = config.unknown_packages(&data);
         assert!(unknown.is_empty(), "All packages should be valid");
@@ -467,13 +455,10 @@ packages =
             sources: vec![],
         };
 
-        let config = SantaConfig {
-            sources: vec![KnownSources::Brew],
-            packages: vec!["nonexistent-package".to_string()],
-            custom_sources: None,
-            _groups: None,
-            log_level: 0,
-        };
+        let config = SantaConfig::new(
+            vec![KnownSources::Brew],
+            vec!["nonexistent-package".to_string()],
+        );
 
         let unknown = config.unknown_packages(&data);
         assert_eq!(unknown.len(), 1);
@@ -497,13 +482,7 @@ packages =
         };
 
         // Config only has brew as source
-        let config = SantaConfig {
-            sources: vec![KnownSources::Brew],
-            packages: vec!["ripgrep".to_string()],
-            custom_sources: None,
-            _groups: None,
-            log_level: 0,
-        };
+        let config = SantaConfig::new(vec![KnownSources::Brew], vec!["ripgrep".to_string()]);
 
         let unknown = config.unknown_packages(&data);
         assert_eq!(unknown.len(), 1);
@@ -539,17 +518,14 @@ packages =
             sources: vec![],
         };
 
-        let config = SantaConfig {
-            sources: vec![KnownSources::Brew],
-            packages: vec![
+        let config = SantaConfig::new(
+            vec![KnownSources::Brew],
+            vec![
                 "git".to_string(),
                 "ripgrep".to_string(),
                 "unknown-pkg".to_string(),
             ],
-            custom_sources: None,
-            _groups: None,
-            log_level: 0,
-        };
+        );
 
         let unknown = config.unknown_packages(&data);
         assert_eq!(unknown.len(), 2);
@@ -590,13 +566,7 @@ packages =
         };
 
         // Config has npm which bat doesn't support
-        let config = SantaConfig {
-            sources: vec![KnownSources::Npm],
-            packages: vec!["bat".to_string()],
-            custom_sources: None,
-            _groups: None,
-            log_level: 0,
-        };
+        let config = SantaConfig::new(vec![KnownSources::Npm], vec!["bat".to_string()]);
 
         let unknown = config.unknown_packages(&data);
         assert_eq!(unknown.len(), 1);
@@ -620,13 +590,7 @@ packages =
             sources: vec![],
         };
 
-        let config = SantaConfig {
-            sources: vec![KnownSources::Brew],
-            packages: vec![],
-            custom_sources: None,
-            _groups: None,
-            log_level: 0,
-        };
+        let config = SantaConfig::new(vec![KnownSources::Brew], vec![]);
 
         let unknown = config.unknown_packages(&data);
         assert!(unknown.is_empty());

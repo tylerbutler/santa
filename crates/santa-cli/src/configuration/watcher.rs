@@ -200,13 +200,7 @@ mod tests {
         let temp_dir = TempDir::new().unwrap();
         let config_path = temp_dir.path().join("config.yaml");
 
-        let initial_config = SantaConfig {
-            sources: vec![KnownSources::Brew],
-            packages: vec!["git".to_string()],
-            custom_sources: None,
-            _groups: None,
-            log_level: 0,
-        };
+        let initial_config = SantaConfig::new(vec![KnownSources::Brew], vec!["git".to_string()]);
 
         let watcher = ConfigWatcher::new(config_path, initial_config.clone()).unwrap();
         let current = watcher.current_config().await;
@@ -220,24 +214,12 @@ mod tests {
         let temp_dir = TempDir::new().unwrap();
         let config_path = temp_dir.path().join("config.yaml");
 
-        let initial_config = SantaConfig {
-            sources: vec![KnownSources::Brew],
-            packages: vec!["git".to_string()],
-            custom_sources: None,
-            _groups: None,
-            log_level: 0,
-        };
+        let initial_config = SantaConfig::new(vec![KnownSources::Brew], vec!["git".to_string()]);
 
         let watcher = ConfigWatcher::new(config_path, initial_config).unwrap();
         let mut receiver = watcher.subscribe();
 
-        let new_config = SantaConfig {
-            sources: vec![KnownSources::Cargo],
-            packages: vec!["rust".to_string()],
-            custom_sources: None,
-            _groups: None,
-            log_level: 0,
-        };
+        let new_config = SantaConfig::new(vec![KnownSources::Cargo], vec!["rust".to_string()]);
 
         // Update config manually
         watcher.update_config(new_config.clone()).await.unwrap();

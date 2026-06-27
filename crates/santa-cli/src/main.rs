@@ -303,15 +303,15 @@ async fn handle_sources_command(
                     .map(|s| {
                         (
                             s.name.to_string(),
-                            santa::data::schemas::SourceDefinition {
-                                emoji: s.emoji.clone(),
-                                install: s.install_command.clone(),
-                                check: s.check_command.clone(),
-                                prefix: s.prepend_to_package_name.clone(),
+                            santa::data::schemas::SourceDefinition::new(
+                                s.emoji.clone(),
+                                s.install_command.clone(),
+                                s.check_command.clone(),
+                                s.prepend_to_package_name.clone(),
                                 // ConfigPackageSource.overrides are PackageNameOverride (for renaming packages),
                                 // not PlatformOverride (for platform-specific commands). Different concepts.
-                                overrides: None,
-                            },
+                                None,
+                            ),
                         )
                     })
                     .collect::<std::collections::HashMap<_, _>>()
@@ -387,13 +387,13 @@ async fn handle_sources_command(
                     .map(|s| {
                         (
                             s.name.to_string(),
-                            santa::data::schemas::SourceDefinition {
-                                emoji: s.emoji.clone(),
-                                install: s.install_command.clone(),
-                                check: s.check_command.clone(),
-                                prefix: s.prepend_to_package_name.clone(),
-                                overrides: None,
-                            },
+                            santa::data::schemas::SourceDefinition::new(
+                                s.emoji.clone(),
+                                s.install_command.clone(),
+                                s.check_command.clone(),
+                                s.prepend_to_package_name.clone(),
+                                None,
+                            ),
                         )
                     })
                     .collect::<std::collections::HashMap<_, _>>()
