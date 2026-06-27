@@ -390,13 +390,14 @@ impl ImplementationConfig {
                 .collect(),
             #[cfg(not(feature = "reference_compliant"))]
             supported_variants: HashSet::new(),
-            // List coercion is access-time configurable via ListOptions - we support both
-            supported_list_coercion_behaviors: [
-                ListCoercionBehavior::Enabled,
-                ListCoercionBehavior::Disabled,
-            ]
-            .into_iter()
-            .collect(),
+            // List coercion is access-time configurable via ListOptions.
+            // Only `Disabled` is supported: `Enabled` requires collecting duplicate
+            // scalar keys (and `key =` empty values) into a list, which the model
+            // layer's get_list_with_options(.with_coerce()) does not yet implement
+            // (see ccl-test-data v0.7.1 api_proposed_behavior get_list cases).
+            supported_list_coercion_behaviors: [ListCoercionBehavior::Disabled]
+                .into_iter()
+                .collect(),
             // Delimiter strategy is parse-time configurable via ParserOptions - we support both
             supported_delimiter_behaviors: [
                 DelimiterBehavior::FirstEquals,
