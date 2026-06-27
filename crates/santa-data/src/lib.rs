@@ -15,10 +15,7 @@ pub mod config;
 pub mod models;
 pub mod schemas;
 
-pub use config::{
-    ConfigLoader, ConfigPackageSource, PackageNameOverride, SantaConfig, SantaConfigBuilder,
-    SourceList,
-};
+pub use config::{ConfigPackageSource, PackageNameOverride, SantaConfig, SourceList};
 pub use models::{
     Arch, CommandName, Distro, KnownSources, PackageData, PackageDataList, PackageName, Platform,
     SourceName, OS,
