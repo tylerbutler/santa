@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## v0.4.0 - 2026-06-27
+
+
+### Breaking
+
+- Seal `PackageManager` and `Plugin` traits to prevent external implementations
+- Change `SantaError::Config` from wrapping `anyhow::Error` to `String`
+- Add `#[non_exhaustive]` to public structs to allow adding fields without breaking changes
+
 ## v0.3.4 - 2026-04-22
 
 

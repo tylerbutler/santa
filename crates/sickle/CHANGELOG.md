@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## v0.5.0 - 2026-06-27
+
+
+### Breaking
+
+- Tighten `is_list_syntax()` heuristic to avoid false positives on values containing `=`
+
+### Added
+
+- Add `update_str` and `edit_str` helpers (document feature) for one-call comment-preserving serde round-trips
+
+### Fixed
+
+- Add recursion depth limit (64 levels) to prevent stack overflow from crafted input
+
 ## v0.4.0 - 2026-06-04
 
 
