@@ -1,3 +1,0 @@
-project: santa
-kind: Breaking
-body: Seal `PackageManager` and `Plugin` traits to prevent external implementations

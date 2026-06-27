@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## v0.5.0 - 2026-06-27
+
+
+### Breaking
+
+- Add `#[non_exhaustive]` to public structs to allow adding fields without breaking changes
+- Replace glob re-exports with explicit exports for intentional public API surface
+
+### Changed
+
+- Add documentation comments to all public model types
+
 ## v0.4.0 - 2026-04-02
 
 
