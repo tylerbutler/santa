@@ -2,7 +2,7 @@
 //!
 //! This crate provides:
 //! - Core data models (Platform, KnownSources, PackageData, etc.)
-//! - Configuration loading and management (SantaConfig, ConfigLoader)
+//! - Configuration loading and management (SantaConfig)
 //! - CCL schema definitions (PackageDefinition, SourceDefinition, etc.)
 //! - CCL parsing that handles both simple and complex formats
 
@@ -15,10 +15,7 @@ pub mod config;
 pub mod models;
 pub mod schemas;
 
-pub use config::{
-    ConfigLoader, ConfigPackageSource, PackageNameOverride, SantaConfig, SantaConfigBuilder,
-    SourceList,
-};
+pub use config::{ConfigPackageSource, PackageNameOverride, SantaConfig, SourceList};
 pub use models::{
     Arch, CommandName, Distro, KnownSources, PackageData, PackageDataList, PackageName, Platform,
     SourceName, OS,
