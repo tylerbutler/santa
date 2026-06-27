@@ -148,6 +148,65 @@ impl Document {
     }
 }
 
+/// Apply an edited value back onto its original CCL source, preserving comments.
+///
+/// One-call sugar over [`load_document`] + [`Document::reserialize`] for apps
+/// that already hold both the original text and an edited typed value. Comments,
+/// blank lines, key order, and formatting are kept wherever the data is
+/// unchanged; only edited regions are re-rendered.
+///
+/// Requires the `document` feature.
+///
+/// ```
+/// # use serde::{Deserialize, Serialize};
+/// #[derive(Serialize, Deserialize)]
+/// struct Config { name: String, version: String }
+///
+/// let text = "/= my config\nname = app\nversion = 1.0.0\n";
+/// let mut cfg: Config = sickle::from_str(text).unwrap();
+/// cfg.version = "2.0.0".to_string();
+/// let out = sickle::update_str(text, &cfg).unwrap();
+/// assert!(out.contains("/= my config"));    // comment preserved
+/// assert!(out.contains("version = 2.0.0")); // value updated
+/// ```
+pub fn update_str<T: Serialize>(original: &str, value: &T) -> Result<String> {
+    load_document(original)?.reserialize(value)
+}
+
+/// Deserialize `original`, mutate the typed value in `edit`, then reserialize
+/// while preserving comments.
+///
+/// One-call sugar over [`load_document`] + [`Document::deserialize`] +
+/// [`Document::reserialize`] for the common read-modify-write cycle. Comments,
+/// blank lines, key order, and formatting are kept wherever the data is
+/// unchanged; only edited regions are re-rendered.
+///
+/// Requires the `document` feature.
+///
+/// ```
+/// # use serde::{Deserialize, Serialize};
+/// #[derive(Serialize, Deserialize)]
+/// struct Config { name: String, version: String }
+///
+/// let text = "/= my config\nname = app\nversion = 1.0.0\n";
+/// let out = sickle::edit_str(text, |cfg: &mut Config| {
+///     cfg.version = "2.0.0".to_string();
+/// })
+/// .unwrap();
+/// assert!(out.contains("/= my config"));    // comment preserved
+/// assert!(out.contains("version = 2.0.0")); // value updated
+/// ```
+pub fn edit_str<T, F>(original: &str, edit: F) -> Result<String>
+where
+    T: DeserializeOwned + Serialize,
+    F: FnOnce(&mut T),
+{
+    let doc = load_document(original)?;
+    let mut value: T = doc.deserialize()?;
+    edit(&mut value);
+    doc.reserialize(&value)
+}
+
 // ============================================================================
 // Parsing: recursive, line-based, trivia-preserving
 // ============================================================================

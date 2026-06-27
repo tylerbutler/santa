@@ -1,0 +1,4 @@
+project: sickle
+kind: Added
+body: Add `update_str` and `edit_str` helpers (document feature) for one-call comment-preserving serde round-trips
+time: 2026-06-27T09:10:30.000000-07:00

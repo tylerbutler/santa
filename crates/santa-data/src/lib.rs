@@ -15,9 +15,18 @@ pub mod config;
 pub mod models;
 pub mod schemas;
 
-pub use config::*;
-pub use models::*;
-pub use schemas::*;
+pub use config::{
+    ConfigLoader, ConfigPackageSource, PackageNameOverride, SantaConfig, SantaConfigBuilder,
+    SourceList,
+};
+pub use models::{
+    Arch, CommandName, Distro, KnownSources, PackageData, PackageDataList, PackageName, Platform,
+    SourceName, OS,
+};
+pub use schemas::{
+    ComplexPackageDefinition, ConfigDefinition, ConfigSettings, PackageDefinition,
+    PlatformOverride, SourceConfig, SourceDefinition, SourceSpecificConfig, SourcesDefinition,
+};
 
 /// Parse CCL string into a HashMap where values can be either arrays or objects
 ///
