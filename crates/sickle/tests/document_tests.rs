@@ -237,3 +237,75 @@ fn display_renders_unmodified_source() {
     assert_eq!(doc.to_string(), SAMPLE);
     assert_eq!(doc.render(), SAMPLE);
 }
+
+// ---------------------------------------------------------------------------
+// One-call helpers: update_str / edit_str (sugar over Document)
+// ---------------------------------------------------------------------------
+
+#[test]
+fn update_str_preserves_comments_on_edit() {
+    let doc: Config = sickle::from_str(SAMPLE).unwrap();
+    let mut edited = doc;
+    edited.version = "2.0.0".to_string();
+
+    let out = sickle::update_str(SAMPLE, &edited).unwrap();
+    assert!(
+        out.contains("/= top-level header comment"),
+        "comment kept: {out}"
+    );
+    assert!(out.contains("version = 2.0.0"), "value updated: {out}");
+    assert!(out.contains("  github =\n    url = https://github.com/x\n    branch = main"));
+}
+
+#[test]
+fn update_str_unchanged_is_byte_identical() {
+    let cfg: Config = sickle::from_str(SAMPLE).unwrap();
+    let out = sickle::update_str(SAMPLE, &cfg).unwrap();
+    assert_eq!(out, SAMPLE);
+}
+
+#[test]
+fn update_str_matches_document_reserialize() {
+    let mut cfg: Config = sickle::from_str(SAMPLE).unwrap();
+    cfg.tags.push("gamma".to_string());
+
+    let via_helper = sickle::update_str(SAMPLE, &cfg).unwrap();
+    let via_document = sickle::load_document(SAMPLE)
+        .unwrap()
+        .reserialize(&cfg)
+        .unwrap();
+    assert_eq!(via_helper, via_document);
+}
+
+#[test]
+fn edit_str_preserves_comments_on_edit() {
+    let out = sickle::edit_str(SAMPLE, |cfg: &mut Config| {
+        cfg.version = "2.0.0".to_string();
+        cfg.tags.push("gamma".to_string());
+    })
+    .unwrap();
+
+    assert!(
+        out.contains("/= top-level header comment"),
+        "comment kept: {out}"
+    );
+    assert!(out.contains("version = 2.0.0"), "value updated: {out}");
+    assert!(
+        out.contains("  = alpha\n  = beta\n  = gamma"),
+        "list appended: {out}"
+    );
+}
+
+#[test]
+fn edit_str_no_change_is_byte_identical() {
+    let out = sickle::edit_str(SAMPLE, |_cfg: &mut Config| {}).unwrap();
+    assert_eq!(out, SAMPLE);
+}
+
+#[test]
+fn edit_str_propagates_deserialize_error() {
+    // `name` is required; missing it must surface as an error, not a panic.
+    let bad = "version = 1.0.0\n";
+    let result = sickle::edit_str(bad, |_cfg: &mut Config| {});
+    assert!(result.is_err(), "missing required field should error");
+}

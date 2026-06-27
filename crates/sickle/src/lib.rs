@@ -66,7 +66,7 @@
 //! - `serde-deserialize`: Serde deserialization (`from_str`) - includes `hierarchy`
 //! - `serde-serialize`: Serde serialization (`to_string`) - includes `printer`
 //! - `serde`: Both serialization and deserialization
-//! - `document`: Comment/format-preserving edit API ([`load_document`], [`Document`])
+//! - `document`: Comment/format-preserving edit API ([`load_document`], [`Document`], [`update_str`], [`edit_str`])
 //! - `intern`: String interning for memory efficiency with large configs
 //! - `full`: Enable all features
 //!
@@ -97,7 +97,7 @@ pub mod ser;
 pub mod document;
 
 #[cfg(feature = "document")]
-pub use document::{load_document, Document};
+pub use document::{edit_str, load_document, update_str, Document};
 
 pub use error::{Error, Result};
 pub use model::{BoolOptions, CclObject, Entry, ListOptions};
