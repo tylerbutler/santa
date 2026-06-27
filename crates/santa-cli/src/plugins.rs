@@ -14,6 +14,7 @@ use crate::data::SantaData;
 ///
 /// Plugin metadata information
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct PluginMetadata {
     /// Plugin name
     pub name: String,
@@ -34,7 +35,7 @@ pub struct PluginMetadata {
 }
 
 /// Plugin lifecycle hooks
-pub trait Plugin: Send + Sync {
+pub trait Plugin: Send + Sync + crate::traits::private::Sealed {
     /// Get plugin metadata
     fn metadata(&self) -> &PluginMetadata;
 
@@ -273,6 +274,8 @@ impl LoggingPlugin {
     }
 }
 
+impl crate::traits::private::Sealed for LoggingPlugin {}
+
 impl Plugin for LoggingPlugin {
     fn metadata(&self) -> &PluginMetadata {
         &self.metadata
@@ -347,6 +350,8 @@ impl PerformancePlugin {
     }
 }
 
+impl crate::traits::private::Sealed for PerformancePlugin {}
+
 impl Plugin for PerformancePlugin {
     fn metadata(&self) -> &PluginMetadata {
         &self.metadata
@@ -390,13 +395,7 @@ mod tests {
     use crate::data::KnownSources;
 
     fn create_test_config() -> SantaConfig {
-        SantaConfig {
-            sources: vec![KnownSources::Brew],
-            packages: vec!["git".to_string()],
-            custom_sources: None,
-            _groups: None,
-            log_level: 0,
-        }
+        SantaConfig::new(vec![KnownSources::Brew], vec!["git".to_string()])
     }
 
     fn create_test_data() -> SantaData {

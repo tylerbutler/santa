@@ -66,6 +66,7 @@ where
 
 /// Represents a package name override (renaming packages for specific sources)
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
+#[non_exhaustive]
 pub struct PackageNameOverride {
     pub package: String,
     pub replacement: String,
@@ -73,6 +74,7 @@ pub struct PackageNameOverride {
 
 /// Represents a custom package source configuration
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
+#[non_exhaustive]
 pub struct ConfigPackageSource {
     pub name: KnownSources,
     pub emoji: String,
@@ -88,6 +90,7 @@ pub struct ConfigPackageSource {
 /// Main configuration structure for Santa
 #[derive(Serialize, Deserialize, Clone, Debug, Builder, Validate)]
 #[builder(setter(into))]
+#[non_exhaustive]
 pub struct SantaConfig {
     #[validate(length(min = 1, message = "At least one source must be configured"))]
     pub sources: Vec<KnownSources>,
@@ -106,7 +109,53 @@ pub struct SantaConfig {
     pub log_level: u8,
 }
 
+impl PackageNameOverride {
+    /// Create a new `PackageNameOverride` mapping `package` to `replacement`.
+    pub fn new(package: String, replacement: String) -> Self {
+        Self {
+            package,
+            replacement,
+        }
+    }
+}
+
+impl ConfigPackageSource {
+    /// Create a new `ConfigPackageSource` describing a custom package source.
+    pub fn new(
+        name: KnownSources,
+        emoji: String,
+        shell_command: String,
+        install_command: String,
+        check_command: String,
+        prepend_to_package_name: Option<String>,
+        overrides: Option<Vec<PackageNameOverride>>,
+    ) -> Self {
+        Self {
+            name,
+            emoji,
+            shell_command,
+            install_command,
+            check_command,
+            prepend_to_package_name,
+            overrides,
+        }
+    }
+}
+
 impl SantaConfig {
+    /// Create a new `SantaConfig` from the given sources and packages. The
+    /// `custom_sources`, `_groups`, and `log_level` fields are initialized to
+    /// their defaults.
+    pub fn new(sources: Vec<KnownSources>, packages: Vec<String>) -> Self {
+        Self {
+            sources,
+            packages,
+            custom_sources: None,
+            _groups: None,
+            log_level: 0,
+        }
+    }
+
     /// Load configuration from a string (CCL format)
     ///
     /// # Example

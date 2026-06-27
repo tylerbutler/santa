@@ -66,7 +66,7 @@
 //! - `serde-deserialize`: Serde deserialization (`from_str`) - includes `hierarchy`
 //! - `serde-serialize`: Serde serialization (`to_string`) - includes `printer`
 //! - `serde`: Both serialization and deserialization
-//! - `document`: Comment/format-preserving edit API ([`load_document`], [`Document`])
+//! - `document`: Comment/format-preserving edit API ([`load_document`], [`Document`], [`update_str`], [`edit_str`])
 //! - `intern`: String interning for memory efficiency with large configs
 //! - `full`: Enable all features
 //!
@@ -97,7 +97,7 @@ pub mod ser;
 pub mod document;
 
 #[cfg(feature = "document")]
-pub use document::{load_document, Document};
+pub use document::{edit_str, load_document, update_str, Document};
 
 pub use error::{Error, Result};
 pub use model::{BoolOptions, CclObject, Entry, ListOptions};
@@ -201,8 +201,8 @@ pub fn build_hierarchy(entries: &[Entry]) -> Result<CclObject> {
 ///
 /// When a value contains `=`, we try parsing it as nested CCL. If the parser doesn't
 /// find a valid ` = ` delimiter, the entire string becomes a single key. We detect this
-/// by rejecting keys with spaces — real CCL keys from nested structures won't have spaces
-/// since the ` = ` delimiter consumes them. Keys may contain special characters like
+/// by rejecting keys that look like misinterpreted value strings (contain ` = ` pattern).
+/// Keys may contain spaces (for lines without `=`) and special characters like
 /// `/`, `\`, `:`, `@`, `#`, `[]`, `()` etc.
 #[cfg(feature = "hierarchy")]
 fn is_valid_ccl_key(key: &str) -> bool {
@@ -215,10 +215,21 @@ fn is_valid_ccl_key(key: &str) -> bool {
         return false;
     }
 
-    // Keys with spaces are likely unparsed value strings, not real CCL keys.
-    // When the parser doesn't find ` = `, the whole line becomes a "key" — reject those.
-    !key.contains(' ')
+    // Keys containing ` = ` are likely misinterpreted value strings where the parser
+    // failed to find a delimiter and treated the whole line as a key.
+    // However, keys without `=` at all are valid (lines without delimiter become keys).
+    if key.contains(" = ") || key.contains(" =\t") {
+        return false;
+    }
+
+    true
 }
+
+/// Maximum recursion depth for nested CCL parsing.
+///
+/// This prevents stack overflow from deeply nested or adversarially crafted input.
+#[cfg(feature = "hierarchy")]
+const MAX_RECURSION_DEPTH: usize = 64;
 
 /// Internal helper: Build a Model from the grouped key-value map
 ///
@@ -229,6 +240,20 @@ fn is_valid_ccl_key(key: &str) -> bool {
 /// - Nested CCL is recursively parsed
 #[cfg(feature = "hierarchy")]
 fn build_model(map: indexmap::IndexMap<String, Vec<String>>) -> Result<CclObject> {
+    build_model_with_depth(map, 0)
+}
+
+/// Depth-aware implementation of [`build_model`].
+#[cfg(feature = "hierarchy")]
+fn build_model_with_depth(
+    map: indexmap::IndexMap<String, Vec<String>>,
+    depth: usize,
+) -> Result<CclObject> {
+    if depth > MAX_RECURSION_DEPTH {
+        return Err(Error::ParseError(format!(
+            "maximum recursion depth ({MAX_RECURSION_DEPTH}) exceeded"
+        )));
+    }
     let mut result = indexmap::IndexMap::new();
 
     for (key, values) in map {
@@ -252,8 +277,8 @@ fn build_model(map: indexmap::IndexMap<String, Vec<String>>) -> Result<CclObject
                 // Multiline value containing '=' - might be nested CCL
                 // Only multiline values (with newlines) can be nested structures.
                 // Inline values like "b = c=d" are plain strings, not nested CCL.
-                // Try to parse recursively
-                match load(&value) {
+                // Try to parse recursively with depth tracking
+                match load_with_depth(&value, depth + 1) {
                     Ok(parsed) => {
                         // Check if this looks like valid CCL structure
                         if !parsed.is_empty() {
@@ -272,13 +297,29 @@ fn build_model(map: indexmap::IndexMap<String, Vec<String>>) -> Result<CclObject
                             nested_values.push(CclObject::from_string(value));
                         }
                     }
+                    Err(Error::ParseError(ref msg)) if msg.contains("recursion depth") => {
+                        // Propagate recursion depth errors instead of silently swallowing
+                        return Err(Error::ParseError(msg.clone()));
+                    }
                     Err(_) => {
-                        // Failed to parse, treat as string value
+                        // Failed to parse for other reasons, treat as string value
                         nested_values.push(CclObject::from_string(value));
                     }
                 }
+            } else if value.starts_with(' ') || value.starts_with('\t') {
+                // Single-line value with leading whitespace — this is an indented
+                // child line (key without `=`). Trim and treat as a nested key.
+                let trimmed = value.trim();
+                if !trimmed.is_empty() && !trimmed.contains('=') {
+                    let child = CclObject::from_string(String::new());
+                    let mut parent_map = indexmap::IndexMap::new();
+                    parent_map.insert(trimmed.to_string(), vec![child]);
+                    nested_values.push(CclObject::from_map(parent_map));
+                } else {
+                    nested_values.push(CclObject::from_string(value));
+                }
             } else {
-                // Plain string value
+                // Plain string value (single line)
                 nested_values.push(CclObject::from_string(value));
             }
         }
@@ -416,37 +457,64 @@ fn parse_indented_with_options_internal(
     }
 }
 
-/// Parse all key=value pairs from input as flat entries, ignoring indentation hierarchy
+/// Parse all key=value pairs from input as flat entries, handling indentation
+///
+/// Rules:
+/// - Lines with `=` at any level become separate entries (dedented)
+/// - Lines without `=` that are indented become value continuations of the previous entry
+/// - Lines without `=` at indent 0 become entries with empty values
 #[cfg(feature = "parse")]
 fn parse_flat_entries(input: &str, options: &ParserOptions) -> Result<Vec<Entry>> {
     let mut entries = Vec::new();
 
     for line in input.lines() {
-        let trimmed = line.trim();
-
         // Skip empty lines
-        if trimmed.is_empty() {
+        if line.trim().is_empty() {
             continue;
         }
 
-        // Extract key=value pairs or treat lines without '=' as keys with empty values
-        if let Some(eq_pos) = trimmed.find('=') {
-            let key = trimmed[..eq_pos].trim().to_string();
-            let value_raw = &trimmed[eq_pos + 1..];
-            // Use options-aware trimming
-            let value = if options.is_strict_spacing() {
-                // Strict: trim only spaces
-                value_raw
-                    .trim_start_matches(' ')
-                    .trim_end_matches(' ')
-                    .to_string()
+        let indent = line.len() - line.trim_start().len();
+        let trimmed = line.trim();
+
+        if trimmed.contains('=') {
+            // Line with '=' → new entry (dedented)
+            if let Some(eq_pos) = trimmed.find('=') {
+                let key = trimmed[..eq_pos].trim().to_string();
+                let value_raw = &trimmed[eq_pos + 1..];
+                let value = if options.is_strict_spacing() {
+                    value_raw
+                        .trim_start_matches(' ')
+                        .trim_end_matches(' ')
+                        .to_string()
+                } else {
+                    value_raw.trim().to_string()
+                };
+                entries.push(Entry::new(key, value));
+            }
+        } else if indent > 0 && !entries.is_empty() {
+            let last = entries.last().unwrap();
+            if !last.value.is_empty() {
+                // Indented line without '=' after entry with value → continuation
+                let last: &mut Entry = entries.last_mut().unwrap();
+                last.value.push('\n');
+                last.value.push_str(line);
             } else {
-                // Loose: trim all whitespace
-                value_raw.trim().to_string()
-            };
-            entries.push(Entry::new(key, value));
+                // Indented line without '=' after entry with empty value → new entry (dedented)
+                entries.push(Entry::new(trimmed.to_string(), String::new()));
+            }
+        } else if !entries.is_empty() {
+            // Unindented line without '=' after a bare-list/empty-key entry → continuation
+            let last = entries.last().unwrap();
+            if last.key.is_empty() {
+                let last: &mut Entry = entries.last_mut().unwrap();
+                last.value.push('\n');
+                last.value.push_str(trimmed);
+            } else {
+                // Unindented line without '=' → new entry with empty value
+                entries.push(Entry::new(trimmed.to_string(), String::new()));
+            }
         } else {
-            // Line without '=' is a key with empty value
+            // First line without '=' → entry with empty value
             entries.push(Entry::new(trimmed.to_string(), String::new()));
         }
     }
@@ -536,6 +604,23 @@ fn load_with_options_internal(input: &str, options: &ParserOptions) -> Result<Cc
     build_hierarchy(&entries)
 }
 
+/// Depth-aware load used by [`build_model_with_depth`] to thread recursion depth
+/// through the `parse -> build_hierarchy -> build_model` chain.
+#[cfg(feature = "hierarchy")]
+fn load_with_depth(input: &str, depth: usize) -> Result<CclObject> {
+    let entries = parse_with_options_internal(input, &ParserOptions::default())?;
+
+    // Inline build_hierarchy logic so we can pass depth through to build_model_with_depth
+    let mut map: indexmap::IndexMap<String, Vec<String>> = indexmap::IndexMap::new();
+    for entry in &entries {
+        map.entry(entry.key.clone())
+            .or_default()
+            .push(entry.value.clone());
+    }
+
+    build_model_with_depth(map, depth)
+}
+
 #[cfg(feature = "serde-deserialize")]
 pub use de::{from_str, from_str_with_options};
 
@@ -549,3 +634,43 @@ pub use ser::{to_string, to_string_with_config};
 // - api_comments.json (comment preservation)
 // - api_list_access.json (list access and manipulation)
 // - api_proposed_behavior.json (proposed behavior, currently excluded)
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_recursion_depth_limit() {
+        // Build input that would recurse MAX_RECURSION_DEPTH + 1 times.
+        // Each level is a multiline value containing "=" so build_model recurses.
+        let mut input = String::from("a = b");
+        for _ in 0..=MAX_RECURSION_DEPTH {
+            // Wrap the previous input as a nested multiline value
+            let indented: String = input.lines().map(|l| format!("  {l}\n")).collect();
+            input = format!("outer =\n{indented}");
+        }
+
+        let result = load(&input);
+        assert!(
+            result.is_err(),
+            "expected a recursion depth error, got: {result:?}"
+        );
+
+        let err = result.unwrap_err();
+        assert!(
+            err.to_string().contains("recursion depth"),
+            "error should mention recursion depth, got: {err}"
+        );
+    }
+
+    #[test]
+    fn test_normal_nesting_still_works() {
+        // A few levels of nesting should work fine
+        let input = "outer =\n  inner = value";
+        let result = load(input);
+        assert!(
+            result.is_ok(),
+            "moderate nesting should succeed: {result:?}"
+        );
+    }
+}

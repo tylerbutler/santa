@@ -12,13 +12,7 @@ proptest! {
     fn config_creation_is_valid(
         packages in prop::collection::vec("[a-zA-Z0-9_-]{3,20}", 1..5)
     ) {
-        let config = SantaConfig {
-            sources: vec![KnownSources::Apt],
-            packages: packages.clone(),
-            custom_sources: None,
-            _groups: None,
-            log_level: 0,
-        };
+        let config = SantaConfig::new(vec![KnownSources::Apt], packages.clone());
 
         // Config should preserve sources and packages
         prop_assert_eq!(config.sources, vec![KnownSources::Apt]);
@@ -88,13 +82,7 @@ proptest! {
             Just(KnownSources::Pacman),
         ]
     ) {
-        let config = SantaConfig {
-            sources: vec![source.clone()],
-            packages: vec!["test-package".to_string()],
-            custom_sources: None,
-            _groups: None,
-            log_level: 0,
-        };
+        let config = SantaConfig::new(vec![source.clone()], vec!["test-package".to_string()]);
 
         // Sources should be preserved correctly
         prop_assert_eq!(config.sources.len(), 1);

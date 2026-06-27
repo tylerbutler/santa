@@ -93,6 +93,7 @@ pub enum Distro {
 /// Used to determine which package sources and installation methods are applicable.
 #[derive(Serialize, Deserialize, Debug, Clone, Eq, PartialEq, Hash)]
 #[serde(rename_all = "camelCase")]
+#[non_exhaustive]
 pub struct Platform {
     /// The operating system.
     pub os: OS,
@@ -100,6 +101,13 @@ pub struct Platform {
     pub arch: Arch,
     /// The Linux distribution, if applicable.
     pub distro: Option<Distro>,
+}
+
+impl Platform {
+    /// Create a new `Platform` for the given OS, architecture, and optional distro.
+    pub fn new(os: OS, arch: Arch, distro: Option<Distro>) -> Self {
+        Platform { os, arch, distro }
+    }
 }
 
 impl Default for Platform {
@@ -127,6 +135,7 @@ impl std::fmt::Display for Platform {
 
 /// Per-source configuration for a single package, including install hooks and name overrides.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[non_exhaustive]
 pub struct PackageData {
     /// Source-specific package name override (e.g. a different crate name in Cargo vs Brew).
     pub name: Option<String>,
@@ -148,6 +157,23 @@ impl PackageData {
             after: None,
             pre: None,
             post: None,
+        }
+    }
+
+    /// Create a `PackageData` with the given name override and lifecycle hooks.
+    pub fn with_hooks(
+        name: Option<String>,
+        before: Option<String>,
+        after: Option<String>,
+        pre: Option<String>,
+        post: Option<String>,
+    ) -> Self {
+        PackageData {
+            name,
+            before,
+            after,
+            pre,
+            post,
         }
     }
 }

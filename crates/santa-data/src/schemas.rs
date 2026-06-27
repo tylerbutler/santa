@@ -83,6 +83,7 @@ pub enum SourceSpecificConfig {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct SourceConfig {
     /// Override package name for this source
     pub name: Option<String>,
@@ -100,6 +101,7 @@ pub struct SourceConfig {
 pub type SourcesDefinition = HashMap<String, SourceDefinition>;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct SourceDefinition {
     /// Emoji icon to represent this source
     pub emoji: String,
@@ -115,6 +117,7 @@ pub struct SourceDefinition {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct PlatformOverride {
     pub install: Option<String>,
     pub check: Option<String>,
@@ -122,6 +125,7 @@ pub struct PlatformOverride {
 
 /// Configuration matching config_schema.yaml
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct ConfigDefinition {
     /// List of package sources to use (in priority order)
     pub sources: Vec<String>,
@@ -133,6 +137,7 @@ pub struct ConfigDefinition {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct ConfigSettings {
     /// Automatically update packages
     #[serde(default)]
@@ -202,7 +207,76 @@ impl ComplexPackageDefinition {
     }
 }
 
+impl SourceConfig {
+    /// Create a new `SourceConfig` with the given source-specific overrides.
+    pub fn new(
+        name: Option<String>,
+        pre: Option<String>,
+        post: Option<String>,
+        prefix: Option<String>,
+        install_suffix: Option<String>,
+    ) -> Self {
+        Self {
+            name,
+            pre,
+            post,
+            prefix,
+            install_suffix,
+        }
+    }
+}
+
+impl PlatformOverride {
+    /// Create a new `PlatformOverride` with the given install and check commands.
+    pub fn new(install: Option<String>, check: Option<String>) -> Self {
+        Self { install, check }
+    }
+}
+
+impl ConfigDefinition {
+    /// Create a new `ConfigDefinition` with the given sources, packages, and settings.
+    pub fn new(
+        sources: Vec<String>,
+        packages: Vec<String>,
+        settings: Option<ConfigSettings>,
+    ) -> Self {
+        Self {
+            sources,
+            packages,
+            settings,
+        }
+    }
+}
+
+impl ConfigSettings {
+    /// Create a new `ConfigSettings` with the given values.
+    pub fn new(auto_update: bool, parallel_installs: u8, confirm_before_install: bool) -> Self {
+        Self {
+            auto_update,
+            parallel_installs,
+            confirm_before_install,
+        }
+    }
+}
+
 impl SourceDefinition {
+    /// Create a new `SourceDefinition` with the given fields.
+    pub fn new(
+        emoji: String,
+        install: String,
+        check: String,
+        prefix: Option<String>,
+        overrides: Option<HashMap<String, PlatformOverride>>,
+    ) -> Self {
+        Self {
+            emoji,
+            install,
+            check,
+            prefix,
+            overrides,
+        }
+    }
+
     /// Get the appropriate command for the current platform
     pub fn get_install_command(&self, platform: &Platform) -> &str {
         if let Some(overrides) = &self.overrides {
