@@ -22,10 +22,10 @@ dev-tools = ["dep:regex", "dep:reqwest"]
 
 [dependencies]
 # Error handling with context and chaining
-anyhow = "1.0.102"
+anyhow = "1.0.103"
 
 # Command-line argument parsing with derive macros and colors
-clap = { version = "4.5.60", features = ["color", "derive", "cargo", "wrap_help"] }
+clap = { version = "4.6.1", features = ["color", "derive", "cargo", "wrap_help"] }
 
 # Markdown documentation generation for CLI
 clap-markdown = "0.1.5"
@@ -37,7 +37,7 @@ clap_complete = "4.6.5"
 colored = "3.1.1"
 
 # Configuration file loading and management
-config = { version = "0.15.23", default-features = false, features = ["toml"] }
+config = { version = "0.15.25", default-features = false, features = ["toml"] }
 
 # Interactive CLI prompts and user input
 dialoguer = "0.12.0"
@@ -52,10 +52,10 @@ serde = { version = "1.0.228", features = ["derive"] }
 serde-enum-str = "0.5.0"
 
 # JSON serialization for verified packages
-serde_json = "1.0"
+serde_json = "1.0.150"
 
 # HTTP client for package collection (dev-tools only)
-reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"], optional = true }
+reqwest = { version = "0.13.4", default-features = false, features = ["json", "rustls"], optional = true }
 
 # CCL configuration parser with serde support
 sickle = { version = "0.4.0", path = "../sickle", features = ["serde"] }
@@ -65,7 +65,7 @@ santa-data = { version = "0.4.0", path = "../santa-data" }
 tracing = "0.1.44"
 
 # Tracing subscriber with environment-based filtering
-tracing-subscriber = { version = "0.3.22", features = ["env-filter"] }
+tracing-subscriber = { version = "0.3.23", features = ["env-filter"] }
 
 # ASCII table formatting for command output
 tabular = "0.2.0"
@@ -77,13 +77,13 @@ tokio = { version = "1.52.3", features = ["process", "rt-multi-thread", "macros"
 futures = "0.3.32"
 
 # High-performance caching with TTL and LRU eviction
-moka = { version = "0.12.14", features = ["sync", "logging"] }
+moka = { version = "0.12.15", features = ["sync", "logging"] }
 
 # Builder pattern code generation
 derive_builder = "0.20.2"
 
 # Cross-platform executable discovery
-which = "8.0.0"
+which = "8.0.4"
 
 # Data validation with derive macros
 validator = { version = "0.20", features = ["derive"] }
@@ -95,10 +95,10 @@ notify = "8.2.0"
 shell-escape = "0.1.5"
 
 # Template engine for script generation (Jinja2-compatible, minimal deps)
-minijinja = "2.20.0"
+minijinja = "2.21.0"
 
 # Date/time handling for script metadata
-chrono = { version = "0.4.44", features = ["serde"] }
+chrono = { version = "0.4.45", features = ["serde"] }
 
 # Structured error types with derive macros
 thiserror = "2.0.18"
@@ -107,10 +107,10 @@ thiserror = "2.0.18"
 minreq = { version = "2.14.1", features = ["https-native"] }
 
 # Regular expressions for parsing (dev-tools only)
-regex = { version = "1", optional = true }
+regex = { version = "1.12.4", optional = true }
 
 # Update checking for crates.io releases
-tiny-update-check = "1"
+tiny-update-check = "1.1.3"
 
 [dev-dependencies]
 # Parameterized testing framework with fixtures
