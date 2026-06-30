@@ -86,6 +86,7 @@ pub mod configuration;
 pub mod data;
 pub mod data_layers;
 pub mod errors;
+pub mod output;
 pub mod plugins;
 pub mod script_generator;
 pub mod source_layers;
