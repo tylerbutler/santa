@@ -52,7 +52,7 @@ if (Get-Command winget -ErrorAction SilentlyContinue) {
     Write-Host "📦 Installing packages with Windows Package Manager..." -ForegroundColor Yellow
     {% for package in packages %}
     Write-Host "Installing {{ package }}..." -ForegroundColor Cyan
-    winget install {{ package | powershell_escape }} --accept-package-agreements --accept-source-agreements
+    winget install --id {{ package | powershell_escape }} --accept-package-agreements --accept-source-agreements
     {% endfor %}
     Write-Host "✅ Winget installation completed" -ForegroundColor Green
 } else {

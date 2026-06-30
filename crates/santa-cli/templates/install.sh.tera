@@ -59,7 +59,7 @@ else
     exit 1
 fi
 
-{% elif manager == "pacman" %}
+{% elif manager == "pacman" or manager == "arch" %}
 # Pacman package installation (Arch Linux)
 if command -v pacman &> /dev/null; then
     echo "📦 Installing Pacman packages..."
@@ -70,6 +70,20 @@ if command -v pacman &> /dev/null; then
     echo "✅ Pacman installation completed"
 else
     echo "⚠️  Pacman not found. This script is for Arch Linux systems."
+    exit 1
+fi
+
+{% elif manager == "aur" %}
+# AUR package installation
+if command -v yay &> /dev/null; then
+    echo "📦 Installing AUR packages..."
+    {% for package in packages %}
+    echo "Installing {{ package }}..."
+    yay -S --noconfirm {{ package | shell_escape }}
+    {% endfor %}
+    echo "✅ AUR installation completed"
+else
+    echo "⚠️  yay not found. Please install an AUR helper first."
     exit 1
 fi
 
@@ -116,6 +130,20 @@ else
     exit 1
 fi
 
+{% elif manager == "nix" %}
+# Nix package installation
+if command -v nix-env &> /dev/null; then
+    echo "📦 Installing Nix packages..."
+    {% for package in packages %}
+    echo "Installing {{ package }}..."
+    nix-env -iA {{ package | shell_escape }}
+    {% endfor %}
+    echo "✅ Nix installation completed"
+else
+    echo "⚠️  nix-env not found. Please install Nix first."
+    exit 1
+fi
+
 {% elif manager == "go" %}
 # Go package installation
 if command -v go &> /dev/null; then
@@ -127,6 +155,48 @@ if command -v go &> /dev/null; then
     echo "✅ Go installation completed"
 else
     echo "⚠️  Go not found. Please install Go first."
+    exit 1
+fi
+
+{% elif manager == "dnf" %}
+# DNF package installation (Fedora/RHEL)
+if command -v dnf &> /dev/null; then
+    echo "📦 Installing DNF packages..."
+    {% for package in packages %}
+    echo "Installing {{ package }}..."
+    sudo dnf install -y {{ package | shell_escape }}
+    {% endfor %}
+    echo "✅ DNF installation completed"
+else
+    echo "⚠️  DNF not found. This script is for Fedora/RHEL systems."
+    exit 1
+fi
+
+{% elif manager == "winget" %}
+# Windows Package Manager installation
+if command -v winget &> /dev/null; then
+    echo "📦 Installing packages with winget..."
+    {% for package in packages %}
+    echo "Installing {{ package }}..."
+    winget install --id {{ package | shell_escape }} --accept-source-agreements --accept-package-agreements
+    {% endfor %}
+    echo "✅ Winget installation completed"
+else
+    echo "⚠️  winget not found. Please install Windows Package Manager first."
+    exit 1
+fi
+
+{% elif manager == "flathub" %}
+# Flatpak package installation via the flathub remote
+if command -v flatpak &> /dev/null; then
+    echo "📦 Installing Flatpak packages from flathub..."
+    {% for package in packages %}
+    echo "Installing {{ package }}..."
+    flatpak install flathub {{ package | shell_escape }}
+    {% endfor %}
+    echo "✅ Flatpak installation completed"
+else
+    echo "⚠️  flatpak not found. Please install Flatpak first."
     exit 1
 fi
 

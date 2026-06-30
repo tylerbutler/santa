@@ -4,5 +4,10 @@
 //! verifying user-facing behavior and command-line interfaces.
 
 pub mod config_tests;
+pub mod error_snapshot_tests;
 pub mod error_tests;
+pub mod init_tests;
+pub mod name_resolution_tests;
 pub mod status_tests;
+pub mod tier1_manager_tests;
+pub mod tier2_smoke_tests;

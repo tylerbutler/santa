@@ -1,0 +1,9 @@
+/= Flathub packages (Flatpak)
+com.spotify.Client =
+com.discordapp.Discord =
+org.mozilla.firefox =
+org.videolan.VLC =
+com.visualstudio.code =
+org.gimp.GIMP =
+org.inkscape.Inkscape =
+com.obsproject.Studio =
