@@ -32,7 +32,7 @@ pub fn load_sources_from_schema(path: &Path) -> Result<SourcesDefinition> {
     let content = fs::read_to_string(path)
         .with_context(|| format!("Failed to read sources file: {:?}", path))?;
 
-    let sources: SourcesDefinition = sickle::from_str(&content)
+    let sources: SourcesDefinition = sickle::de::from_str(&content)
         .with_context(|| format!("Failed to parse CCL sources: {:?}", path))?;
 
     info!("Loaded {} sources from schema format", sources.len());
@@ -44,7 +44,7 @@ pub fn load_config_from_schema(path: &Path) -> Result<ConfigDefinition> {
     let content = fs::read_to_string(path)
         .with_context(|| format!("Failed to read config file: {:?}", path))?;
 
-    let config: ConfigDefinition = sickle::from_str(&content)
+    let config: ConfigDefinition = sickle::de::from_str(&content)
         .with_context(|| format!("Failed to parse CCL config: {:?}", path))?;
 
     info!(
@@ -219,7 +219,7 @@ mod tests {
   = brew
   = scoop
 "#;
-        let vec_result: Result<Vec<String>, _> = sickle::from_str(array_ccl);
+        let vec_result: Result<Vec<String>, _> = sickle::de::from_str(array_ccl);
         assert!(vec_result.is_ok());
         let vec = vec_result.unwrap();
         assert!(vec.contains(&"brew".to_string()));

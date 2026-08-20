@@ -92,7 +92,7 @@ impl SourceLayerManager {
 
         // Validate that the content is valid CCL before saving
         let _: SourcesDefinition =
-            sickle::from_str(&content).context("Downloaded content is not valid CCL")?;
+            sickle::de::from_str(&content).context("Downloaded content is not valid CCL")?;
 
         // Ensure config directory exists
         fs::create_dir_all(&self.config_dir).context("Failed to create config directory")?;
@@ -117,7 +117,7 @@ impl SourceLayerManager {
         let content = fs::read_to_string(&path)
             .with_context(|| format!("Failed to read downloaded sources from {:?}", path))?;
 
-        let sources: SourcesDefinition = sickle::from_str(&content)
+        let sources: SourcesDefinition = sickle::de::from_str(&content)
             .with_context(|| format!("Failed to parse downloaded sources from {:?}", path))?;
 
         debug!("Loaded {} downloaded sources", sources.len());
@@ -128,7 +128,7 @@ impl SourceLayerManager {
     pub fn load_bundled_sources(&self) -> Result<SourcesDefinition> {
         let content = include_str!("../data/sources.ccl");
         let sources: SourcesDefinition =
-            sickle::from_str(content).context("Failed to parse bundled sources")?;
+            sickle::de::from_str(content).context("Failed to parse bundled sources")?;
         debug!("Loaded {} bundled sources", sources.len());
         Ok(sources)
     }

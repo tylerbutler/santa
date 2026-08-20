@@ -47,14 +47,18 @@ let config = parse_ccl_config(ccl_string)?;
 
 ### [sickle](crates/sickle)
 
-A Rust parser for CCL (Categorical Configuration Language) with Serde support.
-It is published independently and has no dependency on Santa.
+A round-tripping parser and editor for CCL (Categorical Configuration Language), with optional
+Serde support. It is published independently and has no dependency on Santa.
 
 ```rust
-use sickle::{parse, from_str};
+use sickle::DocumentMut;
 
-let model = parse(ccl_string)?;
-let config: MyConfig = from_str(ccl_string)?;
+// Parsing keeps comments, blank lines, and spacing; only edits are rewritten.
+let mut doc: DocumentMut = ccl_string.parse()?;
+let name = doc.get_string(["name"])?;
+doc.set_int(["port"], 9090)?;
+
+let config: MyConfig = sickle::de::from_str(ccl_string)?;
 ```
 
 ## Documentation

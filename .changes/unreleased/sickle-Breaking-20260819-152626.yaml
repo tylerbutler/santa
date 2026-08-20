@@ -1,0 +1,4 @@
+project: sickle
+kind: Breaking
+body: Replace the legacy model, parser, printer, document, error, option, and Serde APIs with a round-tripping mutable document tree and checked path editing
+time: 2026-08-19T15:26:26.044000-07:00

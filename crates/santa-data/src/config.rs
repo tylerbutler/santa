@@ -174,7 +174,7 @@ impl SantaConfig {
     /// assert_eq!(config.sources.len(), 2);
     /// ```
     pub fn load_from_str(config_str: &str) -> anyhow::Result<Self> {
-        let data: SantaConfig = sickle::from_str(config_str)
+        let data: SantaConfig = sickle::de::from_str(config_str)
             .with_context(|| format!("Failed to parse CCL config: {config_str}"))?;
 
         // Validate the configuration
@@ -200,7 +200,7 @@ impl SantaConfig {
             let config_str = std::fs::read_to_string(file)
                 .with_context(|| format!("Failed to read config file: {}", file.display()))?;
 
-            let config: SantaConfig = sickle::from_str(&config_str)
+            let config: SantaConfig = sickle::de::from_str(&config_str)
                 .with_context(|| format!("Failed to parse CCL config file: {}", file.display()))?;
 
             config

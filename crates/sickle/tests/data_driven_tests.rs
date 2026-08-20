@@ -1,252 +1,195 @@
-//! Data-driven CCL tests using JSON test suites
+//! Data-driven CCL conformance tests.
+//!
+//! The shared [ccl-test-data] suites assert against two layers of the
+//! specification: the flat `key = value` lexing pass (`parse`, `parse_indented`,
+//! `print`, `filter`) and the hierarchical model built from it
+//! (`build_hierarchy`, `get_*`). Sickle exposes the first through
+//! [`sickle::unstable`] and the second through [`sickle::DocumentMut`].
+//!
+//! [ccl-test-data]: https://github.com/CatConfLang/ccl-test-data
 
 mod common;
 
 use colored::Colorize;
 
 use common::{load_all_test_suites, ImplementationConfig, TestCase, TestSuite};
-use sickle::options::{
-    CrlfBehavior, DelimiterStrategy, ParserOptions, SpacingBehavior, TabBehavior,
+use sickle::unstable::{
+    filter_comments, flat_entries, flat_entries_indented, print_flat, FlatEntry,
 };
 use sickle::{
-    build_hierarchy, load_with_options, parse_indented_with_options, parse_with_options, CclPrinter,
+    BoolBehavior, CrlfBehavior, DelimiterStrategy, DocumentMut, Item, ListBehavior, Options,
+    PathSegment, SpacingBehavior, TabBehavior,
 };
+use std::path::Path;
 
-/// Build ParserOptions from test case behaviors
-fn options_from_test(test: &TestCase) -> ParserOptions {
-    let mut options = ParserOptions::new();
+/// Build [`Options`] from a test case's declared behaviors.
+fn options_from_test(test: &TestCase) -> Options {
+    let mut options = Options::new();
 
-    // Check for spacing behavior
-    // loose_spacing is the default (matches reference implementation)
-    if test.behaviors.contains(&"strict_spacing".to_string()) {
+    if test.behaviors.iter().any(|b| b == "strict_spacing") {
         options = options.with_spacing(SpacingBehavior::Strict);
     }
-
-    // Check for tab behavior
-    if test.behaviors.contains(&"tabs_to_spaces".to_string()) {
+    if test.behaviors.iter().any(|b| b == "tabs_to_spaces") {
         options = options.with_tabs(TabBehavior::ToSpaces);
     }
-    // tabs_preserve is the default, no need to set explicitly
-
-    // Check for CRLF behavior
-    if test.behaviors.contains(&"crlf_normalize_to_lf".to_string()) {
+    if test.behaviors.iter().any(|b| b == "crlf_normalize_to_lf") {
         options = options.with_crlf(CrlfBehavior::NormalizeToLf);
     }
-    // crlf_preserve is the default, no need to set explicitly
-
-    // Check for delimiter strategy behavior
     if test
         .behaviors
-        .contains(&"delimiter_prefer_spaced".to_string())
+        .iter()
+        .any(|b| b == "delimiter_prefer_spaced")
     {
         options = options.with_delimiter(DelimiterStrategy::PreferSpaced);
     }
-    // delimiter_first_equals is the default, no need to set explicitly
+    if test.behaviors.iter().any(|b| b == "boolean_lenient") {
+        options = options.with_bool(BoolBehavior::Lenient);
+    }
+    if test.behaviors.iter().any(|b| b == "list_coercion_enabled") {
+        options = options.with_list(ListBehavior::Coerce);
+    }
 
     options
 }
-use std::path::Path;
 
-/// Helper to navigate nested paths in a Model (e.g., ["config", "database", "port"])
-fn navigate_path<'a>(
-    model: &'a sickle::CclObject,
-    path: &[String],
-    test_name: &str,
-) -> Result<&'a sickle::CclObject, String> {
-    let mut current = model;
-    for key in path {
-        current = current
-            .get(key)
-            .map_err(|_| format!("Test '{}': missing key '{}'", test_name, key))?;
-    }
-    Ok(current)
+/// Turn a test's `args` into a checked path.
+fn path_of(args: &[String]) -> Vec<PathSegment<'_>> {
+    args.iter().map(|a| PathSegment::Key(a.as_str())).collect()
 }
 
-/// Helper function to validate a Vec of CclObjects against expected JSON array
-fn validate_vec_against_json(
-    values: &[sickle::CclObject],
-    expected: &serde_json::Value,
-    test_name: &str,
-    path: &str,
-) {
-    let expected_array = expected
-        .as_array()
-        .expect("expected value should be an array");
+/// Look up a flat entry's value by key.
+fn flat_value<'a>(entries: &'a [FlatEntry], key: &str) -> Option<&'a str> {
+    entries
+        .iter()
+        .find(|e| e.key == key)
+        .map(|e| e.value.as_str())
+}
 
-    assert_eq!(
-        values.len(),
-        expected_array.len(),
-        "Test '{}': expected {} items at '{}', got {}",
-        test_name,
-        expected_array.len(),
-        path,
-        values.len()
-    );
-
-    // Each value in the Vec is a CclObject representing one list item
-    // The list item's value is the single key in the CclObject
-    for (i, (value, expected_item)) in values.iter().zip(expected_array.iter()).enumerate() {
-        let new_path = format!("{}[{}]", path, i);
-        if let serde_json::Value::String(expected_str) = expected_item {
-            let actual_key = value.keys().next().unwrap_or(&"".to_string()).clone();
-            assert_eq!(
-                &actual_key, expected_str,
-                "Test '{}': wrong list value at '{}'",
-                test_name, new_path
-            );
-        } else {
-            panic!(
-                "Test '{}': unsupported list item type at '{}'",
-                test_name, new_path
-            );
-        }
+/// Every list element at `item`, whichever CCL spelling produced it.
+fn list_items(item: &Item) -> Option<Vec<&Item>> {
+    match item {
+        Item::Array(array) => Some(array.iter().collect()),
+        Item::Table(table) if table.is_bare_list() => Some(table.values().collect()),
+        _ => None,
     }
 }
 
-/// Helper function to recursively validate a Model against expected JSON structure
-fn validate_model_against_json(
-    model: &sickle::CclObject,
+/// Validate one node of the tree against the suite's expected JSON shape.
+///
+/// The mapping is: JSON string -> scalar, JSON array -> list, JSON object ->
+/// nested block.
+fn validate_item_against_json(
+    item: &Item,
     expected: &serde_json::Value,
     test_name: &str,
     path: &str,
 ) {
     match expected {
         serde_json::Value::String(expected_str) => {
-            // Expect a singleton string: {"value": {}}
-            // Access via public IndexMap field
-            if model.len() != 1 {
+            let actual = item.as_str().unwrap_or_else(|| {
                 panic!(
-                    "Test '{}': expected singleton string at '{}', got {} keys",
+                    "Test '{}': expected a scalar at '{}', found {}",
                     test_name,
                     path,
-                    model.len()
-                );
-            }
-            let (actual_str, value) = model.iter().next().unwrap();
-            if !value.is_empty() {
-                panic!(
-                    "Test '{}': expected string singleton at '{}', but value is not empty",
-                    test_name, path
-                );
-            }
+                    item.type_name()
+                )
+            });
             assert_eq!(
-                actual_str, expected_str,
+                actual, expected_str,
                 "Test '{}': wrong value at '{}'",
                 test_name, path
             );
         }
+        serde_json::Value::Array(expected_array) => {
+            let items = list_items(item).unwrap_or_else(|| {
+                panic!(
+                    "Test '{}': expected a list at '{}', found {}",
+                    test_name,
+                    path,
+                    item.type_name()
+                )
+            });
+            validate_items_against_json(&items, expected_array, test_name, path);
+        }
         serde_json::Value::Object(expected_map) => {
-            // Expect a map - use public IndexMap field
-            // Check all expected keys
-            for (key, expected_value) in expected_map {
+            // The reference model spells a bare list as a block holding a single
+            // empty key. Sickle normalizes that to a list, so accept both.
+            if let (1, Some(serde_json::Value::Array(expected_array))) =
+                (expected_map.len(), expected_map.get(""))
+            {
+                if let Some(items) = list_items(item) {
+                    validate_items_against_json(&items, expected_array, test_name, path);
+                    return;
+                }
+            }
+
+            let table = item.as_table().unwrap_or_else(|| {
+                panic!(
+                    "Test '{}': expected a block at '{}', found {}",
+                    test_name,
+                    path,
+                    item.type_name()
+                )
+            });
+
+            // Sickle models `/= text` as trivia rather than a `/` table key, so
+            // comment keys are validated through the flat `parse` view instead.
+            // See the crate docs for this intentional deviation.
+            let expected_map: Vec<_> = expected_map
+                .iter()
+                .filter(|(key, _)| key.as_str() != "/")
+                .collect();
+
+            for (key, expected_value) in &expected_map {
                 let new_path = if path == "root" {
-                    key.clone()
+                    (*key).clone()
                 } else {
                     format!("{}.{}", path, key)
                 };
 
-                // If expected value is an array, we need to use get_all() to get all Vec values
-                // because get() only returns the first element
-                if expected_value.is_array() {
-                    // Get all values for this key and create a synthetic model with them
-                    let all_values = model.get_all(key).unwrap_or_else(|_| {
-                        panic!("Test '{}': missing key '{}' at '{}'", test_name, key, path)
-                    });
-                    validate_vec_against_json(all_values, expected_value, test_name, &new_path);
-                } else {
-                    let actual_model = model.get(key).unwrap_or_else(|_| {
-                        panic!("Test '{}': missing key '{}' at '{}'", test_name, key, path)
-                    });
-                    validate_model_against_json(actual_model, expected_value, test_name, &new_path);
-                }
+                // Repeating a key composes its values, per CCL's monoid rules.
+                let composed = table.get_composed(key).unwrap_or_else(|| {
+                    panic!("Test '{}': missing key '{}' at '{}'", test_name, key, path)
+                });
+                validate_item_against_json(&composed, expected_value, test_name, &new_path);
             }
 
-            // Check for extra keys
             assert_eq!(
-                model.len(),
+                table.unique_keys().len(),
                 expected_map.len(),
                 "Test '{}': expected {} keys at '{}', got {}",
                 test_name,
                 expected_map.len(),
                 path,
-                model.len()
+                table.unique_keys().len()
             );
         }
-        serde_json::Value::Array(expected_array) => {
-            // Expect a list - with Vec structure, lists are stored as:
-            // { "": [CclObject({item1}), CclObject({item2}), ...] }
-            // We need to check if this is a bare list (single empty key)
-            // and iterate over the Vec values
+        other => panic!(
+            "Test '{}': unsupported JSON type at '{}': {:?}",
+            test_name, path, other
+        ),
+    }
+}
 
-            if model.len() == 1 && model.keys().next() == Some(&"".to_string()) {
-                // Bare list structure - get values from the Vec at key ""
-                let children = model.get_all("").expect("should have empty key");
-                assert_eq!(
-                    children.len(),
-                    expected_array.len(),
-                    "Test '{}': expected {} items at '{}', got {}",
-                    test_name,
-                    expected_array.len(),
-                    path,
-                    children.len()
-                );
+/// Validate a list of nodes against a JSON array.
+fn validate_items_against_json(
+    items: &[&Item],
+    expected: &[serde_json::Value],
+    test_name: &str,
+    path: &str,
+) {
+    assert_eq!(
+        items.len(),
+        expected.len(),
+        "Test '{}': expected {} items at '{}', got {}",
+        test_name,
+        expected.len(),
+        path,
+        items.len()
+    );
 
-                // Each child has a single key which is the list item value
-                for (i, (child, expected_item)) in
-                    children.iter().zip(expected_array.iter()).enumerate()
-                {
-                    let new_path = format!("{}[{}]", path, i);
-                    let actual_key = child.keys().next().unwrap_or(&"".to_string()).clone();
-                    if let serde_json::Value::String(expected_str) = expected_item {
-                        assert_eq!(
-                            &actual_key, expected_str,
-                            "Test '{}': wrong list value at '{}'",
-                            test_name, new_path
-                        );
-                    } else {
-                        panic!(
-                            "Test '{}': unsupported list item type at '{}'",
-                            test_name, new_path
-                        );
-                    }
-                }
-            } else {
-                // Legacy structure - keys are the list items
-                assert_eq!(
-                    model.len(),
-                    expected_array.len(),
-                    "Test '{}': expected {} items at '{}', got {}",
-                    test_name,
-                    expected_array.len(),
-                    path,
-                    model.len()
-                );
-
-                for (i, (actual_key, expected_item)) in
-                    model.keys().zip(expected_array.iter()).enumerate()
-                {
-                    let new_path = format!("{}[{}]", path, i);
-                    if let serde_json::Value::String(expected_str) = expected_item {
-                        assert_eq!(
-                            actual_key, expected_str,
-                            "Test '{}': wrong list value at '{}'",
-                            test_name, new_path
-                        );
-                    } else {
-                        panic!(
-                            "Test '{}': unsupported list item type at '{}'",
-                            test_name, new_path
-                        );
-                    }
-                }
-            }
-        }
-        _ => {
-            panic!(
-                "Test '{}': unsupported JSON type at '{}': {:?}",
-                test_name, path, expected
-            );
-        }
+    for (index, (item, expected_item)) in items.iter().zip(expected.iter()).enumerate() {
+        validate_item_against_json(item, expected_item, test_name, &format!("{path}[{index}]"));
     }
 }
 
@@ -294,47 +237,39 @@ fn test_parsing_suite_basic_tests() {
 
     for test in parse_tests {
         let test_result = std::panic::catch_unwind(|| {
-            // Parse and build hierarchy with options from test behaviors
             let options = options_from_test(test);
-            let result = load_with_options(test.input(), &options);
+            let entries = flat_entries(test.input(), &options);
 
-            // Check that parse succeeds or fails appropriately
             if test.expected.error.is_some() {
                 assert!(
-                    result.is_err(),
+                    entries.is_err(),
                     "Test '{}' expected error but parsing succeeded",
                     test.name
                 );
-            } else {
-                let model = result.unwrap_or_else(|e| {
-                    panic!("Test '{}' failed to load: {}", test.name, e);
-                });
+                return;
+            }
 
-                // Verify we got the expected number of top-level entries
+            let entries = entries.unwrap_or_else(|e| {
+                panic!("Test '{}' failed to parse: {}", test.name, e);
+            });
+
+            assert_eq!(
+                entries.len(),
+                test.expected.count,
+                "Test '{}' expected {} entries, got {}",
+                test.name,
+                test.expected.count,
+                entries.len()
+            );
+
+            for entry in &test.expected.entries {
+                let value = flat_value(&entries, &entry.key)
+                    .unwrap_or_else(|| panic!("Test '{}': missing key '{}'", test.name, entry.key));
                 assert_eq!(
-                    model.len(),
-                    test.expected.count,
-                    "Test '{}' expected {} entries, got {}",
-                    test.name,
-                    test.expected.count,
-                    model.len()
+                    value, entry.value,
+                    "Test '{}': key '{}' has wrong value",
+                    test.name, entry.key
                 );
-
-                // Verify each expected entry exists with correct value
-                for entry in &test.expected.entries {
-                    let value = model.get_string(&entry.key).unwrap_or_else(|e| {
-                        panic!(
-                            "Test '{}': failed to get string for key '{}': {}",
-                            test.name, entry.key, e
-                        )
-                    });
-
-                    assert_eq!(
-                        value, entry.value,
-                        "Test '{}': key '{}' has wrong value",
-                        test.name, entry.key
-                    );
-                }
             }
         });
 
@@ -378,28 +313,27 @@ fn test_comments_suite() {
     for test in comment_tests {
         let test_result = std::panic::catch_unwind(|| {
             let options = options_from_test(test);
-            let result = load_with_options(test.input(), &options);
+            let entries = flat_entries(test.input(), &options);
 
             if test.expected.error.is_some() {
                 assert!(
-                    result.is_err(),
+                    entries.is_err(),
                     "Test '{}' expected error but parsing succeeded",
                     test.name
                 );
             } else {
-                let model = result.unwrap_or_else(|e| {
-                    panic!("Test '{}' failed to load: {}", test.name, e);
+                let entries = entries.unwrap_or_else(|e| {
+                    panic!("Test '{}' failed to parse: {}", test.name, e);
                 });
 
-                // Verify entry count - use public IndexMap field
-                // Removed direct .0 access
+                // Comments lex as `/` entries, so they are counted here.
                 assert_eq!(
-                    model.len(),
+                    entries.len(),
                     test.expected.count,
                     "Test '{}' expected {} entries, got {}",
                     test.name,
                     test.expected.count,
-                    model.len()
+                    entries.len()
                 );
             }
         });
@@ -450,13 +384,13 @@ fn test_typed_access_suite_strings() {
         let test_result = std::panic::catch_unwind(|| {
             // Parse the input with options from test behaviors
             let options = options_from_test(test);
-            let model = load_with_options(test.input(), &options).unwrap_or_else(|e| {
+            let doc = DocumentMut::parse_with(test.input(), &options).unwrap_or_else(|e| {
                 panic!("Test '{}' failed to parse: {}", test.name, e);
             });
 
             // Get the value at the specified key
             if let Some(ref key) = test.expected.key {
-                let result = model.get_string(key);
+                let result = doc.get_string([key.as_str()]);
 
                 if test.expected.error.is_some() {
                     assert!(
@@ -533,28 +467,24 @@ fn test_filter_function() {
         let test_result = std::panic::catch_unwind(|| {
             // Parse the input with options from test behaviors
             let options = options_from_test(test);
-            let model = load_with_options(test.input(), &options).unwrap_or_else(|e| {
+            let entries = flat_entries(test.input(), &options).unwrap_or_else(|e| {
                 panic!("Test '{}' failed to parse: {}", test.name, e);
             });
 
-            // For filter tests, we expect the model to filter out comments
-            // and only contain non-comment entries - use public IndexMap field
-            // Removed direct .0 access
-            let count = model.len();
+            // `filter` drops comment entries, leaving only real data.
+            let filtered = filter_comments(&entries);
             assert_eq!(
-                count, test.expected.count,
+                filtered.len(),
+                test.expected.count,
                 "Test '{}' expected {} entries, got {}",
-                test.name, test.expected.count, count
+                test.name,
+                test.expected.count,
+                filtered.len()
             );
 
-            // Verify the actual entries match
             for entry in &test.expected.entries {
-                let value = model.get_string(&entry.key).unwrap_or_else(|e| {
-                    panic!(
-                        "Test '{}': failed to get string for key '{}': {}",
-                        test.name, entry.key, e
-                    )
-                });
+                let value = flat_value(&filtered, &entry.key)
+                    .unwrap_or_else(|| panic!("Test '{}': missing key '{}'", test.name, entry.key));
 
                 assert_eq!(
                     value, entry.value,
@@ -624,8 +554,8 @@ fn test_all_ccl_suites_comprehensive() {
         config.array_order_behavior.as_str()
     );
 
-    // Parse-time configurable behaviors (via ParserOptions)
-    println!("     Parse-time configurable (via ParserOptions):");
+    // Parse-time configurable behaviors (via Options)
+    println!("     Parse-time configurable (via Options):");
 
     // CRLF
     let mut crlf: Vec<_> = config
@@ -657,7 +587,7 @@ fn test_all_ccl_suites_comprehensive() {
     // Access-time configurable behaviors
     println!("     Access-time configurable:");
 
-    // Boolean parsing (via BoolOptions)
+    // Boolean parsing (via Options)
     let mut boolean: Vec<_> = config
         .supported_boolean_behaviors
         .iter()
@@ -666,7 +596,7 @@ fn test_all_ccl_suites_comprehensive() {
     boolean.sort();
     println!("       - Boolean parsing:  {}", boolean.join(", "));
 
-    // List coercion (via ListOptions)
+    // List coercion (via Options)
     let mut list_coercion: Vec<_> = config
         .supported_list_coercion_behaviors
         .iter()
@@ -840,71 +770,65 @@ fn test_all_ccl_suites_comprehensive() {
             panic_messages.lock().unwrap().clear();
 
             let test_result = std::panic::catch_unwind(|| {
-                // Build options from test behaviors
                 let options = options_from_test(test);
 
-                // Parse the input based on validation type, using behavior-aware options
-                let (entries, model_result) =
+                // The flat lexing pass and the hierarchical document are the two
+                // layers the specification validates against.
+                let entries =
                     if test.validation == "parse_dedented" || test.validation == "parse_indented" {
-                        let e = parse_indented_with_options(test.input(), &options);
-                        let m = e.as_ref().ok().map(|entries| build_hierarchy(entries));
-                        (e, m)
+                        flat_entries_indented(test.input(), &options)
                     } else {
-                        let e = parse_with_options(test.input(), &options);
-                        let m = e.as_ref().ok().map(|entries| build_hierarchy(entries));
-                        (e, m)
+                        flat_entries(test.input(), &options)
                     };
+                let document = DocumentMut::parse_with(test.input(), &options);
 
-                // Handle different validation types
+                let expect_entries = |entries: Result<Vec<FlatEntry>, sickle::ParseError>| {
+                    if test.expected.error.is_some() {
+                        assert!(entries.is_err(), "Test '{}' expected error", test.name);
+                        return None;
+                    }
+                    let list = entries.unwrap_or_else(|e| {
+                        panic!("Test '{}' failed to parse: {}", test.name, e);
+                    });
+                    assert_eq!(
+                        list.len(),
+                        test.expected.count,
+                        "Test '{}' expected {} entries, got {}",
+                        test.name,
+                        test.expected.count,
+                        list.len()
+                    );
+                    for expected_entry in &test.expected.entries {
+                        let found = list.iter().any(|e| {
+                            e.key == expected_entry.key && e.value == expected_entry.value
+                        });
+                        assert!(
+                            found,
+                            "Test '{}': expected entry {}={} not found",
+                            test.name, expected_entry.key, expected_entry.value
+                        );
+                    }
+                    Some(list)
+                };
+
+                let expect_document = || {
+                    document.clone().unwrap_or_else(|e| {
+                        panic!("Test '{}' failed to build a document: {}", test.name, e);
+                    })
+                };
+
                 match test.validation.as_str() {
-                    "parse" => {
-                        if test.expected.error.is_some() {
-                            assert!(entries.is_err(), "Test '{}' expected error", test.name);
-                        } else {
-                            let entry_list = entries.unwrap_or_else(|e| {
-                                panic!("Test '{}' failed to parse: {}", test.name, e);
-                            });
-
-                            // For "parse" validation: check entry count
-                            assert_eq!(
-                                entry_list.len(),
-                                test.expected.count,
-                                "Test '{}' expected {} entries, got {}",
-                                test.name,
-                                test.expected.count,
-                                entry_list.len()
-                            );
-
-                            // Verify specific entries if provided
-                            if !test.expected.entries.is_empty() {
-                                for expected_entry in &test.expected.entries {
-                                    let found = entry_list.iter().any(|e| {
-                                        e.key == expected_entry.key
-                                            && e.value == expected_entry.value
-                                    });
-                                    assert!(
-                                        found,
-                                        "Test '{}': expected entry {}={} not found",
-                                        test.name, expected_entry.key, expected_entry.value
-                                    );
-                                }
-                            }
-                        }
+                    "parse" | "parse_dedented" | "parse_indented" => {
+                        expect_entries(entries);
                     }
                     "filter" => {
-                        // "filter" validation tests parse the input, then filter out
-                        // comment entries (where key == "/")
                         if test.expected.error.is_some() {
                             assert!(entries.is_err(), "Test '{}' expected error", test.name);
                         } else {
-                            let entry_list = entries.unwrap_or_else(|e| {
+                            let list = entries.unwrap_or_else(|e| {
                                 panic!("Test '{}' failed to parse: {}", test.name, e);
                             });
-
-                            // Filter out comment entries (key == "/")
-                            let filtered: Vec<_> =
-                                entry_list.iter().filter(|e| e.key != "/").collect();
-
+                            let filtered = filter_comments(&list);
                             assert_eq!(
                                 filtered.len(),
                                 test.expected.count,
@@ -917,66 +841,42 @@ fn test_all_ccl_suites_comprehensive() {
                     }
                     "build_hierarchy" => {
                         if test.expected.error.is_some() {
-                            assert!(
-                                model_result.is_none() || model_result.as_ref().unwrap().is_err(),
-                                "Test '{}' expected error",
-                                test.name
-                            );
+                            assert!(document.is_err(), "Test '{}' expected error", test.name);
                         } else {
-                            let model = model_result
-                                .expect("model_result should be Some")
-                                .unwrap_or_else(|e| {
-                                    panic!("Test '{}' failed to build hierarchy: {}", test.name, e);
-                                });
-
-                            // For build_hierarchy, count=1 means "successfully built a hierarchy"
+                            let doc = expect_document();
                             assert_eq!(
                                 test.expected.count, 1,
                                 "Test '{}': build_hierarchy tests should have count=1",
                                 test.name
                             );
-
-                            // Validate the object structure if specified
                             if let Some(ref expected_obj) = test.expected.object {
-                                validate_model_against_json(
-                                    &model,
-                                    expected_obj,
-                                    &test.name,
-                                    "root",
-                                );
+                                let root = Item::Table(doc.as_table().clone());
+                                validate_item_against_json(&root, expected_obj, &test.name, "root");
                             }
                         }
                     }
                     "get_string" => {
                         if let Some(ref key) = test.expected.key {
-                            let model = model_result
-                                .expect("model_result should be Some")
-                                .unwrap_or_else(|e| {
-                                    panic!("Test '{}' failed to build hierarchy: {}", test.name, e);
-                                });
-
-                            // Use the actual get_string() method being tested
-                            let get_string_result = model.get_string(key);
+                            let doc = expect_document();
+                            let result = doc.get_string([key.as_str()]);
 
                             if test.expected.error.is_some() {
                                 assert!(
-                                    get_string_result.is_err(),
+                                    result.is_err(),
                                     "Test '{}' expected error but got: {:?}",
                                     test.name,
-                                    get_string_result
+                                    result
                                 );
                             } else if let Some(ref expected_value) = test.expected.value {
-                                let value = get_string_result.unwrap_or_else(|e| {
+                                let value = result.unwrap_or_else(|e| {
                                     panic!(
                                         "Test '{}': failed to get string for key '{}': {}",
                                         test.name, key, e
                                     )
                                 });
-
                                 let expected_str = expected_value.as_str().unwrap_or_else(|| {
                                     panic!("Test '{}': expected value is not a string", test.name)
                                 });
-
                                 assert_eq!(
                                     value, expected_str,
                                     "Test '{}': wrong value for key '{}'",
@@ -985,225 +885,91 @@ fn test_all_ccl_suites_comprehensive() {
                             }
                         }
                     }
-                    "parse_dedented" | "parse_indented" => {
-                        // parse_dedented/parse_indented removes common indentation prefix before parsing
-                        if test.expected.error.is_some() {
-                            assert!(entries.is_err(), "Test '{}' expected error", test.name);
-                        } else {
-                            let entry_list = entries.unwrap_or_else(|e| {
-                                panic!("Test '{}' failed to parse: {}", test.name, e);
-                            });
-
-                            // Validate entry count
-                            assert_eq!(
-                                entry_list.len(),
-                                test.expected.count,
-                                "Test '{}' expected {} entries, got {}",
-                                test.name,
-                                test.expected.count,
-                                entry_list.len()
-                            );
-
-                            // Verify specific entries if provided
-                            if !test.expected.entries.is_empty() {
-                                for expected_entry in &test.expected.entries {
-                                    let found = entry_list.iter().any(|e| {
-                                        e.key == expected_entry.key
-                                            && e.value == expected_entry.value
-                                    });
-                                    assert!(
-                                        found,
-                                        "Test '{}': expected entry {}={} not found",
-                                        test.name, expected_entry.key, expected_entry.value
-                                    );
-                                }
-                            }
-                        }
-                    }
                     "get_list" => {
-                        let model = model_result
-                            .expect("model_result should be Some")
-                            .unwrap_or_else(|e| {
-                                panic!("Test '{}' failed to build hierarchy: {}", test.name, e);
-                            });
-
-                        // Navigate to parent path (all but last element) if needed
-                        let (parent_model, key) = if test.args.len() > 1 {
-                            let parent_path = &test.args[..test.args.len() - 1];
-                            let parent = navigate_path(&model, parent_path, &test.name)
-                                .unwrap_or_else(|e| {
-                                    panic!("Test '{}': failed to navigate path: {}", test.name, e);
-                                });
-                            (parent, test.args.last().unwrap())
-                        } else {
-                            (&model, test.args.first().unwrap())
-                        };
-
-                        // Use get_list or get_list_coerced based on test behaviors
-                        let opts = if test
-                            .behaviors
-                            .contains(&"list_coercion_enabled".to_string())
-                        {
-                            sickle::model::ListOptions::new().with_coerce()
-                        } else {
-                            sickle::model::ListOptions::new()
-                        };
-                        let get_list_result = parent_model.get_list_with_options(key, opts);
+                        let doc = expect_document();
+                        let result = doc.get_list(path_of(&test.args));
 
                         if test.expected.error.is_some() {
                             assert!(
-                                get_list_result.is_err(),
+                                result.is_err(),
                                 "Test '{}' expected error but got: {:?}",
                                 test.name,
-                                get_list_result
+                                result
                             );
                         } else if test.expected.count == 0 {
-                            // Empty list case
-                            if let Ok(list) = get_list_result {
+                            // A missing key is as acceptable as an empty list here.
+                            if let Ok(list) = result {
                                 assert!(
                                     list.is_empty(),
                                     "Test '{}' expected empty list but got {} items",
                                     test.name,
                                     list.len()
                                 );
-                            } else {
-                                // Key doesn't exist - that's also acceptable for empty list test
-                                assert!(
-                                    get_list_result.is_err(),
-                                    "Test '{}' expected empty list or error",
-                                    test.name
-                                );
                             }
                         } else if let Some(ref expected_list) = test.expected.list {
-                            let actual_list = get_list_result.unwrap_or_else(|e| {
-                                panic!(
-                                    "Test '{}': failed to get list for key '{}': {}",
-                                    test.name, key, e
-                                )
+                            let actual = result.unwrap_or_else(|e| {
+                                panic!("Test '{}': failed to get list: {}", test.name, e)
                             });
-
                             assert_eq!(
-                                actual_list.len(),
-                                expected_list.len(),
-                                "Test '{}' expected {} items, got {}",
-                                test.name,
-                                expected_list.len(),
-                                actual_list.len()
-                            );
-
-                            assert_eq!(
-                                &actual_list, expected_list,
+                                &actual, expected_list,
                                 "Test '{}': list values don't match",
                                 test.name
                             );
                         }
                     }
                     "get_int" => {
-                        let model = model_result
-                            .expect("model_result should be Some")
-                            .unwrap_or_else(|e| {
-                                panic!("Test '{}' failed to build hierarchy: {}", test.name, e);
-                            });
-
-                        // Navigate to parent path (all but last element) if needed
-                        let (parent_model, key) = if test.args.len() > 1 {
-                            let parent_path = &test.args[..test.args.len() - 1];
-                            let parent = navigate_path(&model, parent_path, &test.name)
-                                .unwrap_or_else(|e| {
-                                    panic!("Test '{}': failed to navigate path: {}", test.name, e);
-                                });
-                            (parent, test.args.last().unwrap())
-                        } else {
-                            (&model, test.args.first().unwrap())
-                        };
-
-                        // Use the typed accessor get_int()
-                        let int_result = parent_model.get_int(key);
+                        let doc = expect_document();
+                        let result = doc.get_int(path_of(&test.args));
 
                         if test.expected.error.is_some() {
                             assert!(
-                                int_result.is_err(),
+                                result.is_err(),
                                 "Test '{}' expected error but got: {:?}",
                                 test.name,
-                                int_result
+                                result
                             );
                         } else if let Some(ref expected_value) = test.expected.value {
-                            let actual_int = int_result.unwrap_or_else(|e| {
-                                panic!("Test '{}': failed to get int from model: {}", test.name, e)
+                            let actual = result.unwrap_or_else(|e| {
+                                panic!("Test '{}': failed to get int: {}", test.name, e)
                             });
-
                             let expected_int = expected_value.as_i64().unwrap_or_else(|| {
                                 panic!("Test '{}': expected value is not an integer", test.name)
                             });
-
                             assert_eq!(
-                                actual_int, expected_int,
+                                actual, expected_int,
                                 "Test '{}': wrong integer value",
                                 test.name
                             );
                         }
                     }
                     "get_bool" => {
-                        let model = model_result
-                            .expect("model_result should be Some")
-                            .unwrap_or_else(|e| {
-                                panic!("Test '{}' failed to build hierarchy: {}", test.name, e);
-                            });
-
-                        // Navigate to parent path (all but last element) if needed
-                        let (parent_model, key) = if test.args.len() > 1 {
-                            let parent_path = &test.args[..test.args.len() - 1];
-                            let parent = navigate_path(&model, parent_path, &test.name)
-                                .unwrap_or_else(|e| {
-                                    panic!("Test '{}': failed to navigate path: {}", test.name, e);
-                                });
-                            (parent, test.args.last().unwrap())
-                        } else {
-                            (&model, test.args.first().unwrap())
-                        };
-
-                        // Use get_bool or get_bool_with_options based on test behaviors
-                        let bool_result = if test.behaviors.contains(&"boolean_lenient".to_string())
-                        {
-                            parent_model.get_bool_with_options(
-                                key,
-                                sickle::BoolOptions::new().with_lenient(),
-                            )
-                        } else {
-                            parent_model.get_bool(key)
-                        };
+                        let doc = expect_document();
+                        let result = doc.get_bool(path_of(&test.args));
 
                         if test.expected.error.is_some() {
                             assert!(
-                                bool_result.is_err(),
+                                result.is_err(),
                                 "Test '{}' expected error but got: {:?}",
                                 test.name,
-                                bool_result
+                                result
                             );
                         } else if let Some(ref expected_value) = test.expected.value {
                             if expected_value.is_null() {
-                                // Test expects that the value cannot be parsed as bool
-                                // This should result in an error from get_bool()
                                 assert!(
-                                    bool_result.is_err(),
-                                    "Test '{}': expected error (unparseable bool) but got: {:?}",
+                                    result.is_err(),
+                                    "Test '{}': expected an unparseable bool but got: {:?}",
                                     test.name,
-                                    bool_result
+                                    result
                                 );
                             } else {
-                                let actual_bool = bool_result.unwrap_or_else(|e| {
-                                    panic!(
-                                        "Test '{}': failed to get bool from model: {}",
-                                        test.name, e
-                                    )
+                                let actual = result.unwrap_or_else(|e| {
+                                    panic!("Test '{}': failed to get bool: {}", test.name, e)
                                 });
-
                                 let expected_bool = expected_value.as_bool().unwrap_or_else(|| {
                                     panic!("Test '{}': expected value is not a boolean", test.name)
                                 });
-
                                 assert_eq!(
-                                    actual_bool, expected_bool,
+                                    actual, expected_bool,
                                     "Test '{}': wrong boolean value",
                                     test.name
                                 );
@@ -1211,68 +977,42 @@ fn test_all_ccl_suites_comprehensive() {
                         }
                     }
                     "get_float" => {
-                        let model = model_result
-                            .expect("model_result should be Some")
-                            .unwrap_or_else(|e| {
-                                panic!("Test '{}' failed to build hierarchy: {}", test.name, e);
-                            });
-
-                        // Navigate to parent path (all but last element) if needed
-                        let (parent_model, key) = if test.args.len() > 1 {
-                            let parent_path = &test.args[..test.args.len() - 1];
-                            let parent = navigate_path(&model, parent_path, &test.name)
-                                .unwrap_or_else(|e| {
-                                    panic!("Test '{}': failed to navigate path: {}", test.name, e);
-                                });
-                            (parent, test.args.last().unwrap())
-                        } else {
-                            (&model, test.args.first().unwrap())
-                        };
-
-                        // Use the typed accessor get_float()
-                        let float_result = parent_model.get_float(key);
+                        let doc = expect_document();
+                        let result = doc.get_float(path_of(&test.args));
 
                         if test.expected.error.is_some() {
                             assert!(
-                                float_result.is_err(),
+                                result.is_err(),
                                 "Test '{}' expected error but got: {:?}",
                                 test.name,
-                                float_result
+                                result
                             );
                         } else if let Some(ref expected_value) = test.expected.value {
-                            let actual_float = float_result.unwrap_or_else(|e| {
-                                panic!(
-                                    "Test '{}': failed to get float from model: {}",
-                                    test.name, e
-                                )
+                            let actual = result.unwrap_or_else(|e| {
+                                panic!("Test '{}': failed to get float: {}", test.name, e)
                             });
-
                             let expected_float = expected_value.as_f64().unwrap_or_else(|| {
                                 panic!("Test '{}': expected value is not a float", test.name)
                             });
-
                             assert!(
-                                (actual_float - expected_float).abs() < 0.0001,
+                                (actual - expected_float).abs() < 0.0001,
                                 "Test '{}': wrong float value, expected {} got {}",
                                 test.name,
                                 expected_float,
-                                actual_float
+                                actual
                             );
                         }
                     }
                     "print" => {
-                        // Parse input to entries, then print back to CCL text
-                        let entries = entries.unwrap_or_else(|e| {
+                        let list = entries.unwrap_or_else(|e| {
                             panic!("Test '{}' failed to parse: {}", test.name, e);
                         });
-
-                        let output = sickle::printer::print(&entries);
+                        let output = print_flat(&list);
 
                         if let Some(ref expected_value) = test.expected.value {
                             let expected_str = expected_value.as_str().unwrap_or_else(|| {
                                 panic!("Test '{}': expected value is not a string", test.name)
                             });
-
                             assert_eq!(
                                 output, expected_str,
                                 "Test '{}': print output mismatch",
@@ -1281,69 +1021,56 @@ fn test_all_ccl_suites_comprehensive() {
                         }
                     }
                     "round_trip" => {
-                        // Verify parse(print(parse(x))) == parse(x)
-                        // Expected value can be:
-                        // - boolean true/false: verify round-trip property holds
-                        // - string: verify that print(parse(x)) produces the expected string
-                        // - absent: just verify round-trip succeeds (defaults to true)
+                        // parse(print(parse(x))) == parse(x)
+                        let list = entries.unwrap_or_else(|e| {
+                            panic!("Test '{}' failed to parse: {}", test.name, e);
+                        });
+                        let printed = print_flat(&list);
+                        let reparsed = flat_entries(&printed, &options).unwrap_or_else(|e| {
+                            panic!("Test '{}' failed to re-parse: {}", test.name, e);
+                        });
+                        let stable = reparsed == list;
 
-                        if let Some(ref expected_value) = test.expected.value {
-                            if let Some(expected_bool) = expected_value.as_bool() {
-                                let result = sickle::printer::round_trip(test.input())
-                                    .unwrap_or_else(|e| {
-                                        panic!("Test '{}' round_trip failed: {}", test.name, e);
-                                    });
-
-                                assert_eq!(
-                                    result, expected_bool,
-                                    "Test '{}': round_trip expected {}, got {}",
-                                    test.name, expected_bool, result
-                                );
-                            } else if let Some(expected_str) = expected_value.as_str() {
-                                // String expectation: verify print output matches
-                                let entry_list = entries.unwrap_or_else(|e| {
-                                    panic!("Test '{}' failed to parse: {}", test.name, e);
-                                });
-                                let output = sickle::printer::print(&entry_list);
-                                assert_eq!(
-                                    output, expected_str,
+                        match test.expected.value.as_ref().and_then(|v| v.as_bool()) {
+                            Some(expected_bool) => assert_eq!(
+                                stable, expected_bool,
+                                "Test '{}': round_trip expected {}, got {}",
+                                test.name, expected_bool, stable
+                            ),
+                            None => match test.expected.value.as_ref().and_then(|v| v.as_str()) {
+                                Some(expected_str) => assert_eq!(
+                                    printed, expected_str,
                                     "Test '{}': round_trip print output mismatch",
                                     test.name
-                                );
-                            }
-                        } else {
-                            // No expected value: just verify round-trip succeeds
-                            let result =
-                                sickle::printer::round_trip(test.input()).unwrap_or_else(|e| {
-                                    panic!("Test '{}' round_trip failed: {}", test.name, e);
-                                });
-                            assert!(result, "Test '{}': round_trip expected true", test.name);
+                                ),
+                                None => {
+                                    assert!(
+                                        stable,
+                                        "Test '{}': round_trip expected true",
+                                        test.name
+                                    )
+                                }
+                            },
                         }
                     }
                     "canonical_format" => {
-                        // Parse input and convert to canonical format
-                        let model = load_with_options(test.input(), &options).unwrap_or_else(|e| {
-                            panic!("Test '{}' failed to load: {}", test.name, e);
-                        });
-
-                        let printer = CclPrinter::new();
-                        let canonical_output = printer.print(&model);
+                        let mut doc = expect_document();
+                        doc.fmt();
+                        let canonical = doc.to_string();
 
                         if let Some(ref expected_value) = test.expected.value {
                             let expected_str = expected_value.as_str().unwrap_or_else(|| {
                                 panic!("Test '{}': expected value is not a string", test.name)
                             });
-
                             assert_eq!(
-                                canonical_output, expected_str,
+                                canonical, expected_str,
                                 "Test '{}': canonical format mismatch",
                                 test.name
                             );
                         }
                     }
-                    _ => {
-                        // Skip unsupported validation types for now
-                        panic!("Unsupported validation type: {}", test.validation);
+                    other => {
+                        panic!("Unsupported validation type: {other}");
                     }
                 }
             });

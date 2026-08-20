@@ -1,384 +1,437 @@
-//! Core CCL parser implementation
+//! Building the mutable syntax tree from CCL source.
 //!
-//! This module implements the CCL parsing algorithm as described in the specification:
-//! 1. Parse text into flat key-value entries
-//! 2. Build hierarchy through recursive processing
+//! The tree is the single source of truth: every node keeps the exact source
+//! text it came from, so an unmodified document renders back byte-for-byte,
+//! while nodes created or edited afterwards render in canonical form.
 
-use crate::error::Result;
-use crate::options::ParserOptions;
-use indexmap::IndexMap;
+use crate::error::ParseError;
+use crate::item::Item;
+use crate::lexer::{self, LexedEntry};
+use crate::options::Options;
+use crate::repr::{Decor, Key};
+use crate::table::{Array, Table};
+use crate::value::Value;
 
-/// A parsed CCL entry (key-value pair)
-#[derive(Debug, Clone, PartialEq, Eq)]
-struct Entry {
-    key: String,
-    value: String,
-    indent: usize,
+/// Maximum nesting depth, guarding against stack exhaustion on adversarial
+/// input.
+pub(crate) const MAX_DEPTH: usize = 64;
+
+/// Parse `input` into a root [`Table`], plus the document's trailing trivia.
+pub(crate) fn parse(input: &str, options: &Options) -> Result<Table, ParseError> {
+    let processed = options.process_crlf(input);
+    let (lines, trailing_newline) = lexer::physical_lines(&processed);
+    let offsets = line_offsets(&lines);
+
+    let mut ctx = Context {
+        source: &processed,
+        options,
+    };
+    ctx.build_block(&lines, &offsets, 0, "", trailing_newline, 0)
 }
 
-/// Normalize input by handling multiline keys (newlines before '=')
-/// This joins lines where a key spans multiple lines before the equals sign
-///
-/// Strategy: Only join lines if they form a multiline key at the SAME indentation level.
-/// Indented lines are continuation values, not multiline keys.
-///
-/// Important: A line without '=' following a complete `key = value` line should NOT
-/// be joined with subsequent lines. It should be treated as a standalone key with
-/// empty value.
-fn normalize_multiline_keys(input: &str, preserve_cr: bool) -> String {
-    // Use split('\n') to preserve \r when needed, otherwise use lines() for standard behavior
-    let lines: Vec<&str> = if preserve_cr {
-        input.split('\n').collect()
-    } else {
-        input.lines().collect()
-    };
-    let mut result = String::new();
-    let mut i = 0;
-    let mut base_indent: Option<usize> = None;
-    let mut prev_had_complete_entry = false;
+/// Byte offset of the start of each physical line.
+fn line_offsets(lines: &[&str]) -> Vec<usize> {
+    let mut offsets = Vec::with_capacity(lines.len());
+    let mut cursor = 0usize;
+    for line in lines {
+        offsets.push(cursor);
+        cursor += line.len() + 1;
+    }
+    offsets
+}
 
-    while i < lines.len() {
-        let line = lines[i];
-        let trimmed = line.trim();
-        let line_indent = line.len() - line.trim_start().len();
+struct Context<'a> {
+    source: &'a str,
+    options: &'a Options,
+}
 
-        // Skip leading empty lines
-        if trimmed.is_empty() && result.is_empty() {
-            i += 1;
-            continue;
+impl Context<'_> {
+    /// Build one block of entries.
+    ///
+    /// `lead` is the raw text that separates the block from whatever preceded
+    /// it: empty for the document root and for a block whose first entry starts
+    /// on the parent's header line, otherwise the remainder of that header line
+    /// plus its newline. `trailing_newline` records whether the block's last
+    /// line ends with a newline; only the document root ever sets it.
+    #[allow(clippy::too_many_arguments)]
+    fn build_block(
+        &mut self,
+        lines: &[&str],
+        offsets: &[usize],
+        block_offset: usize,
+        lead: &str,
+        trailing_newline: bool,
+        depth: usize,
+    ) -> Result<Table, ParseError> {
+        if depth > MAX_DEPTH {
+            return Err(ParseError::at_offset(
+                format!("maximum nesting depth ({MAX_DEPTH}) exceeded"),
+                self.source,
+                block_offset,
+            ));
         }
 
-        // Determine base indentation from first non-empty line
-        if base_indent.is_none() && !trimmed.is_empty() {
-            base_indent = Some(line_indent);
-        }
+        let entries = lexer::lex(lines, self.options);
+        let mut table = Table::new();
+        let mut cursor = 0usize;
+        let mut pending = String::new();
+        let mut first = true;
 
-        let base = base_indent.unwrap_or(0);
-
-        // Track if this line is a complete key=value entry
-        let is_complete_entry = trimmed.contains('=');
-
-        // If this line is indented more than base level, it's a continuation value
-        // Pass it through unchanged - don't try to interpret it as a multiline key
-        if line_indent > base {
-            result.push_str(line);
-            result.push('\n');
-            i += 1;
-            continue;
-        }
-
-        // Check if this is a multiline key pattern:
-        // Current line has no '=' AND is at or below base level
-        // AND the previous line was NOT a complete entry (otherwise this is a standalone key)
-        if !trimmed.is_empty() && !trimmed.contains('=') && !prev_had_complete_entry {
-            // Look ahead for the next line with '=' at SAME OR LESS indentation
-            let mut j = i + 1;
-            let mut found_equals = false;
-            while j < lines.len() {
-                let next_line = lines[j];
-                let next_trimmed = next_line.trim();
-                let next_indent = next_line.len() - next_line.trim_start().len();
-
-                if next_trimmed.is_empty() {
-                    j += 1;
-                    continue;
-                }
-
-                // If indented MORE than current line, this is a continuation value, not a key
-                if next_indent > line_indent {
-                    break;
-                }
-
-                if next_trimmed.contains('=') {
-                    found_equals = true;
-                    break;
-                }
-
-                // Another line at same/less indentation without '=' - could be multiline key continuation
-                j += 1;
+        for entry in &entries {
+            for line in &lines[cursor..entry.start] {
+                pending.push_str(line);
+                pending.push('\n');
             }
+            cursor = entry.end + 1;
 
-            if found_equals && j < lines.len() {
-                // Join lines from i to j into a single key=value line
-                // Only join lines at the same indentation level
-                let mut key_parts = vec![trimmed];
-                for part_line in lines.iter().take(j).skip(i + 1) {
-                    let part_trimmed = part_line.trim();
-                    let part_indent = part_line.len() - part_line.trim_start().len();
-
-                    if !part_trimmed.is_empty() && part_indent <= line_indent {
-                        key_parts.push(part_trimmed);
-                    }
+            if is_comment(entry, lines) {
+                for line in &lines[entry.start..=entry.end] {
+                    pending.push_str(line);
+                    pending.push('\n');
                 }
-                let joined_key = key_parts.join(" ");
-                result.push_str(&joined_key);
-                result.push_str(lines[j].trim());
-                result.push('\n');
-                i = j + 1;
-                prev_had_complete_entry = true; // The joined result is a complete entry
                 continue;
             }
-        }
 
-        // Normal line - pass through
-        result.push_str(line);
-        result.push('\n');
-        prev_had_complete_entry = is_complete_entry;
-        i += 1;
-    }
-
-    result
-}
-
-/// Trim only spaces (not tabs) from the start of a string
-fn trim_spaces_start(s: &str) -> &str {
-    s.trim_start_matches(' ')
-}
-
-/// Trim whitespace from a string, optionally preserving CR
-/// When preserve_cr is true, only trims spaces and tabs (not \r)
-fn trim_with_cr_option(s: &str, preserve_cr: bool) -> &str {
-    if preserve_cr {
-        // Only trim spaces and tabs, preserving \r
-        s.trim_matches([' ', '\t'])
-    } else {
-        s.trim()
-    }
-}
-
-/// Trim leading whitespace, optionally preserving CR
-fn trim_start_with_cr_option(s: &str, preserve_cr: bool) -> &str {
-    if preserve_cr {
-        s.trim_start_matches([' ', '\t'])
-    } else {
-        s.trim_start()
-    }
-}
-
-/// Find the position of a valid `=` delimiter based on spacing and delimiter options
-///
-/// The behavior depends on two options:
-/// - **Spacing**: Strict requires ` = ` or ` =` at end; Loose accepts any `=`
-/// - **Delimiter strategy**: FirstEquals always uses the first `=`;
-///   PreferSpaced tries ` = ` first, then falls back to bare `=`
-///
-/// Returns the byte position of `=` if found, or None if no valid delimiter exists.
-fn find_delimiter(s: &str, options: &ParserOptions) -> Option<usize> {
-    if options.is_strict_spacing() {
-        // Strict spacing: require ` = ` pattern (space before and after equals)
-        // OR ` =` at the end of the string (for empty values like "key =")
-        if let Some(pos) = s.find(" = ") {
-            return Some(pos + 1);
-        }
-        // Check for ` =` at end of string (space before equals, nothing after)
-        if s.ends_with(" =") {
-            return Some(s.len() - 1);
-        }
-        None
-    } else if options.prefer_spaced_delimiter() {
-        // Prefer-spaced: try ` = ` first, allowing keys to contain bare `=`
-        // This enables keys like URLs with query params: `https://x.com?q=1 = result`
-        if let Some(pos) = s.find(" = ") {
-            return Some(pos + 1);
-        }
-        // Check for ` =` at end of string (empty value)
-        if s.ends_with(" =") {
-            return Some(s.len() - 1);
-        }
-        // Fallback: first bare `=` (no spaced delimiter found)
-        s.find('=')
-    } else {
-        // Loose spacing with FirstEquals: any `=` is a valid delimiter
-        s.find('=')
-    }
-}
-
-/// Trim leading whitespace from value on the same line as the key
-///
-/// The behavior depends on tab options:
-/// - With tabs_preserve: only trim spaces, tabs are value content
-/// - With tabs_to_spaces: trim all leading whitespace (tabs are delimiter whitespace)
-///
-/// Examples:
-/// - `key = value` → value = `value` (space trimmed)
-/// - `key = \tvalue` with tabs_preserve → value = `\tvalue` (tab is content)
-/// - `key\t=\tdata` with tabs_to_spaces → value = `data` (tab trimmed)
-fn trim_value(s: &str, options: &ParserOptions) -> String {
-    if options.preserve_tabs() {
-        // Only trim spaces, tabs are value content
-        trim_spaces_start(s).to_string()
-    } else {
-        // Trim all whitespace - tabs are delimiter whitespace (converted later)
-        s.trim_start().to_string()
-    }
-}
-
-/// Parse CCL text into a flat list of entries
-///
-/// This respects indentation - lines at the base level start new entries,
-/// lines indented further become part of the current entry's value
-fn parse_entries(input: &str, options: &ParserOptions) -> Vec<Entry> {
-    // Pre-process input based on options
-    let input = options.process_crlf(input);
-
-    // First normalize multiline keys
-    let normalized = normalize_multiline_keys(&input, options.preserve_crlf());
-
-    let mut entries = Vec::new();
-    let mut current_key: Option<(String, usize)> = None;
-    let mut value_lines: Vec<String> = Vec::new();
-    let mut base_indent: Option<usize> = None;
-
-    // Use split('\n') to preserve \r characters when crlf_preserve_literal is set
-    // lines() would strip \r, but we want to keep them in values when preserving
-    let lines_iter: Box<dyn Iterator<Item = &str>> = if options.preserve_crlf() {
-        Box::new(normalized.split('\n'))
-    } else {
-        Box::new(normalized.lines())
-    };
-
-    let preserve_cr = options.preserve_crlf();
-
-    for line in lines_iter {
-        // Count leading whitespace (spaces and tabs)
-        let indent = line.len() - trim_start_with_cr_option(line, preserve_cr).len();
-        let trimmed = trim_with_cr_option(line, preserve_cr);
-
-        // Skip empty lines
-        if trimmed.is_empty() {
-            if current_key.is_some() {
-                value_lines.push(String::new());
+            let mut prefix = String::new();
+            if first {
+                prefix.push_str(lead);
+            } else {
+                prefix.push('\n');
             }
-            continue;
-        }
+            prefix.push_str(&pending);
+            pending.clear();
+            first = false;
 
-        // Determine base indentation from first non-empty line
-        if base_indent.is_none() {
-            base_indent = Some(indent);
-        }
+            let header = lines[entry.header_end];
+            let indent_len = header.len() - header.trim_start().len();
+            let start_indent = {
+                let line = lines[entry.start];
+                &line[..line.len() - line.trim_start().len()]
+            };
+            prefix.push_str(start_indent);
 
-        let base = base_indent.unwrap_or(0);
+            let (key_repr, key_gap, value_region, value_offset) =
+                split_header(lines, offsets, entry, indent_len);
 
-        // Check if this line starts a new entry at the base level
-        // A line is an entry if it has a valid delimiter OR contains '=' (even if invalid in strict mode)
-        // This ensures we handle all lines that look like key-value pairs
-        let has_equals = trimmed.contains('=');
-        if indent <= base && has_equals {
-            // Save previous entry if exists
-            if let Some((key, key_indent)) = current_key.take() {
-                let value = finalize_value(&value_lines.join("\n"), options);
-                entries.push(Entry {
-                    key,
-                    value,
-                    indent: key_indent,
-                });
-                value_lines.clear();
+            let mut suffix = key_gap;
+            if entry.delimiter.is_some() {
+                suffix.push('=');
             }
 
-            // Parse new key-value pair using spacing-aware delimiter detection
-            if let Some(eq_pos) = find_delimiter(trimmed, options) {
-                // Valid delimiter found - split key and value
-                // Trim all whitespace from key (spaces and tabs)
-                let key = trimmed[..eq_pos].trim().to_string();
-                // Trim value based on spacing options
-                let value_raw = &trimmed[eq_pos + 1..];
-                let value = trim_value(value_raw, options);
+            let key = Key::new(entry.key.clone())
+                .with_repr(key_repr)
+                .with_decor(Decor::new(prefix, suffix));
 
-                current_key = Some((key, indent));
-                if value.is_empty() {
-                    // Empty inline value - add empty string so that when continuation
-                    // lines are joined with "\n", the value starts with "\n"
-                    // e.g., "server =" with indented children should have value "\n  child = ..."
-                    value_lines.push(String::new());
-                } else {
-                    value_lines.push(value);
+            let item =
+                self.build_item(lines, offsets, entry, &value_region, value_offset, depth)?;
+            table.push_entry(key, item);
+        }
+
+        for line in &lines[cursor..] {
+            pending.push_str(line);
+            pending.push('\n');
+        }
+
+        let mut trailing = String::new();
+        if pending.is_empty() {
+            if trailing_newline {
+                trailing.push('\n');
+            }
+        } else {
+            if first {
+                trailing.push_str(lead);
+            } else {
+                trailing.push('\n');
+            }
+            if trailing_newline {
+                trailing.push_str(&pending);
+            } else {
+                trailing.push_str(pending.strip_suffix('\n').unwrap_or(&pending));
+            }
+        }
+        table.set_trailing(trailing);
+
+        Ok(table)
+    }
+
+    /// Decide whether an entry's value is a scalar, a nested block, or a list.
+    fn build_item(
+        &mut self,
+        lines: &[&str],
+        offsets: &[usize],
+        entry: &LexedEntry,
+        value_region: &str,
+        value_offset: usize,
+        depth: usize,
+    ) -> Result<Item, ParseError> {
+        let scalar = || {
+            Item::Value(Value::from_parts(
+                entry.value.clone(),
+                value_region.into(),
+                Decor::default(),
+            ))
+        };
+
+        // Only multi-line values that contain a delimiter can be nested CCL.
+        if entry.value.contains('\n') && entry.value.contains('=') {
+            let inline = inline_text(lines, entry);
+            let has_inline = !inline.trim().is_empty();
+
+            let (child_lines, child_offsets, lead) = if has_inline {
+                let mut child_lines: Vec<&str> = vec![inline];
+                let mut child_offsets = vec![value_offset];
+                child_lines.extend_from_slice(&lines[entry.header_end + 1..=entry.end]);
+                child_offsets.extend_from_slice(&offsets[entry.header_end + 1..=entry.end]);
+                (child_lines, child_offsets, String::new())
+            } else {
+                if entry.end <= entry.header_end {
+                    return Ok(scalar());
                 }
-            } else {
-                // No valid delimiter (e.g., "key=value" in strict spacing mode)
-                // Treat the entire line as a key with empty value
-                current_key = Some((trimmed.to_string(), indent));
-                value_lines.push(String::new());
-            }
-        } else if let Some((_, key_indent)) = current_key {
-            // Only treat as continuation if indented MORE than the key line
-            if indent > key_indent {
-                // This line is indented relative to the key - it's part of the current value
-                // Preserve the full line for nested structures (tabs processed later)
-                value_lines.push(line.to_string());
-            } else {
-                // Not indented more than key - save current entry and start new one
-                let (key, key_indent_final) = current_key.take().unwrap();
-                let value = finalize_value(&value_lines.join("\n"), options);
-                entries.push(Entry {
-                    key,
-                    value,
-                    indent: key_indent_final,
-                });
-                value_lines.clear();
+                // Whatever trailed the `=` on the header line (a stray carriage
+                // return, or trailing spaces) belongs to the block's opening.
+                let lead = format!("{inline}\n");
+                (
+                    lines[entry.header_end + 1..=entry.end].to_vec(),
+                    offsets[entry.header_end + 1..=entry.end].to_vec(),
+                    lead,
+                )
+            };
 
-                // This line becomes a new key with empty value (no '=' sign)
-                current_key = Some((trimmed.to_string(), indent));
+            let child_offset = child_offsets.first().copied().unwrap_or(value_offset);
+            let nested = self.build_block(
+                &child_lines,
+                &child_offsets,
+                child_offset,
+                &lead,
+                false,
+                depth + 1,
+            )?;
+
+            if !nested.is_empty() && nested.keys().all(is_valid_key) {
+                return Ok(finish_block(nested));
             }
+            return Ok(scalar());
+        }
+
+        // A single-line value that begins with whitespace is an indented child
+        // line rather than value text (only reachable when tabs are preserved).
+        if entry.value.starts_with(' ') || entry.value.starts_with('\t') {
+            let trimmed = entry.value.trim();
+            if !trimmed.is_empty() && !trimmed.contains('=') {
+                let gap_len = value_region.len() - value_region.trim_start().len();
+                let mut child = Table::new();
+                child.push_entry(
+                    Key::new(trimmed)
+                        .with_repr(value_region.trim_start())
+                        .with_decor(Decor::new(&value_region[..gap_len], "")),
+                    Item::Value(Value::from_parts(
+                        String::new(),
+                        "".into(),
+                        Decor::default(),
+                    )),
+                );
+                return Ok(Item::Table(child));
+            }
+        }
+
+        Ok(scalar())
+    }
+}
+
+/// The raw text following `=` on the header line.
+fn inline_text<'a>(lines: &[&'a str], entry: &LexedEntry) -> &'a str {
+    match entry.delimiter {
+        Some(delimiter) => &lines[entry.header_end][delimiter + 1..],
+        None => "",
+    }
+}
+
+/// Split an entry's header into key text, the gap before `=`, and the raw value
+/// region (everything after `=`, including continuation lines).
+fn split_header(
+    lines: &[&str],
+    offsets: &[usize],
+    entry: &LexedEntry,
+    indent_len: usize,
+) -> (String, String, String, usize) {
+    let header = lines[entry.header_end];
+
+    let (key_raw, value_region, value_offset) = match entry.delimiter {
+        Some(delimiter) => {
+            let key_raw = if entry.start == entry.header_end {
+                header[indent_len..delimiter].to_string()
+            } else {
+                let mut raw = lines[entry.start][key_indent(lines[entry.start])..].to_string();
+                for line in &lines[entry.start + 1..entry.header_end] {
+                    raw.push('\n');
+                    raw.push_str(line);
+                }
+                raw.push('\n');
+                raw.push_str(&header[..delimiter]);
+                raw
+            };
+            let mut region = header[delimiter + 1..].to_string();
+            for line in &lines[entry.header_end + 1..=entry.end] {
+                region.push('\n');
+                region.push_str(line);
+            }
+            let offset = offsets[entry.header_end] + delimiter + 1;
+            (key_raw, region, offset)
+        }
+        None => {
+            // No delimiter on this line: the key is the whole line and any
+            // continuation lines form the value region.
+            let key_raw = header[indent_len..].to_string();
+            let mut region = String::new();
+            for line in &lines[entry.header_end + 1..=entry.end] {
+                region.push('\n');
+                region.push_str(line);
+            }
+            let offset = offsets[entry.header_end] + header.len();
+            (key_raw, region, offset)
+        }
+    };
+
+    let trimmed_key = key_raw.trim_end_matches([' ', '\t']);
+    let gap = key_raw[trimmed_key.len()..].to_string();
+    (trimmed_key.to_string(), gap, value_region, value_offset)
+}
+
+fn key_indent(line: &str) -> usize {
+    line.len() - line.trim_start().len()
+}
+
+/// Normalize a parsed block: a block whose entries are all bare list items
+/// (`= value`) becomes a list.
+fn finish_block(table: Table) -> Item {
+    if !table.is_bare_list() {
+        return Item::Table(table);
+    }
+    let mut array = Array::new();
+    let trailing = table.trailing().clone();
+    for entry in table.entries() {
+        let decor = Decor::new(
+            entry.key.decor().prefix().clone(),
+            entry.key.decor().suffix().clone(),
+        );
+        array.push_element(decor, entry.item.clone());
+    }
+    array.set_trailing(trailing);
+    Item::Array(array)
+}
+
+/// Whether a lexed entry is a comment line (`/= text`).
+///
+/// Comments are trivia in the syntax tree, not table keys, so they are attached
+/// to the following entry's decoration.
+fn is_comment(entry: &LexedEntry, lines: &[&str]) -> bool {
+    entry.key == "/" && entry.start == entry.end && lines[entry.start].trim_start().starts_with('/')
+}
+
+/// Whether a recursively parsed key looks like real CCL rather than a
+/// misinterpreted value string.
+fn is_valid_key(key: &str) -> bool {
+    if key.is_empty() {
+        return true;
+    }
+    if key.starts_with('-') {
+        return false;
+    }
+    if key.contains(" = ") || key.contains(" =\t") {
+        return false;
+    }
+    true
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::encode::render_table;
+
+    fn round_trip(input: &str) -> String {
+        let table = parse(input, &Options::new()).unwrap();
+        let mut out = String::new();
+        render_table(&table, 0, &mut out);
+        out
+    }
+
+    #[test]
+    fn simple_entries_round_trip() {
+        for input in [
+            "a = 1\n",
+            "a = 1",
+            "a = 1\nb = 2\n",
+            "  a = 1\n  b = 2\n",
+            "a=1\n",
+            "a  =  1\n",
+        ] {
+            assert_eq!(round_trip(input), input, "input: {input:?}");
         }
     }
 
-    // Don't forget the last entry
-    if let Some((key, key_indent)) = current_key {
-        let value = finalize_value(&value_lines.join("\n"), options);
-        entries.push(Entry {
-            key,
-            value,
-            indent: key_indent,
-        });
+    #[test]
+    fn nested_blocks_round_trip() {
+        let input = "server =\n  host = localhost\n  port = 8080\n";
+        assert_eq!(round_trip(input), input);
+        let table = parse(input, &Options::new()).unwrap();
+        let server = table.get("server").unwrap().as_table().unwrap();
+        assert_eq!(server.get("host").unwrap().as_str(), Some("localhost"));
     }
 
-    entries
-}
-
-/// Finalize a value by trimming trailing whitespace and processing tabs
-fn finalize_value(value: &str, options: &ParserOptions) -> String {
-    // Trim trailing whitespace, but preserve \r if crlf_preserve_literal is set
-    let trimmed = if options.preserve_crlf() {
-        value.trim_end_matches([' ', '\t', '\n'])
-    } else {
-        value.trim_end()
-    };
-    options.process_tabs(trimmed).into_owned()
-}
-
-/// Build hierarchical structure from flat entries
-#[allow(dead_code)]
-pub(crate) fn parse_to_map(
-    input: &str,
-    options: &ParserOptions,
-) -> Result<IndexMap<String, Vec<String>>> {
-    let entries = parse_entries(input, options);
-    let mut result: IndexMap<String, Vec<String>> = IndexMap::new();
-
-    for entry in entries {
-        // Preserve indentation as-is per CCL specification
-        result.entry(entry.key).or_default().push(entry.value);
+    #[test]
+    fn bare_lists_become_arrays() {
+        let input = "servers =\n  = web1\n  = web2\n";
+        assert_eq!(round_trip(input), input);
+        let table = parse(input, &Options::new()).unwrap();
+        let array = table.get("servers").unwrap().as_array().unwrap();
+        assert_eq!(array.as_strings(), Some(vec!["web1", "web2"]));
     }
 
-    Ok(result)
-}
+    #[test]
+    fn comments_and_blank_lines_are_trivia() {
+        let input = "/= header\n\nname = app\n\n/= trailing\n";
+        assert_eq!(round_trip(input), input);
+        let table = parse(input, &Options::new()).unwrap();
+        assert_eq!(table.len(), 1);
+        assert_eq!(table.get("name").unwrap().as_str(), Some("app"));
+    }
 
-/// Parse CCL input into a flat list of key-value entries preserving insertion order.
-///
-/// Unlike `parse_to_map`, this returns entries in their original order without
-/// grouping by key. This is essential for structure-preserving `print()` which
-/// needs to reproduce the original entry interleaving.
-pub(crate) fn parse_to_entries(input: &str, options: &ParserOptions) -> Result<Vec<crate::Entry>> {
-    let entries = parse_entries(input, options);
-    Ok(entries
-        .into_iter()
-        .map(|e| crate::Entry::new(e.key, e.value))
-        .collect())
-}
+    #[test]
+    fn duplicate_keys_stay_ordered() {
+        let input = "item = a\nother = x\nitem = b\n";
+        assert_eq!(round_trip(input), input);
+        let table = parse(input, &Options::new()).unwrap();
+        assert_eq!(table.count("item"), 2);
+    }
 
-// Unit tests removed - all parser functionality is covered by data-driven tests in:
-// - api_core_ccl_parsing.json (basic_key_value_pairs, equals_in_values, multiline_values, etc.)
-// - api_core_ccl_hierarchy.json (duplicate_keys_to_lists, nested structures)
-// - api_advanced_processing.json (list_with_empty_keys)
-// - api_comments.json (comment handling)
-// - api_proposed_behavior.json (proposed behavior, currently excluded)
+    #[test]
+    fn multiline_scalars_keep_their_text() {
+        let input = "script =\n  #!/bin/sh\n  echo hi\n";
+        assert_eq!(round_trip(input), input);
+        let table = parse(input, &Options::new()).unwrap();
+        assert_eq!(
+            table.get("script").unwrap().as_str(),
+            Some("\n  #!/bin/sh\n  echo hi")
+        );
+    }
+
+    #[test]
+    fn deep_nesting_is_bounded() {
+        let mut input = String::from("a = b");
+        for _ in 0..=MAX_DEPTH {
+            let indented: String = input.lines().map(|l| format!("  {l}\n")).collect();
+            input = format!("outer =\n{indented}");
+        }
+        let err = parse(&input, &Options::new()).unwrap_err();
+        assert!(err.message().contains("nesting depth"));
+    }
+
+    #[test]
+    fn interleaved_bare_items_stay_a_table() {
+        let input = "name = Alice\n= first\ncfg =\n  port = 1\n= second\n";
+        assert_eq!(round_trip(input), input);
+        let table = parse(input, &Options::new()).unwrap();
+        assert_eq!(table.count(""), 2);
+        assert!(!table.is_bare_list());
+    }
+}

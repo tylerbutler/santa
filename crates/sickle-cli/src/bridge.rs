@@ -1,44 +1,30 @@
 use serde_json::Value;
-use sickle::CclObject;
+use sickle::{DocumentMut, Item};
 
-pub(crate) fn ccl_to_value(obj: &CclObject) -> Value {
-    if obj.is_empty() {
-        return Value::String(String::new());
-    }
+/// Convert a CCL document into a JSON value.
+///
+/// Scalars become strings, nested blocks become objects, and lists — whether
+/// spelled as a bare-list block or as a repeated key — become arrays.
+pub(crate) fn document_to_value(document: &DocumentMut) -> Value {
+    table_to_value(document.as_table())
+}
 
-    let keys: Vec<&String> = obj.keys().collect();
-
-    // Check for string value first: a single key with one empty child
-    // This handles both regular strings like {"Alice": [{}]} and empty
-    // strings like {"": [{}]}
-    if keys.len() == 1 {
-        if let Ok(values) = obj.get_all(keys[0]) {
-            if values.len() == 1 && values[0].is_empty() {
-                return Value::String(keys[0].clone());
-            }
-        }
-    }
-
-    // Check for bare list: single empty key with multiple values
-    if keys.len() == 1 && keys[0].is_empty() {
-        if let Ok(items) = obj.get_all("") {
-            let arr: Vec<Value> = items.iter().map(ccl_to_value).collect();
-            return Value::Array(arr);
-        }
-    }
-
+fn table_to_value(table: &sickle::Table) -> Value {
     let mut map = serde_json::Map::new();
-    for key in obj.keys() {
-        if let Ok(values) = obj.get_all(key) {
-            if values.len() == 1 {
-                map.insert(key.clone(), ccl_to_value(&values[0]));
-            } else {
-                let arr: Vec<Value> = values.iter().map(ccl_to_value).collect();
-                map.insert(key.clone(), Value::Array(arr));
-            }
-        }
+    for key in table.unique_keys() {
+        let item = table.get_composed(key).expect("key came from the table");
+        map.insert(key.to_string(), item_to_value(&item));
     }
     Value::Object(map)
+}
+
+pub(crate) fn item_to_value(item: &Item) -> Value {
+    match item {
+        Item::Value(scalar) => Value::String(scalar.as_str().to_string()),
+        Item::Array(array) => Value::Array(array.iter().map(item_to_value).collect()),
+        Item::Table(table) => table_to_value(table),
+        Item::None => Value::String(String::new()),
+    }
 }
 
 pub(crate) fn value_to_ccl_string(value: &Value) -> String {

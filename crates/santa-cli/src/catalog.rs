@@ -5,8 +5,7 @@
 //! - `sources/*.ccl` - Per-source package definitions
 
 use anyhow::{Context, Result};
-use sickle::printer::CclPrinter;
-use sickle::CclObject;
+use sickle::{table, value, DocumentMut, Item};
 use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
 use std::path::Path;
@@ -59,16 +58,12 @@ impl SourceEntry {
     }
 }
 
-/// Extract a string value from a CCL object.
+/// Extract a scalar value from a CCL node.
 ///
-/// Returns Some(string) if the object contains exactly one key with an empty value,
-/// which is how CCL represents simple string values like `key = value`.
-pub fn extract_string_value(obj: &CclObject) -> Option<String> {
-    if obj.len() == 1 && obj.values().next().unwrap().is_empty() {
-        Some(obj.keys().next().unwrap().clone())
-    } else {
-        None
-    }
+/// Returns `Some(text)` for a scalar such as `key = value`, and `None` for a
+/// nested block or a list.
+pub fn extract_string_value(item: &Item) -> Option<String> {
+    item.as_str().map(str::to_string)
 }
 
 /// Load the package catalog from packages.ccl
@@ -82,39 +77,27 @@ pub fn load_catalog(path: &Path) -> Result<BTreeMap<String, CatalogEntry>> {
     let content = fs::read_to_string(path)
         .with_context(|| format!("Failed to read catalog: {}", path.display()))?;
 
-    let model = sickle::load(&content)
+    let document = DocumentMut::parse(&content)
         .with_context(|| format!("Failed to parse catalog: {}", path.display()))?;
 
-    for key in model.keys() {
-        // Skip comments and empty keys
+    for key in document.as_table().unique_keys() {
+        // Skip comment-shaped keys and bare list items
         if key.starts_with('/') || key.is_empty() {
             continue;
         }
 
-        let value = model.get(key)?;
         let mut entry = CatalogEntry::default();
 
-        if !value.is_empty() {
-            if let Ok(desc_obj) = value.get("description") {
-                if let Some(desc) = extract_string_value(desc_obj) {
-                    entry.description = Some(desc);
-                }
-            }
-            if let Ok(homepage_obj) = value.get("homepage") {
-                if let Some(homepage) = extract_string_value(homepage_obj) {
-                    entry.homepage = Some(homepage);
-                }
-            }
-            // Check for verified field
-            if let Ok(verified_obj) = value.get("verified") {
+        if let Some(fields) = document.as_table().get(key).and_then(Item::as_table) {
+            entry.description = fields.get("description").and_then(extract_string_value);
+            entry.homepage = fields.get("homepage").and_then(extract_string_value);
+            if let Some(verified) = fields.get("verified") {
                 entry.verified = true;
-                if let Some(date) = extract_string_value(verified_obj) {
-                    entry.verified_date = Some(date);
-                }
+                entry.verified_date = extract_string_value(verified);
             }
         }
 
-        catalog.insert(key.clone(), entry);
+        catalog.insert(key.to_string(), entry);
     }
 
     Ok(catalog)
@@ -122,12 +105,7 @@ pub fn load_catalog(path: &Path) -> Result<BTreeMap<String, CatalogEntry>> {
 
 /// Save the package catalog to packages.ccl
 pub fn save_catalog(path: &Path, catalog: &BTreeMap<String, CatalogEntry>) -> Result<()> {
-    let mut obj = CclObject::new();
-    obj.add_comment("Core package catalog");
-    obj.add_comment("Source of truth for package identity and metadata");
-    obj.add_blank_line();
-
-    let map = obj.inner_mut();
+    let mut document = DocumentMut::new();
 
     for (name, entry) in catalog {
         // Skip entries with no metadata at all
@@ -135,21 +113,15 @@ pub fn save_catalog(path: &Path, catalog: &BTreeMap<String, CatalogEntry>) -> Re
             continue;
         }
 
-        let mut pkg_obj = CclObject::new();
-        let pkg_map = pkg_obj.inner_mut();
+        let mut package = table();
+        let fields = package.as_table_mut().expect("just created a table");
 
         if let Some(ref desc) = entry.description {
-            pkg_map.insert(
-                "description".to_string(),
-                vec![CclObject::from_string(desc)],
-            );
+            fields.append("description", value(desc));
         }
 
         if let Some(ref homepage) = entry.homepage {
-            pkg_map.insert(
-                "homepage".to_string(),
-                vec![CclObject::from_string(homepage)],
-            );
+            fields.append("homepage", value(homepage));
         }
 
         if entry.verified {
@@ -157,15 +129,21 @@ pub fn save_catalog(path: &Path, catalog: &BTreeMap<String, CatalogEntry>) -> Re
                 .verified_date
                 .clone()
                 .unwrap_or_else(|| chrono::Local::now().format("%Y-%m-%d").to_string());
-            pkg_map.insert("verified".to_string(), vec![CclObject::from_string(&date)]);
+            fields.append("verified", value(date));
         }
 
-        map.insert(name.clone(), vec![pkg_obj]);
+        document.as_table_mut().append(name.as_str(), package);
     }
 
-    let printer = CclPrinter::new();
-    let output = printer.print(&obj);
-    fs::write(path, output).with_context(|| format!("Failed to write: {}", path.display()))?;
+    // Header comments read top-down, so insert them in order above the first entry.
+    if !document.is_empty() {
+        document.insert_comment_at(0, "Core package catalog")?;
+        document.insert_comment_at(0, "Source of truth for package identity and metadata")?;
+        document.insert_blank_line_at(0)?;
+    }
+
+    fs::write(path, document.to_string())
+        .with_context(|| format!("Failed to write: {}", path.display()))?;
 
     Ok(())
 }
@@ -185,56 +163,48 @@ pub fn read_source_file(path: &Path, source_name: &str) -> Result<Vec<SourceEntr
     let content = fs::read_to_string(path)
         .with_context(|| format!("Failed to read source file: {}", path.display()))?;
 
-    let model = sickle::load(&content)
+    let document = DocumentMut::parse(&content)
         .with_context(|| format!("Failed to parse source file: {}", path.display()))?;
 
     let mut entries = Vec::new();
 
-    for key in model.keys() {
-        // Skip comments and empty keys
+    for key in document.as_table().unique_keys() {
+        // Skip comment-shaped keys and bare list items
         if key.starts_with('/') || key.is_empty() {
             continue;
         }
 
-        let value = model.get(key)?;
+        let item = document
+            .as_table()
+            .get(key)
+            .expect("key came from the table");
 
         // Determine canonical name and config
-        let (canonical, config) = if value.is_empty() {
-            // Empty value means same name: `bat =`
-            (key.clone(), BTreeMap::new())
-        } else if let Some(s) = extract_string_value(value) {
-            if s.is_empty() {
-                (key.clone(), BTreeMap::new())
-            } else {
-                // Name override: `gh = github-cli`
-                (s, BTreeMap::new())
-            }
-        } else {
-            // Nested object with config
-            let mut config = BTreeMap::new();
-            let mut canonical = key.clone();
-
-            for nested_key in value.keys() {
-                if let Ok(nested_value) = value.get(nested_key) {
-                    if let Some(s) = extract_string_value(nested_value) {
-                        // Special handling for description - skip it for source entries
-                        if nested_key != "_description" {
-                            config.insert(nested_key.clone(), s);
-                        }
+        let (canonical, config) = match item {
+            // `bat =` keeps its own name; `gh = github-cli` overrides it.
+            Item::Value(scalar) if scalar.as_str().is_empty() => (key.to_string(), BTreeMap::new()),
+            Item::Value(scalar) => (scalar.as_str().to_string(), BTreeMap::new()),
+            Item::Table(fields) => {
+                let mut config = BTreeMap::new();
+                for field in fields.unique_keys() {
+                    // `_description` is catalog metadata, not source config
+                    if field == "_description" {
+                        continue;
+                    }
+                    if let Some(text) = fields.get(field).and_then(extract_string_value) {
+                        config.insert(field.to_string(), text);
                     }
                 }
+                let canonical = config
+                    .remove("_canonical")
+                    .unwrap_or_else(|| key.to_string());
+                (canonical, config)
             }
-
-            // Check if there's a canonical name override in config
-            if let Some(name) = config.remove("_canonical") {
-                canonical = name;
-            }
-
-            (canonical, config)
+            _ => (key.to_string(), BTreeMap::new()),
         };
 
         entries.push(SourceEntry {
-            source_name: key.clone(),
+            source_name: key.to_string(),
             canonical_name: canonical,
             source: source_name.to_string(),
             config,
@@ -300,22 +270,21 @@ mod tests {
 
     #[test]
     fn test_extract_string_value() {
-        let model = sickle::load("test = value").unwrap();
-        let value = model.get("test").unwrap();
-        assert_eq!(extract_string_value(value), Some("value".to_string()));
+        let doc = DocumentMut::parse("test = value").unwrap();
+        let item = doc.as_table().get("test").unwrap();
+        assert_eq!(extract_string_value(item), Some("value".to_string()));
     }
 
     #[test]
     fn test_extract_string_value_nested_returns_none() {
-        let model = sickle::load("test =\n  nested = value").unwrap();
-        let value = model.get("test").unwrap();
-        assert_eq!(extract_string_value(value), None);
+        let doc = DocumentMut::parse("test =\n  nested = value").unwrap();
+        let item = doc.as_table().get("test").unwrap();
+        assert_eq!(extract_string_value(item), None);
     }
 
     #[test]
     fn test_extract_string_value_empty_object() {
-        let obj = CclObject::new();
-        assert_eq!(extract_string_value(&obj), None);
+        assert_eq!(extract_string_value(&table()), None);
     }
 
     #[test]

@@ -1,6 +1,6 @@
 [package]
 name = "sickle"
-version = "0.4.0"
+version = "0.5.0"
 edition.workspace = true
 authors.workspace = true
 license.workspace = true
@@ -13,58 +13,23 @@ categories = ["config", "parser-implementations"]
 readme = "README.md"
 
 [features]
-# Default features - includes only essential functionality
-# Users opt-in to additional features as needed
+# Parsing, editing, and rendering are always available.
 default = []
 
+# Serde support: `sickle::de` and `sickle::ser`.
+serde = ["dep:serde", "dep:serde_derive"]
 
-# Core parsing - parse CCL to flat key-value entries
-parse = []
-
-# Hierarchy building - build hierarchical CclObject from entries (includes parse)
-hierarchy = ["parse"]
-
-# Serde deserialization: CCL string -> Rust types (includes hierarchy)
-serde-deserialize = ["hierarchy", "dep:serde", "dep:serde_derive"]
-
-# CCL printer - serialize CclObject back to canonical CCL text (includes hierarchy)
-printer = ["hierarchy"]
-
-# Serde serialization: Rust types -> CCL string (includes printer)
-serde-serialize = ["printer", "dep:serde", "dep:serde_derive"]
-
-# Both serde serialization and deserialization
-serde = ["serde-deserialize", "serde-serialize"]
-
-# Comment/format-preserving document edit API (load_document/deserialize/reserialize).
-# Requires both serde directions: deserialize for the typed view, serialize for the
-# canonical form that is merged back into the source document.
-document = ["serde"]
-
-# String interning for memory efficiency with large configs
+# String interning for memory efficiency with very large documents.
 intern = ["dep:string-interner"]
 
-# Reference implementation compatibility (opt-in for compatibility testing)
-# Note: Reverses duplicate-key list order to match reference implementation
-# Most users should NOT enable this - use insertion-order behavior (default)
-reference_compliant = []
+# Everything above.
+full = ["serde", "intern"]
 
-# All features enabled
-full = ["serde", "printer", "intern", "document"]
-# Unstable APIs - exposes internal functions for testing/experimentation
-# These APIs may change without notice
+# Spec-compliance surface used by the CCL test suites. Not covered by semver.
 unstable = []
 
-# Advanced parsing features (future)
-# section-headers = []      # Support == Section == style headers
-# typed-access = []         # Convenience methods: get_string, get_int, get_bool
-# list-indexing = []        # Advanced list operations and indexing
-
 [dependencies]
-# Data structures - IndexMap for insertion-order preservation
-indexmap = { version = "2.14.0", features = ["serde"] }
-
-# Optional: Serde support for deserialization
+# Optional: Serde support
 serde = { workspace = true, optional = true }
 serde_derive = { version = "1.0.228", optional = true }
 
@@ -83,8 +48,12 @@ path = "."
 features = ["full", "unstable"]
 
 [[example]]
-name = "basic_parsing"
-path = "examples/basic_parsing.rs"
+name = "documents"
+path = "examples/documents.rs"
+
+[[example]]
+name = "editing"
+path = "examples/editing.rs"
 
 [[example]]
 name = "serde_usage"

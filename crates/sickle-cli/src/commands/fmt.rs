@@ -21,10 +21,12 @@ pub(crate) fn run(args: FmtArgs) -> Result<()> {
     let source = InputSource::from_arg(args.file.as_deref());
     let input = source.read()?;
 
-    // Structure-preserving format: parse to entries, print back
-    let entries = sickle::parse(&input.content)
+    // Rewrite the document canonically: two-space indentation, `key = value`,
+    // and bare-list syntax for lists. Comments and blank lines are kept.
+    let mut document = sickle::DocumentMut::parse(&input.content)
         .map_err(|e| anyhow::anyhow!("{}: {}", input.source_name, e))?;
-    let formatted = sickle::printer::print(&entries);
+    document.fmt();
+    let formatted = document.to_string();
 
     if args.in_place {
         let path = args.file.as_ref().unwrap();

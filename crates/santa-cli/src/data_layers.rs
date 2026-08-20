@@ -133,7 +133,7 @@ impl DataLayerManager {
 
         // Validate that the content is valid CCL before saving
         let sources: SourcesDefinition =
-            sickle::from_str(&content).context("Downloaded content is not valid CCL")?;
+            sickle::de::from_str(&content).context("Downloaded content is not valid CCL")?;
 
         let count = sources.len();
 
@@ -160,7 +160,7 @@ impl DataLayerManager {
         let content = fs::read_to_string(&path)
             .with_context(|| format!("Failed to read downloaded sources from {:?}", path))?;
 
-        let sources: SourcesDefinition = sickle::from_str(&content)
+        let sources: SourcesDefinition = sickle::de::from_str(&content)
             .with_context(|| format!("Failed to parse downloaded sources from {:?}", path))?;
 
         debug!("Loaded {} downloaded sources", sources.len());
@@ -171,7 +171,7 @@ impl DataLayerManager {
     pub fn load_bundled_sources(&self) -> Result<SourcesDefinition> {
         let content = include_str!("../data/sources.ccl");
         let sources: SourcesDefinition =
-            sickle::from_str(content).context("Failed to parse bundled sources")?;
+            sickle::de::from_str(content).context("Failed to parse bundled sources")?;
         debug!("Loaded {} bundled sources", sources.len());
         Ok(sources)
     }
@@ -283,8 +283,8 @@ impl DataLayerManager {
             .to_string();
 
         // Validate that the content is valid CCL before saving
-        let packages: PackagesDefinition =
-            sickle::from_str(&content).context("Downloaded packages content is not valid CCL")?;
+        let packages: PackagesDefinition = sickle::de::from_str(&content)
+            .context("Downloaded packages content is not valid CCL")?;
 
         let count = packages.len();
 
@@ -311,7 +311,7 @@ impl DataLayerManager {
         let content = fs::read_to_string(&path)
             .with_context(|| format!("Failed to read downloaded packages from {:?}", path))?;
 
-        let packages: PackagesDefinition = sickle::from_str(&content)
+        let packages: PackagesDefinition = sickle::de::from_str(&content)
             .with_context(|| format!("Failed to parse downloaded packages from {:?}", path))?;
 
         debug!("Loaded {} downloaded packages", packages.len());
@@ -322,7 +322,7 @@ impl DataLayerManager {
     pub fn load_bundled_packages(&self) -> Result<PackagesDefinition> {
         let content = include_str!("../data/known_packages.ccl");
         let packages: PackagesDefinition =
-            sickle::from_str(content).context("Failed to parse bundled packages")?;
+            sickle::de::from_str(content).context("Failed to parse bundled packages")?;
         debug!("Loaded {} bundled packages", packages.len());
         Ok(packages)
     }

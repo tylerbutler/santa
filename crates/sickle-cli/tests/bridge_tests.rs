@@ -2,32 +2,34 @@
 mod bridge;
 
 use serde_json::json;
+use sickle::DocumentMut;
+
+fn to_value(ccl: &str) -> serde_json::Value {
+    let doc = DocumentMut::parse(ccl).unwrap();
+    bridge::document_to_value(&doc)
+}
 
 #[test]
 fn simple_string_value() {
-    let obj = sickle::load("name = Alice").unwrap();
-    let val = bridge::ccl_to_value(&obj);
+    let val = to_value("name = Alice");
     assert_eq!(val, json!({"name": "Alice"}));
 }
 
 #[test]
 fn multiple_keys() {
-    let obj = sickle::load("name = Alice\nage = 30").unwrap();
-    let val = bridge::ccl_to_value(&obj);
+    let val = to_value("name = Alice\nage = 30");
     assert_eq!(val, json!({"name": "Alice", "age": "30"}));
 }
 
 #[test]
 fn empty_value() {
-    let obj = sickle::load("key =").unwrap();
-    let val = bridge::ccl_to_value(&obj);
+    let val = to_value("key =");
     assert_eq!(val, json!({"key": ""}));
 }
 
 #[test]
 fn nested_object() {
-    let obj = sickle::load("server =\n  host = localhost\n  port = 8080").unwrap();
-    let val = bridge::ccl_to_value(&obj);
+    let val = to_value("server =\n  host = localhost\n  port = 8080");
     assert_eq!(
         val,
         json!({"server": {"host": "localhost", "port": "8080"}})
@@ -36,15 +38,13 @@ fn nested_object() {
 
 #[test]
 fn bare_list() {
-    let obj = sickle::load("items =\n  = apple\n  = banana").unwrap();
-    let val = bridge::ccl_to_value(&obj);
+    let val = to_value("items =\n  = apple\n  = banana");
     assert_eq!(val, json!({"items": ["apple", "banana"]}));
 }
 
 #[test]
 fn duplicate_key_list() {
-    let obj = sickle::load("tag = web\ntag = api").unwrap();
-    let val = bridge::ccl_to_value(&obj);
+    let val = to_value("tag = web\ntag = api");
     assert_eq!(val, json!({"tag": ["web", "api"]}));
 }
 

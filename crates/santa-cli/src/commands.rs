@@ -511,7 +511,7 @@ pub async fn add_command(
     }
 
     // Save config back to CCL format
-    let ccl_content = sickle::to_string(&config)
+    let ccl_content = sickle::ser::to_string(&config)
         .map_err(|e| SantaError::Config(format!("Failed to serialize config: {}", e)))?;
     std::fs::write(config_path, ccl_content).map_err(SantaError::Io)?;
 
@@ -559,7 +559,7 @@ pub async fn remove_command(
     }
 
     // Save config back to CCL format
-    let ccl_content = sickle::to_string(&config)
+    let ccl_content = sickle::ser::to_string(&config)
         .map_err(|e| SantaError::Config(format!("Failed to serialize config: {}", e)))?;
     std::fs::write(config_path, ccl_content).map_err(SantaError::Io)?;
 

@@ -7,7 +7,7 @@
 use anyhow::{Context, Result};
 use santa::catalog::{extract_string_value, load_catalog, save_catalog};
 use serde::Deserialize;
-use sickle::printer::CclPrinter;
+use sickle::{table, value, DocumentMut, Item};
 use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -106,29 +106,34 @@ fn load_existing_source(path: &Path) -> Result<BTreeMap<String, SourceEntry>> {
     let content =
         fs::read_to_string(path).with_context(|| format!("Failed to read: {}", path.display()))?;
 
-    let model =
-        sickle::load(&content).with_context(|| format!("Failed to parse: {}", path.display()))?;
+    let document = DocumentMut::parse(&content)
+        .with_context(|| format!("Failed to parse: {}", path.display()))?;
 
     let mut packages = BTreeMap::new();
 
-    for name in model.keys() {
+    for name in document.as_table().unique_keys() {
         if name.starts_with('/') || name.is_empty() {
             continue;
         }
 
-        let value = model.get(name)?;
-        let mut entry = SourceEntry::new(name.clone());
+        let item = document
+            .as_table()
+            .get(name)
+            .expect("key came from the table");
+        let mut entry = SourceEntry::new(name.to_string());
 
-        if let Some(override_name) = extract_string_value(value) {
-            if !override_name.is_empty() {
-                entry.override_name = Some(override_name);
+        match item {
+            Item::Value(scalar) if !scalar.as_str().is_empty() => {
+                entry.override_name = Some(scalar.as_str().to_string());
             }
-        } else if !value.is_empty() {
-            for key in value.keys() {
-                if let Some(val) = extract_string_value(value.get(key)?) {
-                    entry.config.insert(key.clone(), val);
+            Item::Table(fields) => {
+                for key in fields.unique_keys() {
+                    if let Some(val) = fields.get(key).and_then(extract_string_value) {
+                        entry.config.insert(key.to_string(), val);
+                    }
                 }
             }
+            _ => {}
         }
 
         packages.insert(name.to_lowercase(), entry);
@@ -167,11 +172,9 @@ fn write_source_file(
     source_name: &str,
     packages: &BTreeMap<String, SourceEntry>,
 ) -> Result<()> {
-    let mut obj = sickle::CclObject::new();
-    obj.add_comment(&format!("{} packages", capitalize(source_name)));
+    let mut document = DocumentMut::new();
 
-    let map = obj.inner_mut();
-
+    // Separate simple and complex entries
     let mut simple: Vec<&SourceEntry> = Vec::new();
     let mut complex: Vec<&SourceEntry> = Vec::new();
 
@@ -183,40 +186,46 @@ fn write_source_file(
         }
     }
 
+    // Sort by name
     simple.sort_by(|a, b| a.name.to_lowercase().cmp(&b.name.to_lowercase()));
     complex.sort_by(|a, b| a.name.to_lowercase().cmp(&b.name.to_lowercase()));
 
     for entry in &simple {
-        map.insert(entry.name.clone(), vec![sickle::CclObject::empty()]);
+        document
+            .as_table_mut()
+            .append(entry.name.as_str(), value(""));
     }
 
-    if !complex.is_empty() {
-        map.insert(String::new(), vec![sickle::CclObject::empty()]);
-        map.insert(
-            "/= Packages with overrides or config".to_string(),
-            vec![sickle::CclObject::empty()],
-        );
-
-        for entry in &complex {
-            if let Some(ref override_name) = entry.override_name {
-                map.insert(
-                    entry.name.clone(),
-                    vec![sickle::CclObject::from_string(override_name)],
-                );
-            } else if !entry.config.is_empty() {
-                let mut nested = sickle::CclObject::new();
-                let nested_map = nested.inner_mut();
-                for (k, v) in &entry.config {
-                    nested_map.insert(k.clone(), vec![sickle::CclObject::from_string(v)]);
-                }
-                map.insert(entry.name.clone(), vec![nested]);
+    let mut first_complex: Option<String> = None;
+    for entry in &complex {
+        if let Some(ref override_name) = entry.override_name {
+            document
+                .as_table_mut()
+                .append(entry.name.as_str(), value(override_name));
+        } else if !entry.config.is_empty() {
+            let mut nested = table();
+            let fields = nested.as_table_mut().expect("just created a table");
+            for (key, val) in &entry.config {
+                fields.append(key.as_str(), value(val));
             }
+            document.as_table_mut().append(entry.name.as_str(), nested);
+        } else {
+            continue;
         }
+        first_complex.get_or_insert_with(|| entry.name.clone());
     }
 
-    let printer = CclPrinter::new();
-    let output = printer.print(&obj);
-    fs::write(path, output).with_context(|| format!("Failed to write: {}", path.display()))?;
+    // Header and section comments are trivia above the entries they introduce.
+    if !document.is_empty() {
+        document.insert_comment_at(0, &format!("{} packages", capitalize(source_name)))?;
+    }
+    if let Some(name) = first_complex {
+        document.insert_blank_line_before([name.as_str()])?;
+        document.insert_comment_before([name.as_str()], "Packages with overrides or config")?;
+    }
+
+    fs::write(path, document.to_string())
+        .with_context(|| format!("Failed to write: {}", path.display()))?;
 
     Ok(())
 }

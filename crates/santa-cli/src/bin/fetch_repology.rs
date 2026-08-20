@@ -8,7 +8,7 @@ use chrono::Utc;
 use clap::{Parser, Subcommand};
 use dialoguer::Confirm;
 use serde::{Deserialize, Serialize};
-use sickle::CclObject;
+use sickle::{DocumentMut, Item};
 use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -828,13 +828,9 @@ struct CrossrefPackage {
     name: String,
 }
 
-/// Extract string value from CCL object (pattern from generate_index.rs)
-fn extract_string_value(obj: &CclObject) -> Option<String> {
-    if obj.len() == 1 && obj.values().next().unwrap().is_empty() {
-        Some(obj.keys().next().unwrap().clone())
-    } else {
-        None
-    }
+/// Extract a scalar value from a CCL node.
+fn extract_string_value(item: &Item) -> Option<String> {
+    item.as_str().map(str::to_string)
 }
 
 /// Read verified packages from the catalog using sickle
@@ -846,20 +842,22 @@ fn get_verified_packages(catalog_path: &Path) -> Result<BTreeSet<String>> {
     }
 
     let content = fs::read_to_string(catalog_path)?;
-    let model = sickle::load(&content)
+    let document = DocumentMut::parse(&content)
         .with_context(|| format!("Failed to parse catalog: {}", catalog_path.display()))?;
 
-    for key in model.keys() {
-        // Skip comments and empty keys
+    for key in document.as_table().unique_keys() {
+        // Skip comment-shaped keys and bare list items
         if key.starts_with('/') || key.is_empty() {
             continue;
         }
 
-        if let Ok(value) = model.get(key) {
-            // Check if this package has a verified field
-            if value.get("verified").is_ok() {
-                verified.insert(key.clone());
-            }
+        let has_verified = document
+            .as_table()
+            .get(key)
+            .and_then(Item::as_table)
+            .is_some_and(|fields| fields.contains_key("verified"));
+        if has_verified {
+            verified.insert(key.to_string());
         }
     }
 
@@ -917,39 +915,29 @@ fn read_source_ccl(path: &Path, source_name: &str) -> Result<Vec<SourceEntry>> {
     let content = fs::read_to_string(path)
         .with_context(|| format!("Failed to read source file: {}", path.display()))?;
 
-    let model = sickle::load(&content)
+    let document = DocumentMut::parse(&content)
         .with_context(|| format!("Failed to parse source file: {}", path.display()))?;
 
     let mut entries = Vec::new();
 
-    for key in model.keys() {
-        // Skip comments and empty keys
+    for key in document.as_table().unique_keys() {
+        // Skip comment-shaped keys and bare list items
         if key.starts_with('/') || key.is_empty() {
             continue;
         }
 
-        let value = model.get(key)?;
+        let item = document
+            .as_table()
+            .get(key)
+            .expect("key came from the table");
 
-        // Determine canonical name:
-        // - If value is empty object, canonical = source_name (e.g., "bat =")
-        // - If value is a string, that's the canonical (e.g., "gh = github-cli")
-        // - If value is a nested object, check for nested keys
-        let canonical = if value.is_empty() {
-            // Empty value means same name
-            key.clone()
-        } else if let Some(s) = extract_string_value(value) {
-            if s.is_empty() {
-                key.clone()
-            } else {
-                s
-            }
-        } else {
-            // Nested object - canonical is the key itself
-            key.clone()
-        };
+        // `gh = github-cli` renames the package; anything else keeps its own name.
+        let canonical = extract_string_value(item)
+            .filter(|s| !s.is_empty())
+            .unwrap_or_else(|| key.to_string());
 
         entries.push(SourceEntry {
-            source_name: key.clone(),
+            source_name: key.to_string(),
             canonical_name: canonical,
             source: source_name.to_string(),
         });

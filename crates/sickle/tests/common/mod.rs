@@ -279,26 +279,26 @@ pub struct TestSuite {
 pub struct ImplementationConfig {
     /// Supported functions (e.g., "parse", "build_hierarchy", "get_string")
     pub supported_functions: HashSet<String>,
-    /// Supported boolean behaviors (access-time configurable via BoolOptions)
+    /// Supported boolean behaviors (access-time configurable via `Options`)
     /// When both are present, the test runner selects based on test behaviors
     pub supported_boolean_behaviors: HashSet<BooleanBehavior>,
-    /// Supported CRLF behaviors (parse-time configurable via ParserOptions)
+    /// Supported CRLF behaviors (parse-time configurable via `Options`)
     /// When both are present, the test runner selects based on test behaviors
     pub supported_crlf_behaviors: HashSet<CRLFBehavior>,
-    /// Supported spacing behaviors (parse-time configurable via ParserOptions)
+    /// Supported spacing behaviors (parse-time configurable via `Options`)
     /// When both are present, the test runner selects based on test behaviors
     pub supported_spacing_behaviors: HashSet<SpacingBehavior>,
-    /// Supported tab behaviors (parse-time configurable via ParserOptions)
+    /// Supported tab behaviors (parse-time configurable via `Options`)
     /// When both are present, the test runner selects based on test behaviors
     pub supported_tab_behaviors: HashSet<TabBehavior>,
     /// Type-safe array ordering behavior choice
     pub array_order_behavior: ArrayOrderBehavior,
     /// Supported variants (e.g., "reference_compliant", excluding "proposed_behavior")
     pub supported_variants: HashSet<String>,
-    /// Supported list coercion behaviors (access-time configurable via ListOptions)
+    /// Supported list coercion behaviors (access-time configurable via `Options`)
     /// When both are present, the test runner will use the appropriate option based on the test
     pub supported_list_coercion_behaviors: HashSet<ListCoercionBehavior>,
-    /// Supported delimiter strategy behaviors (parse-time configurable via ParserOptions)
+    /// Supported delimiter strategy behaviors (parse-time configurable via `Options`)
     /// When both are present, the test runner selects based on test behaviors
     pub supported_delimiter_behaviors: HashSet<DelimiterBehavior>,
 }
@@ -363,34 +363,28 @@ impl ImplementationConfig {
             .iter()
             .map(|s| s.to_string())
             .collect(),
-            // Boolean is access-time configurable via BoolOptions - we support both
+            // Boolean is access-time configurable via `Options` - we support both
             supported_boolean_behaviors: [BooleanBehavior::Strict, BooleanBehavior::Lenient]
                 .into_iter()
                 .collect(),
-            // CRLF is parse-time configurable via ParserOptions - we support both
+            // CRLF is parse-time configurable via `Options` - we support both
             supported_crlf_behaviors: [CRLFBehavior::PreserveLiteral, CRLFBehavior::NormalizeToLF]
                 .into_iter()
                 .collect(),
-            // Spacing is parse-time configurable via ParserOptions - we support both
+            // Spacing is parse-time configurable via `Options` - we support both
             supported_spacing_behaviors: [SpacingBehavior::Strict, SpacingBehavior::Loose]
                 .into_iter()
                 .collect(),
-            // Tab handling is parse-time configurable via ParserOptions - we support both
+            // Tab handling is parse-time configurable via `Options` - we support both
             supported_tab_behaviors: [TabBehavior::Preserve, TabBehavior::ToSpaces]
                 .into_iter()
                 .collect(),
             array_order_behavior: ArrayOrderBehavior::Insertion,
-            // The reference_compliant variant is supported when the feature is enabled.
-            // When enabled, tests expecting insertion order (variants: []) are skipped,
-            // and tests expecting reverse order (variants: ["reference_compliant"]) run.
-            #[cfg(feature = "reference_compliant")]
-            supported_variants: ["reference_compliant"]
-                .iter()
-                .map(|s| s.to_string())
-                .collect(),
-            #[cfg(not(feature = "reference_compliant"))]
+            // Sickle keeps duplicate keys in source order. The reference
+            // implementation reverses them, so tests carrying the
+            // `reference_compliant` variant are skipped.
             supported_variants: HashSet::new(),
-            // List coercion is access-time configurable via ListOptions.
+            // List coercion is access-time configurable via `Options`.
             // Only `Disabled` is supported: `Enabled` requires collecting duplicate
             // scalar keys (and `key =` empty values) into a list, which the model
             // layer's get_list_with_options(.with_coerce()) does not yet implement
@@ -398,7 +392,7 @@ impl ImplementationConfig {
             supported_list_coercion_behaviors: [ListCoercionBehavior::Disabled]
                 .into_iter()
                 .collect(),
-            // Delimiter strategy is parse-time configurable via ParserOptions - we support both
+            // Delimiter strategy is parse-time configurable via `Options` - we support both
             supported_delimiter_behaviors: [
                 DelimiterBehavior::FirstEquals,
                 DelimiterBehavior::PreferSpaced,

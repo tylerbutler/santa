@@ -1,676 +1,129 @@
-//! # Sickle - CCL Parser for Rust
+//! # Sickle — a round-tripping CCL parser and editor
 //!
-//! Sickle is a robust parser for CCL (Categorical Configuration Language) with optional Serde support.
+//! Sickle parses [CCL](https://ccl.tylerbutler.com) into a mutable syntax tree
+//! that remembers its source text. Reading, editing, and writing a document
+//! preserves comments, blank lines, key order, duplicate keys, indentation, and
+//! spacing wherever they were not changed.
 //!
-//! ## Features
+//! ```
+//! use sickle::DocumentMut;
 //!
-//! - **Two API styles**: Direct `Model` navigation or Serde deserialization
-//! - **Complete CCL support**: Lists, nested records, multiline values, comments
-//! - **Memory efficient**: Optional string interning via feature flag
-//! - **Well-tested**: Comprehensive test suite with property-based tests
+//! let source = "/= service\nname = api\nport = 8080\n";
+//! let mut doc: DocumentMut = source.parse().unwrap();
 //!
-//! ## Quick Start
+//! assert_eq!(doc.get_string(["name"]).unwrap(), "api");
+//! assert_eq!(doc.get_int(["port"]).unwrap(), 8080);
 //!
-//! ### Direct API
-//!
-//! ```rust
-//! use sickle::load;
-//!
-//! let ccl = r#"
-//! name = Santa
-//! version = 0.1.0
-//! "#;
-//!
-//! let model = load(ccl).unwrap();
-//! assert_eq!(model.get_string("name").unwrap(), "Santa");
+//! doc.set_int(["port"], 9090).unwrap();
+//! assert_eq!(doc.to_string(), "/= service\nname = api\nport = 9090\n");
 //! ```
 //!
-//! ### Serde Integration (requires "serde" feature)
+//! ## The tree
 //!
-//! ```rust
-//! use serde::Deserialize;
-//! use sickle::from_str;
+//! * [`DocumentMut`] is the root; it owns a [`Table`] and the [`Options`] used
+//!   to parse it.
+//! * [`Item`] is a node: [`Item::Value`] (a scalar), [`Item::Table`] (a nested
+//!   block), [`Item::Array`] (a list), or [`Item::None`] (absent).
+//! * [`Key`], [`Decor`], and [`RawString`] carry the formatting that makes
+//!   round-tripping possible.
 //!
-//! #[derive(Deserialize)]
-//! struct Config {
-//!     name: String,
-//!     version: String,
-//! }
+//! Build nodes with [`value()`], [`table()`], and [`array()`].
 //!
-//! let ccl = r#"
-//! name = MyApp
-//! version = 1.0.0
-//! "#;
+//! ## Raw versus checked editing
 //!
-//! let config: Config = from_str(ccl).unwrap();
-//! assert_eq!(config.name, "MyApp");
-//! assert_eq!(config.version, "1.0.0");
+//! Two styles are available, and they compose freely:
+//!
+//! * **Raw** — [`Table::get`], [`Table::insert`], [`Table::entry`], and
+//!   `Index`/`IndexMut`. Terse, but indexing panics on a missing key and
+//!   `IndexMut` auto-vivifies, exactly like `toml_edit`.
+//! * **Checked** — [`DocumentMut::get_string`], [`DocumentMut::set_list`],
+//!   [`DocumentMut::remove`], [`DocumentMut::insert_comment_before`], and
+//!   friends. These take a path and return [`GetError`] or [`EditError`] with
+//!   the full path that failed. Always prefer these for user-controlled paths.
+//!
+//! ```
+//! use sickle::{table, value, DocumentMut};
+//!
+//! let mut doc = DocumentMut::new();
+//!
+//! // raw
+//! doc.as_table_mut().insert("server", table());
+//! doc["server"]["host"] = value("localhost");
+//!
+//! // checked
+//! doc.set_int(["server", "port"], 8080).unwrap();
+//! assert!(doc.get_string(["server", "missing"]).is_err());
+//!
+//! assert_eq!(doc.to_string(), "server =\n  host = localhost\n  port = 8080");
 //! ```
 //!
-//! ## Capabilities
+//! ## How CCL differs from TOML
 //!
-//! For a comprehensive list of all supported CCL functions and parser behaviors:
+//! The shape of the API follows `toml_edit`, but the semantics are CCL's:
 //!
-//! - **Auto-generated documentation**: See [docs/capabilities.md](https://github.com/tylerbutler/santa/blob/main/crates/sickle/docs/capabilities.md)
-//! - Dynamically generated from test data with coverage statistics
-//! - Run `just sickle-capabilities` to regenerate
+//! * There is **one scalar kind**: text. [`Value::as_integer`],
+//!   [`Value::as_float`], and [`Value::as_bool`] are checked views over that
+//!   text, so numeric and boolean spelling always round-trips exactly.
+//! * There are **no inline tables, no arrays of tables, and no date-times**.
+//!   CCL cannot spell them, so Sickle does not pretend otherwise.
+//! * **Duplicate keys are legal** and meaningful: they read as a list.
+//! * **Lists have two spellings** — a bare-list block (`= item` lines) and a
+//!   repeated key — modelled by [`ArrayKind`].
+//! * **Comments (`/= text`) and blank lines are trivia**, stored in [`Decor`].
+//!   They never appear as table keys, so iteration and Serde maps stay clean.
+//! * Behavior that the CCL specification leaves open — spacing around `=`,
+//!   delimiter choice, tabs, CRLF, boolean strictness, list coercion — is
+//!   configured through [`Options`].
 //!
-//! ## Cargo Features
+//! ## Serde
 //!
-//! By default, sickle includes only the core types (`CclObject`, `Entry`, `Error`).
-//! Enable features to add functionality:
+//! With the `serde` feature, [`de::from_str`] and [`ser::to_string`] map CCL to
+//! and from Rust types. Typed editing composes explicitly: deserialize, mutate,
+//! then write the values back through the checked API so comments survive.
 //!
-//! - `parse`: Core parsing (`parse`, `parse_indented`) - returns flat key-value entries
-//! - `hierarchy`: Build hierarchical model (`build_hierarchy`, `load`) - includes `parse`
-//! - `printer`: CCL printer for serializing back to canonical CCL text - includes `hierarchy`
-//! - `serde-deserialize`: Serde deserialization (`from_str`) - includes `hierarchy`
-//! - `serde-serialize`: Serde serialization (`to_string`) - includes `printer`
-//! - `serde`: Both serialization and deserialization
-//! - `document`: Comment/format-preserving edit API ([`load_document`], [`Document`], [`update_str`], [`edit_str`])
-//! - `intern`: String interning for memory efficiency with large configs
-//! - `full`: Enable all features
+//! ## Cargo features
 //!
-//! ### Future Features (Planned)
-//!
-//! - `section-headers`: Support `== Section ==` style headers
-//! - `typed-access`: Convenience methods like `get_string()`, `get_int()`
-//! - `list-indexing`: Advanced list operations and indexing
+//! * *(default)* — parsing, editing, and rendering.
+//! * `serde` — [`de`] and [`ser`].
+//! * `intern` — string interning for very large documents.
+//! * `full` — everything above.
+//! * `unstable` — a spec-compliance surface used by the CCL test suites. Not
+//!   covered by semantic versioning.
 
-pub mod error;
-pub mod model;
-pub mod options;
-pub mod reader;
+#![warn(missing_docs)]
 
-#[cfg(feature = "parse")]
+mod encode;
+mod lexer;
 mod parser;
 
-#[cfg(feature = "printer")]
-pub mod printer;
+pub mod document;
+pub mod error;
+pub mod item;
+pub mod options;
+pub mod path;
+pub mod repr;
+pub mod table;
+pub mod value;
 
-#[cfg(feature = "serde-deserialize")]
+#[cfg(feature = "serde")]
 pub mod de;
-
-#[cfg(feature = "serde-serialize")]
+#[cfg(feature = "serde")]
 pub mod ser;
 
-#[cfg(feature = "document")]
-pub mod document;
+#[cfg(feature = "unstable")]
+pub mod unstable;
 
-#[cfg(feature = "document")]
-pub use document::{edit_str, load_document, update_str, Document};
+pub use document::{parse, parse_with, DocumentMut};
+pub use error::{EditError, Error, ExpectedType, GetError, ParseError, Position, Result};
+pub use item::{array, table, value, Item};
+pub use options::{
+    BoolBehavior, CrlfBehavior, DelimiterStrategy, ListBehavior, Options, SpacingBehavior,
+    TabBehavior,
+};
+pub use path::{IntoPath, PathSegment};
+pub use repr::{Decor, Key, RawString};
+pub use table::{compose, Array, ArrayKind, Entry, OccupiedEntry, Table, VacantEntry};
+pub use value::Value;
 
-pub use error::{Error, Result};
-pub use model::{BoolOptions, CclObject, Entry, ListOptions};
-pub use reader::CclReader;
-
-// Re-export options types for crate-internal use
-// ParserOptions is pub(crate) for now until API stabilizes
-pub use options::{CrlfBehavior, DelimiterStrategy, ParserOptions, SpacingBehavior, TabBehavior};
-
-#[cfg(feature = "printer")]
-pub use printer::{print, round_trip, CclPrinter, PrinterConfig};
-
-/// Parse a CCL string into a flat list of entries
-///
-/// This is the first step of CCL processing, returning key-value pairs
-/// without building the hierarchical structure. Use `build_hierarchy()` to
-/// construct the hierarchical model from these entries.
-///
-/// Requires the `parse` feature.
-///
-/// # Examples
-///
-/// ```rust
-/// use sickle::parse;
-///
-/// let ccl = r#"
-/// name = MyApp
-/// version = 1.0.0
-/// "#;
-///
-/// let entries = parse(ccl).unwrap();
-/// assert_eq!(entries.len(), 2);
-/// assert_eq!(entries[0].key, "name");
-/// assert_eq!(entries[0].value, "MyApp");
-/// ```
-#[cfg(feature = "parse")]
-pub fn parse(input: &str) -> Result<Vec<Entry>> {
-    parse_with_options_internal(input, &ParserOptions::default())
-}
-
-/// Parse a CCL string into a flat list of entries with custom options
-///
-/// This allows configuring parsing behavior such as:
-/// - Spacing around `=` (strict vs loose)
-/// - Tab handling (preserve vs convert to spaces)
-/// - CRLF handling (preserve vs normalize to LF)
-///
-/// Requires the `parse` and `unstable` features.
-///
-/// **Note**: This API is unstable and may change. Use [`parse`] for stable API.
-#[cfg(all(feature = "parse", feature = "unstable"))]
-pub fn parse_with_options(input: &str, options: &ParserOptions) -> Result<Vec<Entry>> {
-    parse_with_options_internal(input, options)
-}
-
-/// Internal implementation of parse_with_options
-#[cfg(feature = "parse")]
-fn parse_with_options_internal(input: &str, options: &ParserOptions) -> Result<Vec<Entry>> {
-    // Return entries in original insertion order (not grouped by key).
-    // This preserves interleaving of duplicate keys, which is essential
-    // for structure-preserving print(): print(parse(x)) == x
-    parser::parse_to_entries(input, options)
-}
-
-/// Build a hierarchical Model from a flat list of entries
-///
-/// This is the second step of CCL processing, taking the entries from `parse()`
-/// and constructing a hierarchical structure with proper nesting and type inference.
-///
-/// Requires the `hierarchy` feature.
-///
-/// # Examples
-///
-/// ```rust
-/// use sickle::{parse, build_hierarchy};
-///
-/// let ccl = r#"
-/// name = MyApp
-/// version = 1.0.0
-/// "#;
-///
-/// let entries = parse(ccl).unwrap();
-/// let model = build_hierarchy(&entries).unwrap();
-/// assert_eq!(model.get_string("name").unwrap(), "MyApp");
-/// ```
-#[cfg(feature = "hierarchy")]
-pub fn build_hierarchy(entries: &[Entry]) -> Result<CclObject> {
-    // Group entries by key (preserving order with IndexMap)
-    let mut map: indexmap::IndexMap<String, Vec<String>> = indexmap::IndexMap::new();
-
-    for entry in entries {
-        map.entry(entry.key.clone())
-            .or_default()
-            .push(entry.value.clone());
-    }
-
-    build_model(map)
-}
-
-/// Check if a string looks like a valid CCL key for recursive parsing detection.
-///
-/// When a value contains `=`, we try parsing it as nested CCL. If the parser doesn't
-/// find a valid ` = ` delimiter, the entire string becomes a single key. We detect this
-/// by rejecting keys that look like misinterpreted value strings (contain ` = ` pattern).
-/// Keys may contain spaces (for lines without `=`) and special characters like
-/// `/`, `\`, `:`, `@`, `#`, `[]`, `()` etc.
-#[cfg(feature = "hierarchy")]
-fn is_valid_ccl_key(key: &str) -> bool {
-    if key.is_empty() {
-        return true; // Empty keys are valid (for lists)
-    }
-
-    // Must not start with a hyphen (command-line flag)
-    if key.starts_with('-') {
-        return false;
-    }
-
-    // Keys containing ` = ` are likely misinterpreted value strings where the parser
-    // failed to find a delimiter and treated the whole line as a key.
-    // However, keys without `=` at all are valid (lines without delimiter become keys).
-    if key.contains(" = ") || key.contains(" =\t") {
-        return false;
-    }
-
-    true
-}
-
-/// Maximum recursion depth for nested CCL parsing.
-///
-/// This prevents stack overflow from deeply nested or adversarially crafted input.
-#[cfg(feature = "hierarchy")]
-const MAX_RECURSION_DEPTH: usize = 64;
-
-/// Internal helper: Build a Model from the grouped key-value map
-///
-/// Following the CCL desugaring rules:
-/// - `key = value` becomes `{"key": [{"value": [{}]}]}`
-/// - `key =` (empty value) becomes `{"key": [{"": [{}]}]}`
-/// - Multiple values become Vec entries for the same key
-/// - Nested CCL is recursively parsed
-#[cfg(feature = "hierarchy")]
-fn build_model(map: indexmap::IndexMap<String, Vec<String>>) -> Result<CclObject> {
-    build_model_with_depth(map, 0)
-}
-
-/// Depth-aware implementation of [`build_model`].
-#[cfg(feature = "hierarchy")]
-fn build_model_with_depth(
-    map: indexmap::IndexMap<String, Vec<String>>,
-    depth: usize,
-) -> Result<CclObject> {
-    if depth > MAX_RECURSION_DEPTH {
-        return Err(Error::ParseError(format!(
-            "maximum recursion depth ({MAX_RECURSION_DEPTH}) exceeded"
-        )));
-    }
-    let mut result = indexmap::IndexMap::new();
-
-    for (key, values) in map {
-        // Reference implementation iterates hash tables in lexical order
-        // Sort ONLY for non-empty duplicate keys
-        // Empty keys (bare list items) maintain insertion order
-        #[cfg(feature = "reference_compliant")]
-        let values = {
-            let mut v = values;
-            if v.len() > 1 && !key.is_empty() {
-                v.sort();
-            }
-            v
-        };
-
-        // Build Vec of CclObjects for this key
-        let mut nested_values = Vec::new();
-
-        for value in values {
-            if value.contains('\n') && value.contains('=') {
-                // Multiline value containing '=' - might be nested CCL
-                // Only multiline values (with newlines) can be nested structures.
-                // Inline values like "b = c=d" are plain strings, not nested CCL.
-                // Try to parse recursively with depth tracking
-                match load_with_depth(&value, depth + 1) {
-                    Ok(parsed) => {
-                        // Check if this looks like valid CCL structure
-                        if !parsed.is_empty() {
-                            // Check if all keys look like valid CCL keys
-                            let has_valid_keys = parsed.keys().all(|k| is_valid_ccl_key(k));
-
-                            if has_valid_keys {
-                                // It's valid nested CCL, add it to our values
-                                nested_values.push(parsed);
-                            } else {
-                                // Keys don't look like valid CCL, treat as string value
-                                nested_values.push(CclObject::from_string(value));
-                            }
-                        } else {
-                            // Empty parsed result, treat as string value
-                            nested_values.push(CclObject::from_string(value));
-                        }
-                    }
-                    Err(Error::ParseError(ref msg)) if msg.contains("recursion depth") => {
-                        // Propagate recursion depth errors instead of silently swallowing
-                        return Err(Error::ParseError(msg.clone()));
-                    }
-                    Err(_) => {
-                        // Failed to parse for other reasons, treat as string value
-                        nested_values.push(CclObject::from_string(value));
-                    }
-                }
-            } else if value.starts_with(' ') || value.starts_with('\t') {
-                // Single-line value with leading whitespace — this is an indented
-                // child line (key without `=`). Trim and treat as a nested key.
-                let trimmed = value.trim();
-                if !trimmed.is_empty() && !trimmed.contains('=') {
-                    let child = CclObject::from_string(String::new());
-                    let mut parent_map = indexmap::IndexMap::new();
-                    parent_map.insert(trimmed.to_string(), vec![child]);
-                    nested_values.push(CclObject::from_map(parent_map));
-                } else {
-                    nested_values.push(CclObject::from_string(value));
-                }
-            } else {
-                // Plain string value (single line)
-                nested_values.push(CclObject::from_string(value));
-            }
-        }
-
-        // Handle duplicate keys according to CCL semantics:
-        // - Empty keys (bare list items): always keep as Vec
-        // - Non-empty keys with simple string values (like "item = first"): keep as list
-        // - Non-empty keys with nested objects: compose them into a single object
-        //
-        // We determine if values are "simple strings" by checking if each has
-        // exactly one key with an empty child (the pattern for string values)
-        if !key.is_empty() && nested_values.len() > 1 {
-            let all_simple_strings = nested_values.iter().all(|obj| {
-                // A simple string value has exactly one key, and that key maps to empty
-                obj.len() == 1 && obj.iter().next().is_some_and(|(_, v)| v.is_empty())
-            });
-
-            if all_simple_strings {
-                // Keep as list - these are string values like "item = first"
-                result.insert(key, nested_values);
-            } else {
-                // Compose into single object - these are nested structures
-                let composed = nested_values
-                    .iter()
-                    .fold(CclObject::new(), |acc, obj| acc.compose(obj));
-                result.insert(key, vec![composed]);
-            }
-        } else {
-            result.insert(key, nested_values);
-        }
-    }
-
-    Ok(CclObject::from_map(result))
-}
-
-/// Parse a CCL value string with automatic prefix detection
-///
-/// Calculates the common indentation prefix and treats all lines at that
-/// prefix level (or less) as top-level entries, returning a flat list of
-/// key-value pairs.
-///
-/// This is used for parsing nested CCL values where the entire block may be
-/// indented in the parent context.
-///
-/// Requires the `parse` feature.
-///
-/// # Examples
-///
-/// ```rust
-/// use sickle::parse_indented;
-///
-/// let nested = "  servers = web1\n  servers = web2\n  cache = redis";
-/// let entries = parse_indented(nested).unwrap();
-/// assert_eq!(entries.len(), 3);
-/// ```
-#[cfg(feature = "parse")]
-pub fn parse_indented(input: &str) -> Result<Vec<Entry>> {
-    parse_indented_with_options_internal(input, &ParserOptions::default())
-}
-
-/// Parse a CCL value string with automatic prefix detection and custom options
-///
-/// Like [`parse_indented`], but allows configuring parsing behavior.
-///
-/// Requires the `parse` and `unstable` features.
-///
-/// **Note**: This API is unstable and may change. Use [`parse_indented`] for stable API.
-#[cfg(all(feature = "parse", feature = "unstable"))]
-pub fn parse_indented_with_options(input: &str, options: &ParserOptions) -> Result<Vec<Entry>> {
-    parse_indented_with_options_internal(input, options)
-}
-
-/// Internal implementation of parse_indented_with_options
-#[cfg(feature = "parse")]
-fn parse_indented_with_options_internal(
-    input: &str,
-    options: &ParserOptions,
-) -> Result<Vec<Entry>> {
-    // Find the minimum indentation level (common prefix)
-    let min_indent = input
-        .lines()
-        .filter(|line| !line.trim().is_empty())
-        .map(|line| line.len() - line.trim_start().len())
-        .min()
-        .unwrap_or(0);
-
-    // Remove the common prefix from all lines
-    // Tab handling depends on options
-    let dedented = input
-        .lines()
-        .map(|line| {
-            // For dedenting calculation, we always need tabs converted to spaces
-            // to properly calculate character positions
-            let for_dedent = line.replace('\t', " ");
-
-            if for_dedent.trim().is_empty() {
-                // Empty/whitespace line: preserve original if preserving tabs, else use converted
-                options.process_tabs(line).into_owned()
-            } else if for_dedent.len() > min_indent {
-                if options.preserve_tabs() {
-                    // Preserve original line but remove min_indent chars
-                    if line.len() > min_indent {
-                        line[min_indent..].to_string()
-                    } else {
-                        line.trim_start().to_string()
-                    }
-                } else {
-                    for_dedent[min_indent..].to_string()
-                }
-            } else if options.preserve_tabs() {
-                line.trim_start().to_string()
-            } else {
-                for_dedent.trim_start().to_string()
-            }
-        })
-        .collect::<Vec<_>>()
-        .join("\n");
-
-    // After dedenting, all lines at the original min_indent level are now at indent 0
-    // Count how many entries exist at indent 0 (the dedented base level)
-    let entries_at_min_indent = dedented
-        .lines()
-        .filter(|line| {
-            let indent = line.len() - line.trim_start().len();
-            indent == 0 && line.trim().contains('=')
-        })
-        .count();
-
-    // If there are multiple entries at min_indent level, parse flat
-    // Otherwise, parse as single entry with raw nested content
-    if entries_at_min_indent > 1 {
-        parse_flat_entries(&dedented, options)
-    } else {
-        parse_single_entry_with_raw_value(&dedented, options)
-    }
-}
-
-/// Parse all key=value pairs from input as flat entries, handling indentation
-///
-/// Rules:
-/// - Lines with `=` at any level become separate entries (dedented)
-/// - Lines without `=` that are indented become value continuations of the previous entry
-/// - Lines without `=` at indent 0 become entries with empty values
-#[cfg(feature = "parse")]
-fn parse_flat_entries(input: &str, options: &ParserOptions) -> Result<Vec<Entry>> {
-    let mut entries = Vec::new();
-
-    for line in input.lines() {
-        // Skip empty lines
-        if line.trim().is_empty() {
-            continue;
-        }
-
-        let indent = line.len() - line.trim_start().len();
-        let trimmed = line.trim();
-
-        if trimmed.contains('=') {
-            // Line with '=' → new entry (dedented)
-            if let Some(eq_pos) = trimmed.find('=') {
-                let key = trimmed[..eq_pos].trim().to_string();
-                let value_raw = &trimmed[eq_pos + 1..];
-                let value = if options.is_strict_spacing() {
-                    value_raw
-                        .trim_start_matches(' ')
-                        .trim_end_matches(' ')
-                        .to_string()
-                } else {
-                    value_raw.trim().to_string()
-                };
-                entries.push(Entry::new(key, value));
-            }
-        } else if indent > 0 && !entries.is_empty() {
-            let last = entries.last().unwrap();
-            if !last.value.is_empty() {
-                // Indented line without '=' after entry with value → continuation
-                let last: &mut Entry = entries.last_mut().unwrap();
-                last.value.push('\n');
-                last.value.push_str(line);
-            } else {
-                // Indented line without '=' after entry with empty value → new entry (dedented)
-                entries.push(Entry::new(trimmed.to_string(), String::new()));
-            }
-        } else if !entries.is_empty() {
-            // Unindented line without '=' after a bare-list/empty-key entry → continuation
-            let last = entries.last().unwrap();
-            if last.key.is_empty() {
-                let last: &mut Entry = entries.last_mut().unwrap();
-                last.value.push('\n');
-                last.value.push_str(trimmed);
-            } else {
-                // Unindented line without '=' → new entry with empty value
-                entries.push(Entry::new(trimmed.to_string(), String::new()));
-            }
-        } else {
-            // First line without '=' → entry with empty value
-            entries.push(Entry::new(trimmed.to_string(), String::new()));
-        }
-    }
-
-    Ok(entries)
-}
-
-/// Parse input as a single entry, preserving the raw value including indentation
-#[cfg(feature = "parse")]
-fn parse_single_entry_with_raw_value(input: &str, options: &ParserOptions) -> Result<Vec<Entry>> {
-    // Find the first line with '='
-    let mut lines = input.lines();
-    let first_line = lines.next().unwrap_or("");
-
-    if let Some(eq_pos) = first_line.find('=') {
-        let key = first_line[..eq_pos].trim().to_string();
-        let first_value = first_line[eq_pos + 1..].trim_start().to_string();
-
-        // Collect remaining lines as the value, preserving indentation
-        let remaining_lines: Vec<&str> = lines.collect();
-        let value = if !remaining_lines.is_empty() {
-            // Combine first line value with remaining lines
-            let joined = if first_value.trim().is_empty() {
-                // First line has no value after '=', so value is just the remaining lines
-                "\n".to_string() + &remaining_lines.join("\n")
-            } else {
-                // First line has a value, append remaining lines
-                first_value + "\n" + &remaining_lines.join("\n")
-            };
-            // Process tabs based on options
-            options.process_tabs(&joined).into_owned()
-        } else {
-            first_value
-        };
-
-        Ok(vec![Entry::new(key, value)])
-    } else {
-        // No '=' found, treat as key with empty value
-        Ok(vec![Entry::new(
-            first_line.trim().to_string(),
-            String::new(),
-        )])
-    }
-}
-
-/// Load and parse a CCL document into a hierarchical Model using default options
-///
-/// This is a convenience function that combines `parse()` and `build_hierarchy()`.
-/// Equivalent to: `build_hierarchy(&parse(input)?)`
-///
-/// Requires the `hierarchy` feature.
-///
-/// # Examples
-///
-/// ```rust
-/// use sickle::load;
-///
-/// let ccl = r#"
-/// name = MyApp
-/// version = 1.0.0
-/// "#;
-///
-/// let model = load(ccl).unwrap();
-/// assert_eq!(model.get_string("name").unwrap(), "MyApp");
-/// ```
-#[cfg(feature = "hierarchy")]
-pub fn load(input: &str) -> Result<CclObject> {
-    load_with_options_internal(input, &ParserOptions::default())
-}
-
-/// Load and parse a CCL document with custom options
-///
-/// This is a convenience function that combines `parse_with_options()` and `build_hierarchy()`.
-///
-/// Requires the `hierarchy` and `unstable` features.
-///
-/// **Note**: This API is unstable and may change. Use [`load`] for stable API.
-#[cfg(all(feature = "hierarchy", feature = "unstable"))]
-pub fn load_with_options(input: &str, options: &ParserOptions) -> Result<CclObject> {
-    load_with_options_internal(input, options)
-}
-
-/// Internal implementation of load_with_options
-#[cfg(feature = "hierarchy")]
-fn load_with_options_internal(input: &str, options: &ParserOptions) -> Result<CclObject> {
-    let entries = parse_with_options_internal(input, options)?;
-    build_hierarchy(&entries)
-}
-
-/// Depth-aware load used by [`build_model_with_depth`] to thread recursion depth
-/// through the `parse -> build_hierarchy -> build_model` chain.
-#[cfg(feature = "hierarchy")]
-fn load_with_depth(input: &str, depth: usize) -> Result<CclObject> {
-    let entries = parse_with_options_internal(input, &ParserOptions::default())?;
-
-    // Inline build_hierarchy logic so we can pass depth through to build_model_with_depth
-    let mut map: indexmap::IndexMap<String, Vec<String>> = indexmap::IndexMap::new();
-    for entry in &entries {
-        map.entry(entry.key.clone())
-            .or_default()
-            .push(entry.value.clone());
-    }
-
-    build_model_with_depth(map, depth)
-}
-
-#[cfg(feature = "serde-deserialize")]
-pub use de::{from_str, from_str_with_options};
-
-#[cfg(feature = "serde-serialize")]
-pub use ser::{to_string, to_string_with_config};
-
-// Unit tests removed - all functionality is covered by data-driven tests in:
-// - api_core_ccl_parsing.json (basic parsing, multiline values, equals in values)
-// - api_core_ccl_hierarchy.json (build_hierarchy, nested structures, duplicate keys to lists)
-// - api_typed_access.json (get_int, get_bool, get_string, get_float)
-// - api_comments.json (comment preservation)
-// - api_list_access.json (list access and manipulation)
-// - api_proposed_behavior.json (proposed behavior, currently excluded)
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_recursion_depth_limit() {
-        // Build input that would recurse MAX_RECURSION_DEPTH + 1 times.
-        // Each level is a multiline value containing "=" so build_model recurses.
-        let mut input = String::from("a = b");
-        for _ in 0..=MAX_RECURSION_DEPTH {
-            // Wrap the previous input as a nested multiline value
-            let indented: String = input.lines().map(|l| format!("  {l}\n")).collect();
-            input = format!("outer =\n{indented}");
-        }
-
-        let result = load(&input);
-        assert!(
-            result.is_err(),
-            "expected a recursion depth error, got: {result:?}"
-        );
-
-        let err = result.unwrap_err();
-        assert!(
-            err.to_string().contains("recursion depth"),
-            "error should mention recursion depth, got: {err}"
-        );
-    }
-
-    #[test]
-    fn test_normal_nesting_still_works() {
-        // A few levels of nesting should work fine
-        let input = "outer =\n  inner = value";
-        let result = load(input);
-        assert!(
-            result.is_ok(),
-            "moderate nesting should succeed: {result:?}"
-        );
-    }
-}
+#[cfg(feature = "serde")]
+pub use error::{DeserializeError, SerializeError};
