@@ -1,3 +1,0 @@
-project: santa-data
-kind: Breaking
-body: Add `#[non_exhaustive]` to public structs to allow adding fields without breaking changes
