@@ -321,9 +321,10 @@ cargo run -- install bat
 - Reusable library
 - CCL configuration parsing
 
-**sickle** - CCL parser library
-- General-purpose CCL parsing
-- Serde support
+**sickle** - CCL parser and editor library
+- Round-tripping CCL syntax tree (`DocumentMut`)
+- Checked path reads and edits
+- Optional Serde support
 
 ### Build System
 

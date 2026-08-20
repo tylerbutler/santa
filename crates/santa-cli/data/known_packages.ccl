@@ -1590,6 +1590,7 @@ zsh-syntax-highlighting =
 zstd =
   = brew
   = scoop
+
 /= Packages with complex format (have source-specific overrides or descriptions)
 aria2 =
   _description = Lightweight and easy-to-use download utility; it supports HTTP/HTTPS, FTP, SFTP, BitTorrent, Metalink and multiple sources; cross-platform.

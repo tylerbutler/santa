@@ -17,26 +17,34 @@ crates/
 
 General-purpose CCL (Categorical Configuration Language) parser. Published independently to crates.io.
 
+Sickle exposes a single round-tripping syntax tree: parsing keeps every node's source text, so an
+unmodified document renders back byte-for-byte and only edited nodes are rewritten.
+
 ```
 crates/sickle/src/
-├── lib.rs          # Public API and feature-gated exports
-├── parser.rs       # Core CCL text parser (flat key-value entries)
-├── model.rs        # CclObject, CclValue, CclEntry data types
+├── lib.rs          # Public API
+├── lexer.rs        # Line-level CCL rules (delimiters, indentation, tabs, CRLF)
+├── parser.rs       # Builds the syntax tree from lexed lines
+├── encode.rs       # Renders the tree back to text
+├── document.rs     # DocumentMut: the root, parsing, and rendering
+├── table.rs        # Table, Array, entry APIs, CCL composition
+├── item.rs         # Item: the node type
+├── value.rs        # Value: CCL's single scalar kind
+├── repr.rs         # Key, Decor, RawString (formatting metadata)
+├── path.rs         # Checked path reads and edits
 ├── de.rs           # Serde deserializer (CCL string → Rust types)
 ├── ser.rs          # Serde serializer (Rust types → CCL string)
-├── printer.rs      # Canonical CCL text output
-├── options.rs      # Parser configuration options
-└── error.rs        # Error types
+├── options.rs      # Parse-time and access-time behavior options
+├── error.rs        # ParseError, GetError, EditError, and the unified Error
+└── unstable.rs     # Flat-entry surface used by the CCL conformance suites
 ```
 
 **Feature flags** control what functionality is compiled:
-- `parse` - Core parsing to flat entries
-- `hierarchy` - Build nested CclObject from entries (includes `parse`)
-- `serde-deserialize` - CCL → Rust via Serde (includes `hierarchy`)
-- `serde-serialize` - Rust → CCL via Serde (includes `hierarchy`)
-- `serde` - Both serialize and deserialize
-- `full` - All features
-- `printer` - Canonical text output
+- *(default)* - Parsing, editing, and rendering
+- `serde` - `sickle::de` and `sickle::ser`
+- `intern` - String interning for very large documents
+- `full` - Everything above
+- `unstable` - Spec-compliance surface; not covered by semver
 
 ### santa-data (Data Models)
 

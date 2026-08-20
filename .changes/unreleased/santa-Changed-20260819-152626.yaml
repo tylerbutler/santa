@@ -1,0 +1,4 @@
+project: santa
+kind: Changed
+body: Migrate catalog and package-data tooling to sickle's mutable document API
+time: 2026-08-19T15:26:26.044000-07:00

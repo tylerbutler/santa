@@ -4,7 +4,7 @@
 //! package index and distributes packages to their respective source files.
 
 use anyhow::{Context, Result};
-use sickle::printer::CclPrinter;
+use sickle::{table, value, DocumentMut, Item};
 use std::collections::BTreeMap;
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -34,13 +34,9 @@ impl SourceEntry {
     }
 }
 
-/// Extract string from CclObject (single key with empty value)
-fn extract_string_value(obj: &sickle::CclObject) -> Option<String> {
-    if obj.len() == 1 && obj.values().next().unwrap().is_empty() {
-        Some(obj.keys().next().unwrap().clone())
-    } else {
-        None
-    }
+/// Extract a scalar value from a CCL node.
+fn extract_string_value(item: &Item) -> Option<String> {
+    item.as_str().map(str::to_string)
 }
 
 /// Parse known_packages.ccl and return packages grouped by source
@@ -48,85 +44,83 @@ fn parse_known_packages(path: &Path) -> Result<BTreeMap<String, Vec<SourceEntry>
     let content =
         fs::read_to_string(path).with_context(|| format!("Failed to read: {}", path.display()))?;
 
-    let model = sickle::load(&content)
+    let document = DocumentMut::parse(&content)
         .with_context(|| format!("Failed to parse CCL: {}", path.display()))?;
 
     let mut by_source: BTreeMap<String, Vec<SourceEntry>> = BTreeMap::new();
 
-    for package_name in model.keys() {
-        // Skip comments
+    for package_name in document.as_table().unique_keys() {
+        // Skip comment-shaped keys and bare list items
         if package_name.starts_with('/') || package_name.is_empty() {
             continue;
         }
 
-        let value = model.get(package_name)?;
-
-        if value.is_empty() {
+        let Some(package) = document.as_table().get(package_name) else {
             continue;
-        }
+        };
 
         let mut found_sources = false;
 
-        // Check for list format (empty key with Vec of source CclObjects)
-        // This handles: package = \n  = brew \n  = scoop
-        if let Ok(list_values) = value.get_all("") {
-            for source_obj in list_values {
-                // Each source_obj has the source name as its key
-                for source in source_obj.keys() {
-                    if !source.is_empty() && !source.starts_with('/') {
-                        by_source
-                            .entry(source.clone())
-                            .or_default()
-                            .push(SourceEntry::new(package_name.clone()));
+        if let Some(fields) = package.as_table() {
+            for key in fields.unique_keys() {
+                if key.starts_with('/') {
+                    continue;
+                }
+
+                let item = fields.get(key).expect("key came from the table");
+
+                if key.is_empty() {
+                    continue;
+                }
+
+                if key == "_sources" {
+                    // List of simple sources inside a complex package
+                    if let Some(sources) = item.as_array() {
+                        for source in sources.iter().filter_map(|i| i.as_str()) {
+                            by_source
+                                .entry(source.to_string())
+                                .or_default()
+                                .push(SourceEntry::new(package_name.to_string()));
+                            found_sources = true;
+                        }
+                    }
+                } else if key.starts_with('_') {
+                    continue;
+                } else if let Some(override_name) = extract_string_value(item) {
+                    // Source with a name override: `brew = rg`
+                    let mut entry = SourceEntry::new(package_name.to_string());
+                    if !override_name.is_empty() {
+                        entry.override_name = Some(override_name);
+                    }
+                    by_source.entry(key.to_string()).or_default().push(entry);
+                    found_sources = true;
+                } else if let Some(config) = item.as_table() {
+                    // Complex config: `brew =` followed by an indented block
+                    let mut entry = SourceEntry::new(package_name.to_string());
+                    for config_key in config.unique_keys() {
+                        if config_key.is_empty() {
+                            continue;
+                        }
+                        if let Some(val) = config.get(config_key).and_then(extract_string_value) {
+                            entry.config.insert(config_key.to_string(), val);
+                        }
+                    }
+                    if !entry.config.is_empty() {
+                        by_source.entry(key.to_string()).or_default().push(entry);
                         found_sources = true;
                     }
                 }
             }
         }
 
-        // Check for complex format with named sources
-        for key in value.keys() {
-            if key.is_empty() || key.starts_with('/') {
-                continue;
-            }
-
-            let nested = value.get(key)?;
-
-            if key == "_sources" {
-                // List of simple sources in complex package
-                if let Ok(source_list) = nested.get_all("") {
-                    for source_obj in source_list {
-                        for source in source_obj.keys() {
-                            if !source.is_empty() {
-                                by_source
-                                    .entry(source.clone())
-                                    .or_default()
-                                    .push(SourceEntry::new(package_name.clone()));
-                                found_sources = true;
-                            }
-                        }
-                    }
-                }
-            } else if key == "_description" || key.starts_with('_') {
-                continue;
-            } else if let Some(override_name) = extract_string_value(nested) {
-                // Source with name override: brew = rg
-                let mut entry = SourceEntry::new(package_name.clone());
-                entry.override_name = Some(override_name);
-                by_source.entry(key.clone()).or_default().push(entry);
-                found_sources = true;
-            } else if !nested.is_empty() {
-                // Complex config: brew = \n  pre = something
-                let mut entry = SourceEntry::new(package_name.clone());
-                for config_key in nested.keys() {
-                    if !config_key.is_empty() {
-                        if let Some(config_val) = extract_string_value(nested.get(config_key)?) {
-                            entry.config.insert(config_key.clone(), config_val);
-                        }
-                    }
-                }
-                if !entry.config.is_empty() {
-                    by_source.entry(key.clone()).or_default().push(entry);
+        // Simple format: `package =` followed by an indented bare list.
+        if let Some(sources) = package.as_array() {
+            for source in sources.iter().filter_map(|i| i.as_str()) {
+                if !source.is_empty() && !source.starts_with('/') {
+                    by_source
+                        .entry(source.to_string())
+                        .or_default()
+                        .push(SourceEntry::new(package_name.to_string()));
                     found_sources = true;
                 }
             }
@@ -149,30 +143,34 @@ fn load_existing_source(path: &Path) -> Result<BTreeMap<String, SourceEntry>> {
     let content =
         fs::read_to_string(path).with_context(|| format!("Failed to read: {}", path.display()))?;
 
-    let model =
-        sickle::load(&content).with_context(|| format!("Failed to parse: {}", path.display()))?;
+    let document = DocumentMut::parse(&content)
+        .with_context(|| format!("Failed to parse: {}", path.display()))?;
 
     let mut packages = BTreeMap::new();
 
-    for name in model.keys() {
+    for name in document.as_table().unique_keys() {
         if name.starts_with('/') || name.is_empty() {
             continue;
         }
 
-        let value = model.get(name)?;
-        let mut entry = SourceEntry::new(name.clone());
+        let item = document
+            .as_table()
+            .get(name)
+            .expect("key came from the table");
+        let mut entry = SourceEntry::new(name.to_string());
 
-        if let Some(override_name) = extract_string_value(value) {
-            if !override_name.is_empty() {
-                entry.override_name = Some(override_name);
+        match item {
+            Item::Value(scalar) if !scalar.as_str().is_empty() => {
+                entry.override_name = Some(scalar.as_str().to_string());
             }
-        } else if !value.is_empty() {
-            // Complex config
-            for key in value.keys() {
-                if let Some(val) = extract_string_value(value.get(key)?) {
-                    entry.config.insert(key.clone(), val);
+            Item::Table(fields) => {
+                for key in fields.unique_keys() {
+                    if let Some(val) = fields.get(key).and_then(extract_string_value) {
+                        entry.config.insert(key.to_string(), val);
+                    }
                 }
             }
+            _ => {}
         }
 
         packages.insert(name.to_lowercase(), entry);
@@ -212,10 +210,7 @@ fn write_source_file(
     source_name: &str,
     packages: &BTreeMap<String, SourceEntry>,
 ) -> Result<()> {
-    let mut obj = sickle::CclObject::new();
-    obj.add_comment(&format!("{} packages", capitalize(source_name)));
-
-    let map = obj.inner_mut();
+    let mut document = DocumentMut::new();
 
     // Separate simple and complex entries
     let mut simple: Vec<&SourceEntry> = Vec::new();
@@ -233,39 +228,42 @@ fn write_source_file(
     simple.sort_by(|a, b| a.name.to_lowercase().cmp(&b.name.to_lowercase()));
     complex.sort_by(|a, b| a.name.to_lowercase().cmp(&b.name.to_lowercase()));
 
-    // Add simple packages
     for entry in &simple {
-        map.insert(entry.name.clone(), vec![sickle::CclObject::empty()]);
+        document
+            .as_table_mut()
+            .append(entry.name.as_str(), value(""));
     }
 
-    // Add complex packages
-    if !complex.is_empty() {
-        map.insert(String::new(), vec![sickle::CclObject::empty()]);
-        map.insert(
-            "/= Packages with overrides or config".to_string(),
-            vec![sickle::CclObject::empty()],
-        );
-
-        for entry in &complex {
-            if let Some(ref override_name) = entry.override_name {
-                map.insert(
-                    entry.name.clone(),
-                    vec![sickle::CclObject::from_string(override_name)],
-                );
-            } else if !entry.config.is_empty() {
-                let mut nested = sickle::CclObject::new();
-                let nested_map = nested.inner_mut();
-                for (k, v) in &entry.config {
-                    nested_map.insert(k.clone(), vec![sickle::CclObject::from_string(v)]);
-                }
-                map.insert(entry.name.clone(), vec![nested]);
+    let mut first_complex: Option<String> = None;
+    for entry in &complex {
+        if let Some(ref override_name) = entry.override_name {
+            document
+                .as_table_mut()
+                .append(entry.name.as_str(), value(override_name));
+        } else if !entry.config.is_empty() {
+            let mut nested = table();
+            let fields = nested.as_table_mut().expect("just created a table");
+            for (key, val) in &entry.config {
+                fields.append(key.as_str(), value(val));
             }
+            document.as_table_mut().append(entry.name.as_str(), nested);
+        } else {
+            continue;
         }
+        first_complex.get_or_insert_with(|| entry.name.clone());
     }
 
-    let printer = CclPrinter::new();
-    let output = printer.print(&obj);
-    fs::write(path, output).with_context(|| format!("Failed to write: {}", path.display()))?;
+    // Header and section comments are trivia above the entries they introduce.
+    if !document.is_empty() {
+        document.insert_comment_at(0, &format!("{} packages", capitalize(source_name)))?;
+    }
+    if let Some(name) = first_complex {
+        document.insert_blank_line_before([name.as_str()])?;
+        document.insert_comment_before([name.as_str()], "Packages with overrides or config")?;
+    }
+
+    fs::write(path, document.to_string())
+        .with_context(|| format!("Failed to write: {}", path.display()))?;
 
     Ok(())
 }
@@ -330,4 +328,24 @@ fn main() -> Result<()> {
     );
 
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn parses_simple_bare_list_packages() {
+        let path = Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("data")
+            .join("known_packages.ccl");
+        let by_source = parse_known_packages(&path).unwrap();
+
+        for source in ["brew", "scoop"] {
+            assert!(
+                by_source[source].iter().any(|entry| entry.name == "act"),
+                "expected simple package act in {source}"
+            );
+        }
+    }
 }

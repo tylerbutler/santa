@@ -1,180 +1,225 @@
-//! Parse-time configuration options for CCL parsing behavior
+//! Configurable CCL behaviors.
 //!
-//! This module provides configurable behaviors that affect how CCL text is parsed.
-//! These options are applied at parse time when calling `parse_with_options()` or
-//! `load_with_options()`. All options have sensible defaults that match the reference
-//! implementation.
+//! CCL leaves a handful of behaviors up to the implementation. Sickle collects
+//! all of them — both parse-time and access-time — into a single [`Options`]
+//! value so a document, its typed reads, and its Serde views all agree.
 //!
-//! Note: Options that only affect specific APIs (like boolean parsing for `get_bool()`)
-//! are not included here - they belong with those APIs. See `ListOptions` for access-time
-//! configuration.
+//! Defaults match the reference implementation: loose spacing, first-`=`
+//! delimiter, tabs and CRLF preserved verbatim, strict booleans, and no list
+//! coercion. See the [CCL behavior reference](https://ccl.tylerbutler.com/behavior-reference/).
 
-/// How to handle spacing around the `=` delimiter
+use std::borrow::Cow;
+
+/// How to handle spacing around the `=` delimiter.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum SpacingBehavior {
-    /// Strict spacing: requires spaces around `=` (e.g., `key = value`)
-    /// When strict, `key=value` is treated as a key with no value.
+    /// Require spaces around `=` (`key = value`). `key=value` becomes a key
+    /// with no value.
     Strict,
-    /// Loose spacing: allows any whitespace (including tabs) or no whitespace
-    /// around `=` (e.g., `key=value`, `key  =  value`, `key\t=\tvalue`)
-    /// This is the default and matches the reference implementation.
+    /// Accept any whitespace, including none, around `=`. This is the default
+    /// and matches the reference implementation.
     #[default]
     Loose,
 }
 
-/// Strategy for choosing which `=` sign is the key-value delimiter
-///
-/// When a line contains multiple `=` characters, the delimiter strategy
-/// determines which one splits the key from the value.
+/// Which `=` on a line separates the key from the value.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum DelimiterStrategy {
-    /// Always split on the first `=` character.
-    /// This matches the OCaml reference implementation.
-    /// Keys cannot contain `=` with this strategy.
+    /// Always split on the first `=`. Keys cannot contain `=`.
     ///
-    /// Example: `a=b=c` → key `a`, value `b=c`
+    /// `a=b=c` parses as key `a`, value `b=c`.
     #[default]
     FirstEquals,
-    /// Prefer ` = ` (space-equals-space) as the delimiter when present.
-    /// Falls back to the first `=` if no spaced delimiter exists.
-    /// This allows keys to contain `=` when the actual delimiter is
-    /// surrounded by spaces.
-    ///
-    /// Examples:
-    /// - `https://x.com?q=1 = result` → key `https://x.com?q=1`, value `result`
-    /// - `key=value` → key `key`, value `value` (fallback, no ` = `)
-    /// - `key = value` → key `key`, value `value`
+    /// Prefer ` = ` when present, falling back to the first `=`. This lets keys
+    /// contain `=`, e.g. `https://x.com?q=1 = result`.
     PreferSpaced,
 }
 
-/// How to handle tab characters in parsed content
+/// How to handle tab characters in parsed content.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum TabBehavior {
-    /// Preserve tabs as-is in values (default)
+    /// Keep tabs verbatim in values (default).
     #[default]
     Preserve,
-    /// Convert tabs to spaces (single space per tab)
+    /// Replace each tab with a single space.
     ToSpaces,
 }
 
-/// How to handle CRLF line endings
+/// How to handle CRLF line endings.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum CrlfBehavior {
-    /// Preserve CRLF line endings in values (default)
+    /// Keep `\r\n` verbatim (default).
     #[default]
     Preserve,
-    /// Normalize CRLF to LF
+    /// Rewrite `\r\n` to `\n` before parsing.
     NormalizeToLf,
 }
 
-/// Parse-time configuration options for CCL parsing
-///
-/// Controls parsing behaviors that can differ between implementations.
-/// All options default to the reference implementation's behavior.
-///
-/// These options affect how the raw CCL text is tokenized and parsed.
-/// They are applied once at parse time and cannot be changed after parsing.
-/// Options that only affect specific accessor methods (like `get_bool()`)
-/// are configured separately on those methods (see `ListOptions` for access-time options).
-#[derive(Debug, Clone, Default)]
-pub struct ParserOptions {
-    /// How to handle spacing around `=`
-    pub spacing: SpacingBehavior,
-    /// How to handle tab characters
-    pub tabs: TabBehavior,
-    /// How to handle CRLF line endings
-    pub crlf: CrlfBehavior,
-    /// Strategy for choosing which `=` is the delimiter
-    pub delimiter: DelimiterStrategy,
+/// How strictly scalars are read as booleans.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum BoolBehavior {
+    /// Only `true`/`false` (case-insensitive). This is the default.
+    #[default]
+    Strict,
+    /// Also accept `yes`/`no`, `on`/`off`, and `1`/`0` (case-insensitive).
+    Lenient,
 }
 
-impl ParserOptions {
-    /// Create new parser options with default (strict/reference-compliant) settings
+/// Whether single values can be read as one-element lists.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum ListBehavior {
+    /// List reads only succeed on actual lists. This is the default.
+    #[default]
+    Strict,
+    /// A single scalar is wrapped into a one-element list.
+    Coerce,
+}
+
+/// Parse-time and access-time CCL behavior settings.
+///
+/// ```
+/// use sickle::{DocumentMut, Options, BoolBehavior};
+///
+/// let doc = DocumentMut::parse_with("enabled = yes", &Options::new()).unwrap();
+/// assert!(doc.get_bool(["enabled"]).is_err());
+///
+/// let lenient = Options::new().with_bool(BoolBehavior::Lenient);
+/// let doc = DocumentMut::parse_with("enabled = yes", &lenient).unwrap();
+/// assert!(doc.get_bool(["enabled"]).unwrap());
+/// ```
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+pub struct Options {
+    /// Spacing requirements around `=`.
+    pub spacing: SpacingBehavior,
+    /// Tab handling.
+    pub tabs: TabBehavior,
+    /// CRLF handling.
+    pub crlf: CrlfBehavior,
+    /// Delimiter selection strategy.
+    pub delimiter: DelimiterStrategy,
+    /// Boolean strictness for typed reads.
+    pub boolean: BoolBehavior,
+    /// List coercion for typed reads.
+    pub list: ListBehavior,
+}
+
+impl Options {
+    /// Options matching the reference implementation's defaults.
     pub fn new() -> Self {
         Self::default()
     }
 
-    /// Create parser options with loose/permissive settings
-    ///
-    /// This enables:
-    /// - Loose spacing (accepts `key=value`, `key = value`, etc.)
-    /// - Tab-to-spaces conversion
-    /// - CRLF normalization to LF
-    /// - Prefer-spaced delimiter strategy (allows `=` in keys)
+    /// Permissive options: loose spacing, tabs converted to spaces, CRLF
+    /// normalized, spaced-delimiter preference, lenient booleans, and list
+    /// coercion.
     pub fn permissive() -> Self {
         Self {
             spacing: SpacingBehavior::Loose,
             tabs: TabBehavior::ToSpaces,
             crlf: CrlfBehavior::NormalizeToLf,
             delimiter: DelimiterStrategy::PreferSpaced,
+            boolean: BoolBehavior::Lenient,
+            list: ListBehavior::Coerce,
         }
     }
 
-    /// Set the spacing behavior
+    /// Set the spacing behavior.
     pub fn with_spacing(mut self, spacing: SpacingBehavior) -> Self {
         self.spacing = spacing;
         self
     }
 
-    /// Set the tab handling behavior
+    /// Set the tab handling behavior.
     pub fn with_tabs(mut self, tabs: TabBehavior) -> Self {
         self.tabs = tabs;
         self
     }
 
-    /// Set the CRLF handling behavior
+    /// Set the CRLF handling behavior.
     pub fn with_crlf(mut self, crlf: CrlfBehavior) -> Self {
         self.crlf = crlf;
         self
     }
 
-    /// Set the delimiter strategy
+    /// Set the delimiter strategy.
     pub fn with_delimiter(mut self, delimiter: DelimiterStrategy) -> Self {
         self.delimiter = delimiter;
         self
     }
 
-    /// Check if spacing is strict
-    pub(crate) fn is_strict_spacing(&self) -> bool {
+    /// Set the boolean strictness used by typed reads.
+    pub fn with_bool(mut self, boolean: BoolBehavior) -> Self {
+        self.boolean = boolean;
+        self
+    }
+
+    /// Set the list coercion behavior used by typed reads.
+    pub fn with_list(mut self, list: ListBehavior) -> Self {
+        self.list = list;
+        self
+    }
+
+    /// Whether spacing around `=` is strict.
+    pub fn is_strict_spacing(&self) -> bool {
         matches!(self.spacing, SpacingBehavior::Strict)
     }
 
-    /// Check if delimiter strategy prefers spaced delimiters
-    pub(crate) fn prefer_spaced_delimiter(&self) -> bool {
+    /// Whether the spaced ` = ` delimiter is preferred.
+    pub fn prefers_spaced_delimiter(&self) -> bool {
         matches!(self.delimiter, DelimiterStrategy::PreferSpaced)
     }
 
-    /// Check if tabs should be preserved
-    pub(crate) fn preserve_tabs(&self) -> bool {
+    /// Whether tabs are preserved verbatim.
+    pub fn preserves_tabs(&self) -> bool {
         matches!(self.tabs, TabBehavior::Preserve)
     }
 
-    /// Check if CRLF should be preserved
-    pub(crate) fn preserve_crlf(&self) -> bool {
+    /// Whether CRLF sequences are preserved verbatim.
+    pub fn preserves_crlf(&self) -> bool {
         matches!(self.crlf, CrlfBehavior::Preserve)
     }
 
-    /// Process tabs in a string based on the configured tab behavior
-    ///
-    /// - `Preserve`: returns the string unchanged
-    /// - `ToSpaces`: replaces each tab with a single space
-    pub(crate) fn process_tabs<'a>(&self, s: &'a str) -> std::borrow::Cow<'a, str> {
-        if self.preserve_tabs() {
-            std::borrow::Cow::Borrowed(s)
+    /// Whether booleans are read leniently.
+    pub fn is_lenient_bool(&self) -> bool {
+        matches!(self.boolean, BoolBehavior::Lenient)
+    }
+
+    /// Whether single values coerce into one-element lists.
+    pub fn coerces_lists(&self) -> bool {
+        matches!(self.list, ListBehavior::Coerce)
+    }
+
+    pub(crate) fn process_tabs<'a>(&self, s: &'a str) -> Cow<'a, str> {
+        if self.preserves_tabs() {
+            Cow::Borrowed(s)
         } else {
-            std::borrow::Cow::Owned(s.replace('\t', " "))
+            Cow::Owned(s.replace('\t', " "))
         }
     }
 
-    /// Process CRLF line endings based on the configured CRLF behavior
-    ///
-    /// - `Preserve`: returns the string unchanged
-    /// - `NormalizeToLf`: replaces CRLF with LF
-    pub(crate) fn process_crlf<'a>(&self, s: &'a str) -> std::borrow::Cow<'a, str> {
-        if self.preserve_crlf() {
-            std::borrow::Cow::Borrowed(s)
+    pub(crate) fn process_crlf<'a>(&self, s: &'a str) -> Cow<'a, str> {
+        if self.preserves_crlf() {
+            Cow::Borrowed(s)
         } else {
-            std::borrow::Cow::Owned(s.replace("\r\n", "\n"))
+            Cow::Owned(s.replace("\r\n", "\n"))
+        }
+    }
+
+    /// Parse `text` as a boolean using the configured strictness.
+    pub(crate) fn parse_bool(&self, text: &str) -> Option<bool> {
+        let lower = text.to_lowercase();
+        if self.is_lenient_bool() {
+            match lower.as_str() {
+                "true" | "yes" | "on" | "1" => Some(true),
+                "false" | "no" | "off" | "0" => Some(false),
+                _ => None,
+            }
+        } else {
+            match lower.as_str() {
+                "true" => Some(true),
+                "false" => Some(false),
+                _ => None,
+            }
         }
     }
 }
@@ -184,79 +229,56 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_default_options() {
-        let opts = ParserOptions::new();
-        // Default is loose spacing (matches reference implementation)
+    fn defaults_match_reference_behavior() {
+        let opts = Options::new();
         assert!(!opts.is_strict_spacing());
-        assert!(opts.preserve_tabs());
-        assert!(opts.preserve_crlf());
+        assert!(opts.preserves_tabs());
+        assert!(opts.preserves_crlf());
+        assert!(!opts.prefers_spaced_delimiter());
+        assert!(!opts.is_lenient_bool());
+        assert!(!opts.coerces_lists());
     }
 
     #[test]
-    fn test_permissive_options() {
-        let opts = ParserOptions::permissive();
-        assert!(!opts.is_strict_spacing());
-        assert!(!opts.preserve_tabs());
-        assert!(!opts.preserve_crlf());
+    fn permissive_flips_every_behavior() {
+        let opts = Options::permissive();
+        assert!(!opts.preserves_tabs());
+        assert!(!opts.preserves_crlf());
+        assert!(opts.prefers_spaced_delimiter());
+        assert!(opts.is_lenient_bool());
+        assert!(opts.coerces_lists());
     }
 
     #[test]
-    fn test_builder_pattern() {
-        let opts = ParserOptions::new()
-            .with_spacing(SpacingBehavior::Loose)
-            .with_tabs(TabBehavior::ToSpaces);
-
-        assert!(!opts.is_strict_spacing());
-        assert!(!opts.preserve_tabs());
-        // Others remain default
-        assert!(opts.preserve_crlf());
+    fn builder_methods_are_independent() {
+        let opts = Options::new()
+            .with_tabs(TabBehavior::ToSpaces)
+            .with_bool(BoolBehavior::Lenient);
+        assert!(!opts.preserves_tabs());
+        assert!(opts.is_lenient_bool());
+        assert!(opts.preserves_crlf());
     }
 
     #[test]
-    fn test_process_tabs_preserve() {
-        let opts = ParserOptions::new(); // Default preserves tabs
-        let input = "hello\tworld";
-        let result = opts.process_tabs(input);
-        assert_eq!(result, "hello\tworld");
+    fn tab_and_crlf_processing() {
+        let to_spaces = Options::new().with_tabs(TabBehavior::ToSpaces);
+        assert_eq!(to_spaces.process_tabs("a\tb"), "a b");
+        assert_eq!(Options::new().process_tabs("a\tb"), "a\tb");
+
+        let normalize = Options::new().with_crlf(CrlfBehavior::NormalizeToLf);
+        assert_eq!(normalize.process_crlf("a\r\nb"), "a\nb");
+        assert_eq!(Options::new().process_crlf("a\r\nb"), "a\r\nb");
     }
 
     #[test]
-    fn test_process_tabs_to_spaces() {
-        let opts = ParserOptions::new().with_tabs(TabBehavior::ToSpaces);
-        let input = "hello\tworld";
-        let result = opts.process_tabs(input);
-        assert_eq!(result, "hello world");
-    }
+    fn bool_parsing_respects_strictness() {
+        let strict = Options::new();
+        assert_eq!(strict.parse_bool("TRUE"), Some(true));
+        assert_eq!(strict.parse_bool("yes"), None);
 
-    #[test]
-    fn test_process_tabs_multiple() {
-        let opts = ParserOptions::new().with_tabs(TabBehavior::ToSpaces);
-        let input = "\t\tindented\ttext\t";
-        let result = opts.process_tabs(input);
-        assert_eq!(result, "  indented text ");
-    }
-
-    #[test]
-    fn test_process_crlf_preserve() {
-        let opts = ParserOptions::new(); // Default preserves CRLF
-        let input = "line1\r\nline2";
-        let result = opts.process_crlf(input);
-        assert_eq!(result, "line1\r\nline2");
-    }
-
-    #[test]
-    fn test_process_crlf_normalize() {
-        let opts = ParserOptions::new().with_crlf(CrlfBehavior::NormalizeToLf);
-        let input = "line1\r\nline2\r\nline3";
-        let result = opts.process_crlf(input);
-        assert_eq!(result, "line1\nline2\nline3");
-    }
-
-    #[test]
-    fn test_process_crlf_mixed_endings() {
-        let opts = ParserOptions::new().with_crlf(CrlfBehavior::NormalizeToLf);
-        let input = "line1\r\nline2\nline3\r\n";
-        let result = opts.process_crlf(input);
-        assert_eq!(result, "line1\nline2\nline3\n");
+        let lenient = Options::new().with_bool(BoolBehavior::Lenient);
+        assert_eq!(lenient.parse_bool("yes"), Some(true));
+        assert_eq!(lenient.parse_bool("off"), Some(false));
+        assert_eq!(lenient.parse_bool("maybe"), None);
     }
 }

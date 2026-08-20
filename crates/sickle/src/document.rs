@@ -1,459 +1,454 @@
-//! Comment- and format-preserving document editing for CCL (issue #206).
-//!
-//! The serde round-trip (`from_str` -> edit struct -> `to_string`) is lossy: it
-//! drops every comment, blank line, and formatting nuance that the typed struct
-//! does not model. This module adds a [`Document`] type — analogous to
-//! `toml_edit`'s `DocumentMut` — that retains the source trivia so a
-//! read-modify-write cycle preserves the user's hand-written comments, blank
-//! lines, key order, and spacing wherever the data is unchanged:
-//!
-//! ```
-//! use serde::{Deserialize, Serialize};
-//!
-//! #[derive(Serialize, Deserialize)]
-//! struct Config { name: String, version: String }
-//!
-//! let text = "/= my config\nname = app\nversion = 1.0.0\n";
-//! let doc = sickle::load_document(text).unwrap();
-//! let mut cfg: Config = doc.deserialize().unwrap();
-//! cfg.version = "2.0.0".to_string();
-//! let out = doc.reserialize(&cfg).unwrap();
-//! assert!(out.contains("/= my config"));   // comment preserved
-//! assert!(out.contains("version = 2.0.0")); // value updated
-//! ```
-//!
-//! ## How it works
-//!
-//! CCL parsing is recursive ("pacman"): a block is a list of `key = value`
-//! entries, and each value is itself a block parsed the same way. [`Document`]
-//! mirrors that structure as a recursive AST in which every node keeps its
-//! **verbatim source lines**, plus blank lines and comments as first-class
-//! items. Unchanged regions are emitted byte-for-byte from their original lines;
-//! only edited entries are re-rendered from the freshly serialized struct.
-//!
-//! [`reserialize`](Document::reserialize) serializes the edited value to
-//! canonical CCL, parses it into the same AST shape, and merges it into the base
-//! document: matching keys keep their original formatting (recursing into nested
-//! blocks), changed scalars are replaced, removed keys drop along with the
-//! comments attached directly above them, and newly added keys are appended.
+//! The document root: parsing, rendering, and top-level access.
 
-use crate::error::Result;
-use serde::de::DeserializeOwned;
-use serde::Serialize;
-use std::collections::VecDeque;
+use crate::encode;
+use crate::error::{EditError, GetError, ParseError};
+use crate::item::Item;
+use crate::options::Options;
+use crate::parser;
+use crate::path::{apply_comment, IntoPath, Root};
+use crate::repr::RawString;
+use crate::table::Table;
+use crate::value::Value;
+use std::fmt;
+use std::ops::{Index, IndexMut};
+use std::str::FromStr;
 
-use indexmap::IndexMap;
-
-/// A CCL document that preserves comments, blank lines, key order, and
-/// formatting across a read-modify-write cycle.
+/// A parsed CCL document that can be edited and rendered back to text.
 ///
-/// Construct one with [`load_document`], read a typed view with
-/// [`deserialize`](Document::deserialize), and write the edited value back with
-/// [`reserialize`](Document::reserialize).
-#[derive(Debug, Clone)]
-pub struct Document {
-    /// The original source text, used for the typed (`deserialize`) view.
-    source: String,
-    /// Whether the source ended with a trailing newline.
-    trailing_newline: bool,
-    /// The top-level block of the document.
-    items: Vec<Item>,
-}
-
-/// One line-level item within a block.
-#[derive(Debug, Clone)]
-enum Item {
-    /// A blank line.
-    Blank,
-    /// A comment line, stored verbatim (including indentation), e.g. `"  /= note"`.
-    Comment(String),
-    /// A `key = value` entry (possibly with a nested block as its value).
-    Entry(EntryNode),
-}
-
-/// A single CCL entry and its (possibly nested) value, kept as verbatim lines.
-#[derive(Debug, Clone)]
-struct EntryNode {
-    /// The entry key (text before the first `=`, trimmed). Empty for bare list
-    /// items (`= item`).
-    key: String,
-    /// The verbatim header line, e.g. `"  github ="` or `"name = app"`.
-    header: String,
-    /// Verbatim continuation lines (the indented child block / multiline value).
-    child_lines: Vec<String>,
-    /// Parsed children, present only when the value is structurally a CCL block
-    /// (contains at least one `=` entry). `None` for scalar / multiline-string
-    /// values.
-    children: Option<Vec<Item>>,
-}
-
-/// Load CCL text into a [`Document`], retaining comments, blank lines, and order.
+/// `DocumentMut` owns the root [`Table`] plus the [`Options`] that were used to
+/// parse it, so typed reads keep honoring the same boolean and list behaviors.
 ///
-/// Requires the `document` feature.
-pub fn load_document(input: &str) -> Result<Document> {
-    let trailing_newline = input.ends_with('\n');
-    // Work on logical lines without trailing '\n'. `lines()` also strips '\r',
-    // which we keep out of the comparison; CRLF inputs round-trip via LF.
-    let lines: Vec<&str> = input.lines().collect();
-    let level = base_indent(&lines).unwrap_or(0);
-    let items = parse_block(&lines, level);
-    Ok(Document {
-        source: input.to_string(),
-        trailing_newline,
-        items,
-    })
+/// Parsing preserves everything: comments, blank lines, key order, duplicate
+/// keys, indentation, spacing around `=`, and whether the file ended with a
+/// newline. An unmodified document renders back byte-for-byte; edited or newly
+/// created nodes render canonically.
+///
+/// ```
+/// use sickle::{value, DocumentMut};
+///
+/// let source = "/= service config\nname = api\nport = 8080\n";
+/// let mut doc: DocumentMut = source.parse().unwrap();
+/// assert_eq!(doc.to_string(), source);
+///
+/// doc.set_int(["port"], 9090).unwrap();
+/// assert_eq!(
+///     doc.to_string(),
+///     "/= service config\nname = api\nport = 9090\n"
+/// );
+///
+/// doc.as_table_mut().insert("debug", value(true));
+/// assert!(doc.to_string().ends_with("debug = true\n"));
+/// ```
+#[derive(Debug, Clone, Default)]
+pub struct DocumentMut {
+    root: Table,
+    options: Options,
 }
 
-impl Document {
-    /// Deserialize the document into a typed value.
+impl DocumentMut {
+    /// Create an empty document with default behaviors.
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    /// Parse CCL text with default behaviors.
+    pub fn parse(input: &str) -> Result<Self, ParseError> {
+        Self::parse_with(input, &Options::new())
+    }
+
+    /// Parse CCL text with explicit behaviors.
+    pub fn parse_with(input: &str, options: &Options) -> Result<Self, ParseError> {
+        let root = parser::parse(input, options)?;
+        Ok(Self {
+            root,
+            options: options.clone(),
+        })
+    }
+
+    /// The behaviors used for parsing and typed reads.
+    pub fn options(&self) -> &Options {
+        &self.options
+    }
+
+    /// Change the behaviors used by typed reads.
+    pub fn set_options(&mut self, options: Options) {
+        self.options = options;
+    }
+
+    /// The root table.
+    pub fn as_table(&self) -> &Table {
+        &self.root
+    }
+
+    /// Mutable access to the root table.
+    pub fn as_table_mut(&mut self) -> &mut Table {
+        &mut self.root
+    }
+
+    /// Consume the document, returning its root table.
+    pub fn into_table(self) -> Table {
+        self.root
+    }
+
+    /// The root as an [`Item`], for uniform tree walking.
+    pub fn as_item(&self) -> Item {
+        Item::Table(self.root.clone())
+    }
+
+    /// The number of top-level entries, counting duplicate keys separately.
+    pub fn len(&self) -> usize {
+        self.root.len()
+    }
+
+    /// Whether the document has no entries.
+    pub fn is_empty(&self) -> bool {
+        self.root.is_empty()
+    }
+
+    /// Iterate over the top-level entries in source order.
+    pub fn iter(&self) -> impl Iterator<Item = (&str, &Item)> {
+        self.root.iter()
+    }
+
+    /// Trivia after the last entry, including the document's final newline.
+    pub fn trailing(&self) -> &RawString {
+        self.root.trailing()
+    }
+
+    /// Replace the trivia after the last entry.
+    pub fn set_trailing(&mut self, trailing: impl Into<RawString>) {
+        self.root.set_trailing(trailing);
+    }
+
+    /// Canonicalize document syntax while retaining comments and blank lines.
+    pub fn fmt(&mut self) {
+        self.root.fmt();
+    }
+
+    // ----- checked path API -------------------------------------------------
+
+    /// Read the node at `path`.
+    pub fn get<'p, P: IntoPath<'p>>(&self, path: P) -> Result<&Item, GetError> {
+        crate::path::resolve(Root::Table(&self.root), &path.into_path())
+    }
+
+    /// Mutably read the node at `path`.
+    pub fn get_mut<'p, P: IntoPath<'p>>(&mut self, path: P) -> Result<&mut Item, GetError> {
+        crate::path::resolve_in_table_mut(&mut self.root, &path.into_path())
+    }
+
+    /// Read a scalar string at `path`.
+    pub fn get_string<'p, P: IntoPath<'p>>(&self, path: P) -> Result<&str, GetError> {
+        crate::path::get_string(Root::Table(&self.root), &path.into_path())
+    }
+
+    /// Read an integer at `path`.
+    pub fn get_int<'p, P: IntoPath<'p>>(&self, path: P) -> Result<i64, GetError> {
+        crate::path::get_int(Root::Table(&self.root), &path.into_path())
+    }
+
+    /// Read a float at `path`.
+    pub fn get_float<'p, P: IntoPath<'p>>(&self, path: P) -> Result<f64, GetError> {
+        crate::path::get_float(Root::Table(&self.root), &path.into_path())
+    }
+
+    /// Read a boolean at `path`, honoring the document's boolean behavior.
+    pub fn get_bool<'p, P: IntoPath<'p>>(&self, path: P) -> Result<bool, GetError> {
+        crate::path::get_bool(Root::Table(&self.root), &path.into_path(), &self.options)
+    }
+
+    /// Read a list of scalars at `path`, honoring the document's list behavior.
+    pub fn get_list<'p, P: IntoPath<'p>>(&self, path: P) -> Result<Vec<String>, GetError> {
+        crate::path::get_list(Root::Table(&self.root), &path.into_path(), &self.options)
+    }
+
+    /// Read any [`FromStr`] type at `path`.
+    pub fn value_get<'p, T, P>(&self, path: P) -> Result<T, GetError>
+    where
+        T: FromStr,
+        P: IntoPath<'p>,
+    {
+        crate::path::value_get::<T>(Root::Table(&self.root), &path.into_path())
+    }
+
+    /// The distinct keys of the table at `path`, or of the root for an empty path.
+    pub fn table_keys<'p, P: IntoPath<'p>>(&self, path: P) -> Result<Vec<String>, GetError> {
+        crate::path::table_keys(Root::Table(&self.root), &path.into_path())
+    }
+
+    /// The distinct top-level keys, in order of first appearance.
+    pub fn root_keys(&self) -> Vec<String> {
+        self.root
+            .unique_keys()
+            .into_iter()
+            .map(str::to_string)
+            .collect()
+    }
+
+    /// Write `item` at `path`, creating intermediate tables as needed.
+    pub fn set<'p, P: IntoPath<'p>>(
+        &mut self,
+        path: P,
+        item: impl Into<Item>,
+    ) -> Result<(), EditError> {
+        self.edit_root(path, |root, path| crate::path::set(root, path, item.into()))
+    }
+
+    /// Write a string scalar at `path`.
+    pub fn set_string<'p, P: IntoPath<'p>>(
+        &mut self,
+        path: P,
+        value: impl Into<String>,
+    ) -> Result<(), EditError> {
+        self.set(path, crate::item::value(value.into()))
+    }
+
+    /// Write an integer scalar at `path`.
+    pub fn set_int<'p, P: IntoPath<'p>>(&mut self, path: P, value: i64) -> Result<(), EditError> {
+        self.set(path, crate::item::value(value))
+    }
+
+    /// Write a float scalar at `path`.
+    pub fn set_float<'p, P: IntoPath<'p>>(&mut self, path: P, value: f64) -> Result<(), EditError> {
+        self.set(path, crate::item::value(value))
+    }
+
+    /// Write a boolean scalar at `path`.
+    pub fn set_bool<'p, P: IntoPath<'p>>(&mut self, path: P, value: bool) -> Result<(), EditError> {
+        self.set(path, crate::item::value(value))
+    }
+
+    /// Replace the list at `path`.
+    pub fn set_list<'p, P, I, S>(&mut self, path: P, values: I) -> Result<(), EditError>
+    where
+        P: IntoPath<'p>,
+        I: IntoIterator<Item = S>,
+        S: Into<Value>,
+    {
+        let array: crate::table::Array =
+            values.into_iter().map(|v| Item::Value(v.into())).collect();
+        self.set(path, Item::Array(array))
+    }
+
+    /// Remove the node at `path`, returning it.
+    pub fn remove<'p, P: IntoPath<'p>>(&mut self, path: P) -> Result<Item, EditError> {
+        self.edit_root(path, crate::path::remove)
+    }
+
+    /// Insert a `/=` comment line directly above the entry at `path`.
     ///
-    /// Comments and blank lines are ignored, so this is equivalent to
-    /// [`from_str`](crate::from_str) on the original source.
-    pub fn deserialize<T: DeserializeOwned>(&self) -> Result<T> {
-        crate::from_str(&self.source)
-    }
-
-    /// Serialize `value` back to CCL text, preserving the document's comments,
-    /// blank lines, and formatting wherever the data is unchanged.
+    /// ```
+    /// use sickle::DocumentMut;
     ///
-    /// Entries whose values are unchanged are emitted byte-for-byte from the
-    /// original source. Changed scalar values are replaced, nested blocks are
-    /// merged recursively, removed keys are dropped together with the comments
-    /// attached directly above them, and newly added keys are appended.
-    pub fn reserialize<T: Serialize>(&self, value: &T) -> Result<String> {
-        let new_text = crate::to_string(value)?;
-        let new_lines: Vec<&str> = new_text.lines().collect();
-        let new_level = base_indent(&new_lines).unwrap_or(0);
-        let new_items = parse_block(&new_lines, new_level);
-
-        let merged = merge_block(&self.items, &new_items);
-        let rendered = render_items(&merged);
-        let mut out = rendered.join("\n");
-        if self.trailing_newline && !out.is_empty() {
-            out.push('\n');
-        }
-        Ok(out)
+    /// let mut doc: DocumentMut = "name = api\nport = 80\n".parse().unwrap();
+    /// doc.insert_comment_before(["port"], "listening port").unwrap();
+    /// assert_eq!(doc.to_string(), "name = api\n/= listening port\nport = 80\n");
+    /// ```
+    pub fn insert_comment_before<'p, P: IntoPath<'p>>(
+        &mut self,
+        path: P,
+        text: &str,
+    ) -> Result<(), EditError> {
+        self.edit_root(path, |root, path| {
+            crate::path::insert_comment_before(root, path, text)
+        })
     }
 
-    /// Render the document back to text without applying any edits.
-    ///
-    /// For an unmodified document this reproduces the original source. (Also
-    /// available via [`Display`](std::fmt::Display)/`to_string`.)
-    pub fn render(&self) -> String {
-        let mut out = render_items(&self.items).join("\n");
-        if self.trailing_newline && !out.is_empty() {
-            out.push('\n');
-        }
-        out
-    }
-}
-
-/// Apply an edited value back onto its original CCL source, preserving comments.
-///
-/// One-call sugar over [`load_document`] + [`Document::reserialize`] for apps
-/// that already hold both the original text and an edited typed value. Comments,
-/// blank lines, key order, and formatting are kept wherever the data is
-/// unchanged; only edited regions are re-rendered.
-///
-/// Requires the `document` feature.
-///
-/// ```
-/// # use serde::{Deserialize, Serialize};
-/// #[derive(Serialize, Deserialize)]
-/// struct Config { name: String, version: String }
-///
-/// let text = "/= my config\nname = app\nversion = 1.0.0\n";
-/// let mut cfg: Config = sickle::from_str(text).unwrap();
-/// cfg.version = "2.0.0".to_string();
-/// let out = sickle::update_str(text, &cfg).unwrap();
-/// assert!(out.contains("/= my config"));    // comment preserved
-/// assert!(out.contains("version = 2.0.0")); // value updated
-/// ```
-pub fn update_str<T: Serialize>(original: &str, value: &T) -> Result<String> {
-    load_document(original)?.reserialize(value)
-}
-
-/// Deserialize `original`, mutate the typed value in `edit`, then reserialize
-/// while preserving comments.
-///
-/// One-call sugar over [`load_document`] + [`Document::deserialize`] +
-/// [`Document::reserialize`] for the common read-modify-write cycle. Comments,
-/// blank lines, key order, and formatting are kept wherever the data is
-/// unchanged; only edited regions are re-rendered.
-///
-/// Requires the `document` feature.
-///
-/// ```
-/// # use serde::{Deserialize, Serialize};
-/// #[derive(Serialize, Deserialize)]
-/// struct Config { name: String, version: String }
-///
-/// let text = "/= my config\nname = app\nversion = 1.0.0\n";
-/// let out = sickle::edit_str(text, |cfg: &mut Config| {
-///     cfg.version = "2.0.0".to_string();
-/// })
-/// .unwrap();
-/// assert!(out.contains("/= my config"));    // comment preserved
-/// assert!(out.contains("version = 2.0.0")); // value updated
-/// ```
-pub fn edit_str<T, F>(original: &str, edit: F) -> Result<String>
-where
-    T: DeserializeOwned + Serialize,
-    F: FnOnce(&mut T),
-{
-    let doc = load_document(original)?;
-    let mut value: T = doc.deserialize()?;
-    edit(&mut value);
-    doc.reserialize(&value)
-}
-
-// ============================================================================
-// Parsing: recursive, line-based, trivia-preserving
-// ============================================================================
-
-/// Number of leading whitespace characters on a line.
-fn indent_of(line: &str) -> usize {
-    line.len() - line.trim_start().len()
-}
-
-/// The indentation level of the first non-blank line, if any.
-fn base_indent(lines: &[&str]) -> Option<usize> {
-    lines
-        .iter()
-        .find(|l| !l.trim().is_empty())
-        .map(|l| indent_of(l))
-}
-
-/// Whether the next non-blank line at or after `start` is indented deeper than
-/// `level` (i.e. still part of the current entry's value).
-fn next_nonblank_deeper(lines: &[&str], start: usize, level: usize) -> bool {
-    lines[start..]
-        .iter()
-        .find(|l| !l.trim().is_empty())
-        .is_some_and(|l| indent_of(l) > level)
-}
-
-/// The key portion of an entry header (text before the first `=`, trimmed).
-fn split_key(header_trimmed: &str) -> String {
-    match header_trimmed.find('=') {
-        Some(p) => header_trimmed[..p].trim().to_string(),
-        None => header_trimmed.trim().to_string(),
-    }
-}
-
-/// The value portion of an entry header (text after the first `=`, trimmed).
-fn inline_value(header: &str) -> &str {
-    match header.find('=') {
-        Some(p) => header[p + 1..].trim(),
-        None => "",
-    }
-}
-
-/// Parse a block of lines at the given indentation level into ordered items.
-fn parse_block(lines: &[&str], level: usize) -> Vec<Item> {
-    let mut items = Vec::new();
-    let mut i = 0;
-    while i < lines.len() {
-        let line = lines[i];
-        let trimmed = line.trim();
-
-        if trimmed.is_empty() {
-            items.push(Item::Blank);
-            i += 1;
-            continue;
-        }
-
-        if trimmed.starts_with("/=") {
-            items.push(Item::Comment(line.to_string()));
-            i += 1;
-            continue;
-        }
-
-        // Entry header on this line; collect its continuation (child) lines:
-        // every following line indented deeper than `level`, including interior
-        // blank lines that still precede deeper content.
-        let mut j = i + 1;
-        while j < lines.len() {
-            let l2 = lines[j];
-            if l2.trim().is_empty() {
-                if next_nonblank_deeper(lines, j + 1, level) {
-                    j += 1;
-                    continue;
-                }
-                break;
-            }
-            if indent_of(l2) > level {
-                j += 1;
-            } else {
-                break;
-            }
-        }
-
-        let child_lines: Vec<String> = lines[i + 1..j].iter().map(|s| s.to_string()).collect();
-        let children = parse_children(&child_lines);
-        items.push(Item::Entry(EntryNode {
-            key: split_key(trimmed),
-            header: line.to_string(),
-            child_lines,
-            children,
-        }));
-        i = j;
-    }
-    items
-}
-
-/// Parse child lines into a nested block, returning `Some` only when the value
-/// is structurally a CCL block (has at least one `=` entry). Scalar and
-/// multiline-string values return `None`.
-fn parse_children(child_lines: &[String]) -> Option<Vec<Item>> {
-    let refs: Vec<&str> = child_lines.iter().map(String::as_str).collect();
-    let level = base_indent(&refs)?;
-    let items = parse_block(&refs, level);
-    let is_block = items
-        .iter()
-        .any(|it| matches!(it, Item::Entry(e) if e.header.contains('=')));
-    is_block.then_some(items)
-}
-
-// ============================================================================
-// Merging: splice the freshly serialized value into the base document
-// ============================================================================
-
-/// Merge a freshly serialized block (`new`, no trivia) into the base block
-/// (`base`, with comments/blanks), preserving trivia and original formatting.
-fn merge_block(base: &[Item], new: &[Item]) -> Vec<Item> {
-    // Occurrence queues so duplicate keys (Vec fields, bare list items) match
-    // positionally instead of collapsing.
-    let mut queues: IndexMap<String, VecDeque<usize>> = IndexMap::new();
-    for (idx, it) in new.iter().enumerate() {
-        if let Item::Entry(e) = it {
-            queues.entry(e.key.clone()).or_default().push_back(idx);
-        }
-    }
-    let mut consumed = vec![false; new.len()];
-
-    let mut result: Vec<Item> = Vec::new();
-    // Comments/blanks seen since the last emitted entry, pending attachment.
-    let mut trivia: Vec<Item> = Vec::new();
-
-    for item in base {
-        match item {
-            Item::Blank | Item::Comment(_) => trivia.push(item.clone()),
-            Item::Entry(b) => {
-                let matched = queues.get_mut(&b.key).and_then(VecDeque::pop_front);
-                match matched {
-                    Some(ni) => {
-                        consumed[ni] = true;
-                        result.append(&mut trivia);
-                        let n = match &new[ni] {
-                            Item::Entry(e) => e,
-                            _ => unreachable!("queues only index entries"),
-                        };
-                        result.push(Item::Entry(merge_entry(b, n)));
-                    }
-                    None => {
-                        // Key removed by the edit: keep standalone trivia but drop
-                        // the comments attached directly above this entry.
-                        let mut kept = trivia_on_removal(&trivia);
-                        result.append(&mut kept);
-                        trivia.clear();
-                    }
-                }
-            }
-        }
-    }
-    // Trailing trivia (after the last entry) is always preserved.
-    result.append(&mut trivia);
-
-    // Append entries that exist only in the new value, in serializer order.
-    // Skip empty-valued leftovers (empty inline value and no nested block): these
-    // come from empty collections / `None`-like fields and would add spurious
-    // `key =` lines that were never in the source.
-    for (idx, it) in new.iter().enumerate() {
-        if !consumed[idx] {
-            if let Item::Entry(e) = it {
-                if inline_value(&e.header).is_empty() && e.child_lines.is_empty() {
-                    continue;
-                }
-                result.push(it.clone());
-            }
-        }
+    /// Insert a blank line directly above the entry at `path`.
+    pub fn insert_blank_line_before<'p, P: IntoPath<'p>>(
+        &mut self,
+        path: P,
+    ) -> Result<(), EditError> {
+        self.edit_root(path, crate::path::insert_blank_line_before)
     }
 
-    result
-}
+    /// Insert a blank line above the top-level entry at `position`.
+    pub fn insert_blank_line_at(&mut self, position: usize) -> Result<(), EditError> {
+        if position >= self.root.len() {
+            return Err(EditError::IndexOutOfBounds {
+                path: String::new(),
+                index: position,
+                len: self.root.len(),
+            });
+        }
+        crate::path::apply_trivia(&mut self.root, position, None);
+        Ok(())
+    }
 
-/// Merge a base entry with its matching new entry.
-fn merge_entry(b: &EntryNode, n: &EntryNode) -> EntryNode {
-    let b_block = b.children.is_some() && b.header.contains('=');
-    let n_block = n.children.is_some();
+    /// Append a standalone `/=` comment line at the end of the document.
+    pub fn push_comment(&mut self, text: &str) -> Result<(), EditError> {
+        crate::path::validate_comment(text)?;
+        let existing = self.root.trailing().or("").to_string();
+        let lead = if self.root.is_empty() && existing.is_empty() {
+            String::new()
+        } else if existing.is_empty() {
+            "\n".to_string()
+        } else if existing.ends_with('\n') {
+            existing
+        } else {
+            format!("{existing}\n")
+        };
+        self.root.set_trailing(format!("{lead}/= {text}\n"));
+        Ok(())
+    }
 
-    if b_block && n_block {
-        // Same key, both nested: keep the base header's formatting and merge the
-        // child blocks recursively.
-        let merged = merge_block(b.children.as_ref().unwrap(), n.children.as_ref().unwrap());
-        let child_lines = render_items(&merged);
-        return EntryNode {
-            key: b.key.clone(),
-            header: b.header.clone(),
-            child_lines,
-            children: Some(merged),
+    /// Insert a `/=` comment line above the top-level entry at `position`.
+    pub fn insert_comment_at(&mut self, position: usize, text: &str) -> Result<(), EditError> {
+        crate::path::validate_comment(text)?;
+        if position >= self.root.len() {
+            return Err(EditError::IndexOutOfBounds {
+                path: String::new(),
+                index: position,
+                len: self.root.len(),
+            });
+        }
+        apply_comment(&mut self.root, position, text);
+        Ok(())
+    }
+
+    /// Append a blank line at the end of the document.
+    pub fn push_blank_line(&mut self) {
+        let existing = self.root.trailing().or("").to_string();
+        let lead = if self.root.is_empty() && existing.is_empty() {
+            String::new()
+        } else if existing.is_empty() {
+            "\n".to_string()
+        } else if existing.ends_with('\n') {
+            existing
+        } else {
+            format!("{existing}\n")
+        };
+        self.root.set_trailing(format!("{lead}\n"));
+    }
+
+    /// Run a checked edit against the root, which is temporarily moved out of
+    /// the document so the edit helpers can take `&mut Item`.
+    fn edit_root<'p, P, T, F>(&mut self, path: P, edit: F) -> Result<T, EditError>
+    where
+        P: IntoPath<'p>,
+        F: FnOnce(&mut Item, &[crate::path::PathSegment<'p>]) -> Result<T, EditError>,
+    {
+        let path = path.into_path();
+        let mut root = Item::Table(std::mem::take(&mut self.root));
+        let result = edit(&mut root, &path);
+        self.restore(root);
+        result
+    }
+
+    fn restore(&mut self, root: Item) {
+        self.root = match root {
+            Item::Table(table) => table,
+            _ => Table::new(),
         };
     }
+}
 
-    // Scalar value (or a structural change between scalar and block): keep the
-    // base verbatim when the value is unchanged, otherwise take the new canonical
-    // rendering.
-    if entries_value_equal(b, n) {
-        b.clone()
-    } else {
-        n.clone()
+impl FromStr for DocumentMut {
+    type Err = ParseError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        DocumentMut::parse(s)
     }
 }
 
-/// Whether two entries encode the same value (ignoring formatting differences
-/// such as spacing around `=`).
-fn entries_value_equal(b: &EntryNode, n: &EntryNode) -> bool {
-    inline_value(&b.header) == inline_value(&n.header)
-        && b.child_lines.len() == n.child_lines.len()
-        && b.child_lines
-            .iter()
-            .zip(&n.child_lines)
-            .all(|(x, y)| x.trim_end() == y.trim_end())
-}
-
-/// Resolve pending trivia when the following entry is removed: keep everything
-/// up to and including the last blank line (standalone comment blocks and
-/// separators), and drop the comments attached directly above the removed entry.
-fn trivia_on_removal(trivia: &[Item]) -> Vec<Item> {
-    match trivia.iter().rposition(|t| matches!(t, Item::Blank)) {
-        Some(idx) => trivia[..=idx].to_vec(),
-        None => Vec::new(),
+impl fmt::Display for DocumentMut {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(&encode::render_document(&self.root))
     }
 }
 
-// ============================================================================
-// Rendering
-// ============================================================================
-
-/// Render items back into verbatim source lines.
-fn render_items(items: &[Item]) -> Vec<String> {
-    let mut out = Vec::new();
-    for it in items {
-        match it {
-            Item::Blank => out.push(String::new()),
-            Item::Comment(line) => out.push(line.clone()),
-            Item::Entry(e) => {
-                out.push(e.header.clone());
-                out.extend(e.child_lines.iter().cloned());
-            }
+impl From<Table> for DocumentMut {
+    fn from(root: Table) -> Self {
+        Self {
+            root,
+            options: Options::new(),
         }
     }
-    out
 }
 
-impl std::fmt::Display for Document {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(&self.render())
+impl Index<&str> for DocumentMut {
+    type Output = Item;
+
+    /// Panics when `key` is absent; use [`get`](DocumentMut::get) instead.
+    fn index(&self, key: &str) -> &Item {
+        &self.root[key]
+    }
+}
+
+impl IndexMut<&str> for DocumentMut {
+    /// Auto-vivifies `key` with [`Item::None`] when absent.
+    fn index_mut(&mut self, key: &str) -> &mut Item {
+        &mut self.root[key]
+    }
+}
+
+/// Parse CCL text into a [`DocumentMut`] with default behaviors.
+pub fn parse(input: &str) -> Result<DocumentMut, ParseError> {
+    DocumentMut::parse(input)
+}
+
+/// Parse CCL text into a [`DocumentMut`] with explicit behaviors.
+pub fn parse_with(input: &str, options: &Options) -> Result<DocumentMut, ParseError> {
+    DocumentMut::parse_with(input, options)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::item::value;
+
+    #[test]
+    fn round_trips_unmodified_sources() {
+        for source in [
+            "",
+            "a = 1",
+            "a = 1\n",
+            "/= comment\n\na = 1\nb =\n  c = 2\n",
+            "list =\n  = one\n  = two\n\n/= trailing comment\n",
+            "dup = 1\ndup = 2\n",
+        ] {
+            let doc = DocumentMut::parse(source).unwrap();
+            assert_eq!(doc.to_string(), source, "source: {source:?}");
+        }
+    }
+
+    #[test]
+    fn editing_preserves_surrounding_trivia() {
+        let source = "/= header\n\nname = api\n/= about port\nport = 80\n\n/= footer\n";
+        let mut doc = DocumentMut::parse(source).unwrap();
+        doc.set_int(["port"], 8080).unwrap();
+        assert_eq!(
+            doc.to_string(),
+            "/= header\n\nname = api\n/= about port\nport = 8080\n\n/= footer\n"
+        );
+    }
+
+    #[test]
+    fn new_entries_are_appended_canonically() {
+        let mut doc = DocumentMut::parse("a = 1\n").unwrap();
+        doc.as_table_mut().insert("b", value("2"));
+        assert_eq!(doc.to_string(), "a = 1\nb = 2\n");
+    }
+
+    #[test]
+    fn removing_a_key_drops_its_line() {
+        let mut doc = DocumentMut::parse("a = 1\nb = 2\nc = 3\n").unwrap();
+        doc.remove(["b"]).unwrap();
+        assert_eq!(doc.to_string(), "a = 1\nc = 3\n");
+    }
+
+    #[test]
+    fn from_str_and_display_are_inverses() {
+        let source = "x =\n  y = 1\n";
+        let doc: DocumentMut = source.parse().unwrap();
+        assert_eq!(doc.to_string(), source);
+    }
+
+    #[test]
+    fn indexing_reads_and_writes() {
+        let mut doc = DocumentMut::parse("a = 1\n").unwrap();
+        assert_eq!(doc["a"].as_str(), Some("1"));
+        doc["b"]["c"] = value("2");
+        assert_eq!(doc.get_string(["b", "c"]).unwrap(), "2");
     }
 }

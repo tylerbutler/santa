@@ -309,7 +309,7 @@ emoji = 🍺
 install = brew install {package}
 check = brew leaves --installed-on-request
 "#;
-        let def: SourceDefinition = sickle::from_str(ccl).unwrap();
+        let def: SourceDefinition = sickle::de::from_str(ccl).unwrap();
 
         assert_eq!(def.emoji, "🍺");
         assert!(def.install.contains("{package}"));

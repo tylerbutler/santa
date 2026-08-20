@@ -427,7 +427,7 @@ _overrides =
   linux =
     check = brew list --installed
 "#;
-    let def: SourceDefinition = sickle::from_str(ccl).unwrap();
+    let def: SourceDefinition = sickle::de::from_str(ccl).unwrap();
 
     assert_eq!(def.emoji, "🍺");
     assert!(def.overrides.is_some());
@@ -452,7 +452,7 @@ _settings =
   parallel_installs = 5
   confirm_before_install = false
 "#;
-    let config: ConfigDefinition = sickle::from_str(ccl).unwrap();
+    let config: ConfigDefinition = sickle::de::from_str(ccl).unwrap();
 
     assert_eq!(config.sources.len(), 2);
     assert_eq!(config.packages.len(), 2);

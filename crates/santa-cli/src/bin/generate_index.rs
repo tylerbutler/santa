@@ -10,7 +10,7 @@
 use anyhow::{Context, Result};
 use clap::Parser;
 use santa::catalog::{self, CatalogEntry};
-use sickle::printer::CclPrinter;
+use sickle::{table, value, DocumentMut, Item};
 use std::collections::BTreeMap;
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -75,8 +75,8 @@ impl PackageData {
 }
 
 /// Re-export for local use
-fn extract_string_value(obj: &sickle::CclObject) -> Option<String> {
-    catalog::extract_string_value(obj)
+fn extract_string_value(item: &Item) -> Option<String> {
+    catalog::extract_string_value(item)
 }
 
 /// Parsed package info from a source file
@@ -90,56 +90,56 @@ fn parse_source_file(path: &Path) -> Result<BTreeMap<String, ParsedPackage>> {
     let content = fs::read_to_string(path)
         .with_context(|| format!("Failed to read source file: {}", path.display()))?;
 
-    let model = sickle::load(&content)
+    let document = DocumentMut::parse(&content)
         .with_context(|| format!("Failed to parse CCL in: {}", path.display()))?;
 
     let mut packages = BTreeMap::new();
 
-    for key in model.keys() {
-        // Skip comment lines (keys starting with /)
+    for key in document.as_table().unique_keys() {
+        // Skip comment-shaped keys
         if key.starts_with('/') {
             continue;
         }
 
-        let value = model.get(key)?;
+        let item = document
+            .as_table()
+            .get(key)
+            .expect("key came from the table");
 
-        let (config, description) = if value.is_empty() {
-            // Empty object means simple package (no config)
-            (PackageConfig::Simple, None)
-        } else if let Some(s) = extract_string_value(value) {
-            // Empty string means simple package, non-empty means name override
-            if s.is_empty() {
-                (PackageConfig::Simple, None)
-            } else {
-                (PackageConfig::NameOverride(s), None)
-            }
-        } else {
-            // This is a nested object - check for _description and other config
-            let mut config_map = BTreeMap::new();
-            let mut desc = None;
+        let (config, description) = match item {
+            // `bat =` is a plain availability marker; `gh = github-cli` renames.
+            Item::Value(scalar) if scalar.as_str().is_empty() => (PackageConfig::Simple, None),
+            Item::Value(scalar) => (
+                PackageConfig::NameOverride(scalar.as_str().to_string()),
+                None,
+            ),
+            Item::Table(fields) => {
+                let mut config_map = BTreeMap::new();
+                let mut desc = None;
 
-            for nested_key in value.keys() {
-                let nested_value = value.get(nested_key)?;
-                if nested_key == "_description" {
-                    if let Some(s) = extract_string_value(nested_value) {
-                        desc = Some(s);
+                for field in fields.unique_keys() {
+                    let Some(text) = fields.get(field).and_then(extract_string_value) else {
+                        continue;
+                    };
+                    if field == "_description" {
+                        desc = Some(text);
+                    } else {
+                        config_map.insert(field.to_string(), text);
                     }
-                } else if let Some(s) = extract_string_value(nested_value) {
-                    config_map.insert(nested_key.clone(), s);
                 }
+
+                let config = if config_map.is_empty() {
+                    PackageConfig::Simple
+                } else {
+                    PackageConfig::Complex(config_map)
+                };
+                (config, desc)
             }
-
-            let config = if config_map.is_empty() {
-                PackageConfig::Simple
-            } else {
-                PackageConfig::Complex(config_map)
-            };
-
-            (config, desc)
+            _ => (PackageConfig::Simple, None),
         };
 
         packages.insert(
-            key.clone(),
+            key.to_string(),
             ParsedPackage {
                 config,
                 description,
@@ -156,7 +156,7 @@ fn generate_index(
     include_unverified: bool,
 ) -> Result<(String, usize, usize)> {
     let mut all_packages: BTreeMap<String, PackageData> = BTreeMap::new();
-    let mut index = sickle::CclObject::new();
+    let mut document = DocumentMut::new();
 
     // Read all source files
     for entry in fs::read_dir(sources_dir).with_context(|| {
@@ -219,20 +219,8 @@ fn generate_index(
 
     let included_packages = filtered_packages.len();
 
-    // Build CCL structure using sickle's builder API
-    // Add header comments
-    index.add_comment("Generated package index");
-    index.add_comment("DO NOT EDIT - Generated from data/sources/*.ccl");
-    index.add_comment("Run: just generate-index to regenerate");
-    if !include_unverified {
-        index.add_comment("Only verified packages are included");
-    }
-    index.add_blank_line();
-    index.add_comment("Packages with simple format (no source-specific overrides)");
-
-    let map = index.inner_mut();
-
-    // Separate simple and complex packages
+    // Build the document, then attach the header and section comments as
+    // trivia above the entries they introduce.
     let mut simple_packages = Vec::new();
     let mut complex_packages = Vec::new();
 
@@ -244,86 +232,83 @@ fn generate_index(
         }
     }
 
-    // Add simple packages
     for package_name in simple_packages {
         let data = &filtered_packages[package_name];
-        let sources: Vec<String> = data.sources.keys().cloned().collect();
-        map.insert(
-            package_name.clone(),
-            vec![sickle::CclObject::from_list(sources)],
-        );
+        let sources: Vec<&str> = data.sources.keys().map(String::as_str).collect();
+        document
+            .as_table_mut()
+            .append(package_name.as_str(), sources);
     }
 
-    // Add complex packages section header
-    if !complex_packages.is_empty() {
-        // Blank line before section
-        map.insert("".to_string(), vec![sickle::CclObject::empty()]);
-        // Section comment
-        map.insert(
-            "/= Packages with complex format (have source-specific overrides or descriptions)"
-                .to_string(),
-            vec![sickle::CclObject::empty()],
-        );
+    let first_complex = complex_packages.first().map(|name| (*name).clone());
 
-        for package_name in complex_packages {
-            let data = &filtered_packages[package_name];
-            let mut package_obj = sickle::CclObject::new();
-            let package_map = package_obj.inner_mut();
+    for package_name in complex_packages {
+        let data = &filtered_packages[package_name];
+        let mut package = table();
+        let fields = package.as_table_mut().expect("just created a table");
 
-            // Add description first if present
-            if let Some(desc) = &data.description {
-                package_map.insert(
-                    "_description".to_string(),
-                    vec![sickle::CclObject::from_string(desc)],
-                );
-            }
+        if let Some(desc) = &data.description {
+            fields.append("_description", value(desc));
+        }
 
-            // Collect sources with no config and sources with config
-            let mut simple_sources = Vec::new();
-            let mut override_sources = Vec::new();
-
-            for (source, config) in &data.sources {
-                match config {
-                    PackageConfig::Simple => simple_sources.push(source.clone()),
-                    _ => override_sources.push((source, config)),
+        let mut simple_sources = Vec::new();
+        for (source, config) in &data.sources {
+            match config {
+                PackageConfig::Simple => simple_sources.push(source.as_str()),
+                PackageConfig::NameOverride(name) => fields.append(source.as_str(), value(name)),
+                PackageConfig::Complex(config_map) => {
+                    let mut nested = table();
+                    let nested_fields = nested.as_table_mut().expect("just created a table");
+                    for (key, val) in config_map {
+                        nested_fields.append(key.as_str(), value(val));
+                    }
+                    fields.append(source.as_str(), nested);
                 }
             }
+        }
 
-            // Add source-specific overrides
-            for (source, config) in override_sources {
-                match config {
-                    PackageConfig::NameOverride(name) => {
-                        package_map
-                            .insert(source.clone(), vec![sickle::CclObject::from_string(name)]);
-                    }
-                    PackageConfig::Complex(config_map) => {
-                        let mut nested = sickle::CclObject::new();
-                        let nested_map = nested.inner_mut();
-                        for (key, value) in config_map {
-                            nested_map
-                                .insert(key.clone(), vec![sickle::CclObject::from_string(value)]);
-                        }
-                        package_map.insert(source.clone(), vec![nested]);
-                    }
-                    PackageConfig::Simple => unreachable!(),
-                }
-            }
+        if !simple_sources.is_empty() {
+            fields.append("_sources", simple_sources);
+        }
 
-            // Add _sources list if there are simple sources
-            if !simple_sources.is_empty() {
-                package_map.insert(
-                    "_sources".to_string(),
-                    vec![sickle::CclObject::from_list(simple_sources)],
-                );
-            }
+        document
+            .as_table_mut()
+            .append(package_name.as_str(), package);
+    }
 
-            map.insert(package_name.clone(), vec![package_obj]);
+    // `None` marks a blank line. Header trivia attaches above the first entry,
+    // or becomes the whole document when there are no packages at all.
+    let mut header = vec![
+        Some("Generated package index"),
+        Some("DO NOT EDIT - Generated from data/sources/*.ccl"),
+        Some("Run: just generate-index to regenerate"),
+    ];
+    if !include_unverified {
+        header.push(Some("Only verified packages are included"));
+    }
+    header.push(None);
+    header.push(Some(
+        "Packages with simple format (no source-specific overrides)",
+    ));
+
+    for line in header {
+        match (line, document.is_empty()) {
+            (Some(text), false) => document.insert_comment_at(0, text)?,
+            (Some(text), true) => document.push_comment(text)?,
+            (None, false) => document.insert_blank_line_at(0)?,
+            (None, true) => document.push_blank_line(),
         }
     }
 
-    // Use CclPrinter to generate the final CCL text
-    let printer = CclPrinter::new();
-    Ok((printer.print(&index), total_packages, included_packages))
+    if let Some(name) = first_complex {
+        document.insert_blank_line_before([name.as_str()])?;
+        document.insert_comment_before(
+            [name.as_str()],
+            "Packages with complex format (have source-specific overrides or descriptions)",
+        )?;
+    }
+
+    Ok((document.to_string(), total_packages, included_packages))
 }
 
 fn main() -> Result<()> {
@@ -369,52 +354,56 @@ fn main() -> Result<()> {
 /// Parse CCL content directly (for testing without file I/O)
 #[cfg(test)]
 fn parse_source_content(content: &str) -> Result<BTreeMap<String, ParsedPackage>> {
-    let model = sickle::load(content).with_context(|| "Failed to parse CCL content".to_string())?;
+    let document =
+        DocumentMut::parse(content).with_context(|| "Failed to parse CCL content".to_string())?;
 
     let mut packages = BTreeMap::new();
 
-    for key in model.keys() {
-        // Skip comment lines (keys starting with /)
+    for key in document.as_table().unique_keys() {
+        // Skip comment-shaped keys
         if key.starts_with('/') {
             continue;
         }
 
-        let value = model.get(key)?;
+        let item = document
+            .as_table()
+            .get(key)
+            .expect("key came from the table");
 
-        let (config, description) = if value.is_empty() {
-            (PackageConfig::Simple, None)
-        } else if let Some(s) = extract_string_value(value) {
-            if s.is_empty() {
-                (PackageConfig::Simple, None)
-            } else {
-                (PackageConfig::NameOverride(s), None)
-            }
-        } else {
-            let mut config_map = BTreeMap::new();
-            let mut desc = None;
+        let (config, description) = match item {
+            // `bat =` is a plain availability marker; `gh = github-cli` renames.
+            Item::Value(scalar) if scalar.as_str().is_empty() => (PackageConfig::Simple, None),
+            Item::Value(scalar) => (
+                PackageConfig::NameOverride(scalar.as_str().to_string()),
+                None,
+            ),
+            Item::Table(fields) => {
+                let mut config_map = BTreeMap::new();
+                let mut desc = None;
 
-            for nested_key in value.keys() {
-                let nested_value = value.get(nested_key)?;
-                if nested_key == "_description" {
-                    if let Some(s) = extract_string_value(nested_value) {
-                        desc = Some(s);
+                for field in fields.unique_keys() {
+                    let Some(text) = fields.get(field).and_then(extract_string_value) else {
+                        continue;
+                    };
+                    if field == "_description" {
+                        desc = Some(text);
+                    } else {
+                        config_map.insert(field.to_string(), text);
                     }
-                } else if let Some(s) = extract_string_value(nested_value) {
-                    config_map.insert(nested_key.clone(), s);
                 }
+
+                let config = if config_map.is_empty() {
+                    PackageConfig::Simple
+                } else {
+                    PackageConfig::Complex(config_map)
+                };
+                (config, desc)
             }
-
-            let config = if config_map.is_empty() {
-                PackageConfig::Simple
-            } else {
-                PackageConfig::Complex(config_map)
-            };
-
-            (config, desc)
+            _ => (PackageConfig::Simple, None),
         };
 
         packages.insert(
-            key.clone(),
+            key.to_string(),
             ParsedPackage {
                 config,
                 description,
@@ -496,10 +485,9 @@ mod tests {
 
     #[test]
     fn test_extract_string_value_simple() {
-        let ccl = "value";
-        let model = sickle::load(&format!("test = {}", ccl)).unwrap();
-        let value = model.get("test").unwrap();
-        assert_eq!(extract_string_value(value), Some("value".to_string()));
+        let document = DocumentMut::parse("test = value").unwrap();
+        let item = document.as_table().get("test").unwrap();
+        assert_eq!(extract_string_value(item), Some("value".to_string()));
     }
 
     #[test]
@@ -508,9 +496,9 @@ mod tests {
 test =
   nested = value
 "#;
-        let model = sickle::load(ccl).unwrap();
-        let value = model.get("test").unwrap();
-        assert_eq!(extract_string_value(value), None);
+        let document = DocumentMut::parse(ccl).unwrap();
+        let item = document.as_table().get("test").unwrap();
+        assert_eq!(extract_string_value(item), None);
     }
 
     #[test]

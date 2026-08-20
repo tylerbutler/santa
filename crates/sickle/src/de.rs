@@ -1,276 +1,180 @@
-//! Serde deserialization support for CCL
+//! Serde deserialization for CCL.
 //!
-//! This module provides Serde integration, allowing CCL to be deserialized
-//! into Rust structs using the standard `#[derive(Deserialize)]` pattern.
+//! Deserialization runs over the same [`Item`] tree the editing API uses, so
+//! parser behavior — spacing, delimiters, tabs, CRLF, boolean strictness — is
+//! configured through [`Options`] exactly as it is elsewhere.
+//!
+//! ```
+//! use serde::Deserialize;
+//!
+//! #[derive(Deserialize)]
+//! struct Config {
+//!     name: String,
+//!     hosts: Vec<String>,
+//! }
+//!
+//! let config: Config = sickle::de::from_str("name = api\nhosts =\n  = a\n  = b\n").unwrap();
+//! assert_eq!(config.name, "api");
+//! assert_eq!(config.hosts, vec!["a", "b"]);
+//! ```
 
-use crate::{CclObject, Error, Result};
-use serde::de::{self, DeserializeSeed, IntoDeserializer, MapAccess, SeqAccess, Visitor};
+use crate::error::{DeserializeError, Error, Result};
+use crate::item::Item;
+use crate::options::Options;
+use crate::DocumentMut;
+use serde::de::{
+    self, DeserializeOwned, DeserializeSeed, IntoDeserializer, MapAccess, SeqAccess, Visitor,
+};
 use serde::Deserialize;
-use std::fmt;
 
-/// Deserialize a CCL string into a type T
-///
-/// # Examples
-///
-/// ```rust
-/// use serde::Deserialize;
-/// use sickle::from_str;
-///
-/// #[derive(Deserialize)]
-/// struct Config {
-///     name: String,
-///     version: String,
-/// }
-///
-/// let ccl = r#"
-/// name = MyApp
-/// version = 1.0.0
-/// "#;
-///
-/// let config: Config = from_str(ccl).unwrap();
-/// assert_eq!(config.name, "MyApp");
-/// assert_eq!(config.version, "1.0.0");
-/// ```
+/// Deserialize CCL text into `T` using default behaviors.
 pub fn from_str<'a, T>(s: &'a str) -> Result<T>
 where
     T: Deserialize<'a>,
 {
-    let model = crate::load(s)?;
-    let mut deserializer = Deserializer::from_model(model);
-    T::deserialize(&mut deserializer).map_err(|e| Error::ValueError(e.to_string()))
+    from_str_with(s, &Options::new())
 }
 
-/// Deserialize a CCL string into a type T with custom parser options
-///
-/// # Examples
-///
-/// ```rust
-/// use serde::Deserialize;
-/// use sickle::{from_str_with_options, ParserOptions};
-/// use sickle::options::CrlfBehavior;
-///
-/// #[derive(Deserialize)]
-/// struct Config {
-///     name: String,
-/// }
-///
-/// let ccl = "name = MyApp\r\n";
-/// let options = ParserOptions::default().with_crlf(CrlfBehavior::NormalizeToLf);
-/// let config: Config = from_str_with_options(ccl, &options).unwrap();
-/// assert_eq!(config.name, "MyApp");
-/// ```
-pub fn from_str_with_options<'a, T>(s: &'a str, options: &crate::ParserOptions) -> Result<T>
+/// Deserialize CCL text into `T` using explicit behaviors.
+pub fn from_str_with<'a, T>(s: &'a str, options: &Options) -> Result<T>
 where
     T: Deserialize<'a>,
 {
-    let model = crate::load_with_options_internal(s, options)?;
-    let mut deserializer = Deserializer::from_model(model);
-    T::deserialize(&mut deserializer).map_err(|e| Error::ValueError(e.to_string()))
+    let document = DocumentMut::parse_with(s, options)?;
+    from_document(&document)
 }
 
-/// Deserialize a Model into a type T
-#[allow(dead_code)]
-pub(crate) fn from_model<'de, T>(model: CclObject) -> Result<T>
+/// Deserialize an already-parsed document into `T`.
+pub fn from_document<'a, T>(document: &DocumentMut) -> Result<T>
 where
-    T: Deserialize<'de>,
+    T: Deserialize<'a>,
 {
-    let mut deserializer = Deserializer::from_model(model);
-    T::deserialize(&mut deserializer).map_err(|e| Error::ValueError(e.to_string()))
+    from_item_with(
+        &Item::Table(document.as_table().clone()),
+        document.options(),
+    )
 }
 
-/// A structure that deserializes CCL into Rust values
-pub(crate) struct Deserializer {
-    model: CclObject,
+/// Deserialize a single tree node into `T` using default behaviors.
+pub fn from_item<'a, T>(item: &Item) -> Result<T>
+where
+    T: Deserialize<'a>,
+{
+    from_item_with(item, &Options::new())
+}
+
+/// Deserialize a single tree node into `T` using explicit behaviors.
+pub fn from_item_with<'a, T>(item: &Item, options: &Options) -> Result<T>
+where
+    T: Deserialize<'a>,
+{
+    let mut deserializer = Deserializer::new(item.clone(), options.clone());
+    T::deserialize(&mut deserializer).map_err(Error::Deserialize)
+}
+
+/// Deserialize a tree node into an owned value.
+pub fn from_item_owned<T: DeserializeOwned>(item: &Item, options: &Options) -> Result<T> {
+    from_item_with(item, options)
+}
+
+/// A Serde deserializer over one node of a CCL tree.
+pub struct Deserializer {
+    item: Item,
+    options: Options,
 }
 
 impl Deserializer {
-    /// Create a new deserializer from a Model
-    pub(crate) fn from_model(model: CclObject) -> Self {
-        Deserializer { model }
+    /// Create a deserializer for `item`.
+    pub fn new(item: Item, options: Options) -> Self {
+        Self { item, options }
+    }
+
+    fn scalar(&self) -> std::result::Result<&str, DeserializeError> {
+        self.item.as_str().ok_or_else(|| {
+            DeserializeError::new(format!(
+                "expected a scalar value, found {}",
+                self.item.type_name()
+            ))
+        })
     }
 }
 
-/// Helper to extract a string value from the recursive map structure
-/// Converts our Result type to DeError for serde compatibility
-fn extract_string_value(model: &CclObject) -> std::result::Result<&str, DeError> {
-    model
-        .as_string()
-        .map_err(|e| DeError::custom(e.to_string()))
+macro_rules! deserialize_number {
+    ($method:ident, $visit:ident, $ty:ty) => {
+        fn $method<V>(self, visitor: V) -> std::result::Result<V::Value, Self::Error>
+        where
+            V: Visitor<'de>,
+        {
+            let text = self.scalar()?;
+            let parsed = text.trim().parse::<$ty>().map_err(|_| {
+                DeserializeError::new(format!(
+                    concat!("failed to parse '{}' as ", stringify!($ty)),
+                    text
+                ))
+            })?;
+            visitor.$visit(parsed)
+        }
+    };
 }
 
 impl<'de> de::Deserializer<'de> for &mut Deserializer {
-    type Error = DeError;
+    type Error = DeserializeError;
 
     fn deserialize_any<V>(self, visitor: V) -> std::result::Result<V::Value, Self::Error>
     where
         V: Visitor<'de>,
     {
-        // Check if it's a simple string value (single key with empty map)
-        if let Ok(s) = extract_string_value(&self.model) {
-            return visitor.visit_str(s);
+        match &self.item {
+            Item::Value(value) => visitor.visit_str(value.as_str()),
+            Item::Array(_) => self.deserialize_seq(visitor),
+            Item::Table(table) if table.is_bare_list() => self.deserialize_seq(visitor),
+            Item::Table(_) => self.deserialize_map(visitor),
+            Item::None => visitor.visit_unit(),
         }
-
-        // Check if it's a list (multiple keys at same level)
-        if self.model.len() > 1 && self.model.values().all(|v| v.is_empty()) {
-            return self.deserialize_seq(visitor);
-        }
-
-        // Check if it's a list with empty keys (CCL list syntax: = item1, = item2)
-        if self.model.len() == 1 {
-            if let Ok(value) = self.model.get("") {
-                // Even a single-element list should be treated as a sequence
-                if !value.is_empty() && value.values().all(|v| v.is_empty()) {
-                    return self.deserialize_seq(visitor);
-                }
-            }
-        }
-
-        // Otherwise it's a map
-        self.deserialize_map(visitor)
     }
 
     fn deserialize_bool<V>(self, visitor: V) -> std::result::Result<V::Value, Self::Error>
     where
         V: Visitor<'de>,
     {
-        let b = self
-            .model
-            .as_bool()
-            .map_err(|e| DeError::custom(e.to_string()))?;
-        visitor.visit_bool(b)
+        let text = self.scalar()?;
+        let parsed = self
+            .options
+            .parse_bool(text.trim())
+            .ok_or_else(|| DeserializeError::new(format!("failed to parse '{text}' as bool")))?;
+        visitor.visit_bool(parsed)
     }
 
-    fn deserialize_i8<V>(self, visitor: V) -> std::result::Result<V::Value, Self::Error>
-    where
-        V: Visitor<'de>,
-    {
-        let s = extract_string_value(&self.model)?;
-        let n = s
-            .parse::<i8>()
-            .map_err(|_| DeError::custom(format!("failed to parse '{}' as i8", s)))?;
-        visitor.visit_i8(n)
-    }
-
-    fn deserialize_i16<V>(self, visitor: V) -> std::result::Result<V::Value, Self::Error>
-    where
-        V: Visitor<'de>,
-    {
-        let s = extract_string_value(&self.model)?;
-        let n = s
-            .parse::<i16>()
-            .map_err(|_| DeError::custom(format!("failed to parse '{}' as i16", s)))?;
-        visitor.visit_i16(n)
-    }
-
-    fn deserialize_i32<V>(self, visitor: V) -> std::result::Result<V::Value, Self::Error>
-    where
-        V: Visitor<'de>,
-    {
-        let s = extract_string_value(&self.model)?;
-        let n = s
-            .parse::<i32>()
-            .map_err(|_| DeError::custom(format!("failed to parse '{}' as i32", s)))?;
-        visitor.visit_i32(n)
-    }
-
-    fn deserialize_i64<V>(self, visitor: V) -> std::result::Result<V::Value, Self::Error>
-    where
-        V: Visitor<'de>,
-    {
-        let s = extract_string_value(&self.model)?;
-        let n = s
-            .parse::<i64>()
-            .map_err(|_| DeError::custom(format!("failed to parse '{}' as i64", s)))?;
-        visitor.visit_i64(n)
-    }
-
-    fn deserialize_u8<V>(self, visitor: V) -> std::result::Result<V::Value, Self::Error>
-    where
-        V: Visitor<'de>,
-    {
-        let s = extract_string_value(&self.model)?;
-        let n = s
-            .parse::<u8>()
-            .map_err(|_| DeError::custom(format!("failed to parse '{}' as u8", s)))?;
-        visitor.visit_u8(n)
-    }
-
-    fn deserialize_u16<V>(self, visitor: V) -> std::result::Result<V::Value, Self::Error>
-    where
-        V: Visitor<'de>,
-    {
-        let s = extract_string_value(&self.model)?;
-        let n = s
-            .parse::<u16>()
-            .map_err(|_| DeError::custom(format!("failed to parse '{}' as u16", s)))?;
-        visitor.visit_u16(n)
-    }
-
-    fn deserialize_u32<V>(self, visitor: V) -> std::result::Result<V::Value, Self::Error>
-    where
-        V: Visitor<'de>,
-    {
-        let s = extract_string_value(&self.model)?;
-        let n = s
-            .parse::<u32>()
-            .map_err(|_| DeError::custom(format!("failed to parse '{}' as u32", s)))?;
-        visitor.visit_u32(n)
-    }
-
-    fn deserialize_u64<V>(self, visitor: V) -> std::result::Result<V::Value, Self::Error>
-    where
-        V: Visitor<'de>,
-    {
-        let s = extract_string_value(&self.model)?;
-        let n = s
-            .parse::<u64>()
-            .map_err(|_| DeError::custom(format!("failed to parse '{}' as u64", s)))?;
-        visitor.visit_u64(n)
-    }
-
-    fn deserialize_f32<V>(self, visitor: V) -> std::result::Result<V::Value, Self::Error>
-    where
-        V: Visitor<'de>,
-    {
-        let s = extract_string_value(&self.model)?;
-        let n = s
-            .parse::<f32>()
-            .map_err(|_| DeError::custom(format!("failed to parse '{}' as f32", s)))?;
-        visitor.visit_f32(n)
-    }
-
-    fn deserialize_f64<V>(self, visitor: V) -> std::result::Result<V::Value, Self::Error>
-    where
-        V: Visitor<'de>,
-    {
-        let s = extract_string_value(&self.model)?;
-        let n = s
-            .parse::<f64>()
-            .map_err(|_| DeError::custom(format!("failed to parse '{}' as f64", s)))?;
-        visitor.visit_f64(n)
-    }
+    deserialize_number!(deserialize_i8, visit_i8, i8);
+    deserialize_number!(deserialize_i16, visit_i16, i16);
+    deserialize_number!(deserialize_i32, visit_i32, i32);
+    deserialize_number!(deserialize_i64, visit_i64, i64);
+    deserialize_number!(deserialize_u8, visit_u8, u8);
+    deserialize_number!(deserialize_u16, visit_u16, u16);
+    deserialize_number!(deserialize_u32, visit_u32, u32);
+    deserialize_number!(deserialize_u64, visit_u64, u64);
+    deserialize_number!(deserialize_f32, visit_f32, f32);
+    deserialize_number!(deserialize_f64, visit_f64, f64);
 
     fn deserialize_char<V>(self, visitor: V) -> std::result::Result<V::Value, Self::Error>
     where
         V: Visitor<'de>,
     {
-        let s = extract_string_value(&self.model)?;
-        let mut chars = s.chars();
-        let c = chars
-            .next()
-            .ok_or_else(|| DeError::custom("empty string"))?;
-        if chars.next().is_some() {
-            return Err(DeError::custom("string too long for char"));
+        let text = self.scalar()?;
+        let mut chars = text.chars();
+        match (chars.next(), chars.next()) {
+            (Some(c), None) => visitor.visit_char(c),
+            _ => Err(DeserializeError::new(format!(
+                "expected a single character, found '{text}'"
+            ))),
         }
-        visitor.visit_char(c)
     }
 
     fn deserialize_str<V>(self, visitor: V) -> std::result::Result<V::Value, Self::Error>
     where
         V: Visitor<'de>,
     {
-        let s = extract_string_value(&self.model)?;
-        visitor.visit_str(s)
+        visitor.visit_str(self.scalar()?)
     }
 
     fn deserialize_string<V>(self, visitor: V) -> std::result::Result<V::Value, Self::Error>
@@ -284,8 +188,7 @@ impl<'de> de::Deserializer<'de> for &mut Deserializer {
     where
         V: Visitor<'de>,
     {
-        let s = extract_string_value(&self.model)?;
-        visitor.visit_bytes(s.as_bytes())
+        visitor.visit_bytes(self.scalar()?.as_bytes())
     }
 
     fn deserialize_byte_buf<V>(self, visitor: V) -> std::result::Result<V::Value, Self::Error>
@@ -299,7 +202,11 @@ impl<'de> de::Deserializer<'de> for &mut Deserializer {
     where
         V: Visitor<'de>,
     {
-        visitor.visit_some(self)
+        if self.item.is_none() {
+            visitor.visit_none()
+        } else {
+            visitor.visit_some(self)
+        }
     }
 
     fn deserialize_unit<V>(self, visitor: V) -> std::result::Result<V::Value, Self::Error>
@@ -335,82 +242,37 @@ impl<'de> de::Deserializer<'de> for &mut Deserializer {
     where
         V: Visitor<'de>,
     {
-        // Check if it's a list (multiple keys with empty values)
-        if self.model.len() > 1 && self.model.values().all(|v| v.is_empty()) {
-            // Collect keys as the list items
-            let items: Vec<String> = self.model.keys().cloned().collect();
-            let seq = StringSeqDeserializer {
-                iter: items.into_iter(),
-            };
-            return visitor.visit_seq(seq);
-        }
-
-        // Check if it's a singleton containing list syntax
-        if let Ok(s) = self.model.as_string() {
-            if is_list_syntax(s) {
-                // Parse as a simple list of strings
-                let items: Vec<String> = s
-                    .lines()
-                    .filter_map(|line| {
-                        let trimmed = line.trim();
-                        if let Some(stripped) = trimmed.strip_prefix('=') {
-                            let value = stripped.trim();
-                            if !value.is_empty() {
-                                Some(value.to_string())
-                            } else {
-                                None
-                            }
-                        } else {
-                            None
-                        }
+        let items: Vec<Item> = match &self.item {
+            Item::Array(array) => array.iter().cloned().collect(),
+            Item::Table(table) if table.is_bare_list() => table.values().cloned().collect(),
+            Item::Value(value) if value.as_str().is_empty() => Vec::new(),
+            Item::Value(value) if contains_bare_list_lines(value.as_str()) => value
+                .as_str()
+                .lines()
+                .filter_map(|line| {
+                    let trimmed = line.trim();
+                    trimmed.strip_prefix('=').and_then(|rest| {
+                        let text = rest.trim();
+                        (!text.is_empty()).then(|| Item::from(text))
                     })
-                    .collect();
-                let seq = StringSeqDeserializer {
-                    iter: items.into_iter(),
-                };
-                return visitor.visit_seq(seq);
+                })
+                .collect(),
+            // A lone scalar deserializes as a one-element sequence, mirroring
+            // CCL's list-coercion behavior.
+            Item::Value(value) => vec![Item::Value(value.clone())],
+            Item::Table(table) => {
+                return Err(DeserializeError::new(format!(
+                    "expected a list, found a block with {} entries",
+                    table.len()
+                )))
             }
-        }
+            Item::None => Vec::new(),
+        };
 
-        // Check if it's a map with empty keys (list representation)
-        if self.model.keys().any(|k| k.is_empty()) {
-            // Get all values for the empty key
-            if let Ok(values) = self.model.get_all("") {
-                // Check if all values are simple string values (each has exactly one key with empty children)
-                let all_simple_strings = values
-                    .iter()
-                    .all(|v| v.len() == 1 && v.values().all(|child| child.is_empty()));
-
-                if all_simple_strings {
-                    // Extract the string values from each entry
-                    let items: Vec<String> = values
-                        .iter()
-                        .filter_map(|v| v.keys().next().cloned())
-                        .collect();
-                    let seq = StringSeqDeserializer {
-                        iter: items.into_iter(),
-                    };
-                    return visitor.visit_seq(seq);
-                } else {
-                    // Not simple strings, return the CclObjects
-                    let list: Vec<crate::CclObject> = values.to_vec();
-                    let seq = ModelSeqDeserializer {
-                        iter: list.into_iter(),
-                    };
-                    return visitor.visit_seq(seq);
-                }
-            }
-        }
-
-        // Fallback: single scalar value → one-element sequence
-        if let Ok(s) = self.model.as_string() {
-            let seq = StringSeqDeserializer {
-                iter: vec![s.to_owned()].into_iter(),
-            };
-            return visitor.visit_seq(seq);
-        }
-
-        Err(DeError::custom("expected a list"))
+        visitor.visit_seq(SeqDeserializer {
+            iter: items.into_iter(),
+            options: self.options.clone(),
+        })
     }
 
     fn deserialize_tuple<V>(
@@ -440,12 +302,26 @@ impl<'de> de::Deserializer<'de> for &mut Deserializer {
     where
         V: Visitor<'de>,
     {
-        let map_de = MapDeserializer {
-            iter: self.model.iter_map(),
+        let table = self.item.as_table().ok_or_else(|| {
+            DeserializeError::new(format!("expected a block, found {}", self.item.type_name()))
+        })?;
+
+        let entries: Vec<(String, Item)> = table
+            .unique_keys()
+            .into_iter()
+            .map(|key| {
+                (
+                    key.to_string(),
+                    table.get_composed(key).unwrap_or(Item::None),
+                )
+            })
+            .collect();
+
+        visitor.visit_map(TableDeserializer {
+            iter: entries.into_iter(),
             value: None,
-            full_vec: None,
-        };
-        visitor.visit_map(map_de)
+            options: self.options.clone(),
+        })
     }
 
     fn deserialize_struct<V>(
@@ -469,8 +345,7 @@ impl<'de> de::Deserializer<'de> for &mut Deserializer {
     where
         V: Visitor<'de>,
     {
-        let s = extract_string_value(&self.model)?;
-        visitor.visit_enum(s.into_deserializer())
+        visitor.visit_enum(self.scalar()?.into_deserializer())
     }
 
     fn deserialize_identifier<V>(self, visitor: V) -> std::result::Result<V::Value, Self::Error>
@@ -488,28 +363,21 @@ impl<'de> de::Deserializer<'de> for &mut Deserializer {
     }
 }
 
-/// Check if a string contains CCL bare-list syntax (lines starting with `= ` or bare `=`).
-///
-/// The CCL bare-list pattern is `= value` (equals followed by a space then a value)
-/// or a bare `=` (empty list item). This rejects values that merely contain `=` as
-/// the first character (like `=3` or `== comparison`).
-fn is_list_syntax(s: &str) -> bool {
-    s.lines().any(|line| {
+/// Whether a scalar's text contains CCL bare-list lines (`= item`).
+fn contains_bare_list_lines(text: &str) -> bool {
+    text.lines().any(|line| {
         let trimmed = line.trim();
         trimmed.starts_with("= ") || trimmed == "="
     })
 }
 
-struct StringSeqDeserializer {
-    iter: std::vec::IntoIter<String>,
+struct SeqDeserializer {
+    iter: std::vec::IntoIter<Item>,
+    options: Options,
 }
 
-struct ModelSeqDeserializer {
-    iter: std::vec::IntoIter<CclObject>,
-}
-
-impl<'de> SeqAccess<'de> for StringSeqDeserializer {
-    type Error = DeError;
+impl<'de> SeqAccess<'de> for SeqDeserializer {
+    type Error = DeserializeError;
 
     fn next_element_seed<T>(
         &mut self,
@@ -519,9 +387,8 @@ impl<'de> SeqAccess<'de> for StringSeqDeserializer {
         T: DeserializeSeed<'de>,
     {
         match self.iter.next() {
-            Some(s) => {
-                let model = crate::CclObject::from_string(s.clone());
-                let mut de = Deserializer { model };
+            Some(item) => {
+                let mut de = Deserializer::new(item, self.options.clone());
                 seed.deserialize(&mut de).map(Some)
             }
             None => Ok(None),
@@ -529,56 +396,25 @@ impl<'de> SeqAccess<'de> for StringSeqDeserializer {
     }
 }
 
-impl<'de> SeqAccess<'de> for ModelSeqDeserializer {
-    type Error = DeError;
-
-    fn next_element_seed<T>(
-        &mut self,
-        seed: T,
-    ) -> std::result::Result<Option<T::Value>, Self::Error>
-    where
-        T: DeserializeSeed<'de>,
-    {
-        match self.iter.next() {
-            Some(model) => {
-                let mut de = Deserializer { model };
-                seed.deserialize(&mut de).map(Some)
-            }
-            None => Ok(None),
-        }
-    }
+struct TableDeserializer {
+    iter: std::vec::IntoIter<(String, Item)>,
+    value: Option<Item>,
+    options: Options,
 }
 
-struct MapDeserializer<'a> {
-    iter: crate::model::CclMapIter<'a>,
-    value: Option<&'a CclObject>,
-    full_vec: Option<&'a Vec<CclObject>>,
-}
-
-impl<'de, 'a> MapAccess<'de> for MapDeserializer<'a> {
-    type Error = DeError;
+impl<'de> MapAccess<'de> for TableDeserializer {
+    type Error = DeserializeError;
 
     fn next_key_seed<K>(&mut self, seed: K) -> std::result::Result<Option<K::Value>, Self::Error>
     where
         K: DeserializeSeed<'de>,
     {
-        // Skip CCL trivia keys: comments are parsed as key `/` and explicit blank
-        // lines use the NUL sentinel. For struct deserialization these are unknown
-        // fields that serde would ignore anyway; for map deserialization every
-        // entry is significant, so they must be skipped here or a comment inside a
-        // map (e.g. a `BTreeMap` of named sources) would fail to deserialize.
-        loop {
-            match self.iter.next() {
-                Some((key, _)) if key == "/" || key == crate::model::BLANK_LINE_KEY => continue,
-                Some((key, vec)) => {
-                    // Take the first value from the Vec (serde expects single values per key)
-                    self.value = vec.first();
-                    // Store the full Vec for potential list deserialization
-                    self.full_vec = Some(vec);
-                    return seed.deserialize(key.as_str().into_deserializer()).map(Some);
-                }
-                None => return Ok(None),
+        match self.iter.next() {
+            Some((key, value)) => {
+                self.value = Some(value);
+                seed.deserialize(key.into_deserializer()).map(Some)
             }
+            None => Ok(None),
         }
     }
 
@@ -586,948 +422,126 @@ impl<'de, 'a> MapAccess<'de> for MapDeserializer<'a> {
     where
         V: DeserializeSeed<'de>,
     {
-        // If there are multiple values in the Vec, compose them into one for deserialization
-        // This handles the case of duplicate keys becoming a list
-        if let Some(vec) = self.full_vec.take() {
-            if vec.len() > 1 {
-                // Multiple values for this key - compose them into a single object
-                // that can be deserialized as a sequence
-                let composed = vec
-                    .iter()
-                    .fold(CclObject::new(), |acc, obj| acc.compose(obj));
-                let mut de = Deserializer { model: composed };
-                return seed.deserialize(&mut de);
-            }
-        }
-
-        match self.value.take() {
-            Some(value) => {
-                let mut de = Deserializer {
-                    model: value.clone(),
-                };
-                seed.deserialize(&mut de)
-            }
-            None => Err(DeError::custom("value is missing")),
-        }
-    }
-}
-
-/// Custom error type for deserialization
-#[derive(Debug, Clone)]
-pub(crate) struct DeError {
-    msg: String,
-}
-
-impl DeError {
-    fn custom(msg: impl fmt::Display) -> Self {
-        DeError {
-            msg: msg.to_string(),
-        }
-    }
-}
-
-impl fmt::Display for DeError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.msg)
-    }
-}
-
-impl std::error::Error for DeError {}
-
-impl de::Error for DeError {
-    fn custom<T: fmt::Display>(msg: T) -> Self {
-        DeError::custom(msg)
+        let item = self
+            .value
+            .take()
+            .ok_or_else(|| DeserializeError::new("value is missing"))?;
+        let mut de = Deserializer::new(item, self.options.clone());
+        seed.deserialize(&mut de)
     }
 }
 
 #[cfg(test)]
 mod tests {
-    #![allow(dead_code)] // Test structs exist to verify deserialization, not field usage
-
     use super::*;
     use serde::Deserialize;
+    use std::collections::BTreeMap;
 
-    #[test]
-    fn test_deserialize_simple_struct() {
-        #[derive(Deserialize, Debug, PartialEq)]
-        struct Config {
-            name: String,
-            version: String,
-        }
+    #[derive(Debug, Deserialize, PartialEq)]
+    struct Server {
+        host: String,
+        port: u16,
+    }
 
-        let ccl = r#"
-name = Santa
-version = 0.1.0
-"#;
-
-        let config: Config = from_str(ccl).unwrap();
-        assert_eq!(config.name, "Santa");
-        assert_eq!(config.version, "0.1.0");
+    #[derive(Debug, Deserialize, PartialEq)]
+    struct Config {
+        name: String,
+        server: Server,
+        hosts: Vec<String>,
+        #[serde(default)]
+        debug: Option<bool>,
     }
 
     #[test]
-    fn test_deserialize_with_numbers() {
-        #[derive(Deserialize, Debug, PartialEq)]
-        struct Config {
-            port: u16,
-            timeout: u32,
+    fn deserializes_nested_structs_and_lists() {
+        let ccl =
+            "name = app\nserver =\n  host = localhost\n  port = 8080\nhosts =\n  = a\n  = b\n";
+        let config: Config = from_str(ccl).unwrap();
+        assert_eq!(config.name, "app");
+        assert_eq!(config.server.port, 8080);
+        assert_eq!(config.hosts, vec!["a", "b"]);
+        assert_eq!(config.debug, None);
+    }
+
+    #[test]
+    fn comments_and_blank_lines_are_ignored() {
+        let ccl = "/= top\n\nname = app\n/= about the port\nport = 1\n";
+        let map: BTreeMap<String, String> = from_str(ccl).unwrap();
+        assert_eq!(map.len(), 2);
+        assert_eq!(map["name"], "app");
+    }
+
+    #[test]
+    fn repeated_keys_become_sequences() {
+        #[derive(Deserialize)]
+        struct Doc {
+            item: Vec<String>,
+        }
+        let doc: Doc = from_str("item = a\nitem = b\n").unwrap();
+        assert_eq!(doc.item, vec!["a", "b"]);
+    }
+
+    #[test]
+    fn booleans_follow_configured_strictness() {
+        #[derive(Deserialize)]
+        struct Doc {
             enabled: bool,
         }
-
-        let ccl = r#"
-port = 8080
-timeout = 3000
-enabled = true
-"#;
-
-        let config: Config = from_str(ccl).unwrap();
-        assert_eq!(config.port, 8080);
-        assert_eq!(config.timeout, 3000);
-        assert!(config.enabled);
+        assert!(from_str::<Doc>("enabled = yes\n").is_err());
+        let lenient = Options::new().with_bool(crate::BoolBehavior::Lenient);
+        let doc: Doc = from_str_with("enabled = yes\n", &lenient).unwrap();
+        assert!(doc.enabled);
     }
 
     #[test]
-    fn test_deserialize_hashmap() {
-        use std::collections::HashMap;
-
-        #[derive(Deserialize, Debug, PartialEq)]
-        struct SourceDef {
-            emoji: String,
-            install: String,
-            check: String,
-        }
-
-        let ccl = r#"
-brew =
-  emoji = 🍺
-  install = brew install {package}
-  check = brew leaves
-
-npm =
-  emoji = 📦
-  install = npm install -g {package}
-  check = npm list -g
-"#;
-
-        let sources: HashMap<String, SourceDef> = from_str(ccl).unwrap();
-        assert_eq!(sources.len(), 2);
-        assert!(sources.contains_key("brew"));
-        assert!(sources.contains_key("npm"));
-
-        let brew = &sources["brew"];
-        assert_eq!(brew.emoji, "🍺");
-        assert_eq!(brew.install, "brew install {package}");
-        assert_eq!(brew.check, "brew leaves");
-
-        let npm = &sources["npm"];
-        assert_eq!(npm.emoji, "📦");
-        assert_eq!(npm.install, "npm install -g {package}");
-        assert_eq!(npm.check, "npm list -g");
-    }
-
-    #[test]
-    fn test_deserialize_hashmap_with_optionals() {
-        use std::collections::HashMap;
-
-        #[derive(Deserialize, Debug)]
-        struct PlatformOverride {
-            install: Option<String>,
-            check: Option<String>,
-        }
-
-        #[derive(Deserialize, Debug)]
-        struct SourceDef {
-            emoji: String,
-            install: String,
-            check: String,
-            prefix: Option<String>,
-            #[serde(rename = "_overrides")]
-            overrides: Option<HashMap<String, PlatformOverride>>,
-        }
-
-        let ccl = r#"
-brew =
-  emoji = 🍺
-  install = brew install {package}
-  check = brew leaves
-
-npm =
-  emoji = 📦
-  install = npm install -g {package}
-  check = npm list -g
-  _overrides =
-    windows =
-      check = npm root -g | gci -Name
-
-nix =
-  emoji = 📈
-  install = nix-env -iA {package}
-  check = nix-env -q
-  prefix = nixpkgs.
-"#;
-
-        let sources: HashMap<String, SourceDef> = from_str(ccl).unwrap();
-        assert_eq!(sources.len(), 3);
-
-        // Test brew
-        let brew = &sources["brew"];
-        assert_eq!(brew.emoji, "🍺");
-        assert_eq!(brew.install, "brew install {package}");
-        assert_eq!(brew.check, "brew leaves");
-        assert!(brew.prefix.is_none());
-        assert!(brew.overrides.is_none());
-
-        // Test npm with overrides
-        let npm = &sources["npm"];
-        assert_eq!(npm.emoji, "📦");
-        assert_eq!(npm.install, "npm install -g {package}");
-        assert_eq!(npm.check, "npm list -g");
-        assert!(npm.prefix.is_none());
-        assert!(npm.overrides.is_some());
-        let npm_overrides = npm.overrides.as_ref().unwrap();
-        assert!(npm_overrides.contains_key("windows"));
-        let windows_override = &npm_overrides["windows"];
-        assert_eq!(
-            windows_override.check,
-            Some("npm root -g | gci -Name".to_string())
-        );
-        assert!(windows_override.install.is_none());
-
-        // Test nix with prefix
-        let nix = &sources["nix"];
-        assert_eq!(nix.emoji, "📈");
-        assert_eq!(nix.install, "nix-env -iA {package}");
-        assert_eq!(nix.check, "nix-env -q");
-        assert_eq!(nix.prefix, Some("nixpkgs.".to_string()));
-        assert!(nix.overrides.is_none());
-    }
-
-    #[test]
-    fn test_exact_santa_cli_case() {
-        use std::collections::HashMap;
-
-        #[derive(Deserialize, Debug)]
-        struct PlatformOverride {
-            install: Option<String>,
-            check: Option<String>,
-        }
-
-        #[derive(Deserialize, Debug)]
-        struct SourceDef {
-            emoji: String,
-            install: String,
-            check: String,
-            prefix: Option<String>,
-            #[serde(rename = "_overrides")]
-            overrides: Option<HashMap<String, PlatformOverride>>,
-        }
-
-        // Exact CCL from failing test
-        let ccl = r#"
-brew =
-  emoji = 🍺
-  install = brew install {package}
-  check = brew leaves --installed-on-request
-
-npm =
-  emoji = 📦
-  install = npm install -g {package}
-  check = npm list -g --depth=0
-
-flathub =
-  emoji = 📦
-  install = flatpak install flathub {package}
-  check = flatpak list --app
-"#;
-
-        let result: Result<HashMap<String, SourceDef>> = from_str(ccl);
-        match &result {
-            Ok(sources) => {
-                assert_eq!(sources.len(), 3);
-                assert!(sources.contains_key("brew"));
-                assert!(sources.contains_key("npm"));
-                assert!(sources.contains_key("flathub"));
-
-                // Verify all fields for brew
-                let brew = &sources["brew"];
-                assert_eq!(brew.emoji, "🍺");
-                assert_eq!(brew.install, "brew install {package}");
-                assert_eq!(brew.check, "brew leaves --installed-on-request");
-                assert!(brew.prefix.is_none());
-                assert!(brew.overrides.is_none());
-
-                // Verify all fields for npm
-                let npm = &sources["npm"];
-                assert_eq!(npm.emoji, "📦");
-                assert_eq!(npm.install, "npm install -g {package}");
-                assert_eq!(npm.check, "npm list -g --depth=0");
-                assert!(npm.prefix.is_none());
-                assert!(npm.overrides.is_none());
-
-                // Verify all fields for flathub
-                let flathub = &sources["flathub"];
-                assert_eq!(flathub.emoji, "📦");
-                assert_eq!(flathub.install, "flatpak install flathub {package}");
-                assert_eq!(flathub.check, "flatpak list --app");
-                assert!(flathub.prefix.is_none());
-                assert!(flathub.overrides.is_none());
-            }
-            Err(e) => {
-                panic!("Failed to deserialize: {:?}", e);
-            }
-        }
-    }
-
-    #[test]
-    fn test_value_with_equals_sign() {
-        #[derive(Deserialize, Debug)]
-        struct Config {
-            command: String,
-        }
-
-        // Test with = in the value
-        let ccl = r#"
-command = npm list --depth=0
-"#;
-
-        let result: Result<Config> = from_str(ccl);
-        match &result {
-            Ok(config) => {
-                assert_eq!(config.command, "npm list --depth=0");
-            }
-            Err(e) => {
-                panic!("Failed to deserialize value with =: {:?}", e);
-            }
-        }
-    }
-
-    #[test]
-    fn test_is_list_syntax_detects_bare_list() {
-        // Standard list items: `= value`
-        assert!(is_list_syntax("= item1\n= item2"));
-        assert!(is_list_syntax("  = item1"));
-        // Bare `=` (empty list item)
-        assert!(is_list_syntax("="));
-        assert!(is_list_syntax("  =  "));
-    }
-
-    #[test]
-    fn test_is_list_syntax_rejects_false_positives() {
-        // Value starting with `=` but no space (not list syntax)
-        assert!(!is_list_syntax("=3"));
-        assert!(!is_list_syntax("=value"));
-        // Comparison operators
-        assert!(!is_list_syntax("== comparison"));
-        assert!(!is_list_syntax("=== strict"));
-        // Equals embedded in a value (not at line start after trim)
-        assert!(!is_list_syntax("npm list --depth=0"));
-    }
-}
-
-/// Comprehensive serde_test validation for the CCL deserializer.
-///
-/// These tests verify that the deserializer correctly handles all Serde data types
-/// by testing the actual deserialization from CCL strings rather than token sequences,
-/// since CCL has its own format that doesn't map directly to Serde tokens.
-#[cfg(test)]
-mod serde_validation_tests {
-    use super::*;
-    use serde::Deserialize;
-    use std::collections::HashMap;
-
-    // ===========================================
-    // Primitive Types
-    // ===========================================
-
-    #[test]
-    fn test_bool_true() {
-        let ccl = "value = true";
-        #[derive(Deserialize, PartialEq, Debug)]
-        struct S {
-            value: bool,
-        }
-        let s: S = from_str(ccl).unwrap();
-        assert!(s.value);
-    }
-
-    #[test]
-    fn test_bool_false() {
-        let ccl = "value = false";
-        #[derive(Deserialize, PartialEq, Debug)]
-        struct S {
-            value: bool,
-        }
-        let s: S = from_str(ccl).unwrap();
-        assert!(!s.value);
-    }
-
-    #[test]
-    fn test_i8() {
-        let ccl = "value = -128";
-        #[derive(Deserialize, PartialEq, Debug)]
-        struct S {
-            value: i8,
-        }
-        let s: S = from_str(ccl).unwrap();
-        assert_eq!(s.value, -128);
-    }
-
-    #[test]
-    fn test_i16() {
-        let ccl = "value = -32768";
-        #[derive(Deserialize, PartialEq, Debug)]
-        struct S {
-            value: i16,
-        }
-        let s: S = from_str(ccl).unwrap();
-        assert_eq!(s.value, -32768);
-    }
-
-    #[test]
-    fn test_i32() {
-        let ccl = "value = -2147483648";
-        #[derive(Deserialize, PartialEq, Debug)]
-        struct S {
-            value: i32,
-        }
-        let s: S = from_str(ccl).unwrap();
-        assert_eq!(s.value, -2147483648);
-    }
-
-    #[test]
-    fn test_i64() {
-        let ccl = "value = -9223372036854775808";
-        #[derive(Deserialize, PartialEq, Debug)]
-        struct S {
-            value: i64,
-        }
-        let s: S = from_str(ccl).unwrap();
-        assert_eq!(s.value, -9223372036854775808);
-    }
-
-    #[test]
-    fn test_u8() {
-        let ccl = "value = 255";
-        #[derive(Deserialize, PartialEq, Debug)]
-        struct S {
-            value: u8,
-        }
-        let s: S = from_str(ccl).unwrap();
-        assert_eq!(s.value, 255);
-    }
-
-    #[test]
-    fn test_u16() {
-        let ccl = "value = 65535";
-        #[derive(Deserialize, PartialEq, Debug)]
-        struct S {
-            value: u16,
-        }
-        let s: S = from_str(ccl).unwrap();
-        assert_eq!(s.value, 65535);
-    }
-
-    #[test]
-    fn test_u32() {
-        let ccl = "value = 4294967295";
-        #[derive(Deserialize, PartialEq, Debug)]
-        struct S {
-            value: u32,
-        }
-        let s: S = from_str(ccl).unwrap();
-        assert_eq!(s.value, 4294967295);
-    }
-
-    #[test]
-    fn test_u64() {
-        let ccl = "value = 18446744073709551615";
-        #[derive(Deserialize, PartialEq, Debug)]
-        struct S {
-            value: u64,
-        }
-        let s: S = from_str(ccl).unwrap();
-        assert_eq!(s.value, 18446744073709551615);
-    }
-
-    #[test]
-    fn test_f32() {
-        let ccl = "value = 3.14";
-        #[derive(Deserialize, PartialEq, Debug)]
-        struct S {
-            value: f32,
-        }
-        let s: S = from_str(ccl).unwrap();
-        assert!((s.value - 3.14).abs() < 0.001);
-    }
-
-    #[test]
-    fn test_f64() {
-        let ccl = "value = 3.141592653589793";
-        #[derive(Deserialize, PartialEq, Debug)]
-        struct S {
-            value: f64,
-        }
-        let s: S = from_str(ccl).unwrap();
-        assert!((s.value - std::f64::consts::PI).abs() < 1e-10);
-    }
-
-    #[test]
-    fn test_char() {
-        let ccl = "value = X";
-        #[derive(Deserialize, PartialEq, Debug)]
-        struct S {
-            value: char,
-        }
-        let s: S = from_str(ccl).unwrap();
-        assert_eq!(s.value, 'X');
-    }
-
-    #[test]
-    fn test_string() {
-        let ccl = "value = hello world";
-        #[derive(Deserialize, PartialEq, Debug)]
-        struct S {
-            value: String,
-        }
-        let s: S = from_str(ccl).unwrap();
-        assert_eq!(s.value, "hello world");
-    }
-
-    // ===========================================
-    // Option Types
-    // ===========================================
-
-    #[test]
-    fn test_option_some() {
-        let ccl = "value = present";
-        #[derive(Deserialize, PartialEq, Debug)]
-        struct S {
-            value: Option<String>,
-        }
-        let s: S = from_str(ccl).unwrap();
-        assert_eq!(s.value, Some("present".to_string()));
-    }
-
-    #[test]
-    fn test_option_none_missing_field() {
-        let ccl = "other = something";
-        #[derive(Deserialize, PartialEq, Debug, Default)]
-        struct S {
-            other: String,
-            #[serde(default)]
-            value: Option<String>,
-        }
-        let s: S = from_str(ccl).unwrap();
-        assert_eq!(s.value, None);
-    }
-
-    #[test]
-    fn test_option_some_number() {
-        let ccl = "port = 8080";
-        #[derive(Deserialize, PartialEq, Debug)]
-        struct S {
-            port: Option<u16>,
-        }
-        let s: S = from_str(ccl).unwrap();
-        assert_eq!(s.port, Some(8080));
-    }
-
-    // ===========================================
-    // Sequence Types (Vec)
-    // ===========================================
-
-    #[test]
-    fn test_vec_strings_duplicate_keys() {
-        // CCL represents lists as duplicate keys
-        let ccl = "items = apple\nitems = banana\nitems = cherry";
-        #[derive(Deserialize, PartialEq, Debug)]
-        struct S {
+    fn empty_values_deserialize_as_empty_lists() {
+        #[derive(Deserialize)]
+        struct Doc {
             items: Vec<String>,
         }
-        let s: S = from_str(ccl).unwrap();
-        assert_eq!(s.items.len(), 3);
-        assert!(s.items.contains(&"apple".to_string()));
-        assert!(s.items.contains(&"banana".to_string()));
-        assert!(s.items.contains(&"cherry".to_string()));
+        let doc: Doc = from_str("items =\n").unwrap();
+        assert!(doc.items.is_empty());
     }
 
     #[test]
-    fn test_vec_single_item() {
-        // A single scalar value should coerce into a one-element Vec
-        let ccl = "items = only_one";
-        #[derive(Deserialize, PartialEq, Debug)]
-        struct S {
-            items: Vec<String>,
+    fn lists_of_records_are_supported() {
+        #[derive(Debug, Deserialize, PartialEq)]
+        struct Item2 {
+            name: String,
         }
-        let s: S = from_str(ccl).unwrap();
-        assert_eq!(s.items, vec!["only_one"]);
+        #[derive(Debug, Deserialize, PartialEq)]
+        struct Doc {
+            items: Vec<Item2>,
+        }
+        let doc: Doc = from_str("items =\n  =\n    name = a\n  =\n    name = b\n").unwrap();
+        assert_eq!(doc.items.len(), 2);
+        assert_eq!(doc.items[0].name, "a");
     }
 
     #[test]
-    fn test_vec_single_item_integer() {
-        let ccl = "count = 42";
-        #[derive(Deserialize, PartialEq, Debug)]
-        struct S {
-            count: Vec<i64>,
-        }
-        let s: S = from_str(ccl).unwrap();
-        assert_eq!(s.count, vec![42]);
-    }
-
-    #[test]
-    fn test_hashmap_string_vec_mixed() {
-        // Single and multi-value keys should both work as Vec values
-        let ccl = "mappings =\n  foo = bar\n  baz = qux\n  baz = quux";
-        #[derive(Deserialize, PartialEq, Debug)]
-        struct S {
-            mappings: HashMap<String, Vec<String>>,
-        }
-        let s: S = from_str(ccl).unwrap();
-        assert_eq!(s.mappings.get("foo").unwrap(), &vec!["bar"]);
-        let baz = s.mappings.get("baz").unwrap();
-        assert_eq!(baz.len(), 2);
-        assert!(baz.contains(&"qux".to_string()));
-        assert!(baz.contains(&"quux".to_string()));
-    }
-
-    #[test]
-    fn test_vec_two_items() {
-        // Two or more duplicate keys correctly become a list
-        let ccl = "items = first\nitems = second";
-        #[derive(Deserialize, PartialEq, Debug)]
-        struct S {
-            items: Vec<String>,
-        }
-        let s: S = from_str(ccl).unwrap();
-        assert_eq!(s.items.len(), 2);
-        assert!(s.items.contains(&"first".to_string()));
-        assert!(s.items.contains(&"second".to_string()));
-    }
-
-    // ===========================================
-    // Map Types (HashMap)
-    // ===========================================
-
-    #[test]
-    fn test_hashmap_string_string() {
-        let ccl = "env =\n  HOME = /home/user\n  PATH = /usr/bin";
-        #[derive(Deserialize, PartialEq, Debug)]
-        struct S {
-            env: HashMap<String, String>,
-        }
-        let s: S = from_str(ccl).unwrap();
-        assert_eq!(s.env.get("HOME"), Some(&"/home/user".to_string()));
-        assert_eq!(s.env.get("PATH"), Some(&"/usr/bin".to_string()));
-    }
-
-    #[test]
-    fn test_hashmap_top_level() {
-        let ccl = "key1 = value1\nkey2 = value2";
-        let map: HashMap<String, String> = from_str(ccl).unwrap();
-        assert_eq!(map.get("key1"), Some(&"value1".to_string()));
-        assert_eq!(map.get("key2"), Some(&"value2".to_string()));
-    }
-
-    // ===========================================
-    // Struct Types
-    // ===========================================
-
-    #[test]
-    fn test_nested_struct() {
-        #[derive(Deserialize, PartialEq, Debug)]
-        struct Inner {
-            host: String,
-            port: u16,
-        }
-        #[derive(Deserialize, PartialEq, Debug)]
-        struct Outer {
-            database: Inner,
-        }
-
-        let ccl = "database =\n  host = localhost\n  port = 5432";
-        let s: Outer = from_str(ccl).unwrap();
-        assert_eq!(s.database.host, "localhost");
-        assert_eq!(s.database.port, 5432);
-    }
-
-    #[test]
-    fn test_deeply_nested_struct() {
-        #[derive(Deserialize, PartialEq, Debug)]
-        struct Level3 {
-            value: String,
-        }
-        #[derive(Deserialize, PartialEq, Debug)]
-        struct Level2 {
-            level3: Level3,
-        }
-        #[derive(Deserialize, PartialEq, Debug)]
-        struct Level1 {
-            level2: Level2,
-        }
-
-        let ccl = "level2 =\n  level3 =\n    value = deep";
-        let s: Level1 = from_str(ccl).unwrap();
-        assert_eq!(s.level2.level3.value, "deep");
-    }
-
-    // ===========================================
-    // Enum Types
-    // ===========================================
-
-    #[test]
-    fn test_unit_enum() {
-        #[derive(Deserialize, PartialEq, Debug)]
-        enum Color {
-            Red,
-            Green,
-            Blue,
-        }
-        #[derive(Deserialize, PartialEq, Debug)]
-        struct S {
-            color: Color,
-        }
-
-        let ccl = "color = Red";
-        let s: S = from_str(ccl).unwrap();
-        assert_eq!(s.color, Color::Red);
-    }
-
-    #[test]
-    fn test_enum_rename_all() {
-        #[derive(Deserialize, PartialEq, Debug)]
+    fn enums_deserialize_from_scalars() {
+        #[derive(Debug, Deserialize, PartialEq)]
         #[serde(rename_all = "lowercase")]
-        enum Status {
-            Active,
-            Inactive,
-            Pending,
+        enum Mode {
+            Fast,
+            Slow,
         }
-        #[derive(Deserialize, PartialEq, Debug)]
-        struct S {
-            status: Status,
+        #[derive(Debug, Deserialize, PartialEq)]
+        struct Doc {
+            mode: Mode,
         }
-
-        let ccl = "status = active";
-        let s: S = from_str(ccl).unwrap();
-        assert_eq!(s.status, Status::Active);
-    }
-
-    // ===========================================
-    // Serde Attributes
-    // ===========================================
-
-    #[test]
-    fn test_rename_field() {
-        #[derive(Deserialize, PartialEq, Debug)]
-        struct S {
-            #[serde(rename = "user-name")]
-            user_name: String,
-        }
-
-        let ccl = "user-name = alice";
-        let s: S = from_str(ccl).unwrap();
-        assert_eq!(s.user_name, "alice");
+        let doc: Doc = from_str("mode = fast\n").unwrap();
+        assert_eq!(doc.mode, Mode::Fast);
     }
 
     #[test]
-    fn test_default_value() {
-        #[derive(Deserialize, PartialEq, Debug)]
-        struct S {
+    fn missing_fields_report_errors() {
+        #[derive(Debug, Deserialize)]
+        #[allow(dead_code)]
+        struct Doc {
             required: String,
-            #[serde(default)]
-            optional: String,
         }
-
-        let ccl = "required = present";
-        let s: S = from_str(ccl).unwrap();
-        assert_eq!(s.required, "present");
-        assert_eq!(s.optional, "");
-    }
-
-    #[test]
-    fn test_default_with_function() {
-        fn default_port() -> u16 {
-            3000
-        }
-
-        #[derive(Deserialize, PartialEq, Debug)]
-        struct S {
-            host: String,
-            #[serde(default = "default_port")]
-            port: u16,
-        }
-
-        let ccl = "host = localhost";
-        let s: S = from_str(ccl).unwrap();
-        assert_eq!(s.host, "localhost");
-        assert_eq!(s.port, 3000);
-    }
-
-    // ===========================================
-    // Complex/Combined Types
-    // ===========================================
-
-    #[test]
-    fn test_vec_of_structs_not_supported() {
-        // Note: This documents current limitation - Vec<Struct> may not work
-        // as expected in CCL since it's fundamentally a key-value format
-        #[derive(Deserialize, PartialEq, Debug)]
-        struct Item {
-            name: String,
-        }
-        #[derive(Deserialize, Debug)]
-        struct S {
-            #[serde(default)]
-            items: Vec<Item>,
-        }
-
-        // This may or may not work depending on CCL representation
-        // Just verify it doesn't panic
-        let ccl = "other = something";
-        let result: Result<S> = from_str(ccl);
-        // Accept either success with empty vec or error
-        match result {
-            Ok(s) => assert!(s.items.is_empty()),
-            Err(_) => {} // Also acceptable
-        }
-    }
-
-    #[test]
-    fn test_hashmap_with_struct_values() {
-        #[derive(Deserialize, PartialEq, Debug)]
-        struct ServerConfig {
-            host: String,
-            port: u16,
-        }
-
-        let ccl = r#"
-web =
-  host = localhost
-  port = 8080
-api =
-  host = api.example.com
-  port = 443
-"#;
-        let servers: HashMap<String, ServerConfig> = from_str(ccl).unwrap();
-        assert_eq!(servers.len(), 2);
-        assert_eq!(servers["web"].host, "localhost");
-        assert_eq!(servers["web"].port, 8080);
-        assert_eq!(servers["api"].host, "api.example.com");
-        assert_eq!(servers["api"].port, 443);
-    }
-
-    #[test]
-    fn test_option_nested_struct() {
-        #[derive(Deserialize, PartialEq, Debug)]
-        struct Database {
-            url: String,
-        }
-        #[derive(Deserialize, PartialEq, Debug, Default)]
-        struct Config {
-            name: String,
-            #[serde(default)]
-            database: Option<Database>,
-        }
-
-        // With database
-        let ccl1 = "name = app\ndatabase =\n  url = postgres://localhost";
-        let c1: Config = from_str(ccl1).unwrap();
-        assert_eq!(c1.database.as_ref().unwrap().url, "postgres://localhost");
-
-        // Without database
-        let ccl2 = "name = app";
-        let c2: Config = from_str(ccl2).unwrap();
-        assert!(c2.database.is_none());
-    }
-
-    // ===========================================
-    // Error Cases
-    // ===========================================
-
-    #[test]
-    fn test_invalid_number_format() {
-        #[allow(dead_code)]
-        #[derive(Deserialize, Debug)]
-        struct S {
-            port: u16,
-        }
-
-        let ccl = "port = not_a_number";
-        let result: Result<S> = from_str(ccl);
-        assert!(result.is_err());
-    }
-
-    #[test]
-    fn test_number_overflow() {
-        #[allow(dead_code)]
-        #[derive(Deserialize, Debug)]
-        struct S {
-            value: u8,
-        }
-
-        let ccl = "value = 256"; // u8 max is 255
-        let result: Result<S> = from_str(ccl);
-        assert!(result.is_err());
-    }
-
-    #[test]
-    fn test_invalid_bool() {
-        #[allow(dead_code)]
-        #[derive(Deserialize, Debug)]
-        struct S {
-            enabled: bool,
-        }
-
-        let ccl = "enabled = yes"; // Should be "true" or "false"
-        let result: Result<S> = from_str(ccl);
-        assert!(result.is_err());
-    }
-
-    // ===========================================
-    // Real-world Santa Config Types
-    // ===========================================
-
-    #[test]
-    fn test_source_definition_like_struct() {
-        #[derive(Deserialize, Debug)]
-        struct SourceDef {
-            emoji: String,
-            install: String,
-            check: String,
-            #[serde(default)]
-            prefix: Option<String>,
-        }
-
-        let ccl = r#"
-emoji = 🍺
-install = brew install {package}
-check = brew leaves --installed-on-request
-"#;
-        let s: SourceDef = from_str(ccl).unwrap();
-        assert_eq!(s.emoji, "🍺");
-        assert_eq!(s.install, "brew install {package}");
-        assert_eq!(s.check, "brew leaves --installed-on-request");
-        assert!(s.prefix.is_none());
-    }
-
-    #[test]
-    fn test_source_definition_with_prefix() {
-        #[allow(dead_code)]
-        #[derive(Deserialize, Debug)]
-        struct SourceDef {
-            emoji: String,
-            install: String,
-            check: String,
-            #[serde(default)]
-            prefix: Option<String>,
-        }
-
-        let ccl = r#"
-emoji = ❄️
-install = nix-env -iA {package}
-check = nix-env -q
-prefix = nixpkgs.
-"#;
-        let s: SourceDef = from_str(ccl).unwrap();
-        assert_eq!(s.prefix, Some("nixpkgs.".to_string()));
+        let err = from_str::<Doc>("other = 1\n").unwrap_err();
+        assert!(matches!(err, Error::Deserialize(_)));
     }
 }

@@ -19,7 +19,7 @@ pub(crate) fn run(args: ValidateArgs) -> Result<()> {
     let source = InputSource::from_arg(args.file.as_deref());
     let input = source.read()?;
 
-    match sickle::load(&input.content) {
+    match sickle::DocumentMut::parse(&input.content) {
         Ok(_) => {
             if !args.quiet {
                 eprintln!("{} {}", input.source_name, "OK".green());

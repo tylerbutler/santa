@@ -60,8 +60,9 @@ fn warn_comment_loss() -> Result<()> {
 fn convert(content: &str, from: Format, to: Format, pretty: bool) -> Result<String> {
     let value: serde_json::Value = match from {
         Format::Ccl => {
-            let obj = sickle::load(content).map_err(|e| anyhow::anyhow!("{}", e))?;
-            bridge::ccl_to_value(&obj)
+            let document =
+                sickle::DocumentMut::parse(content).map_err(|e| anyhow::anyhow!("{}", e))?;
+            bridge::document_to_value(&document)
         }
         Format::Json => {
             serde_json::from_str(content).map_err(|e| anyhow::anyhow!("Invalid JSON: {}", e))?

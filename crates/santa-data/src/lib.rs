@@ -54,77 +54,35 @@ pub use schemas::{
 /// assert!(result.contains_key("complex_pkg"));
 /// ```
 pub fn parse_to_hashmap(ccl_content: &str) -> Result<HashMap<String, Value>> {
-    // Parse using sickle's load function (parse + build_hierarchy)
-    let model = sickle::load(ccl_content).context("Failed to parse CCL with sickle")?;
+    let document = sickle::DocumentMut::parse(ccl_content)
+        .map_err(|e| anyhow::anyhow!("Failed to parse CCL with sickle: {e}"))?;
 
-    // Convert the model to a HashMap<String, Value>
-    model_to_hashmap(&model)
-}
-
-/// Convert a sickle Model to a HashMap<String, Value>
-fn model_to_hashmap(model: &sickle::CclObject) -> Result<HashMap<String, Value>> {
     let mut result = HashMap::new();
-
-    for (key, value) in model.iter() {
-        result.insert(key.clone(), model_to_value(value)?);
+    for key in document.as_table().unique_keys() {
+        let item = document
+            .as_table()
+            .get_composed(key)
+            .expect("key came from the table");
+        result.insert(key.to_string(), item_to_value(&item));
     }
-
     Ok(result)
 }
 
-/// Convert a sickle Model to a serde_json Value
-fn model_to_value(model: &sickle::CclObject) -> Result<Value> {
-    // Check if this is a list with empty keys (CCL: = item1\n = item2)
-    // Empty keys have all their values stored in a Vec under the "" key
-    if let Ok(empty_key_values) = model.get_all("") {
-        if !empty_key_values.is_empty() {
-            // Check if all values are simple string values (single key with empty value)
-            let all_simple_strings = empty_key_values
-                .iter()
-                .all(|v| v.len() == 1 && v.values().all(|child| child.is_empty()));
-
-            if all_simple_strings {
-                // Extract string values
-                let values: Vec<Value> = empty_key_values
-                    .iter()
-                    .filter_map(|v| v.keys().next().cloned())
-                    .map(Value::String)
-                    .collect();
-                return Ok(Value::Array(values));
-            } else {
-                // Convert each value recursively
-                let values: Vec<Value> = empty_key_values
-                    .iter()
-                    .map(model_to_value)
-                    .collect::<Result<Vec<_>>>()?;
-                return Ok(Value::Array(values));
+/// Convert a sickle tree node into a `serde_json::Value`
+fn item_to_value(item: &sickle::Item) -> Value {
+    match item {
+        sickle::Item::Value(scalar) => Value::String(scalar.as_str().to_string()),
+        sickle::Item::Array(array) => Value::Array(array.iter().map(item_to_value).collect()),
+        sickle::Item::Table(table) => {
+            let mut object = serde_json::Map::new();
+            for key in table.unique_keys() {
+                let child = table.get_composed(key).expect("key came from the table");
+                object.insert(key.to_string(), item_to_value(&child));
             }
+            Value::Object(object)
         }
+        sickle::Item::None => Value::Null,
     }
-
-    // Fast path for singleton maps
-    if model.len() == 1 {
-        let (key, value) = model.iter().next().unwrap();
-
-        // Check if this is a singleton string: {"value": {}}
-        if value.is_empty() {
-            return Ok(Value::String(key.clone()));
-        }
-    }
-
-    // Check if this is a list (multiple keys all with empty values)
-    if model.len() > 1 && model.values().all(|v| v.is_empty()) {
-        // This is a list - keys are the list items
-        let values: Vec<Value> = model.keys().map(|k| Value::String(k.clone())).collect();
-        return Ok(Value::Array(values));
-    }
-
-    // Otherwise, it's a map (object)
-    let mut obj = serde_json::Map::new();
-    for (k, v) in model.iter() {
-        obj.insert(k.clone(), model_to_value(v)?);
-    }
-    Ok(Value::Object(obj))
 }
 
 /// Parse CCL string and deserialize into a specific type
@@ -154,9 +112,8 @@ fn model_to_value(model: &sickle::CclObject) -> Result<Value> {
 /// ```
 pub fn parse_ccl_to<T: DeserializeOwned>(ccl_content: &str) -> Result<T> {
     // Normalize CRLF to LF for cross-platform compatibility (e.g. Windows checkouts)
-    let options =
-        sickle::ParserOptions::default().with_crlf(sickle::options::CrlfBehavior::NormalizeToLf);
-    sickle::from_str_with_options(ccl_content, &options).context("Failed to deserialize parsed CCL")
+    let options = sickle::Options::new().with_crlf(sickle::CrlfBehavior::NormalizeToLf);
+    sickle::de::from_str_with(ccl_content, &options).context("Failed to deserialize parsed CCL")
 }
 
 #[cfg(test)]
