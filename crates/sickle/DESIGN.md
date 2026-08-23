@@ -1,218 +1,230 @@
 ---
 name: Sickle
-description: An annotated compiler-diagnostic system for precise CCL tooling.
+description: A railway-interlocking instrument system for clear CCL routes.
 colors:
-  registration-violet: "#6c3cff"
-  registration-violet-dark: "#4a1ee2"
-  correction-red: "#d1432f"
-  acid-proof: "#d7ff3f"
-  paper: "#f3f0e8"
-  paper-deep: "#ddd8ca"
-  sheet: "#e9e5da"
-  ink: "#20231f"
-  ink-muted: "#55594f"
-  steel: "#2d322e"
-  rule: "#aaa99f"
+  enamel: "#12372a"
+  enamel-deep: "#0b241c"
+  porcelain: "#f4f0de"
+  porcelain-deep: "#ded8bc"
+  ink: "#171b19"
+  ink-muted: "#4e5b55"
+  route-orange: "#ea6f26"
+  route-orange-deep: "#b84d13"
+  clear-mint: "#89c8b2"
+  steel: "#769087"
 typography:
   display:
-    fontFamily: '"Archivo Variable", "Arial Narrow", sans-serif'
-    fontSize: "clamp(3rem, 6.3vw, 6rem)"
-    fontWeight: 810
-    lineHeight: 0.92
-    letterSpacing: "-0.04em"
-  headline:
-    fontFamily: '"Archivo Variable", "Arial Narrow", sans-serif'
-    fontSize: "clamp(1.8rem, 3vw, 3.1rem)"
+    fontFamily: '"Barlow Condensed", "Arial Narrow", sans-serif'
+    fontSize: "clamp(3.2rem, 6.5vw, 6rem)"
     fontWeight: 700
-    lineHeight: 1
+    lineHeight: 0.84
     letterSpacing: "-0.035em"
+  headline:
+    fontFamily: '"Barlow Condensed", "Arial Narrow", sans-serif'
+    fontSize: "clamp(2rem, 3.5vw, 3.5rem)"
+    fontWeight: 600
+    lineHeight: 0.95
+    letterSpacing: "-0.025em"
   body:
-    fontFamily: '"Archivo Variable", "Arial Narrow", sans-serif'
-    fontSize: "1.08rem"
+    fontFamily: '"Barlow Condensed", "Arial Narrow", sans-serif'
+    fontSize: "clamp(1.1rem, 1.5vw, 1.35rem)"
     fontWeight: 400
-    lineHeight: 1.5
+    lineHeight: 1.38
   code:
-    fontFamily: '"Source Code Pro Variable", ui-monospace, monospace'
-    fontSize: "clamp(0.76rem, 1vw, 0.98rem)"
+    fontFamily: '"JetBrains Mono Variable", ui-monospace, monospace'
+    fontSize: "clamp(0.72rem, 1vw, 0.9rem)"
     fontWeight: 400
     lineHeight: 1.72
+    fontFeatureSettings: '"liga" 1, "calt" 1'
   label:
-    fontFamily: '"Source Code Pro Variable", ui-monospace, monospace'
-    fontSize: "0.68rem"
+    fontFamily: '"JetBrains Mono Variable", ui-monospace, monospace'
+    fontSize: "0.65rem"
     fontWeight: 700
-    lineHeight: 1.5
-    letterSpacing: "0.08em"
+    lineHeight: 1.45
+    letterSpacing: "0.05em"
 rounded:
   square: "0"
+  lamp: "50%"
 spacing:
-  page-gutter: "clamp(1rem, 3.3vw, 3.75rem)"
-  section-block: "clamp(5rem, 10vw, 10rem)"
-  panel: "clamp(1rem, 2vw, 2rem)"
+  page-pad: "clamp(1rem, 3.5vw, 4rem)"
+  section-block: "clamp(5.5rem, 10vw, 10rem)"
+  panel: "clamp(2rem, 4vw, 4rem)"
 components:
   copy-button:
-    backgroundColor: "transparent"
+    backgroundColor: "{colors.route-orange}"
     textColor: "{colors.ink}"
     typography: "{typography.label}"
     rounded: "{rounded.square}"
-    padding: "0.65rem 1rem"
-    height: "3rem"
-  copy-button-inverse:
-    backgroundColor: "{colors.ink}"
-    textColor: "{colors.paper}"
+    padding: "0.75rem 1.2rem"
+    height: "3.25rem"
+  route-selected:
+    backgroundColor: "{colors.route-orange}"
+    textColor: "{colors.ink}"
     typography: "{typography.label}"
     rounded: "{rounded.square}"
-    padding: "0.65rem 1rem"
-    height: "3rem"
-  mode-selected:
-    backgroundColor: "{colors.ink}"
-    textColor: "{colors.paper}"
-    typography: "{typography.label}"
-    rounded: "{rounded.square}"
-    padding: "0.4rem 0.85rem"
-    height: "2.7rem"
-  diagnostic-sheet:
-    backgroundColor: "{colors.sheet}"
+    padding: "0.9rem"
+    height: "4.25rem"
+  porcelain-station:
+    backgroundColor: "{colors.porcelain}"
     textColor: "{colors.ink}"
     rounded: "{rounded.square}"
-    padding: "{spacing.panel}"
+    padding: "1.3rem"
 ---
 
 # Design System: Sickle
 
 ## Overview
 
-**Creative North Star: "The Compiler Diagnostic Sheet"**
+**Creative North Star: "Railway Interlocking"**
 
-Sickle presents technical material as one continuous, annotated source artifact: warm listing paper, carbon ink, ruled divisions, registration color, and square tool controls. The system is precise rather than nostalgic. Its paper and print references organize real code, feature relationships, and commands instead of decorating generic marketing layouts.
+Sickle presents CCL as traffic moving through a physical route-control instrument. Deep green enamel carries the operating surface; porcelain plates hold inspectable source; the logo's crab orange marks routes and action; mint lamps confirm clear states. Track geometry, engraved labels, and exact command rails make technical relationships visible rather than decorating a generic developer landing page.
 
-Large compressed headlines establish confidence, while monospaced labels, syntax, and controls carry operational detail. Density is deliberate but legible: strong rules create compartments, generous section spacing creates pauses, and every accent has a specific editorial job.
+The system feels engineered, direct, and trustworthy. Condensed communication lettering carries the public voice while monospaced measurement text operates the controls. Density is organized through rails, boards, and ledgers; selective physical depth makes instrument plates tangible without turning the interface into a stack of cards.
 
 **Key Characteristics:**
-- Warm paper surfaces with carbon rules instead of white cards.
-- Oversized, tightly set display type paired with compact monospaced tooling text.
-- Violet for registration and active structure, red for annotation, and acid green for readiness or successful change.
-- Square, bordered controls and continuous ruled containers.
-- Responsive reordering that keeps the install action ahead of the code specimen on small screens.
+- Deep green enamel boards paired with warm porcelain working surfaces.
+- The supplied grim-reaper-and-crab illustration is the canonical Sickle logo.
+- Crab-orange route paths, actions, and focus paired with mint clear lamps.
+- Condensed uppercase communication type with monospaced controls and code.
+- Square and cut-corner plates connected by track geometry and command rails.
+- Responsive re-routing that preserves the command action before detailed code.
+
+**The Mascot Has a Job Rule.** The grim-reaper-and-crab mark may become a large, playful guide at product-entry moments, but it never replaces code evidence or route controls. Use the transparent artwork without decorative containers.
 
 ## Colors
 
-The palette behaves like a marked-up technical proof: warm neutrals carry the page, dark ink structures it, and three sparse signals communicate registration, correction, and readiness.
+The palette comes from an electromechanical signal panel: dark enamel and warm porcelain form the field, while three sparse signal colors carry operational meaning.
 
 ### Primary
-- **Registration Violet:** Marks the central idea, active syntax, feature relationships, focus outlines, and selected structural emphasis.
-- **Deep Registration Violet:** Keeps violet legible in smaller syntax and inline emphasis on pale surfaces.
+- **Interlocking Enamel:** The main instrument-board field, header, and dark structural sections.
+- **Deep Enamel:** Recessed switches, code wells, and command rails.
 
 ### Secondary
-- **Correction Red:** Draws editorial annotations, change marks, and exceptional geometric registration details.
-- **Acid Proof:** Signals ready-to-act states, successful additions, selection, and hover feedback where instant recognition matters.
+- **Route Orange:** Active routes, selected controls, install readiness, focus, and primary actions.
+- **Deep Route Orange:** Crab orange adapted for legible emphasis on porcelain.
+
+### Tertiary
+- **Route Orange:** Focus outlines, active controls, copy-button hover, and removed-value attention signals.
+- **Clear Mint:** Ready lamps, complete states, and the secondary API route.
 
 ### Neutral
-- **Listing Paper:** The page ground and inverse text color.
-- **Deep Listing Paper:** Full-width ruled sections and scrollbar tracks.
-- **Specimen Sheet:** Repeated code sheets, diffs, and the closing command field.
-- **Carbon Ink:** Primary text, rules, and command rails.
-- **Muted Carbon:** Supporting copy and secondary labels.
-- **Code Steel:** Dark code blocks nested inside the paper system.
-- **Registration Rule:** Secondary dividers and dashed change boundaries.
+- **Porcelain:** Page ground and physical source plates.
+- **Deep Porcelain:** Subdued inverse copy and plate borders.
+- **Instrument Ink:** Primary text and hard borders.
+- **Muted Instrument Ink:** Supporting prose and annotations.
+- **Panel Steel:** Quiet dividers, inactive tracks, and control borders.
 
 ### Named Rules
 
-**The Three-Mark Rule.** Violet registers structure, red corrects or annotates, and acid green confirms readiness or addition; do not interchange their meanings.
+**The Signal Has Meaning Rule.** Crab orange selects, routes, or demands action; mint confirms clear or complete. Text and position reinforce every state.
 
-**The Paper-First Rule.** Warm paper remains the dominant field. Dark ink creates rails and code wells; accent colors remain annotations rather than large decorative fills.
+**The Enamel-and-Porcelain Rule.** Enamel holds systems and controls; porcelain holds reading and evidence. Preserve that material distinction.
 
 ## Typography
 
-**Display Font:** Archivo Variable (with Arial Narrow and sans-serif fallbacks)  
-**Body Font:** Archivo Variable (with Arial Narrow and sans-serif fallbacks)  
-**Label/Mono Font:** Source Code Pro Variable (with ui-monospace and monospace fallbacks)
+**Display Font:** Barlow Condensed (with Arial Narrow and sans-serif fallbacks)
 
-**Character:** Archivo supplies compact, forceful editorial mass without leaving the technical world. Source Code Pro turns commands, labels, navigation, registration data, and code into a consistent instrument layer.
+**Body Font:** Barlow Condensed (with Arial Narrow and sans-serif fallbacks)
+
+**Label/Mono Font:** JetBrains Mono Variable (with ui-monospace and monospace fallbacks)
+
+**Character:** Barlow Condensed reads like forceful railway communication lettering without becoming nostalgic. JetBrains Mono gives code, commands, measurements, labels, and controls one exact instrument voice.
 
 ### Hierarchy
-- **Display** (810, fluid 3–6rem, 0.92): Section statements; tightly tracked and balanced, usually constrained to 11–13 characters per line.
-- **Hero Display** (820, fluid 3.4–6rem, 0.83): The single most compressed headline treatment, with the key phrase registered in violet.
-- **Headline** (bold, fluid 1.8–3.1rem, 1): Comparison titles and local editorial statements.
-- **Body** (regular to medium, 1.08rem, 1.5): Explanations use muted ink and typically stop near 34–38rem.
-- **Code** (regular, fluid 0.76–0.98rem, 1.72): Source specimens use tabular numerals and generous line spacing.
-- **Label** (700, 0.68rem, 0.08em): Uppercase pane names, registrations, navigation, and tool controls.
+- **Display** (700, fluid 3.2–6rem, 0.84): Uppercase section declarations, tightly tracked and usually held to 9–14 characters per line.
+- **Hero Display** (700, fluid 3.6–5rem, 0.84): The first-view statement; one route-defining phrase may shift to crab orange.
+- **Headline** (600, fluid 2–3.5rem, 0.95): Local route explanations and API statements.
+- **Body** (400, fluid 1.1–1.35rem, 1.38): Direct explanatory copy, muted and normally constrained to 34–38rem.
+- **Code** (400, fluid 0.72–0.9rem, 1.68–1.8): Source, output, and document specimens with tabular numerals.
+- **Label** (650–800, about 0.62–0.76rem, 0.05–0.08em): Uppercase panel identifiers, statuses, navigation, and controls.
 
 ### Named Rules
 
-**The Two-Face Rule.** Archivo speaks and explains; Source Code Pro identifies, operates, and demonstrates.
+**The Two-Gauge Rule.** Barlow communicates; JetBrains Mono identifies, measures, operates, and demonstrates.
 
-**The Compressed-Headline Rule.** Display text is heavy, tightly tracked, short-lined, and never diluted with lightweight ornamental copy.
+**The Connected-Code Rule.** Code specimens render through Expressive Code, with JetBrains Mono's standard and contextual ligatures enabled for operators and call chains.
+
+**The Station-Lettering Rule.** Display copy is condensed, uppercase, tightly tracked, and short-lined; do not soften it with ornamental kickers.
 
 ## Layout
 
-The system uses a centered maximum canvas of 96rem with one fluid page gutter. Major sections breathe vertically on a large fluid interval, while source sheets and comparison ledgers are subdivided by one-pixel rules rather than detached cards.
+The system uses a centered 96rem operating canvas with one fluid page gutter. Major sections use a large fluid block interval, while related technical content stays connected inside boards, routes, ledgers, and command rails rather than separating into cards.
 
-Desktop compositions use purposeful asymmetry: introductory copy sits in unequal columns, the diagnostic sheet divides input and output, and the document story pairs a narrower explanation with a wider specimen. At 900px these structures collapse to one column and proof items become a two-by-two ledger. At 640px navigation becomes a compact two-column index, ledgers and comparisons stack, and feature rows shed their table header.
+Desktop layouts use purposeful unequal columns and visible track relationships. The signature interlocking board routes source, selector, and destination across three columns; route diagrams sit behind the physical plates. At 1000px the board becomes a two-column plate arrangement with the selector above it, larger content pairs collapse, and proof items become a two-by-two board. At 680px all working surfaces stack, command rails become two-row controls, ledgers become vertical records, and navigation remains visible as a compact two-column index.
 
-On small screens the diagnostic remains one artifact but its order changes: registration first, install rail second, then source and output. Annotations disappear when their leader lines cannot retain useful spatial meaning. Code remains horizontally scrollable, command text does not wrap, and tap labels increase in size.
+On mobile, the route selector comes first, the exact install command second, then source and destination evidence. Code and commands scroll horizontally rather than wrapping into misleading syntax. Motion is brief and state-driven, and collapses to near-zero under reduced-motion preferences.
 
-**The Continuous-Sheet Rule.** Related content shares borders and dividers inside one ruled object; do not fragment a sequence into floating feature cards.
+**The Connected-Route Rule.** A technical sequence remains one bordered route or board; do not fragment it into floating feature cards.
 
-**The Action-Before-Detail Rule.** When space collapses, preserve access to the install command before the longer code panes.
+**The Command-Before-Evidence Rule.** When space collapses, keep the chosen route and exact command ahead of long code specimens.
 
 ## Elevation & Depth
 
-The system is flat by default. Hierarchy comes from tonal paper changes, carbon rails, repeating 32px ruling, and strict borders. Only literal specimen sheets receive a soft, downward ambient shadow (`0 18px 38px rgb(32 35 31 / 13–15%)`) to read as physical paper above the page.
+The system is physically layered but flat by default. Enamel recesses, porcelain plates, hard borders, and track beds establish most depth. Broad green-tinted shadows appear only under raised instrument assemblies; small colored glows belong only to illuminated lamps and active route nodes.
 
 ### Shadow Vocabulary
-- **Raised Specimen:** A broad carbon-tinted shadow used only beneath diagnostic and diff sheets.
+- **Raised Interlocking** (`0 22px 44px rgb(11 36 28 / 24%)`): The primary route-control assembly.
+- **Raised Routing Plate** (`0 18px 34px rgb(11 36 28 / 20%)`): A substantial porcelain-on-enamel evidence assembly.
+- **Porcelain Station** (`0 10px 22px rgb(5 21 16 / 28%)`): Source and destination plates mounted on the board.
+- **Recessed Switch** (`0 8px 18px rgb(4 17 13 / 35%)`): The dark route selector housing.
 
 ### Named Rules
 
-**The Evidence-Casts-a-Shadow Rule.** Elevation belongs to inspectable source artifacts, never to ordinary sections, rows, navigation, or controls.
+**The Instrument Depth Rule.** Shadows describe mounted plates, housings, and illuminated hardware; ordinary sections, rows, links, and controls remain unlifted.
 
 ## Shapes
 
-Corners are square throughout. Containers, controls, rails, and code wells rely on one-pixel carbon borders, while secondary separations may use the quieter registration rule. The recurring silhouettes are rectangular sheets, narrow command rails, ruled ledgers, and occasional thin red registration geometry. Rounded cards and pill controls do not belong to this system.
+The dominant form is square, bordered, and mechanical. Porcelain stations and code wells use one clipped upper-right corner instead of a radius. Two-pixel ink borders define primary plates; one-pixel steel rules divide instrument interiors. Circles are reserved for lamps, route nodes, and line markers because those objects are physically circular in the chosen world.
+
+**The Hardware Exception Rule.** Square is the default; circles are allowed only for signal hardware and route geometry, never as generic pills or rounded containers.
 
 ## Components
 
 ### Buttons
-- **Shape:** Square and compact, with a one-pixel current-color border and a minimum 3rem target.
-- **Primary:** Copy controls inherit their surrounding command rail, use monospaced bold labels, and keep padding compact.
-- **Hover / Focus:** Hover inverts to listing paper and carbon ink. Keyboard focus uses an external violet 3px outline with 4px offset.
-- **Mode Control:** Adjacent choices share one border; the active choice fills with carbon ink, while inactive hover uses acid proof.
+- **Shape:** Square, compact, and rail-bound, with a minimum height of 3.25rem.
+- **Primary:** Route orange with instrument ink, monospaced bold labeling, and compact horizontal padding.
+- **Hover / Focus:** Hover changes to logo orange with porcelain text. Keyboard focus uses a 3px logo-orange outline with 4px offset.
+- **Selected Route:** The selected switch fills orange and inverts to ink; inactive switches remain deep enamel and may brighten slightly on hover.
 
 ### Cards / Containers
-- **Corner Style:** Strictly square.
-- **Background:** Specimen sheets use the sheet neutral with faint horizontal ruling; ordinary content stays directly on listing paper.
-- **Shadow Strategy:** Only raised specimens use the documented ambient shadow.
-- **Border:** One-pixel carbon outer borders and internal dividers.
-- **Internal Padding:** Fluid panel padding keeps code dense on desktop and viable on mobile.
+- **Corner Style:** Square by default; inspectable plates may use a single clipped upper-right corner.
+- **Background:** Enamel for operating boards, porcelain for evidence, and deep enamel for recessed code or controls.
+- **Shadow Strategy:** Only mounted instrument assemblies use the documented physical shadows.
+- **Border:** Two-pixel ink or porcelain plate borders with one-pixel steel internal divisions.
+- **Internal Padding:** Compact plate padding around 1.3–1.5rem; large route boards use the fluid panel spacing.
 
 ### Navigation
 
-Navigation is a borderless monospaced uppercase index beside the compact wordmark. Links underline only on hover and retain the global violet focus outline. On narrow screens the links become a right-aligned two-column grid instead of a concealed menu.
+Navigation is an always-visible uppercase monospaced index beside the illustrated wordmark. Links are borderless, turn orange on hover, and use the global orange focus outline. On narrow screens, links become a right-aligned two-column grid instead of hiding behind a menu.
 
-### Diagnostic Sheet
+### Signal Lamp
 
-The signature component combines a registration strip, paired source/output panes, contextual red annotations, and a full-width install rail. Its mode switch changes both the output specimen and exact Cargo command. On mobile the command rail moves directly below registration, before either code pane.
+Signal lamps are small circular indicators with a two-pixel rim, inset glass shadow, and a restrained colored glow when lit. Every lamp state is accompanied by a text label or sits within a text-labeled control; color is never the sole carrier of status.
 
-### Feature Ruler
+### Interlocking Board
 
-Feature options are rows in a ruled ledger, not cards. Desktop rows align feature, capability, and inclusion information in three columns; mobile rows become compact vertical records while retaining their divider rhythm.
+The signature assembly connects a porcelain CCL source plate to one of two output routes. A labeled route switch updates the illuminated path, destination code, and exact Cargo command as one synchronized state. The path animation is short, uses an ease-out curve, and yields to reduced-motion preferences.
 
 ### Command Rail
 
-Commands sit on carbon ink with listing-paper text. A short status cell uses either acid proof or registration violet, and a bordered copy control completes the rail. Command strings remain single-line and horizontally scroll when necessary.
+Commands live on deep enamel with porcelain monospaced text and remain on one line. A status cell names readiness, while an adjacent orange copy control completes the rail. On narrow screens the status spans the full width above the horizontally scrollable command.
+
+### Feature Board
+
+Feature choices are ledger rows inside one recessed enamel board. Each row aligns signal, capability, and included route; on small screens it becomes a compact vertical record while retaining the shared border rhythm.
 
 ## Do's and Don'ts
 
 ### Do:
-- **Do** build long technical stories from continuous ruled sheets, rails, and ledgers.
-- **Do** reserve violet, red, and acid green for their registered semantic roles.
-- **Do** keep code, commands, metadata, and controls in Source Code Pro with tabular numerals.
-- **Do** preserve visible keyboard focus, horizontal code scrolling, and the mobile action-first order.
-- **Do** use physical depth only when a surface represents inspectable source evidence.
+- **Do** build technical stories from connected routes, mounted plates, ledgers, and exact command rails.
+- **Do** keep orange tied to routes and action, and mint tied to clear or complete states.
+- **Do** use JetBrains Mono for code, commands, measurements, status labels, navigation, and controls.
+- **Do** preserve visible focus, text-labeled signal states, horizontal code scrolling, and reduced-motion behavior.
+- **Do** use depth selectively to distinguish mounted evidence from recessed operating surfaces.
 
 ### Don't:
-- **Don't** introduce rounded cards, pills, soft dashboard tiles, or a conventional split hero.
-- **Don't** use accent colors as interchangeable decoration or broad page backgrounds.
-- **Don't** hide mobile navigation behind an invented menu when the compact index fits.
-- **Don't** place prose inside dark code wells or code inside display typography.
-- **Don't** add shadows to ordinary controls, rows, or sections.
+- **Don't** introduce generic cards, pills, rounded dashboard furniture, or a conventional split hero.
+- **Don't** turn the palette into generic neon-on-dark developer styling or use signal colors as ambient decoration.
+- **Don't** hide compact mobile navigation behind an invented menu.
+- **Don't** place prose in code wells or set commands in display typography.
+- **Don't** add glyph-only controls, ornamental kickers, or shadows without a physical instrument role.

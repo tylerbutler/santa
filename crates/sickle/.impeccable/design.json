@@ -1,187 +1,125 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-08-23T00:57:00.764-07:00",
+  "generatedAt": "2026-08-23T15:25:04.145Z",
   "title": "Design System: Sickle",
   "extensions": {
     "colorMeta": {
-      "registration-violet": {
-        "role": "primary",
-        "displayName": "Registration Violet",
-        "canonical": "#6c3cff",
-        "tonalRamp": ["oklch(15% 0.264 284.7)", "oklch(27% 0.264 284.7)", "oklch(39% 0.264 284.7)", "oklch(51% 0.264 284.7)", "oklch(63% 0.264 284.7)", "oklch(75% 0.264 284.7)", "oklch(87% 0.264 284.7)", "oklch(95% 0.264 284.7)"]
-      },
-      "registration-violet-dark": {
-        "role": "primary",
-        "displayName": "Deep Registration Violet",
-        "canonical": "#4a1ee2",
-        "tonalRamp": ["oklch(15% 0.260 279)", "oklch(27% 0.260 279)", "oklch(39% 0.260 279)", "oklch(51% 0.260 279)", "oklch(63% 0.260 279)", "oklch(75% 0.260 279)", "oklch(87% 0.260 279)", "oklch(95% 0.260 279)"]
-      },
-      "correction-red": {
-        "role": "secondary",
-        "displayName": "Correction Red",
-        "canonical": "#d1432f",
-        "tonalRamp": ["oklch(15% 0.182 31)", "oklch(27% 0.182 31)", "oklch(39% 0.182 31)", "oklch(51% 0.182 31)", "oklch(63% 0.182 31)", "oklch(75% 0.182 31)", "oklch(87% 0.182 31)", "oklch(95% 0.182 31)"]
-      },
-      "acid-proof": {
-        "role": "secondary",
-        "displayName": "Acid Proof",
-        "canonical": "#d7ff3f",
-        "tonalRamp": ["oklch(15% 0.208 121.1)", "oklch(27% 0.208 121.1)", "oklch(39% 0.208 121.1)", "oklch(51% 0.208 121.1)", "oklch(63% 0.208 121.1)", "oklch(75% 0.208 121.1)", "oklch(87% 0.208 121.1)", "oklch(95% 0.208 121.1)"]
-      },
-      "paper": {
-        "role": "neutral",
-        "displayName": "Listing Paper",
-        "canonical": "#f3f0e8",
-        "tonalRamp": ["oklch(15% 0.011 89.7)", "oklch(27% 0.011 89.7)", "oklch(39% 0.011 89.7)", "oklch(51% 0.011 89.7)", "oklch(63% 0.011 89.7)", "oklch(75% 0.011 89.7)", "oklch(87% 0.011 89.7)", "oklch(95% 0.011 89.7)"]
-      },
-      "paper-deep": {
-        "role": "neutral",
-        "displayName": "Deep Listing Paper",
-        "canonical": "#ddd8ca",
-        "tonalRamp": ["oklch(15% 0.020 90.6)", "oklch(27% 0.020 90.6)", "oklch(39% 0.020 90.6)", "oklch(51% 0.020 90.6)", "oklch(63% 0.020 90.6)", "oklch(75% 0.020 90.6)", "oklch(87% 0.020 90.6)", "oklch(95% 0.020 90.6)"]
-      },
-      "sheet": {
-        "role": "neutral",
-        "displayName": "Specimen Sheet",
-        "canonical": "#e9e5da",
-        "tonalRamp": ["oklch(15% 0.015 90.2)", "oklch(27% 0.015 90.2)", "oklch(39% 0.015 90.2)", "oklch(51% 0.015 90.2)", "oklch(63% 0.015 90.2)", "oklch(75% 0.015 90.2)", "oklch(87% 0.015 90.2)", "oklch(95% 0.015 90.2)"]
-      },
-      "ink": {
-        "role": "neutral",
-        "displayName": "Carbon Ink",
-        "canonical": "#20231f",
-        "tonalRamp": ["oklch(15% 0.009 137.8)", "oklch(27% 0.009 137.8)", "oklch(39% 0.009 137.8)", "oklch(51% 0.009 137.8)", "oklch(63% 0.009 137.8)", "oklch(75% 0.009 137.8)", "oklch(87% 0.009 137.8)", "oklch(95% 0.009 137.8)"]
-      },
-      "ink-muted": {
-        "role": "neutral",
-        "displayName": "Muted Carbon",
-        "canonical": "#55594f",
-        "tonalRamp": ["oklch(15% 0.017 124.9)", "oklch(27% 0.017 124.9)", "oklch(39% 0.017 124.9)", "oklch(51% 0.017 124.9)", "oklch(63% 0.017 124.9)", "oklch(75% 0.017 124.9)", "oklch(87% 0.017 124.9)", "oklch(95% 0.017 124.9)"]
-      },
-      "steel": {
-        "role": "neutral",
-        "displayName": "Code Steel",
-        "canonical": "#2d322e",
-        "tonalRamp": ["oklch(15% 0.010 151.5)", "oklch(27% 0.010 151.5)", "oklch(39% 0.010 151.5)", "oklch(51% 0.010 151.5)", "oklch(63% 0.010 151.5)", "oklch(75% 0.010 151.5)", "oklch(87% 0.010 151.5)", "oklch(95% 0.010 151.5)"]
-      },
-      "rule": {
-        "role": "neutral",
-        "displayName": "Registration Rule",
-        "canonical": "#aaa99f",
-        "tonalRamp": ["oklch(15% 0.014 102.1)", "oklch(27% 0.014 102.1)", "oklch(39% 0.014 102.1)", "oklch(51% 0.014 102.1)", "oklch(63% 0.014 102.1)", "oklch(75% 0.014 102.1)", "oklch(87% 0.014 102.1)", "oklch(95% 0.014 102.1)"]
-      }
+      "enamel": {"role": "primary", "displayName": "Interlocking Enamel", "canonical": "#12372a", "tonalRamp": ["#071b14", "#0b2a20", "#12372a", "#285244", "#4c7063", "#7f9b90", "#b7c9c1", "#eaf0ed"]},
+      "enamel-deep": {"role": "primary", "displayName": "Deep Enamel", "canonical": "#0b241c", "tonalRamp": ["#04120d", "#071b15", "#0b241c", "#24433a", "#4b685e", "#7e978e", "#b9c9c3", "#ebf0ee"]},
+      "porcelain": {"role": "neutral", "displayName": "Porcelain", "canonical": "#f4f0de", "tonalRamp": ["#28261c", "#4b4736", "#706a52", "#989078", "#bbb49a", "#d7d1b9", "#e8e3cf", "#f4f0de"]},
+      "porcelain-deep": {"role": "neutral", "displayName": "Deep Porcelain", "canonical": "#ded8bc", "tonalRamp": ["#292619", "#4c4733", "#706a4f", "#968f72", "#b8b18f", "#d0c9aa", "#ded8bc", "#f2eedf"]},
+      "ink": {"role": "neutral", "displayName": "Instrument Ink", "canonical": "#171b19", "tonalRamp": ["#101311", "#171b19", "#303633", "#515a56", "#7d8782", "#aeb6b2", "#d4d9d6", "#f1f3f2"]},
+      "ink-muted": {"role": "neutral", "displayName": "Muted Instrument Ink", "canonical": "#4e5b55", "tonalRamp": ["#151a18", "#29312d", "#4e5b55", "#6d7b75", "#929e99", "#b5bfbb", "#d6dcd9", "#f1f3f2"]},
+      "route-orange": {"role": "secondary", "displayName": "Crab Orange", "canonical": "#ea6f26", "tonalRamp": ["#301506", "#5f2b0c", "#914116", "#b84d13", "#ea6f26", "#f3975f", "#f9c2a1", "#fde9dc"]},
+      "route-orange-deep": {"role": "secondary", "displayName": "Deep Crab Orange", "canonical": "#b84d13", "tonalRamp": ["#2d1004", "#571f08", "#812f0d", "#a84211", "#b84d13", "#d87948", "#eba98a", "#f9ded1"]},
+      "clear-mint": {"role": "tertiary", "displayName": "Clear Mint", "canonical": "#89c8b2", "tonalRamp": ["#10291f", "#1e4c3b", "#34705a", "#57977d", "#89c8b2", "#a8d8c7", "#c9e7dc", "#eaf6f1"]},
+      "steel": {"role": "neutral", "displayName": "Panel Steel", "canonical": "#769087", "tonalRamp": ["#141d1a", "#293b35", "#435a52", "#5d786f", "#769087", "#9aaca6", "#c0ccc8", "#e9eeec"]}
     },
     "typographyMeta": {
-      "display": { "displayName": "Display", "purpose": "Large, compressed section statements." },
-      "headline": { "displayName": "Headline", "purpose": "Local editorial statements and comparison titles." },
-      "body": { "displayName": "Body", "purpose": "Technical explanation and supporting copy." },
-      "code": { "displayName": "Code", "purpose": "Source listings and commands with tabular numerals." },
-      "label": { "displayName": "Instrument Label", "purpose": "Navigation, registration data, pane names, and controls." }
+      "display": {"displayName": "Display", "purpose": "Uppercase route and section declarations."},
+      "headline": {"displayName": "Headline", "purpose": "Local API and route explanations."},
+      "body": {"displayName": "Body", "purpose": "Direct, compact explanatory copy."},
+      "code": {"displayName": "Code", "purpose": "Expressive Code specimens, source, output, document examples, and measurements; standard and contextual ligatures are enabled."},
+      "label": {"displayName": "Instrument Label", "purpose": "Panel identifiers, statuses, navigation, and controls."}
     },
     "shadows": [
-      {
-        "name": "raised-specimen",
-        "value": "0 18px 38px rgb(32 35 31 / 15%)",
-        "purpose": "Physical lift beneath inspectable diagnostic and source sheets only."
-      }
+      {"name": "raised-interlocking", "value": "0 22px 44px rgb(11 36 28 / 24%)", "purpose": "The primary route-control assembly."},
+      {"name": "raised-routing-plate", "value": "0 18px 34px rgb(11 36 28 / 20%)", "purpose": "Substantial porcelain-on-enamel evidence assemblies."},
+      {"name": "porcelain-station", "value": "0 10px 22px rgb(5 21 16 / 28%)", "purpose": "Source and destination plates mounted on the board."},
+      {"name": "recessed-switch", "value": "0 8px 18px rgb(4 17 13 / 35%)", "purpose": "Dark route-selector housings."}
     ],
     "motion": [
-      {
-        "name": "calibration-entry",
-        "value": "900ms cubic-bezier(0.16, 1, 0.3, 1)",
-        "purpose": "Draws the initial registration rule once; disabled under reduced motion."
-      },
-      {
-        "name": "copy-confirmation",
-        "value": "1800ms",
-        "purpose": "Duration before a copied button label returns to its default."
-      }
+      {"name": "route-state", "value": "220ms ease-out", "purpose": "Track visibility and ordinary route-state changes."},
+      {"name": "route-travel", "value": "700ms cubic-bezier(0.16, 1, 0.3, 1)", "purpose": "The active route travelling through track geometry."},
+      {"name": "route-arrival", "value": "480ms cubic-bezier(0.16, 1, 0.3, 1)", "purpose": "Destination code revealing after a route changes."}
     ],
     "breakpoints": [
-      { "name": "stack", "value": "900px" },
-      { "name": "compact", "value": "640px" }
+      {"name": "board-collapse", "value": "1000px"},
+      {"name": "mobile-route", "value": "680px"}
     ]
   },
   "components": [
     {
-      "name": "Copy Button",
+      "name": "Copy Command Button",
       "kind": "button",
       "refersTo": "copy-button",
-      "description": "Square monospaced action used at the edge of command rails.",
-      "html": "<button class=\"ds-copy-button\" type=\"button\">Copy command</button>",
-      "css": ".ds-copy-button { min-height: 3rem; padding: .65rem 1rem; border: 1px solid currentColor; border-radius: 0; background: transparent; color: #20231f; font-family: \"Source Code Pro Variable\", ui-monospace, monospace; font-size: .72rem; font-weight: 700; cursor: pointer; } .ds-copy-button:hover { background: #20231f; color: #f3f0e8; } .ds-copy-button:focus-visible { outline: 3px solid #6c3cff; outline-offset: 4px; }"
+      "description": "The crab-orange action completing a dark command rail.",
+      "html": "<button class=\"ds-copy-button\" type=\"button\">COPY COMMAND</button>",
+      "css": ".ds-copy-button { min-height: 3.25rem; padding: .75rem 1.2rem; border: 0; border-left: 1px solid currentColor; border-radius: 0; background: var(--route, #ea6f26); color: var(--ink, #171b19); font-family: var(--font-code, \"JetBrains Mono Variable\", ui-monospace, monospace); font-size: .71rem; font-weight: 750; cursor: pointer; } .ds-copy-button:hover { background: var(--route-deep, #b84d13); color: var(--porcelain, #f4f0de); } .ds-copy-button:focus-visible { outline: 3px solid var(--route, #ea6f26); outline-offset: 4px; }"
     },
     {
-      "name": "Mode Switch",
-      "kind": "custom",
-      "refersTo": "mode-selected",
-      "description": "A joined square control for selecting direct-model or Serde output.",
-      "html": "<div class=\"ds-mode-switch\"><button type=\"button\">Direct model</button><button class=\"ds-mode-active\" type=\"button\">Serde</button></div>",
-      "css": ".ds-mode-switch { display: inline-flex; border: 1px solid #20231f; color: #20231f; } .ds-mode-switch button { min-height: 2.7rem; padding: .4rem .85rem; border: 0; border-radius: 0; background: transparent; color: inherit; font-family: \"Source Code Pro Variable\", ui-monospace, monospace; font-size: .73rem; font-weight: 650; } .ds-mode-switch button + button { border-left: 1px solid #20231f; } .ds-mode-switch .ds-mode-active { background: #20231f; color: #f3f0e8; } .ds-mode-switch button:hover:not(.ds-mode-active) { background: #d7ff3f; } .ds-mode-switch button:focus-visible { outline: 3px solid #6c3cff; outline-offset: 4px; }"
+      "name": "Selected Route Switch",
+      "kind": "button",
+      "refersTo": "route-selected",
+      "description": "A text-labeled route control with an illuminated crab-orange lamp.",
+      "html": "<button class=\"ds-route-switch\" type=\"button\" aria-pressed=\"true\"><span class=\"ds-route-lamp\" aria-hidden=\"true\"></span><span>DIRECT MODEL</span></button>",
+      "css": ".ds-route-switch { display: grid; grid-template-columns: auto 1fr; gap: .75rem; align-items: center; width: 15rem; min-height: 4.25rem; padding: .9rem; border: 1px solid var(--steel, #769087); border-radius: 0; background: var(--route, #ea6f26); color: var(--ink, #171b19); font-family: var(--font-code, \"JetBrains Mono Variable\", ui-monospace, monospace); font-size: .72rem; font-weight: 650; text-align: left; } .ds-route-lamp { width: .78rem; height: .78rem; border: 2px solid #ffd2b5; border-radius: 50%; background: var(--route, #ea6f26); box-shadow: inset 0 1px 2px rgb(255 255 255 / 68%), 0 3px 9px rgb(234 111 38 / 52%); } .ds-route-switch:focus-visible { outline: 3px solid var(--route, #ea6f26); outline-offset: 4px; }"
     },
     {
-      "name": "Navigation Index",
-      "kind": "nav",
-      "description": "Compact uppercase technical links that remain visible at every viewport.",
-      "html": "<nav class=\"ds-nav\" aria-label=\"Primary\"><a href=\"#\">APIs</a><a href=\"#\">Features</a><a href=\"#\">Docs</a><a href=\"#\">Source</a></nav>",
-      "css": ".ds-nav { display: flex; gap: clamp(1rem, 2.4vw, 2.5rem); } .ds-nav a { color: #20231f; font-family: \"Source Code Pro Variable\", ui-monospace, monospace; font-size: .72rem; font-weight: 650; letter-spacing: .08em; text-decoration: none; text-transform: uppercase; } .ds-nav a:hover { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: .24em; } .ds-nav a:focus-visible { outline: 3px solid #6c3cff; outline-offset: 4px; } @media (max-width: 640px) { .ds-nav { display: grid; grid-template-columns: 1fr 1fr; gap: .6rem 1.2rem; text-align: right; } }"
-    },
-    {
-      "name": "Diagnostic Sheet",
+      "name": "Porcelain Station",
       "kind": "card",
-      "refersTo": "diagnostic-sheet",
-      "description": "The signature ruled specimen containing registration, source, output, and action.",
-      "html": "<section class=\"ds-sheet\"><header>SICKLE / CCL <span>INSERTION ORDER: PRESERVED</span></header><pre><code>name = Signal\\ndatabase =\\n  port = 5432</code></pre><footer><code>cargo add sickle --features serde</code></footer></section>",
-      "css": ".ds-sheet { border: 1px solid #20231f; border-radius: 0; background-color: #e9e5da; background-image: repeating-linear-gradient(0deg, transparent 0, transparent 31px, rgb(32 35 31 / 7%) 32px); color: #20231f; box-shadow: 0 18px 38px rgb(32 35 31 / 15%); } .ds-sheet header { display: flex; justify-content: space-between; padding: .6rem .8rem; border-bottom: 1px solid #20231f; font: 650 .64rem/1.5 \"Source Code Pro Variable\", ui-monospace, monospace; letter-spacing: .08em; } .ds-sheet pre { margin: 0; padding: 2rem; font: 400 .9rem/1.72 \"Source Code Pro Variable\", ui-monospace, monospace; } .ds-sheet footer { padding: 1rem 1.2rem; background: #20231f; color: #f3f0e8; font-family: \"Source Code Pro Variable\", ui-monospace, monospace; } .ds-sheet:focus-within { outline: 3px solid #6c3cff; outline-offset: 4px; }"
-    },
-    {
-      "name": "Feature Ruler",
-      "kind": "custom",
-      "description": "A ruled three-column record for feature capability and inclusion data.",
-      "html": "<article class=\"ds-feature-row\"><h3>serde</h3><div><strong>Typed data</strong><p>Deserialize and serialize through Serde.</p></div><code>hierarchy + printer</code></article>",
-      "css": ".ds-feature-row { display: grid; grid-template-columns: minmax(7rem, .55fr) minmax(14rem, 1.55fr) minmax(9rem, .7fr); gap: 2rem; align-items: center; padding: 1.45rem 0; border-top: 1px solid #aaa99f; color: #20231f; } .ds-feature-row h3, .ds-feature-row code { font-family: \"Source Code Pro Variable\", ui-monospace, monospace; } .ds-feature-row h3 { margin: 0; font-size: 1rem; } .ds-feature-row strong { font-family: \"Archivo Variable\", \"Arial Narrow\", sans-serif; font-size: 1.08rem; } .ds-feature-row p { margin: .15rem 0 0; color: #55594f; font-family: \"Archivo Variable\", \"Arial Narrow\", sans-serif; font-size: .92rem; } .ds-feature-row code { justify-self: end; color: #4a1ee2; font-size: .78rem; font-weight: 700; text-align: right; } @media (max-width: 640px) { .ds-feature-row { grid-template-columns: 1fr; gap: .45rem; } .ds-feature-row code { justify-self: start; text-align: left; } }"
+      "refersTo": "porcelain-station",
+      "description": "A cut-corner source or destination plate mounted on enamel.",
+      "html": "<section class=\"ds-station\"><header><span>ORIGIN</span><strong>input.ccl</strong></header><pre><code>name = Signal<br>port = 5432</code></pre></section>",
+      "css": ".ds-station { min-width: 16rem; min-height: 12rem; padding: 1.3rem; border: 2px solid var(--porcelain-deep, #ded8bc); border-radius: 0; background: var(--porcelain, #f4f0de); color: var(--ink, #171b19); clip-path: polygon(0 0, calc(100% - 1.25rem) 0, 100% 1.25rem, 100% 100%, 0 100%); box-shadow: 0 10px 22px rgb(5 21 16 / 28%); } .ds-station header { display: flex; justify-content: space-between; gap: 1rem; margin-bottom: 1.4rem; padding-bottom: .55rem; border-bottom: 1px solid var(--ink, #171b19); font-family: var(--font-code, \"JetBrains Mono Variable\", ui-monospace, monospace); font-size: .65rem; letter-spacing: .05em; text-transform: uppercase; } .ds-station pre { margin: 0; font-family: var(--font-code, \"JetBrains Mono Variable\", ui-monospace, monospace); font-size: .78rem; line-height: 1.72; }"
     },
     {
       "name": "Command Rail",
       "kind": "custom",
-      "refersTo": "copy-button-inverse",
-      "description": "A dark single-line command with a semantic status cell and copy action.",
-      "html": "<div class=\"ds-command\"><span>READY</span><code>cargo add sickle --features serde</code><button type=\"button\">Copy command</button></div>",
-      "css": ".ds-command { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: stretch; border: 1px solid #20231f; background: #20231f; color: #f3f0e8; } .ds-command > span { display: grid; place-items: center; padding: .8rem 1rem; background: #d7ff3f; color: #20231f; font: 800 .7rem/1.5 \"Source Code Pro Variable\", ui-monospace, monospace; letter-spacing: .08em; } .ds-command > code { overflow: auto; padding: 1rem 1.2rem; font-family: \"Source Code Pro Variable\", ui-monospace, monospace; white-space: nowrap; } .ds-command > button { min-height: 3rem; padding: .65rem 1rem; border: 0; border-left: 1px solid currentColor; border-radius: 0; background: transparent; color: inherit; font: 700 .72rem/1.5 \"Source Code Pro Variable\", ui-monospace, monospace; } .ds-command > button:hover { background: #f3f0e8; color: #20231f; } .ds-command > button:focus-visible { outline: 3px solid #6c3cff; outline-offset: -5px; } @media (max-width: 640px) { .ds-command { grid-template-columns: 1fr auto; } .ds-command > span { grid-column: 1 / -1; justify-content: start; min-height: 2rem; } }"
+      "description": "A readiness signal, exact Cargo command, and copy action in one rail.",
+      "html": "<div class=\"ds-command-rail\"><span class=\"ds-command-status\"><i aria-hidden=\"true\"></i>CLEAR TO INSTALL</span><code>cargo add sickle --features serde</code><button type=\"button\">COPY</button></div>",
+      "css": ".ds-command-rail { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: stretch; border: 1px solid var(--steel, #769087); border-radius: 0; background: var(--enamel-deep, #0b241c); color: var(--porcelain, #f4f0de); } .ds-command-status { display: flex; align-items: center; gap: .65rem; padding: .9rem 1.1rem; border-right: 1px solid var(--steel, #769087); font-family: var(--font-code, \"JetBrains Mono Variable\", ui-monospace, monospace); font-size: .65rem; letter-spacing: .05em; } .ds-command-status i { width: .78rem; height: .78rem; border: 2px solid #ffd2b5; border-radius: 50%; background: var(--route, #ea6f26); box-shadow: 0 3px 9px rgb(234 111 38 / 52%); } .ds-command-rail code { overflow: auto; padding: 1rem 1.25rem; font-family: var(--font-code, \"JetBrains Mono Variable\", ui-monospace, monospace); font-size: .85rem; white-space: nowrap; } .ds-command-rail button { border: 0; border-left: 1px solid currentColor; border-radius: 0; padding: .75rem 1.2rem; background: var(--route, #ea6f26); color: var(--ink, #171b19); font-family: var(--font-code, \"JetBrains Mono Variable\", ui-monospace, monospace); font-size: .71rem; font-weight: 750; } .ds-command-rail button:hover { background: var(--route-deep, #b84d13); color: var(--porcelain, #f4f0de); } .ds-command-rail button:focus-visible { outline: 3px solid var(--route, #ea6f26); outline-offset: 4px; }"
+    },
+    {
+      "name": "Feature Board Row",
+      "kind": "custom",
+      "description": "A signal-led capability record inside the shared feature ledger.",
+      "html": "<article class=\"ds-feature-row\"><div class=\"ds-feature-name\"><i aria-hidden=\"true\"></i><strong>serde</strong></div><div><b>Typed data</b><p>Deserialize and serialize through Serde.</p></div><code>hierarchy + printer</code></article>",
+      "css": ".ds-feature-row { display: grid; grid-template-columns: minmax(9rem, .65fr) minmax(15rem, 1.55fr) minmax(10rem, .7fr); gap: 2rem; align-items: center; min-height: 6rem; padding: 1rem 1.1rem; border-top: 1px solid #39584d; border-radius: 0; background: var(--enamel-deep, #0b241c); color: var(--porcelain, #f4f0de); font-family: var(--font-display, \"Barlow Condensed\", \"Arial Narrow\", sans-serif); } .ds-feature-row:hover { background: #153d30; } .ds-feature-name { display: flex; align-items: center; gap: .8rem; font-family: var(--font-code, \"JetBrains Mono Variable\", ui-monospace, monospace); font-size: .9rem; } .ds-feature-name i { width: .78rem; height: .78rem; border: 2px solid #ffd2b5; border-radius: 50%; background: var(--route, #ea6f26); box-shadow: 0 3px 9px rgb(234 111 38 / 52%); } .ds-feature-row b { display: block; font-size: 1.18rem; font-weight: 600; } .ds-feature-row p { margin: .12rem 0 0; color: var(--porcelain-deep, #ded8bc); } .ds-feature-row code { justify-self: end; color: var(--route, #ea6f26); font-family: var(--font-code, \"JetBrains Mono Variable\", ui-monospace, monospace); font-size: .72rem; font-weight: 700; }"
+    },
+    {
+      "name": "Primary Navigation",
+      "kind": "nav",
+      "description": "An always-visible monospaced station index.",
+      "html": "<nav class=\"ds-nav\" aria-label=\"Design system navigation\"><a href=\"#apis\">APIS</a><a href=\"#features\">FEATURES</a><a href=\"#docs\">DOCS</a></nav>",
+      "css": ".ds-nav { display: flex; gap: 2rem; padding: 1rem; background: var(--enamel, #12372a); color: var(--porcelain, #f4f0de); } .ds-nav a { color: inherit; font-family: var(--font-code, \"JetBrains Mono Variable\", ui-monospace, monospace); font-size: .69rem; font-weight: 650; letter-spacing: .05em; text-decoration: none; } .ds-nav a:hover { color: var(--route, #ea6f26); } .ds-nav a:focus-visible { outline: 3px solid var(--route, #ea6f26); outline-offset: 4px; }"
     }
   ],
   "narrative": {
-    "northStar": "The Compiler Diagnostic Sheet",
-    "overview": "Sickle presents technical material as one continuous, annotated source artifact: warm listing paper, carbon ink, ruled divisions, registration color, and square tool controls. The system is precise rather than nostalgic. Its paper and print references organize real code, feature relationships, and commands instead of decorating generic marketing layouts.\n\nLarge compressed headlines establish confidence, while monospaced labels, syntax, and controls carry operational detail. Density is deliberate but legible: strong rules create compartments, generous section spacing creates pauses, and every accent has a specific editorial job.",
+    "northStar": "Railway Interlocking",
+    "overview": "Sickle presents CCL as traffic moving through a physical route-control instrument. Deep green enamel carries the operating surface; porcelain plates hold inspectable source; the logo's crab orange marks routes and action; mint lamps confirm clear states. Track geometry, engraved labels, and exact command rails make technical relationships visible rather than decorating a generic developer landing page.\n\nThe system feels engineered, direct, and trustworthy. Condensed communication lettering carries the public voice while monospaced measurement text operates the controls. Density is organized through rails, boards, and ledgers; selective physical depth makes instrument plates tangible without turning the interface into a stack of cards.",
     "keyCharacteristics": [
-      "Warm paper surfaces with carbon rules instead of white cards.",
-      "Oversized, tightly set display type paired with compact monospaced tooling text.",
-      "Violet for registration and active structure, red for annotation, and acid green for readiness or successful change.",
-      "Square, bordered controls and continuous ruled containers.",
-      "Responsive reordering that keeps the install action ahead of the code specimen on small screens."
+      "Deep green enamel boards paired with warm porcelain working surfaces.",
+      "The grim-reaper-and-crab mascot becomes a playful guide at product-entry moments.",
+      "Crab-orange route paths, actions, and focus paired with mint clear lamps.",
+      "Condensed uppercase communication type with monospaced controls and code.",
+      "Square and cut-corner plates connected by track geometry and command rails.",
+      "Responsive re-routing that preserves the command action before detailed code."
     ],
     "rules": [
-      { "name": "The Three-Mark Rule", "body": "Violet registers structure, red corrects or annotates, and acid green confirms readiness or addition; do not interchange their meanings.", "section": "colors" },
-      { "name": "The Paper-First Rule", "body": "Warm paper remains the dominant field. Dark ink creates rails and code wells; accent colors remain annotations rather than large decorative fills.", "section": "colors" },
-      { "name": "The Two-Face Rule", "body": "Archivo speaks and explains; Source Code Pro identifies, operates, and demonstrates.", "section": "typography" },
-      { "name": "The Compressed-Headline Rule", "body": "Display text is heavy, tightly tracked, short-lined, and never diluted with lightweight ornamental copy.", "section": "typography" },
-      { "name": "The Continuous-Sheet Rule", "body": "Related content shares borders and dividers inside one ruled object; do not fragment a sequence into floating feature cards.", "section": "layout" },
-      { "name": "The Action-Before-Detail Rule", "body": "When space collapses, preserve access to the install command before the longer code panes.", "section": "layout" },
-      { "name": "The Evidence-Casts-a-Shadow Rule", "body": "Elevation belongs to inspectable source artifacts, never to ordinary sections, rows, navigation, or controls.", "section": "elevation" }
+      {"name": "The Signal Has Meaning Rule", "body": "Crab orange selects, routes, or demands action; mint confirms clear or complete. Text and position reinforce every state.", "section": "colors"},
+      {"name": "The Enamel-and-Porcelain Rule", "body": "Enamel holds systems and controls; porcelain holds reading and evidence. Preserve that material distinction.", "section": "colors"},
+      {"name": "The Two-Gauge Rule", "body": "Barlow communicates; JetBrains Mono identifies, measures, operates, and demonstrates.", "section": "typography"},
+      {"name": "The Station-Lettering Rule", "body": "Display copy is condensed, uppercase, tightly tracked, and short-lined; do not soften it with ornamental kickers.", "section": "typography"},
+      {"name": "The Connected-Route Rule", "body": "A technical sequence remains one bordered route or board; do not fragment it into floating feature cards.", "section": "layout"},
+      {"name": "The Command-Before-Evidence Rule", "body": "When space collapses, keep the chosen route and exact command ahead of long code specimens.", "section": "layout"},
+      {"name": "The Instrument Depth Rule", "body": "Shadows describe mounted plates, housings, and illuminated hardware; ordinary sections, rows, links, and controls remain unlifted.", "section": "elevation"},
+      {"name": "The Hardware Exception Rule", "body": "Square is the default; circles are allowed only for signal hardware and route geometry, never as generic pills or rounded containers.", "section": "shapes"},
+      {"name": "The Mascot Has a Job Rule", "body": "The grim-reaper-and-crab mark may become a large, playful guide at product-entry moments, but it never replaces code evidence or route controls. Use the transparent artwork without decorative containers.", "section": "layout"}
     ],
     "dos": [
-      "Do build long technical stories from continuous ruled sheets, rails, and ledgers.",
-      "Do reserve violet, red, and acid green for their registered semantic roles.",
-      "Do keep code, commands, metadata, and controls in Source Code Pro with tabular numerals.",
-      "Do preserve visible keyboard focus, horizontal code scrolling, and the mobile action-first order.",
-      "Do use physical depth only when a surface represents inspectable source evidence."
+      "Do build technical stories from connected routes, mounted plates, ledgers, and exact command rails.",
+      "Do keep orange tied to routes and action, and mint tied to clear or complete states.",
+      "Do use JetBrains Mono for code, commands, measurements, status labels, navigation, and controls.",
+      "Do preserve visible focus, text-labeled signal states, horizontal code scrolling, and reduced-motion behavior.",
+      "Do use depth selectively to distinguish mounted evidence from recessed operating surfaces."
     ],
     "donts": [
-      "Don't introduce rounded cards, pills, soft dashboard tiles, or a conventional split hero.",
-      "Don't use accent colors as interchangeable decoration or broad page backgrounds.",
-      "Don't hide mobile navigation behind an invented menu when the compact index fits.",
-      "Don't place prose inside dark code wells or code inside display typography.",
-      "Don't add shadows to ordinary controls, rows, or sections."
+      "Don't introduce generic cards, pills, rounded dashboard furniture, or a conventional split hero.",
+      "Don't turn the palette into generic neon-on-dark developer styling or use signal colors as ambient decoration.",
+      "Don't hide compact mobile navigation behind an invented menu.",
+      "Don't place prose in code wells or set commands in display typography.",
+      "Don't add glyph-only controls, ornamental kickers, or shadows without a physical instrument role."
     ]
   }
 }

@@ -1,5 +1,54 @@
 ---
 import Layout from "../layouts/Layout.astro";
+import { Code } from "astro-expressive-code/components";
+
+const sourceCcl = `/= Application configuration
+name = Signal
+database =
+  host = localhost
+  port = 5432
+features =
+  = metrics
+  = tracing`;
+
+const directRust = `use sickle::load;
+
+let model = load(ccl)?;
+let port = model
+  .get("database")?
+  .get_int("port")?;
+
+assert_eq!(port, 5432);`;
+
+const serdeRust = `use serde::Deserialize;
+use sickle::from_str;
+
+#[derive(Deserialize)]
+struct Config {
+  name: String,
+  database: Database,
+}
+
+let config: Config = from_str(ccl)?;`;
+
+const directApiRust = `let model = sickle::load(input)?;
+let host = model
+  .get("database")?
+  .get_string("host")?;`;
+
+const serdeApiRust = `let config: Config =
+  sickle::from_str(input)?;
+
+let output =
+  sickle::to_string(&config)?;`;
+
+const documentBefore = `/= Keep this explanation
+port = 5432
+mode = production`;
+
+const documentAfter = `/= Keep this explanation
+port = 6432
+mode = production`;
 
 const features = [
   {
@@ -49,12 +98,13 @@ const features = [
 
   <header class="site-header">
     <a class="wordmark" href="/" aria-label="Sickle home">
-      <svg viewBox="0 0 34 34" aria-hidden="true">
-        <path d="M27 4c-1 13-6 21-18 25 8 1 15-2 20-8" />
-        <path d="M9 29 5 25" />
-      </svg>
+      <img src="/sickle-logo.webp" width="512" height="512" alt="" />
       <span>sickle</span>
     </a>
+    <div class="header-status" aria-label="Library status">
+      <span class="signal-lamp signal-lamp-green"></span>
+      <span>PURE RUST / NO UNSAFE</span>
+    </div>
     <nav aria-label="Primary navigation">
       <a href="#apis">APIs</a>
       <a href="#features">Features</a>
@@ -65,139 +115,157 @@ const features = [
 
   <main id="main">
     <section class="hero" aria-labelledby="hero-title">
-      <div class="hero-heading">
-        <h1 id="hero-title">Configuration,<br /><span>precisely typed.</span></h1>
+      <div class="hero-copy">
+        <h1 id="hero-title">One language.<br /><span>Two clear routes.</span></h1>
+        <img
+          class="hero-mascot"
+          src="/sickle-logo.webp"
+          width="512"
+          height="512"
+          alt="Sickle mascot, a grim reaper riding a crab"
+        />
         <p>
-          A pure Rust parser for CCL. Navigate the model directly or deserialize
-          into the types your program already trusts.
+          Sickle makes CCL readable in Rust. Navigate the model directly or
+          deserialize into the types your program already trusts.
         </p>
       </div>
 
-      <div class="diagnostic-sheet" data-workbench>
-        <div class="sheet-registration" aria-hidden="true">
-          <span>SICKLE / CCL</span>
-          <span>SPECIMEN 0.4.0</span>
-          <span>INSERTION ORDER: PRESERVED</span>
+      <div class="interlocking" data-workbench data-route="serde">
+        <div class="panel-ident">
+          <span>SICKLE INTERLOCKING / CCL</span>
+          <span>INSERTION ORDER PRESERVED</span>
+          <span class="panel-ready"><i></i> ROUTE READY</span>
         </div>
 
-        <div class="source-pane">
-          <p class="pane-label">input.ccl</p>
-          <pre aria-label="Example CCL configuration"><code><span class="ln">1</span><span class="comment">/= Application configuration</span>
-<span class="ln">2</span><span class="key">name</span> = Signal
-<span class="ln">3</span><span class="key">version</span> = 2.4.0
-<span class="ln">4</span>
-<span class="ln">5</span><span class="key">database</span> =
-<span class="ln">6</span>  <span class="key">host</span> = localhost
-<span class="ln">7</span>  <span class="key">port</span> = 5432
-<span class="ln">8</span>
-<span class="ln">9</span><span class="key">features</span> =
-<span class="ln">10</span>  = metrics
-<span class="ln">11</span>  = tracing</code></pre>
-          <span class="annotation annotation-source">nested records follow indentation</span>
-        </div>
+        <div class="route-board">
+          <svg class="route-diagram" viewBox="0 0 1200 430" preserveAspectRatio="none" aria-hidden="true">
+            <path class="track-bed" d="M70 215 H420 C500 215 500 116 590 116 H1120" />
+            <path class="track-bed" d="M420 215 C500 215 500 314 590 314 H1120" />
+            <path class="track-route track-direct" d="M70 215 H420 C500 215 500 116 590 116 H1120" />
+            <path class="track-route track-serde" d="M70 215 H420 C500 215 500 314 590 314 H1120" />
+            <circle class="junction-ring" cx="420" cy="215" r="18" />
+            <circle class="route-node route-node-direct" cx="590" cy="116" r="10" />
+            <circle class="route-node route-node-serde" cx="590" cy="314" r="10" />
+          </svg>
 
-        <div class="output-pane">
-          <div class="mode-switch" role="group" aria-label="Choose API example">
-            <button type="button" data-mode="direct" aria-pressed="false">Direct model</button>
-            <button type="button" data-mode="serde" aria-pressed="true">Serde</button>
+          <div class="source-station">
+            <div class="station-label">
+              <span>ORIGIN</span>
+              <strong>input.ccl</strong>
+            </div>
+            <Code code={sourceCcl} lang="text" frame="none" />
           </div>
 
-          <div class="code-output" data-panel="direct" hidden>
-            <p class="pane-label">model.rs</p>
-            <pre><code><span class="kw">use</span> sickle::load;
-
-<span class="kw">let</span> model = load(ccl)?;
-<span class="kw">let</span> port = model
-  .get(<span class="str">"database"</span>)?
-  .get_int(<span class="str">"port"</span>)?;
-
-<span class="macro">assert_eq!</span>(port, <span class="num">5432</span>);</code></pre>
+          <div class="junction">
+            <p>SELECT ROUTE</p>
+            <div class="route-switch" role="group" aria-label="Choose API route">
+              <button type="button" data-mode="direct" aria-pressed="false">
+                <span class="signal-lamp"></span>
+                Direct model
+              </button>
+              <button type="button" data-mode="serde" aria-pressed="true">
+                <span class="signal-lamp"></span>
+                Serde
+              </button>
+            </div>
           </div>
 
-          <div class="code-output is-active" data-panel="serde">
-            <p class="pane-label">typed.rs</p>
-            <pre><code><span class="kw">use</span> serde::Deserialize;
-<span class="kw">use</span> sickle::from_str;
-
-<span class="attr">#[derive(Deserialize)]</span>
-<span class="kw">struct</span> Config &#123;
-  name: String,
-  database: Database,
-&#125;
-
-<span class="kw">let</span> config: Config = from_str(ccl)?;</code></pre>
+          <div class="install-rail">
+            <div class="install-status">
+              <span class="signal-lamp signal-lamp-route"></span>
+              <span>CLEAR TO INSTALL</span>
+            </div>
+            <code data-install-command>cargo add sickle --features serde</code>
+            <button class="copy-button" type="button" data-copy="cargo add sickle --features serde">
+              <span data-copy-label>Copy command</span>
+            </button>
+            <p class="copy-status" role="status" aria-live="polite"></p>
           </div>
-          <span class="annotation annotation-output">choose the API, keep the language</span>
-        </div>
 
-        <div class="install-rail">
-          <span class="install-status" aria-hidden="true">READY</span>
-          <code data-install-command>cargo add sickle --features serde</code>
-          <button class="copy-button" type="button" data-copy="cargo add sickle --features serde">
-            <span data-copy-label>Copy command</span>
-          </button>
-          <p class="copy-status" role="status" aria-live="polite"></p>
+          <div class="destination-station">
+            <div class="code-output" data-panel="direct" hidden>
+              <div class="station-label">
+                <span>ROUTE D</span>
+                <strong>model.rs</strong>
+              </div>
+              <Code code={directRust} lang="rust" frame="none" />
+            </div>
+
+            <div class="code-output is-active" data-panel="serde">
+              <div class="station-label">
+                <span>ROUTE S</span>
+                <strong>typed.rs</strong>
+              </div>
+              <Code code={serdeRust} lang="rust" frame="none" />
+            </div>
+          </div>
         </div>
       </div>
     </section>
 
     <section class="api-section" id="apis" aria-labelledby="api-title">
-      <div class="section-heading">
-        <h2 id="api-title">One language.<br />Two deliberate paths.</h2>
+      <div class="section-copy">
+        <h2 id="api-title">Choose the route.<br />Keep the language.</h2>
         <p>
-          Start at the level your application needs. Both paths share the same
-          CCL semantics, hierarchy, and error model.
+          Both APIs preserve CCL semantics and share the same hierarchy and
+          error model. Start at the level your application needs.
         </p>
       </div>
 
-      <div class="api-comparison">
+      <div class="api-lines">
         <article>
-          <h3>Inspect the structure yourself.</h3>
-          <p>
-            <strong>Direct model.</strong> Parse into a hierarchical
-            <code>CclObject</code>, preserve insertion order, and access strings,
-            integers, lists, and nested records directly.
-          </p>
-          <pre><code><span class="kw">let</span> model = sickle::load(input)?;
-<span class="kw">let</span> host = model
-  .get(<span class="str">"database"</span>)?
-  .get_string(<span class="str">"host"</span>)?;</code></pre>
+          <div class="line-marker">
+            <span>D</span>
+            <i></i>
+          </div>
+          <div>
+            <h3>Inspect the structure yourself.</h3>
+            <p>
+              Parse into a hierarchical <code>CclObject</code>, preserve insertion
+              order, and access strings, integers, lists, and nested records directly.
+            </p>
+            <Code code={directApiRust} lang="rust" frame="none" />
+          </div>
         </article>
 
         <article>
-          <h3>Let your types define the shape.</h3>
-          <p>
-            <strong>Serde boundaries.</strong> Deserialize CCL into existing
-            Rust types, or serialize those values back to canonical CCL with
-            separately selectable feature gates.
-          </p>
-          <pre><code><span class="kw">let</span> config: Config =
-  sickle::from_str(input)?;
-
-<span class="kw">let</span> output =
-  sickle::to_string(&config)?;</code></pre>
+          <div class="line-marker line-marker-serde">
+            <span>S</span>
+            <i></i>
+          </div>
+          <div>
+            <h3>Let your types define the shape.</h3>
+            <p>
+              Deserialize CCL into existing Rust types, or serialize those values
+              back to canonical CCL with separately selectable feature gates.
+            </p>
+            <Code code={serdeApiRust} lang="rust" frame="none" />
+          </div>
         </article>
       </div>
     </section>
 
     <section class="feature-section" id="features" aria-labelledby="feature-title">
-      <div class="feature-intro">
-        <h2 id="feature-title">Compile only what the job requires.</h2>
+      <div class="feature-copy">
+        <h2 id="feature-title">Signal only what the job requires.</h2>
         <p>
-          Default features are empty. Build upward from core types to the full
+          Default features are empty. Build from the core parser to the complete
           document toolchain without pulling every capability into every binary.
         </p>
       </div>
 
-      <div class="feature-ruler">
-        <div class="ruler-head" aria-hidden="true">
-          <span>feature</span>
-          <span>adds</span>
-          <span>includes</span>
+      <div class="feature-board" role="list" aria-label="Cargo feature routes">
+        <div class="feature-head" aria-hidden="true">
+          <span>signal</span>
+          <span>capability</span>
+          <span>route includes</span>
         </div>
-        {features.map((feature) => (
-          <article class="feature-row">
-            <h3>{feature.name}</h3>
+        {features.map((feature, index) => (
+          <article class="feature-row" role="listitem">
+            <div class="feature-signal">
+              <span class:list={["signal-lamp", { "signal-lamp-route": index < 5, "signal-lamp-green": index === 5 }]}></span>
+              <h3>{feature.name}</h3>
+            </div>
             <div>
               <strong>{feature.adds}</strong>
               <p>{feature.detail}</p>
@@ -208,9 +276,9 @@ const features = [
       </div>
 
       <div class="feature-command">
-        <span>FULL TOOLCHAIN</span>
+        <span>ALL ROUTES CLEAR</span>
         <code>cargo add sickle --features full</code>
-        <button class="copy-button copy-button-dark" type="button" data-copy="cargo add sickle --features full">
+        <button class="copy-button copy-button-light" type="button" data-copy="cargo add sickle --features full">
           <span data-copy-label>Copy command</span>
         </button>
         <p class="copy-status" role="status" aria-live="polite"></p>
@@ -219,65 +287,58 @@ const features = [
 
     <section class="document-section" aria-labelledby="document-title">
       <div class="document-copy">
-        <h2 id="document-title">Change the value.<br />Keep the document.</h2>
+        <h2 id="document-title">Change one value.<br />Leave the line intact.</h2>
         <p>
-          The optional <code>document</code> API merges typed edits back into
-          source text, preserving comments and formatting around the values
-          your application changed.
+          The optional <code>document</code> API merges typed edits back into source
+          text, preserving comments and formatting around the values your
+          application changed.
         </p>
         <a href="https://docs.rs/sickle/latest/sickle/document/index.html">
           Inspect the document API
-          <svg viewBox="0 0 20 20" aria-hidden="true">
-            <path d="M4 10h11M11 5l5 5-5 5" />
+          <svg viewBox="0 0 28 16" aria-hidden="true">
+            <path d="M1 8h24M19 2l6 6-6 6" />
           </svg>
         </a>
       </div>
 
-      <div class="diff-sheet" aria-label="Source-preserving edit example">
-        <div>
-          <span class="diff-label">before</span>
-          <pre><code><span class="comment">/= Keep this explanation</span>
-port = <mark class="removed">5432</mark>
-mode = production</code></pre>
+      <div class="document-routing" aria-label="Source-preserving edit example">
+        <div class="document-track" aria-hidden="true">
+          <span></span>
+          <i></i>
+          <span></span>
         </div>
-        <div>
-          <span class="diff-label">after</span>
-          <pre><code><span class="comment">/= Keep this explanation</span>
-port = <mark class="added">6432</mark>
-mode = production</code></pre>
+        <div class="document-pane">
+          <span>BEFORE</span>
+          <Code code={documentBefore} lang="text" frame="none" del="5432" />
         </div>
-        <p>one typed edit / zero rewritten context lines</p>
+        <div class="document-pane">
+          <span>AFTER</span>
+          <Code code={documentAfter} lang="text" frame="none" ins="6432" />
+        </div>
+        <p>ONE TYPED EDIT / ZERO REWRITTEN CONTEXT LINES</p>
       </div>
     </section>
 
     <section class="proof-section" aria-labelledby="proof-title">
-      <h2 id="proof-title">Built to be inspected.</h2>
-      <div class="proof-ledger">
-        <div>
-          <strong>Pure Rust</strong>
-          <span>No unsafe code</span>
-        </div>
-        <div>
-          <strong>Order-aware</strong>
-          <span>Insertion order preserved</span>
-        </div>
-        <div>
-          <strong>Test-backed</strong>
-          <span>Property and data-driven suites</span>
-        </div>
-        <div>
-          <strong>Independent</strong>
-          <span>No dependency on Santa</span>
-        </div>
+      <h2 id="proof-title">The board tells the truth.</h2>
+      <div class="proof-board">
+        <div><span class="signal-lamp signal-lamp-green"></span><strong>Pure Rust</strong><span>No unsafe code</span></div>
+        <div><span class="signal-lamp signal-lamp-green"></span><strong>Order-aware</strong><span>Insertion order preserved</span></div>
+        <div><span class="signal-lamp signal-lamp-green"></span><strong>Test-backed</strong><span>Property and data-driven suites</span></div>
+        <div><span class="signal-lamp signal-lamp-green"></span><strong>Independent</strong><span>No dependency on Santa</span></div>
       </div>
     </section>
 
     <section class="closing-section" aria-labelledby="closing-title">
-      <h2 id="closing-title">Put CCL<br />under type control.</h2>
+      <div>
+        <h2 id="closing-title">Your route<br />is clear.</h2>
+        <p>Add Sickle with the Serde route, or inspect the source before you proceed.</p>
+      </div>
       <div class="closing-actions">
         <div class="closing-command">
+          <span class="signal-lamp signal-lamp-route"></span>
           <code>cargo add sickle --features serde</code>
-          <button class="copy-button copy-button-accent" type="button" data-copy="cargo add sickle --features serde">
+          <button class="copy-button" type="button" data-copy="cargo add sickle --features serde">
             <span data-copy-label>Copy command</span>
           </button>
           <p class="copy-status" role="status" aria-live="polite"></p>
@@ -293,17 +354,14 @@ mode = production</code></pre>
 
   <footer>
     <a class="wordmark footer-wordmark" href="/" aria-label="Sickle home">
-      <svg viewBox="0 0 34 34" aria-hidden="true">
-        <path d="M27 4c-1 13-6 21-18 25 8 1 15-2 20-8" />
-        <path d="M9 29 5 25" />
-      </svg>
+      <img src="/sickle-logo.webp" width="512" height="512" alt="" />
       <span>sickle</span>
     </a>
     <p>A robust CCL parser for Rust. MIT licensed.</p>
   </footer>
 
   <script>
-    const workbench = document.querySelector("[data-workbench]");
+    const workbench = document.querySelector<HTMLElement>("[data-workbench]");
 
     if (workbench) {
       const modeButtons = workbench.querySelectorAll<HTMLButtonElement>("[data-mode]");
@@ -312,6 +370,10 @@ mode = production</code></pre>
       modeButtons.forEach((button) => {
         button.addEventListener("click", () => {
           const selectedMode = button.dataset.mode;
+
+          if (!selectedMode) return;
+
+          workbench.dataset.route = selectedMode;
 
           modeButtons.forEach((candidate) => {
             candidate.setAttribute("aria-pressed", String(candidate === button));

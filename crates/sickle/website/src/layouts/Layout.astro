@@ -1,6 +1,9 @@
 ---
-import "@fontsource-variable/archivo";
-import "@fontsource-variable/source-code-pro";
+import "@fontsource/barlow-condensed/400.css";
+import "@fontsource/barlow-condensed/500.css";
+import "@fontsource/barlow-condensed/600.css";
+import "@fontsource/barlow-condensed/700.css";
+import "@fontsource-variable/jetbrains-mono";
 import "../styles/global.css";
 
 interface Props {
@@ -17,17 +20,17 @@ const { title, description } = Astro.props;
     <meta charset="UTF-8" />
     <meta name="description" content={description} />
     <meta name="viewport" content="width=device-width" />
-    <meta name="theme-color" content="#f3f0e8" />
+    <meta name="theme-color" content="#12372a" />
     <meta name="generator" content={Astro.generator} />
     <title>{title}</title>
   </head>
   <body>
     <!--
-    THESIS: Sickle reads as an annotated compiler diagnostic, refusing the standard split hero and feature-card grid.
-    OWN-WORLD: Warm listing paper, carbon ink, registration violet, correction red, ruled annotations, and square tool controls.
-    STORY: See CCL become a model, choose direct or Serde access, select exact features, then copy the Cargo command.
-    FIRST VIEWPORT: A full-width source sheet dominates; the headline occupies its diagnostic margin and the install action locks to its lower tool rail.
-    FORM: Compiler Diagnostic Sheet, first on the grounded list, selected from seed cdf126de.
+    THESIS: Sickle is an interlocking route map for CCL, refusing the standard split hero and feature-card grid.
+    OWN-WORLD: Deep green enamel, porcelain plates, crab-orange routes, mint clear signals, the illustrated mascot, engraved labels, tracks, and lever controls.
+    STORY: Follow one CCL source through direct-model or Serde routes, inspect feature signals, then copy the exact Cargo command.
+    FIRST VIEWPORT: The mascot bridges the promise and explanation above a route panel with CCL at left, the API junction at center, typed output at right, and the live command across its lower rail.
+    FORM: Railway interlocking panel, first on the grounded list and selected as Impeccable's pick from seed e8a52f98.
     FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, DESIGN.md, and every shipping raster carrying its provenance
     -->
     <slot />
