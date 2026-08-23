@@ -1,0 +1,360 @@
+---
+import Layout from "../layouts/Layout.astro";
+
+const features = [
+  {
+    name: "parse",
+    adds: "Flat entries",
+    detail: "Parse CCL into insertion-ordered key-value entries.",
+    includes: "core parser",
+  },
+  {
+    name: "hierarchy",
+    adds: "Nested model",
+    detail: "Build a navigable CclObject from parsed entries.",
+    includes: "parse",
+  },
+  {
+    name: "serde",
+    adds: "Typed data",
+    detail: "Deserialize and serialize through Serde.",
+    includes: "hierarchy + printer",
+  },
+  {
+    name: "document",
+    adds: "Source fidelity",
+    detail: "Edit typed values while preserving comments and formatting.",
+    includes: "serde",
+  },
+  {
+    name: "intern",
+    adds: "String interning",
+    detail: "Reduce repeated string storage in large configurations.",
+    includes: "optional dependency",
+  },
+  {
+    name: "full",
+    adds: "Complete toolset",
+    detail: "Enable parsing, hierarchy, Serde, printing, interning, and documents.",
+    includes: "all stable features",
+  },
+];
+---
+
+<Layout
+  title="Sickle — CCL parsing for Rust"
+  description="A pure Rust parser for CCL with direct model navigation, Serde integration, canonical printing, and source-preserving document edits."
+>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="site-header">
+    <a class="wordmark" href="/" aria-label="Sickle home">
+      <svg viewBox="0 0 34 34" aria-hidden="true">
+        <path d="M27 4c-1 13-6 21-18 25 8 1 15-2 20-8" />
+        <path d="M9 29 5 25" />
+      </svg>
+      <span>sickle</span>
+    </a>
+    <nav aria-label="Primary navigation">
+      <a href="#apis">APIs</a>
+      <a href="#features">Features</a>
+      <a href="https://docs.rs/sickle">Docs</a>
+      <a href="https://github.com/tylerbutler/santa/tree/main/crates/sickle">Source</a>
+    </nav>
+  </header>
+
+  <main id="main">
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="hero-heading">
+        <h1 id="hero-title">Configuration,<br /><span>precisely typed.</span></h1>
+        <p>
+          A pure Rust parser for CCL. Navigate the model directly or deserialize
+          into the types your program already trusts.
+        </p>
+      </div>
+
+      <div class="diagnostic-sheet" data-workbench>
+        <div class="sheet-registration" aria-hidden="true">
+          <span>SICKLE / CCL</span>
+          <span>SPECIMEN 0.4.0</span>
+          <span>INSERTION ORDER: PRESERVED</span>
+        </div>
+
+        <div class="source-pane">
+          <p class="pane-label">input.ccl</p>
+          <pre aria-label="Example CCL configuration"><code><span class="ln">1</span><span class="comment">/= Application configuration</span>
+<span class="ln">2</span><span class="key">name</span> = Signal
+<span class="ln">3</span><span class="key">version</span> = 2.4.0
+<span class="ln">4</span>
+<span class="ln">5</span><span class="key">database</span> =
+<span class="ln">6</span>  <span class="key">host</span> = localhost
+<span class="ln">7</span>  <span class="key">port</span> = 5432
+<span class="ln">8</span>
+<span class="ln">9</span><span class="key">features</span> =
+<span class="ln">10</span>  = metrics
+<span class="ln">11</span>  = tracing</code></pre>
+          <span class="annotation annotation-source">nested records follow indentation</span>
+        </div>
+
+        <div class="output-pane">
+          <div class="mode-switch" role="group" aria-label="Choose API example">
+            <button type="button" data-mode="direct" aria-pressed="false">Direct model</button>
+            <button type="button" data-mode="serde" aria-pressed="true">Serde</button>
+          </div>
+
+          <div class="code-output" data-panel="direct" hidden>
+            <p class="pane-label">model.rs</p>
+            <pre><code><span class="kw">use</span> sickle::load;
+
+<span class="kw">let</span> model = load(ccl)?;
+<span class="kw">let</span> port = model
+  .get(<span class="str">"database"</span>)?
+  .get_int(<span class="str">"port"</span>)?;
+
+<span class="macro">assert_eq!</span>(port, <span class="num">5432</span>);</code></pre>
+          </div>
+
+          <div class="code-output is-active" data-panel="serde">
+            <p class="pane-label">typed.rs</p>
+            <pre><code><span class="kw">use</span> serde::Deserialize;
+<span class="kw">use</span> sickle::from_str;
+
+<span class="attr">#[derive(Deserialize)]</span>
+<span class="kw">struct</span> Config &#123;
+  name: String,
+  database: Database,
+&#125;
+
+<span class="kw">let</span> config: Config = from_str(ccl)?;</code></pre>
+          </div>
+          <span class="annotation annotation-output">choose the API, keep the language</span>
+        </div>
+
+        <div class="install-rail">
+          <span class="install-status" aria-hidden="true">READY</span>
+          <code data-install-command>cargo add sickle --features serde</code>
+          <button class="copy-button" type="button" data-copy="cargo add sickle --features serde">
+            <span data-copy-label>Copy command</span>
+          </button>
+          <p class="copy-status" role="status" aria-live="polite"></p>
+        </div>
+      </div>
+    </section>
+
+    <section class="api-section" id="apis" aria-labelledby="api-title">
+      <div class="section-heading">
+        <h2 id="api-title">One language.<br />Two deliberate paths.</h2>
+        <p>
+          Start at the level your application needs. Both paths share the same
+          CCL semantics, hierarchy, and error model.
+        </p>
+      </div>
+
+      <div class="api-comparison">
+        <article>
+          <h3>Inspect the structure yourself.</h3>
+          <p>
+            <strong>Direct model.</strong> Parse into a hierarchical
+            <code>CclObject</code>, preserve insertion order, and access strings,
+            integers, lists, and nested records directly.
+          </p>
+          <pre><code><span class="kw">let</span> model = sickle::load(input)?;
+<span class="kw">let</span> host = model
+  .get(<span class="str">"database"</span>)?
+  .get_string(<span class="str">"host"</span>)?;</code></pre>
+        </article>
+
+        <article>
+          <h3>Let your types define the shape.</h3>
+          <p>
+            <strong>Serde boundaries.</strong> Deserialize CCL into existing
+            Rust types, or serialize those values back to canonical CCL with
+            separately selectable feature gates.
+          </p>
+          <pre><code><span class="kw">let</span> config: Config =
+  sickle::from_str(input)?;
+
+<span class="kw">let</span> output =
+  sickle::to_string(&config)?;</code></pre>
+        </article>
+      </div>
+    </section>
+
+    <section class="feature-section" id="features" aria-labelledby="feature-title">
+      <div class="feature-intro">
+        <h2 id="feature-title">Compile only what the job requires.</h2>
+        <p>
+          Default features are empty. Build upward from core types to the full
+          document toolchain without pulling every capability into every binary.
+        </p>
+      </div>
+
+      <div class="feature-ruler">
+        <div class="ruler-head" aria-hidden="true">
+          <span>feature</span>
+          <span>adds</span>
+          <span>includes</span>
+        </div>
+        {features.map((feature) => (
+          <article class="feature-row">
+            <h3>{feature.name}</h3>
+            <div>
+              <strong>{feature.adds}</strong>
+              <p>{feature.detail}</p>
+            </div>
+            <code>{feature.includes}</code>
+          </article>
+        ))}
+      </div>
+
+      <div class="feature-command">
+        <span>FULL TOOLCHAIN</span>
+        <code>cargo add sickle --features full</code>
+        <button class="copy-button copy-button-dark" type="button" data-copy="cargo add sickle --features full">
+          <span data-copy-label>Copy command</span>
+        </button>
+        <p class="copy-status" role="status" aria-live="polite"></p>
+      </div>
+    </section>
+
+    <section class="document-section" aria-labelledby="document-title">
+      <div class="document-copy">
+        <h2 id="document-title">Change the value.<br />Keep the document.</h2>
+        <p>
+          The optional <code>document</code> API merges typed edits back into
+          source text, preserving comments and formatting around the values
+          your application changed.
+        </p>
+        <a href="https://docs.rs/sickle/latest/sickle/document/index.html">
+          Inspect the document API
+          <svg viewBox="0 0 20 20" aria-hidden="true">
+            <path d="M4 10h11M11 5l5 5-5 5" />
+          </svg>
+        </a>
+      </div>
+
+      <div class="diff-sheet" aria-label="Source-preserving edit example">
+        <div>
+          <span class="diff-label">before</span>
+          <pre><code><span class="comment">/= Keep this explanation</span>
+port = <mark class="removed">5432</mark>
+mode = production</code></pre>
+        </div>
+        <div>
+          <span class="diff-label">after</span>
+          <pre><code><span class="comment">/= Keep this explanation</span>
+port = <mark class="added">6432</mark>
+mode = production</code></pre>
+        </div>
+        <p>one typed edit / zero rewritten context lines</p>
+      </div>
+    </section>
+
+    <section class="proof-section" aria-labelledby="proof-title">
+      <h2 id="proof-title">Built to be inspected.</h2>
+      <div class="proof-ledger">
+        <div>
+          <strong>Pure Rust</strong>
+          <span>No unsafe code</span>
+        </div>
+        <div>
+          <strong>Order-aware</strong>
+          <span>Insertion order preserved</span>
+        </div>
+        <div>
+          <strong>Test-backed</strong>
+          <span>Property and data-driven suites</span>
+        </div>
+        <div>
+          <strong>Independent</strong>
+          <span>No dependency on Santa</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="closing-section" aria-labelledby="closing-title">
+      <h2 id="closing-title">Put CCL<br />under type control.</h2>
+      <div class="closing-actions">
+        <div class="closing-command">
+          <code>cargo add sickle --features serde</code>
+          <button class="copy-button copy-button-accent" type="button" data-copy="cargo add sickle --features serde">
+            <span data-copy-label>Copy command</span>
+          </button>
+          <p class="copy-status" role="status" aria-live="polite"></p>
+        </div>
+        <div class="text-links">
+          <a href="https://docs.rs/sickle">Read the docs</a>
+          <a href="https://crates.io/crates/sickle">View on crates.io</a>
+          <a href="https://github.com/tylerbutler/santa/tree/main/crates/sickle">Browse the source</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <a class="wordmark footer-wordmark" href="/" aria-label="Sickle home">
+      <svg viewBox="0 0 34 34" aria-hidden="true">
+        <path d="M27 4c-1 13-6 21-18 25 8 1 15-2 20-8" />
+        <path d="M9 29 5 25" />
+      </svg>
+      <span>sickle</span>
+    </a>
+    <p>A robust CCL parser for Rust. MIT licensed.</p>
+  </footer>
+
+  <script>
+    const workbench = document.querySelector("[data-workbench]");
+
+    if (workbench) {
+      const modeButtons = workbench.querySelectorAll<HTMLButtonElement>("[data-mode]");
+      const panels = workbench.querySelectorAll<HTMLElement>("[data-panel]");
+
+      modeButtons.forEach((button) => {
+        button.addEventListener("click", () => {
+          const selectedMode = button.dataset.mode;
+
+          modeButtons.forEach((candidate) => {
+            candidate.setAttribute("aria-pressed", String(candidate === button));
+          });
+
+          panels.forEach((panel) => {
+            const isActive = panel.dataset.panel === selectedMode;
+            panel.hidden = !isActive;
+            panel.classList.toggle("is-active", isActive);
+          });
+
+          const command = selectedMode === "direct"
+            ? "cargo add sickle --features hierarchy"
+            : "cargo add sickle --features serde";
+          const commandDisplay = workbench.querySelector<HTMLElement>("[data-install-command]");
+          const copyButton = workbench.querySelector<HTMLButtonElement>("[data-copy]");
+
+          if (commandDisplay) commandDisplay.textContent = command;
+          if (copyButton) copyButton.dataset.copy = command;
+        });
+      });
+    }
+
+    document.querySelectorAll<HTMLButtonElement>("[data-copy]").forEach((button) => {
+      button.addEventListener("click", async () => {
+        const command = button.dataset.copy;
+        const label = button.querySelector<HTMLElement>("[data-copy-label]");
+        const status = button.parentElement?.querySelector<HTMLElement>(".copy-status");
+
+        if (!command || !label || !status) return;
+
+        try {
+          await navigator.clipboard.writeText(command);
+          label.textContent = "Copied";
+          status.textContent = "Cargo command copied to clipboard.";
+          window.setTimeout(() => {
+            label.textContent = "Copy command";
+          }, 1800);
+        } catch {
+          label.textContent = "Select command";
+          status.textContent = "Clipboard access was blocked. Select and copy the command manually.";
+        }
+      });
+    });
+  </script>
+</Layout>
