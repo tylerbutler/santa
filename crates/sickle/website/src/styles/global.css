@@ -5,9 +5,9 @@
   --porcelain-deep: #ded8bc;
   --ink: #171b19;
   --ink-muted: #4e5b55;
-  --route: #f2b544;
-  --route-deep: #bd7624;
-  --signal: #ea6f26;
+  --route: #ea6f26;
+  --route-deep: #b84d13;
+  --signal: var(--route);
   --clear: #89c8b2;
   --steel: #769087;
   --font-display: "Barlow Condensed", "Arial Narrow", sans-serif;
@@ -201,10 +201,26 @@ main {
 
 .hero-copy {
   display: grid;
-  grid-template-columns: minmax(0, 1.25fr) minmax(18rem, 0.75fr);
-  gap: clamp(2rem, 7vw, 8rem);
-  align-items: end;
+  grid-template-columns: minmax(0, 1.05fr) clamp(8rem, 12vw, 11rem) minmax(18rem, 0.7fr);
+  gap: clamp(1.5rem, 4vw, 4.5rem);
+  align-items: center;
   margin-bottom: clamp(1.75rem, 3vw, 3rem);
+}
+
+.hero-mascot {
+  width: 100%;
+  height: auto;
+  filter: drop-shadow(0 14px 16px rgb(11 36 28 / 18%));
+  transform: rotate(-4deg);
+  transform-origin: 50% 75%;
+  transition:
+    filter 240ms ease-out,
+    transform 420ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.hero-mascot:hover {
+  filter: drop-shadow(0 18px 20px rgb(234 111 38 / 24%));
+  transform: translateY(-0.3rem) rotate(2deg);
 }
 
 h1,
@@ -223,7 +239,7 @@ h1 {
 }
 
 h1 span {
-  color: var(--signal);
+  color: var(--route-deep);
 }
 
 .hero-copy p,
@@ -331,7 +347,7 @@ h1 span {
 [data-route="direct"] .route-node-direct,
 [data-route="serde"] .route-node-serde {
   fill: var(--route);
-  filter: drop-shadow(0 3px 5px rgb(242 181 68 / 45%));
+  filter: drop-shadow(0 3px 5px rgb(234 111 38 / 42%));
   stroke: var(--porcelain);
 }
 
@@ -467,12 +483,12 @@ h1 span {
 }
 
 .route-switch button[aria-pressed="true"] .signal-lamp,
-.signal-lamp-amber {
-  border-color: #fff3c3;
+.signal-lamp-route {
+  border-color: #ffd2b5;
   background: var(--route);
   box-shadow:
     inset 0 1px 2px rgb(255 255 255 / 68%),
-    0 3px 9px rgb(242 181 68 / 55%);
+    0 3px 9px rgb(234 111 38 / 52%);
 }
 
 .signal-lamp-green {
@@ -1071,7 +1087,12 @@ footer p {
   }
 
   .hero-copy {
+    grid-template-columns: minmax(0, 1fr) 8rem;
     gap: 1.5rem;
+  }
+
+  .hero-copy > p {
+    grid-column: 1 / -1;
   }
 
   .route-board {
@@ -1157,6 +1178,11 @@ footer p {
   h1 {
     max-width: 100%;
     font-size: clamp(3.15rem, 15vw, 4.8rem);
+  }
+
+  .hero-mascot {
+    align-self: end;
+    margin-bottom: -0.4rem;
   }
 
   h2 {
@@ -1338,5 +1364,9 @@ footer p {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+  }
+
+  .hero-mascot:hover {
+    transform: rotate(-4deg);
   }
 }

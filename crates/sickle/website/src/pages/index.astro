@@ -117,6 +117,13 @@ const features = [
     <section class="hero" aria-labelledby="hero-title">
       <div class="hero-copy">
         <h1 id="hero-title">One language.<br /><span>Two clear routes.</span></h1>
+        <img
+          class="hero-mascot"
+          src="/sickle-logo.webp"
+          width="512"
+          height="512"
+          alt="Sickle mascot, a grim reaper riding a crab"
+        />
         <p>
           Sickle makes CCL readable in Rust. Navigate the model directly or
           deserialize into the types your program already trusts.
@@ -165,7 +172,7 @@ const features = [
 
           <div class="install-rail">
             <div class="install-status">
-              <span class="signal-lamp signal-lamp-amber"></span>
+              <span class="signal-lamp signal-lamp-route"></span>
               <span>CLEAR TO INSTALL</span>
             </div>
             <code data-install-command>cargo add sickle --features serde</code>
@@ -256,7 +263,7 @@ const features = [
         {features.map((feature, index) => (
           <article class="feature-row" role="listitem">
             <div class="feature-signal">
-              <span class:list={["signal-lamp", { "signal-lamp-amber": index < 5, "signal-lamp-green": index === 5 }]}></span>
+              <span class:list={["signal-lamp", { "signal-lamp-route": index < 5, "signal-lamp-green": index === 5 }]}></span>
               <h3>{feature.name}</h3>
             </div>
             <div>
@@ -329,7 +336,7 @@ const features = [
       </div>
       <div class="closing-actions">
         <div class="closing-command">
-          <span class="signal-lamp signal-lamp-amber"></span>
+          <span class="signal-lamp signal-lamp-route"></span>
           <code>cargo add sickle --features serde</code>
           <button class="copy-button" type="button" data-copy="cargo add sickle --features serde">
             <span data-copy-label>Copy command</span>

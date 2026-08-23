@@ -24,9 +24,9 @@ Rust developers evaluating whether Sickle is the right CCL parser. They need unf
 
 ## Direction
 
-Railway Interlocking: one CCL source enters an enameled route panel and leaves through the direct-model or Serde path the visitor selects. Deep green enamel, porcelain plates, amber route lamps, signal red, engraved labels, and exact track geometry replace the previous compiler-diagnostic identity.
+Railway Interlocking: one CCL source enters an enameled route panel and leaves through the direct-model or Serde path the visitor selects. Deep green enamel, porcelain plates, crab-orange route lamps and actions, mint clear signals, engraved labels, and exact track geometry replace the previous compiler-diagnostic identity.
 
-The memorable moment is the first viewport's route switch: selecting an API illuminates its path, reveals the matching Rust output, and rewrites the Cargo command at the same time.
+The memorable moment pairs the enlarged mascot with the first viewport's route switch: selecting an API illuminates its path, reveals the matching Rust output, and rewrites the Cargo command at the same time.
 
 ## Constraints
 

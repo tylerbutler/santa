@@ -8,9 +8,8 @@ colors:
   porcelain-deep: "#ded8bc"
   ink: "#171b19"
   ink-muted: "#4e5b55"
-  route-amber: "#f2b544"
-  route-amber-deep: "#bd7624"
-  signal-orange: "#ea6f26"
+  route-orange: "#ea6f26"
+  route-orange-deep: "#b84d13"
   clear-mint: "#89c8b2"
   steel: "#769087"
 typography:
@@ -52,14 +51,14 @@ spacing:
   panel: "clamp(2rem, 4vw, 4rem)"
 components:
   copy-button:
-    backgroundColor: "{colors.route-amber}"
+    backgroundColor: "{colors.route-orange}"
     textColor: "{colors.ink}"
     typography: "{typography.label}"
     rounded: "{rounded.square}"
     padding: "0.75rem 1.2rem"
     height: "3.25rem"
   route-selected:
-    backgroundColor: "{colors.route-amber}"
+    backgroundColor: "{colors.route-orange}"
     textColor: "{colors.ink}"
     typography: "{typography.label}"
     rounded: "{rounded.square}"
@@ -78,17 +77,19 @@ components:
 
 **Creative North Star: "Railway Interlocking"**
 
-Sickle presents CCL as traffic moving through a physical route-control instrument. Deep green enamel carries the operating surface; porcelain plates hold inspectable source; amber, logo orange, and mint lamps communicate route, attention, and clear states. Track geometry, engraved labels, and exact command rails make technical relationships visible rather than decorating a generic developer landing page.
+Sickle presents CCL as traffic moving through a physical route-control instrument. Deep green enamel carries the operating surface; porcelain plates hold inspectable source; the logo's crab orange marks routes and action; mint lamps confirm clear states. Track geometry, engraved labels, and exact command rails make technical relationships visible rather than decorating a generic developer landing page.
 
 The system feels engineered, direct, and trustworthy. Condensed communication lettering carries the public voice while monospaced measurement text operates the controls. Density is organized through rails, boards, and ledgers; selective physical depth makes instrument plates tangible without turning the interface into a stack of cards.
 
 **Key Characteristics:**
 - Deep green enamel boards paired with warm porcelain working surfaces.
 - The supplied grim-reaper-and-crab illustration is the canonical Sickle logo.
-- Amber route paths, logo-orange focus or attention signals, and mint clear lamps.
+- Crab-orange route paths, actions, and focus paired with mint clear lamps.
 - Condensed uppercase communication type with monospaced controls and code.
 - Square and cut-corner plates connected by track geometry and command rails.
 - Responsive re-routing that preserves the command action before detailed code.
+
+**The Mascot Has a Job Rule.** The grim-reaper-and-crab mark may become a large, playful guide at product-entry moments, but it never replaces code evidence or route controls. Use the transparent artwork without decorative containers.
 
 ## Colors
 
@@ -99,11 +100,11 @@ The palette comes from an electromechanical signal panel: dark enamel and warm p
 - **Deep Enamel:** Recessed switches, code wells, and command rails.
 
 ### Secondary
-- **Route Amber:** Active routes, selected controls, install readiness, and primary actions.
-- **Deep Route Amber:** Amber adapted for legible emphasis on porcelain.
+- **Route Orange:** Active routes, selected controls, install readiness, focus, and primary actions.
+- **Deep Route Orange:** Crab orange adapted for legible emphasis on porcelain.
 
 ### Tertiary
-- **Signal Red:** Focus outlines, copy-button hover, and removed-value signals.
+- **Route Orange:** Focus outlines, active controls, copy-button hover, and removed-value attention signals.
 - **Clear Mint:** Ready lamps, complete states, and the secondary API route.
 
 ### Neutral
@@ -115,7 +116,7 @@ The palette comes from an electromechanical signal panel: dark enamel and warm p
 
 ### Named Rules
 
-**The Signal Has Meaning Rule.** Amber selects or routes, crab orange demands attention, and mint confirms clear or complete; never use them as interchangeable decoration.
+**The Signal Has Meaning Rule.** Crab orange selects, routes, or demands action; mint confirms clear or complete. Text and position reinforce every state.
 
 **The Enamel-and-Porcelain Rule.** Enamel holds systems and controls; porcelain holds reading and evidence. Preserve that material distinction.
 
@@ -131,7 +132,7 @@ The palette comes from an electromechanical signal panel: dark enamel and warm p
 
 ### Hierarchy
 - **Display** (700, fluid 3.2–6rem, 0.84): Uppercase section declarations, tightly tracked and usually held to 9–14 characters per line.
-- **Hero Display** (700, fluid 3.6–5rem, 0.84): The first-view statement; one route-defining phrase may shift to deep amber.
+- **Hero Display** (700, fluid 3.6–5rem, 0.84): The first-view statement; one route-defining phrase may shift to crab orange.
 - **Headline** (600, fluid 2–3.5rem, 0.95): Local route explanations and API statements.
 - **Body** (400, fluid 1.1–1.35rem, 1.38): Direct explanatory copy, muted and normally constrained to 34–38rem.
 - **Code** (400, fluid 0.72–0.9rem, 1.68–1.8): Source, output, and document specimens with tabular numerals.
@@ -181,9 +182,9 @@ The dominant form is square, bordered, and mechanical. Porcelain stations and co
 
 ### Buttons
 - **Shape:** Square, compact, and rail-bound, with a minimum height of 3.25rem.
-- **Primary:** Route amber with instrument ink, monospaced bold labeling, and compact horizontal padding.
+- **Primary:** Route orange with instrument ink, monospaced bold labeling, and compact horizontal padding.
 - **Hover / Focus:** Hover changes to logo orange with porcelain text. Keyboard focus uses a 3px logo-orange outline with 4px offset.
-- **Selected Route:** The selected switch fills amber and inverts to ink; inactive switches remain deep enamel and may brighten slightly on hover.
+- **Selected Route:** The selected switch fills orange and inverts to ink; inactive switches remain deep enamel and may brighten slightly on hover.
 
 ### Cards / Containers
 - **Corner Style:** Square by default; inspectable plates may use a single clipped upper-right corner.
@@ -194,7 +195,7 @@ The dominant form is square, bordered, and mechanical. Porcelain stations and co
 
 ### Navigation
 
-Navigation is an always-visible uppercase monospaced index beside the illustrated wordmark. Links are borderless, turn amber on hover, and use the global orange focus outline. On narrow screens, links become a right-aligned two-column grid instead of hiding behind a menu.
+Navigation is an always-visible uppercase monospaced index beside the illustrated wordmark. Links are borderless, turn orange on hover, and use the global orange focus outline. On narrow screens, links become a right-aligned two-column grid instead of hiding behind a menu.
 
 ### Signal Lamp
 
@@ -206,7 +207,7 @@ The signature assembly connects a porcelain CCL source plate to one of two outpu
 
 ### Command Rail
 
-Commands live on deep enamel with porcelain monospaced text and remain on one line. A status cell names readiness, while an adjacent amber copy control completes the rail. On narrow screens the status spans the full width above the horizontally scrollable command.
+Commands live on deep enamel with porcelain monospaced text and remain on one line. A status cell names readiness, while an adjacent orange copy control completes the rail. On narrow screens the status spans the full width above the horizontally scrollable command.
 
 ### Feature Board
 
@@ -216,7 +217,7 @@ Feature choices are ledger rows inside one recessed enamel board. Each row align
 
 ### Do:
 - **Do** build technical stories from connected routes, mounted plates, ledgers, and exact command rails.
-- **Do** keep amber, red, and mint tied to their established signal meanings.
+- **Do** keep orange tied to routes and action, and mint tied to clear or complete states.
 - **Do** use JetBrains Mono for code, commands, measurements, status labels, navigation, and controls.
 - **Do** preserve visible focus, text-labeled signal states, horizontal code scrolling, and reduced-motion behavior.
 - **Do** use depth selectively to distinguish mounted evidence from recessed operating surfaces.
