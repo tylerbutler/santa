@@ -10,7 +10,7 @@ colors:
   ink-muted: "#4e5b55"
   route-amber: "#f2b544"
   route-amber-deep: "#bd7624"
-  signal-red: "#e4573d"
+  signal-orange: "#ea6f26"
   clear-mint: "#89c8b2"
   steel: "#769087"
 typography:
@@ -78,13 +78,14 @@ components:
 
 **Creative North Star: "Railway Interlocking"**
 
-Sickle presents CCL as traffic moving through a physical route-control instrument. Deep green enamel carries the operating surface; porcelain plates hold inspectable source; amber, red, and mint lamps communicate route, attention, and clear states. Track geometry, engraved labels, and exact command rails make technical relationships visible rather than decorating a generic developer landing page.
+Sickle presents CCL as traffic moving through a physical route-control instrument. Deep green enamel carries the operating surface; porcelain plates hold inspectable source; amber, logo orange, and mint lamps communicate route, attention, and clear states. Track geometry, engraved labels, and exact command rails make technical relationships visible rather than decorating a generic developer landing page.
 
 The system feels engineered, direct, and trustworthy. Condensed communication lettering carries the public voice while monospaced measurement text operates the controls. Density is organized through rails, boards, and ledgers; selective physical depth makes instrument plates tangible without turning the interface into a stack of cards.
 
 **Key Characteristics:**
 - Deep green enamel boards paired with warm porcelain working surfaces.
-- Amber route paths, red focus or warning signals, and mint clear lamps.
+- The supplied grim-reaper-and-crab illustration is the canonical Sickle logo.
+- Amber route paths, logo-orange focus or attention signals, and mint clear lamps.
 - Condensed uppercase communication type with monospaced controls and code.
 - Square and cut-corner plates connected by track geometry and command rails.
 - Responsive re-routing that preserves the command action before detailed code.
@@ -114,7 +115,7 @@ The palette comes from an electromechanical signal panel: dark enamel and warm p
 
 ### Named Rules
 
-**The Signal Has Meaning Rule.** Amber selects or routes, red demands attention, and mint confirms clear or complete; never use them as interchangeable decoration.
+**The Signal Has Meaning Rule.** Amber selects or routes, crab orange demands attention, and mint confirms clear or complete; never use them as interchangeable decoration.
 
 **The Enamel-and-Porcelain Rule.** Enamel holds systems and controls; porcelain holds reading and evidence. Preserve that material distinction.
 
@@ -181,7 +182,7 @@ The dominant form is square, bordered, and mechanical. Porcelain stations and co
 ### Buttons
 - **Shape:** Square, compact, and rail-bound, with a minimum height of 3.25rem.
 - **Primary:** Route amber with instrument ink, monospaced bold labeling, and compact horizontal padding.
-- **Hover / Focus:** Hover changes to signal red with porcelain text. Keyboard focus uses a 3px signal-red outline with 4px offset.
+- **Hover / Focus:** Hover changes to logo orange with porcelain text. Keyboard focus uses a 3px logo-orange outline with 4px offset.
 - **Selected Route:** The selected switch fills amber and inverts to ink; inactive switches remain deep enamel and may brighten slightly on hover.
 
 ### Cards / Containers
@@ -193,7 +194,7 @@ The dominant form is square, bordered, and mechanical. Porcelain stations and co
 
 ### Navigation
 
-Navigation is an always-visible uppercase monospaced index beside the condensed wordmark. Links are borderless, turn amber on hover, and use the global red focus outline. On narrow screens, links become a right-aligned two-column grid instead of hiding behind a menu.
+Navigation is an always-visible uppercase monospaced index beside the illustrated wordmark. Links are borderless, turn amber on hover, and use the global orange focus outline. On narrow screens, links become a right-aligned two-column grid instead of hiding behind a menu.
 
 ### Signal Lamp
 

@@ -12,7 +12,7 @@
       "ink-muted": {"role": "neutral", "displayName": "Muted Instrument Ink", "canonical": "#4e5b55", "tonalRamp": ["#151a18", "#29312d", "#4e5b55", "#6d7b75", "#929e99", "#b5bfbb", "#d6dcd9", "#f1f3f2"]},
       "route-amber": {"role": "secondary", "displayName": "Route Amber", "canonical": "#f2b544", "tonalRamp": ["#2f2107", "#5c400e", "#8d6217", "#bd8424", "#e3a538", "#f2b544", "#f7d28b", "#fff1d2"]},
       "route-amber-deep": {"role": "secondary", "displayName": "Deep Route Amber", "canonical": "#bd7624", "tonalRamp": ["#2d1905", "#56300b", "#804914", "#a9631d", "#bd7624", "#d49a55", "#e7c28e", "#faead3"]},
-      "signal-red": {"role": "tertiary", "displayName": "Signal Red", "canonical": "#e4573d", "tonalRamp": ["#32100b", "#612017", "#913124", "#bf4332", "#e4573d", "#ed806c", "#f5b0a3", "#fde3de"]},
+      "signal-orange": {"role": "tertiary", "displayName": "Crab Orange", "canonical": "#ea6f26", "tonalRamp": ["#301506", "#5f2b0c", "#914116", "#c45820", "#ea6f26", "#f3975f", "#f9c2a1", "#fde9dc"]},
       "clear-mint": {"role": "tertiary", "displayName": "Clear Mint", "canonical": "#89c8b2", "tonalRamp": ["#10291f", "#1e4c3b", "#34705a", "#57977d", "#89c8b2", "#a8d8c7", "#c9e7dc", "#eaf6f1"]},
       "steel": {"role": "neutral", "displayName": "Panel Steel", "canonical": "#769087", "tonalRamp": ["#141d1a", "#293b35", "#435a52", "#5d786f", "#769087", "#9aaca6", "#c0ccc8", "#e9eeec"]}
     },
@@ -46,7 +46,7 @@
       "refersTo": "copy-button",
       "description": "The amber action completing a dark command rail.",
       "html": "<button class=\"ds-copy-button\" type=\"button\">COPY COMMAND</button>",
-      "css": ".ds-copy-button { min-height: 3.25rem; padding: .75rem 1.2rem; border: 0; border-left: 1px solid currentColor; border-radius: 0; background: var(--route, #f2b544); color: var(--ink, #171b19); font-family: var(--font-code, \"JetBrains Mono Variable\", ui-monospace, monospace); font-size: .71rem; font-weight: 750; cursor: pointer; } .ds-copy-button:hover { background: var(--signal, #e4573d); color: var(--porcelain, #f4f0de); } .ds-copy-button:focus-visible { outline: 3px solid var(--signal, #e4573d); outline-offset: 4px; }"
+      "css": ".ds-copy-button { min-height: 3.25rem; padding: .75rem 1.2rem; border: 0; border-left: 1px solid currentColor; border-radius: 0; background: var(--route, #f2b544); color: var(--ink, #171b19); font-family: var(--font-code, \"JetBrains Mono Variable\", ui-monospace, monospace); font-size: .71rem; font-weight: 750; cursor: pointer; } .ds-copy-button:hover { background: var(--signal, #ea6f26); color: var(--porcelain, #f4f0de); } .ds-copy-button:focus-visible { outline: 3px solid var(--signal, #ea6f26); outline-offset: 4px; }"
     },
     {
       "name": "Selected Route Switch",
@@ -54,7 +54,7 @@
       "refersTo": "route-selected",
       "description": "A text-labeled route control with an illuminated amber lamp.",
       "html": "<button class=\"ds-route-switch\" type=\"button\" aria-pressed=\"true\"><span class=\"ds-route-lamp\" aria-hidden=\"true\"></span><span>DIRECT MODEL</span></button>",
-      "css": ".ds-route-switch { display: grid; grid-template-columns: auto 1fr; gap: .75rem; align-items: center; width: 15rem; min-height: 4.25rem; padding: .9rem; border: 1px solid var(--steel, #769087); border-radius: 0; background: var(--route, #f2b544); color: var(--ink, #171b19); font-family: var(--font-code, \"JetBrains Mono Variable\", ui-monospace, monospace); font-size: .72rem; font-weight: 650; text-align: left; } .ds-route-lamp { width: .78rem; height: .78rem; border: 2px solid #fff3c3; border-radius: 50%; background: var(--route, #f2b544); box-shadow: inset 0 1px 2px rgb(255 255 255 / 68%), 0 3px 9px rgb(242 181 68 / 55%); } .ds-route-switch:focus-visible { outline: 3px solid var(--signal, #e4573d); outline-offset: 4px; }"
+      "css": ".ds-route-switch { display: grid; grid-template-columns: auto 1fr; gap: .75rem; align-items: center; width: 15rem; min-height: 4.25rem; padding: .9rem; border: 1px solid var(--steel, #769087); border-radius: 0; background: var(--route, #f2b544); color: var(--ink, #171b19); font-family: var(--font-code, \"JetBrains Mono Variable\", ui-monospace, monospace); font-size: .72rem; font-weight: 650; text-align: left; } .ds-route-lamp { width: .78rem; height: .78rem; border: 2px solid #fff3c3; border-radius: 50%; background: var(--route, #f2b544); box-shadow: inset 0 1px 2px rgb(255 255 255 / 68%), 0 3px 9px rgb(242 181 68 / 55%); } .ds-route-switch:focus-visible { outline: 3px solid var(--signal, #ea6f26); outline-offset: 4px; }"
     },
     {
       "name": "Porcelain Station",
@@ -69,7 +69,7 @@
       "kind": "custom",
       "description": "A readiness signal, exact Cargo command, and copy action in one rail.",
       "html": "<div class=\"ds-command-rail\"><span class=\"ds-command-status\"><i aria-hidden=\"true\"></i>CLEAR TO INSTALL</span><code>cargo add sickle --features serde</code><button type=\"button\">COPY</button></div>",
-      "css": ".ds-command-rail { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: stretch; border: 1px solid var(--steel, #769087); border-radius: 0; background: var(--enamel-deep, #0b241c); color: var(--porcelain, #f4f0de); } .ds-command-status { display: flex; align-items: center; gap: .65rem; padding: .9rem 1.1rem; border-right: 1px solid var(--steel, #769087); font-family: var(--font-code, \"JetBrains Mono Variable\", ui-monospace, monospace); font-size: .65rem; letter-spacing: .05em; } .ds-command-status i { width: .78rem; height: .78rem; border: 2px solid #fff3c3; border-radius: 50%; background: var(--route, #f2b544); box-shadow: 0 3px 9px rgb(242 181 68 / 55%); } .ds-command-rail code { overflow: auto; padding: 1rem 1.25rem; font-family: var(--font-code, \"JetBrains Mono Variable\", ui-monospace, monospace); font-size: .85rem; white-space: nowrap; } .ds-command-rail button { border: 0; border-left: 1px solid currentColor; border-radius: 0; padding: .75rem 1.2rem; background: var(--route, #f2b544); color: var(--ink, #171b19); font-family: var(--font-code, \"JetBrains Mono Variable\", ui-monospace, monospace); font-size: .71rem; font-weight: 750; } .ds-command-rail button:hover { background: var(--signal, #e4573d); color: var(--porcelain, #f4f0de); } .ds-command-rail button:focus-visible { outline: 3px solid var(--signal, #e4573d); outline-offset: 4px; }"
+      "css": ".ds-command-rail { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: stretch; border: 1px solid var(--steel, #769087); border-radius: 0; background: var(--enamel-deep, #0b241c); color: var(--porcelain, #f4f0de); } .ds-command-status { display: flex; align-items: center; gap: .65rem; padding: .9rem 1.1rem; border-right: 1px solid var(--steel, #769087); font-family: var(--font-code, \"JetBrains Mono Variable\", ui-monospace, monospace); font-size: .65rem; letter-spacing: .05em; } .ds-command-status i { width: .78rem; height: .78rem; border: 2px solid #fff3c3; border-radius: 50%; background: var(--route, #f2b544); box-shadow: 0 3px 9px rgb(242 181 68 / 55%); } .ds-command-rail code { overflow: auto; padding: 1rem 1.25rem; font-family: var(--font-code, \"JetBrains Mono Variable\", ui-monospace, monospace); font-size: .85rem; white-space: nowrap; } .ds-command-rail button { border: 0; border-left: 1px solid currentColor; border-radius: 0; padding: .75rem 1.2rem; background: var(--route, #f2b544); color: var(--ink, #171b19); font-family: var(--font-code, \"JetBrains Mono Variable\", ui-monospace, monospace); font-size: .71rem; font-weight: 750; } .ds-command-rail button:hover { background: var(--signal, #ea6f26); color: var(--porcelain, #f4f0de); } .ds-command-rail button:focus-visible { outline: 3px solid var(--signal, #ea6f26); outline-offset: 4px; }"
     },
     {
       "name": "Feature Board Row",
@@ -83,7 +83,7 @@
       "kind": "nav",
       "description": "An always-visible monospaced station index.",
       "html": "<nav class=\"ds-nav\" aria-label=\"Design system navigation\"><a href=\"#apis\">APIS</a><a href=\"#features\">FEATURES</a><a href=\"#docs\">DOCS</a></nav>",
-      "css": ".ds-nav { display: flex; gap: 2rem; padding: 1rem; background: var(--enamel, #12372a); color: var(--porcelain, #f4f0de); } .ds-nav a { color: inherit; font-family: var(--font-code, \"JetBrains Mono Variable\", ui-monospace, monospace); font-size: .69rem; font-weight: 650; letter-spacing: .05em; text-decoration: none; } .ds-nav a:hover { color: var(--route, #f2b544); } .ds-nav a:focus-visible { outline: 3px solid var(--signal, #e4573d); outline-offset: 4px; }"
+      "css": ".ds-nav { display: flex; gap: 2rem; padding: 1rem; background: var(--enamel, #12372a); color: var(--porcelain, #f4f0de); } .ds-nav a { color: inherit; font-family: var(--font-code, \"JetBrains Mono Variable\", ui-monospace, monospace); font-size: .69rem; font-weight: 650; letter-spacing: .05em; text-decoration: none; } .ds-nav a:hover { color: var(--route, #f2b544); } .ds-nav a:focus-visible { outline: 3px solid var(--signal, #ea6f26); outline-offset: 4px; }"
     }
   ],
   "narrative": {
@@ -91,13 +91,13 @@
     "overview": "Sickle presents CCL as traffic moving through a physical route-control instrument. Deep green enamel carries the operating surface; porcelain plates hold inspectable source; amber, red, and mint lamps communicate route, attention, and clear states. Track geometry, engraved labels, and exact command rails make technical relationships visible rather than decorating a generic developer landing page.\n\nThe system feels engineered, direct, and trustworthy. Condensed communication lettering carries the public voice while monospaced measurement text operates the controls. Density is organized through rails, boards, and ledgers; selective physical depth makes instrument plates tangible without turning the interface into a stack of cards.",
     "keyCharacteristics": [
       "Deep green enamel boards paired with warm porcelain working surfaces.",
-      "Amber route paths, red focus or warning signals, and mint clear lamps.",
+      "Amber route paths, logo-orange focus or attention signals, and mint clear lamps.",
       "Condensed uppercase communication type with monospaced controls and code.",
       "Square and cut-corner plates connected by track geometry and command rails.",
       "Responsive re-routing that preserves the command action before detailed code."
     ],
     "rules": [
-      {"name": "The Signal Has Meaning Rule", "body": "Amber selects or routes, red demands attention, and mint confirms clear or complete; never use them as interchangeable decoration.", "section": "colors"},
+      {"name": "The Signal Has Meaning Rule", "body": "Amber selects or routes, crab orange demands attention, and mint confirms clear or complete; never use them as interchangeable decoration.", "section": "colors"},
       {"name": "The Enamel-and-Porcelain Rule", "body": "Enamel holds systems and controls; porcelain holds reading and evidence. Preserve that material distinction.", "section": "colors"},
       {"name": "The Two-Gauge Rule", "body": "Barlow communicates; JetBrains Mono identifies, measures, operates, and demonstrates.", "section": "typography"},
       {"name": "The Station-Lettering Rule", "body": "Display copy is condensed, uppercase, tightly tracked, and short-lined; do not soften it with ornamental kickers.", "section": "typography"},

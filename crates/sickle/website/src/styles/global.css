@@ -7,7 +7,7 @@
   --ink-muted: #4e5b55;
   --route: #f2b544;
   --route-deep: #bd7624;
-  --signal: #e4573d;
+  --signal: #ea6f26;
   --clear: #89c8b2;
   --steel: #769087;
   --font-display: "Barlow Condensed", "Arial Narrow", sans-serif;
@@ -148,12 +148,15 @@ footer {
   text-transform: uppercase;
 }
 
-.wordmark svg {
-  width: 2rem;
-  fill: none;
-  stroke: currentColor;
-  stroke-linecap: square;
-  stroke-width: 2.2;
+.wordmark img {
+  width: 2.85rem;
+  height: 2.85rem;
+  object-fit: contain;
+}
+
+.footer-wordmark img {
+  width: 2.4rem;
+  height: 2.4rem;
 }
 
 .header-status {
@@ -220,7 +223,7 @@ h1 {
 }
 
 h1 span {
-  color: var(--route-deep);
+  color: var(--signal);
 }
 
 .hero-copy p,
