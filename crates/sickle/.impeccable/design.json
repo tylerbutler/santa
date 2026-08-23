@@ -1,0 +1,187 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-08-23T00:57:00.764-07:00",
+  "title": "Design System: Sickle",
+  "extensions": {
+    "colorMeta": {
+      "registration-violet": {
+        "role": "primary",
+        "displayName": "Registration Violet",
+        "canonical": "#6c3cff",
+        "tonalRamp": ["oklch(15% 0.264 284.7)", "oklch(27% 0.264 284.7)", "oklch(39% 0.264 284.7)", "oklch(51% 0.264 284.7)", "oklch(63% 0.264 284.7)", "oklch(75% 0.264 284.7)", "oklch(87% 0.264 284.7)", "oklch(95% 0.264 284.7)"]
+      },
+      "registration-violet-dark": {
+        "role": "primary",
+        "displayName": "Deep Registration Violet",
+        "canonical": "#4a1ee2",
+        "tonalRamp": ["oklch(15% 0.260 279)", "oklch(27% 0.260 279)", "oklch(39% 0.260 279)", "oklch(51% 0.260 279)", "oklch(63% 0.260 279)", "oklch(75% 0.260 279)", "oklch(87% 0.260 279)", "oklch(95% 0.260 279)"]
+      },
+      "correction-red": {
+        "role": "secondary",
+        "displayName": "Correction Red",
+        "canonical": "#d1432f",
+        "tonalRamp": ["oklch(15% 0.182 31)", "oklch(27% 0.182 31)", "oklch(39% 0.182 31)", "oklch(51% 0.182 31)", "oklch(63% 0.182 31)", "oklch(75% 0.182 31)", "oklch(87% 0.182 31)", "oklch(95% 0.182 31)"]
+      },
+      "acid-proof": {
+        "role": "secondary",
+        "displayName": "Acid Proof",
+        "canonical": "#d7ff3f",
+        "tonalRamp": ["oklch(15% 0.208 121.1)", "oklch(27% 0.208 121.1)", "oklch(39% 0.208 121.1)", "oklch(51% 0.208 121.1)", "oklch(63% 0.208 121.1)", "oklch(75% 0.208 121.1)", "oklch(87% 0.208 121.1)", "oklch(95% 0.208 121.1)"]
+      },
+      "paper": {
+        "role": "neutral",
+        "displayName": "Listing Paper",
+        "canonical": "#f3f0e8",
+        "tonalRamp": ["oklch(15% 0.011 89.7)", "oklch(27% 0.011 89.7)", "oklch(39% 0.011 89.7)", "oklch(51% 0.011 89.7)", "oklch(63% 0.011 89.7)", "oklch(75% 0.011 89.7)", "oklch(87% 0.011 89.7)", "oklch(95% 0.011 89.7)"]
+      },
+      "paper-deep": {
+        "role": "neutral",
+        "displayName": "Deep Listing Paper",
+        "canonical": "#ddd8ca",
+        "tonalRamp": ["oklch(15% 0.020 90.6)", "oklch(27% 0.020 90.6)", "oklch(39% 0.020 90.6)", "oklch(51% 0.020 90.6)", "oklch(63% 0.020 90.6)", "oklch(75% 0.020 90.6)", "oklch(87% 0.020 90.6)", "oklch(95% 0.020 90.6)"]
+      },
+      "sheet": {
+        "role": "neutral",
+        "displayName": "Specimen Sheet",
+        "canonical": "#e9e5da",
+        "tonalRamp": ["oklch(15% 0.015 90.2)", "oklch(27% 0.015 90.2)", "oklch(39% 0.015 90.2)", "oklch(51% 0.015 90.2)", "oklch(63% 0.015 90.2)", "oklch(75% 0.015 90.2)", "oklch(87% 0.015 90.2)", "oklch(95% 0.015 90.2)"]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Carbon Ink",
+        "canonical": "#20231f",
+        "tonalRamp": ["oklch(15% 0.009 137.8)", "oklch(27% 0.009 137.8)", "oklch(39% 0.009 137.8)", "oklch(51% 0.009 137.8)", "oklch(63% 0.009 137.8)", "oklch(75% 0.009 137.8)", "oklch(87% 0.009 137.8)", "oklch(95% 0.009 137.8)"]
+      },
+      "ink-muted": {
+        "role": "neutral",
+        "displayName": "Muted Carbon",
+        "canonical": "#55594f",
+        "tonalRamp": ["oklch(15% 0.017 124.9)", "oklch(27% 0.017 124.9)", "oklch(39% 0.017 124.9)", "oklch(51% 0.017 124.9)", "oklch(63% 0.017 124.9)", "oklch(75% 0.017 124.9)", "oklch(87% 0.017 124.9)", "oklch(95% 0.017 124.9)"]
+      },
+      "steel": {
+        "role": "neutral",
+        "displayName": "Code Steel",
+        "canonical": "#2d322e",
+        "tonalRamp": ["oklch(15% 0.010 151.5)", "oklch(27% 0.010 151.5)", "oklch(39% 0.010 151.5)", "oklch(51% 0.010 151.5)", "oklch(63% 0.010 151.5)", "oklch(75% 0.010 151.5)", "oklch(87% 0.010 151.5)", "oklch(95% 0.010 151.5)"]
+      },
+      "rule": {
+        "role": "neutral",
+        "displayName": "Registration Rule",
+        "canonical": "#aaa99f",
+        "tonalRamp": ["oklch(15% 0.014 102.1)", "oklch(27% 0.014 102.1)", "oklch(39% 0.014 102.1)", "oklch(51% 0.014 102.1)", "oklch(63% 0.014 102.1)", "oklch(75% 0.014 102.1)", "oklch(87% 0.014 102.1)", "oklch(95% 0.014 102.1)"]
+      }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "Large, compressed section statements." },
+      "headline": { "displayName": "Headline", "purpose": "Local editorial statements and comparison titles." },
+      "body": { "displayName": "Body", "purpose": "Technical explanation and supporting copy." },
+      "code": { "displayName": "Code", "purpose": "Source listings and commands with tabular numerals." },
+      "label": { "displayName": "Instrument Label", "purpose": "Navigation, registration data, pane names, and controls." }
+    },
+    "shadows": [
+      {
+        "name": "raised-specimen",
+        "value": "0 18px 38px rgb(32 35 31 / 15%)",
+        "purpose": "Physical lift beneath inspectable diagnostic and source sheets only."
+      }
+    ],
+    "motion": [
+      {
+        "name": "calibration-entry",
+        "value": "900ms cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "Draws the initial registration rule once; disabled under reduced motion."
+      },
+      {
+        "name": "copy-confirmation",
+        "value": "1800ms",
+        "purpose": "Duration before a copied button label returns to its default."
+      }
+    ],
+    "breakpoints": [
+      { "name": "stack", "value": "900px" },
+      { "name": "compact", "value": "640px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Copy Button",
+      "kind": "button",
+      "refersTo": "copy-button",
+      "description": "Square monospaced action used at the edge of command rails.",
+      "html": "<button class=\"ds-copy-button\" type=\"button\">Copy command</button>",
+      "css": ".ds-copy-button { min-height: 3rem; padding: .65rem 1rem; border: 1px solid currentColor; border-radius: 0; background: transparent; color: #20231f; font-family: \"Source Code Pro Variable\", ui-monospace, monospace; font-size: .72rem; font-weight: 700; cursor: pointer; } .ds-copy-button:hover { background: #20231f; color: #f3f0e8; } .ds-copy-button:focus-visible { outline: 3px solid #6c3cff; outline-offset: 4px; }"
+    },
+    {
+      "name": "Mode Switch",
+      "kind": "custom",
+      "refersTo": "mode-selected",
+      "description": "A joined square control for selecting direct-model or Serde output.",
+      "html": "<div class=\"ds-mode-switch\"><button type=\"button\">Direct model</button><button class=\"ds-mode-active\" type=\"button\">Serde</button></div>",
+      "css": ".ds-mode-switch { display: inline-flex; border: 1px solid #20231f; color: #20231f; } .ds-mode-switch button { min-height: 2.7rem; padding: .4rem .85rem; border: 0; border-radius: 0; background: transparent; color: inherit; font-family: \"Source Code Pro Variable\", ui-monospace, monospace; font-size: .73rem; font-weight: 650; } .ds-mode-switch button + button { border-left: 1px solid #20231f; } .ds-mode-switch .ds-mode-active { background: #20231f; color: #f3f0e8; } .ds-mode-switch button:hover:not(.ds-mode-active) { background: #d7ff3f; } .ds-mode-switch button:focus-visible { outline: 3px solid #6c3cff; outline-offset: 4px; }"
+    },
+    {
+      "name": "Navigation Index",
+      "kind": "nav",
+      "description": "Compact uppercase technical links that remain visible at every viewport.",
+      "html": "<nav class=\"ds-nav\" aria-label=\"Primary\"><a href=\"#\">APIs</a><a href=\"#\">Features</a><a href=\"#\">Docs</a><a href=\"#\">Source</a></nav>",
+      "css": ".ds-nav { display: flex; gap: clamp(1rem, 2.4vw, 2.5rem); } .ds-nav a { color: #20231f; font-family: \"Source Code Pro Variable\", ui-monospace, monospace; font-size: .72rem; font-weight: 650; letter-spacing: .08em; text-decoration: none; text-transform: uppercase; } .ds-nav a:hover { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: .24em; } .ds-nav a:focus-visible { outline: 3px solid #6c3cff; outline-offset: 4px; } @media (max-width: 640px) { .ds-nav { display: grid; grid-template-columns: 1fr 1fr; gap: .6rem 1.2rem; text-align: right; } }"
+    },
+    {
+      "name": "Diagnostic Sheet",
+      "kind": "card",
+      "refersTo": "diagnostic-sheet",
+      "description": "The signature ruled specimen containing registration, source, output, and action.",
+      "html": "<section class=\"ds-sheet\"><header>SICKLE / CCL <span>INSERTION ORDER: PRESERVED</span></header><pre><code>name = Signal\\ndatabase =\\n  port = 5432</code></pre><footer><code>cargo add sickle --features serde</code></footer></section>",
+      "css": ".ds-sheet { border: 1px solid #20231f; border-radius: 0; background-color: #e9e5da; background-image: repeating-linear-gradient(0deg, transparent 0, transparent 31px, rgb(32 35 31 / 7%) 32px); color: #20231f; box-shadow: 0 18px 38px rgb(32 35 31 / 15%); } .ds-sheet header { display: flex; justify-content: space-between; padding: .6rem .8rem; border-bottom: 1px solid #20231f; font: 650 .64rem/1.5 \"Source Code Pro Variable\", ui-monospace, monospace; letter-spacing: .08em; } .ds-sheet pre { margin: 0; padding: 2rem; font: 400 .9rem/1.72 \"Source Code Pro Variable\", ui-monospace, monospace; } .ds-sheet footer { padding: 1rem 1.2rem; background: #20231f; color: #f3f0e8; font-family: \"Source Code Pro Variable\", ui-monospace, monospace; } .ds-sheet:focus-within { outline: 3px solid #6c3cff; outline-offset: 4px; }"
+    },
+    {
+      "name": "Feature Ruler",
+      "kind": "custom",
+      "description": "A ruled three-column record for feature capability and inclusion data.",
+      "html": "<article class=\"ds-feature-row\"><h3>serde</h3><div><strong>Typed data</strong><p>Deserialize and serialize through Serde.</p></div><code>hierarchy + printer</code></article>",
+      "css": ".ds-feature-row { display: grid; grid-template-columns: minmax(7rem, .55fr) minmax(14rem, 1.55fr) minmax(9rem, .7fr); gap: 2rem; align-items: center; padding: 1.45rem 0; border-top: 1px solid #aaa99f; color: #20231f; } .ds-feature-row h3, .ds-feature-row code { font-family: \"Source Code Pro Variable\", ui-monospace, monospace; } .ds-feature-row h3 { margin: 0; font-size: 1rem; } .ds-feature-row strong { font-family: \"Archivo Variable\", \"Arial Narrow\", sans-serif; font-size: 1.08rem; } .ds-feature-row p { margin: .15rem 0 0; color: #55594f; font-family: \"Archivo Variable\", \"Arial Narrow\", sans-serif; font-size: .92rem; } .ds-feature-row code { justify-self: end; color: #4a1ee2; font-size: .78rem; font-weight: 700; text-align: right; } @media (max-width: 640px) { .ds-feature-row { grid-template-columns: 1fr; gap: .45rem; } .ds-feature-row code { justify-self: start; text-align: left; } }"
+    },
+    {
+      "name": "Command Rail",
+      "kind": "custom",
+      "refersTo": "copy-button-inverse",
+      "description": "A dark single-line command with a semantic status cell and copy action.",
+      "html": "<div class=\"ds-command\"><span>READY</span><code>cargo add sickle --features serde</code><button type=\"button\">Copy command</button></div>",
+      "css": ".ds-command { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: stretch; border: 1px solid #20231f; background: #20231f; color: #f3f0e8; } .ds-command > span { display: grid; place-items: center; padding: .8rem 1rem; background: #d7ff3f; color: #20231f; font: 800 .7rem/1.5 \"Source Code Pro Variable\", ui-monospace, monospace; letter-spacing: .08em; } .ds-command > code { overflow: auto; padding: 1rem 1.2rem; font-family: \"Source Code Pro Variable\", ui-monospace, monospace; white-space: nowrap; } .ds-command > button { min-height: 3rem; padding: .65rem 1rem; border: 0; border-left: 1px solid currentColor; border-radius: 0; background: transparent; color: inherit; font: 700 .72rem/1.5 \"Source Code Pro Variable\", ui-monospace, monospace; } .ds-command > button:hover { background: #f3f0e8; color: #20231f; } .ds-command > button:focus-visible { outline: 3px solid #6c3cff; outline-offset: -5px; } @media (max-width: 640px) { .ds-command { grid-template-columns: 1fr auto; } .ds-command > span { grid-column: 1 / -1; justify-content: start; min-height: 2rem; } }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Compiler Diagnostic Sheet",
+    "overview": "Sickle presents technical material as one continuous, annotated source artifact: warm listing paper, carbon ink, ruled divisions, registration color, and square tool controls. The system is precise rather than nostalgic. Its paper and print references organize real code, feature relationships, and commands instead of decorating generic marketing layouts.\n\nLarge compressed headlines establish confidence, while monospaced labels, syntax, and controls carry operational detail. Density is deliberate but legible: strong rules create compartments, generous section spacing creates pauses, and every accent has a specific editorial job.",
+    "keyCharacteristics": [
+      "Warm paper surfaces with carbon rules instead of white cards.",
+      "Oversized, tightly set display type paired with compact monospaced tooling text.",
+      "Violet for registration and active structure, red for annotation, and acid green for readiness or successful change.",
+      "Square, bordered controls and continuous ruled containers.",
+      "Responsive reordering that keeps the install action ahead of the code specimen on small screens."
+    ],
+    "rules": [
+      { "name": "The Three-Mark Rule", "body": "Violet registers structure, red corrects or annotates, and acid green confirms readiness or addition; do not interchange their meanings.", "section": "colors" },
+      { "name": "The Paper-First Rule", "body": "Warm paper remains the dominant field. Dark ink creates rails and code wells; accent colors remain annotations rather than large decorative fills.", "section": "colors" },
+      { "name": "The Two-Face Rule", "body": "Archivo speaks and explains; Source Code Pro identifies, operates, and demonstrates.", "section": "typography" },
+      { "name": "The Compressed-Headline Rule", "body": "Display text is heavy, tightly tracked, short-lined, and never diluted with lightweight ornamental copy.", "section": "typography" },
+      { "name": "The Continuous-Sheet Rule", "body": "Related content shares borders and dividers inside one ruled object; do not fragment a sequence into floating feature cards.", "section": "layout" },
+      { "name": "The Action-Before-Detail Rule", "body": "When space collapses, preserve access to the install command before the longer code panes.", "section": "layout" },
+      { "name": "The Evidence-Casts-a-Shadow Rule", "body": "Elevation belongs to inspectable source artifacts, never to ordinary sections, rows, navigation, or controls.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do build long technical stories from continuous ruled sheets, rails, and ledgers.",
+      "Do reserve violet, red, and acid green for their registered semantic roles.",
+      "Do keep code, commands, metadata, and controls in Source Code Pro with tabular numerals.",
+      "Do preserve visible keyboard focus, horizontal code scrolling, and the mobile action-first order.",
+      "Do use physical depth only when a surface represents inspectable source evidence."
+    ],
+    "donts": [
+      "Don't introduce rounded cards, pills, soft dashboard tiles, or a conventional split hero.",
+      "Don't use accent colors as interchangeable decoration or broad page backgrounds.",
+      "Don't hide mobile navigation behind an invented menu when the compact index fits.",
+      "Don't place prose inside dark code wells or code inside display typography.",
+      "Don't add shadows to ordinary controls, rows, or sections."
+    ]
+  }
+}

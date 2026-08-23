@@ -1,0 +1,35 @@
+---
+import "@fontsource-variable/archivo";
+import "@fontsource-variable/source-code-pro";
+import "../styles/global.css";
+
+interface Props {
+  title: string;
+  description: string;
+}
+
+const { title, description } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="description" content={description} />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="theme-color" content="#f3f0e8" />
+    <meta name="generator" content={Astro.generator} />
+    <title>{title}</title>
+  </head>
+  <body>
+    <!--
+    THESIS: Sickle reads as an annotated compiler diagnostic, refusing the standard split hero and feature-card grid.
+    OWN-WORLD: Warm listing paper, carbon ink, registration violet, correction red, ruled annotations, and square tool controls.
+    STORY: See CCL become a model, choose direct or Serde access, select exact features, then copy the Cargo command.
+    FIRST VIEWPORT: A full-width source sheet dominates; the headline occupies its diagnostic margin and the install action locks to its lower tool rail.
+    FORM: Compiler Diagnostic Sheet, first on the grounded list, selected from seed cdf126de.
+    FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, DESIGN.md, and every shipping raster carrying its provenance
+    -->
+    <slot />
+  </body>
+</html>
