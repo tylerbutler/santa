@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## v0.6.0 - 2026-08-23
+
+
+### Added
+
+- Add a responsive website for Sickle with interactive API examples and feature guidance.
+
+### Changed
+
+- Redesign the Sickle website around an interactive CCL route map with Expressive Code rendering.
+
 ## v0.5.0 - 2026-08-20
 
 
