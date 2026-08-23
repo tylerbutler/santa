@@ -13,25 +13,28 @@ related_targets: []
 
 ## Audience and job
 
-Rust developers evaluating whether Sickle is the right CCL parser. They need to understand the API shape, choose a feature set, and add the crate to a project without hunting through marketing copy.
+Rust developers evaluating whether Sickle is the right CCL parser. They need unfamiliar CCL to become understandable within the first viewport, then need to choose an API path and exact feature set without hunting through marketing copy.
 
 ## Action and proof
 
-- Primary action: copy the Cargo add command.
-- Secondary actions: inspect the direct-model and Serde APIs, then open docs.rs or the repository.
-- Proof must come from real syntax, Cargo feature definitions, pure-Rust/no-unsafe constraints, source-preserving document support, and executable examples already in the crate.
+- Primary action: copy the Cargo add command for the selected API route.
+- Secondary actions: compare direct-model and Serde APIs, inspect feature gates, then open docs.rs or the repository.
+- Proof comes from real syntax, Cargo feature definitions, pure-Rust/no-unsafe constraints, source-preserving document support, and executable examples already in the crate.
 - Do not invent adoption metrics, benchmarks, customers, testimonials, or compatibility claims.
 
 ## Direction
 
-Compiler Diagnostic Sheet: one continuous annotated source artifact turns CCL input into direct-model access, Serde output, and exact feature instructions. The memorable moment is the first viewport's oversized source listing, where annotations resolve into an immediately copyable Cargo command.
+Railway Interlocking: one CCL source enters an enameled route panel and leaves through the direct-model or Serde path the visitor selects. Deep green enamel, porcelain plates, amber route lamps, signal red, engraved labels, and exact track geometry replace the previous compiler-diagnostic identity.
+
+The memorable moment is the first viewport's route switch: selecting an API illuminates its path, reveals the matching Rust output, and rewrites the Cargo command at the same time.
 
 ## Constraints
 
-- Avoid generic neon developer-tool styling and a conventional split hero plus feature-card grid.
-- Technical trust and code readability outrank decorative nostalgia.
-- Keyboard access, reduced motion, mobile code legibility, and clear focus states are required.
-- The site must remain a static, dependency-light Astro build.
+- Preserve the Sickle name and sickle mark; replace the remaining visual identity.
+- Avoid generic neon developer-tool styling and the conventional split hero plus feature-card grid.
+- Technical trust and code readability outrank decorative railway nostalgia.
+- Keyboard access, reduced motion, mobile code legibility, clear focus states, and text labels for every signal state are required.
+- The site remains a static, dependency-light Astro build.
 
 ## Unresolved decisions
 
