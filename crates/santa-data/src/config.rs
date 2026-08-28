@@ -65,16 +65,26 @@ where
 }
 
 /// Represents a package name override (renaming packages for specific sources)
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
 #[non_exhaustive]
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
 pub struct PackageNameOverride {
     pub package: String,
     pub replacement: String,
 }
 
+impl PackageNameOverride {
+    /// Create a new package name override
+    pub fn new(package: impl Into<String>, replacement: impl Into<String>) -> Self {
+        Self {
+            package: package.into(),
+            replacement: replacement.into(),
+        }
+    }
+}
+
 /// Represents a custom package source configuration
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
 #[non_exhaustive]
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
 pub struct ConfigPackageSource {
     pub name: KnownSources,
     pub emoji: String,
@@ -107,16 +117,6 @@ pub struct SantaConfig {
     pub _groups: Option<HashMap<KnownSources, Vec<String>>>,
     #[serde(skip)]
     pub log_level: u8,
-}
-
-impl PackageNameOverride {
-    /// Create a new `PackageNameOverride` mapping `package` to `replacement`.
-    pub fn new(package: String, replacement: String) -> Self {
-        Self {
-            package,
-            replacement,
-        }
-    }
 }
 
 impl ConfigPackageSource {
@@ -250,21 +250,6 @@ impl SantaConfig {
     }
 }
 
-/// Configuration loader - provides static methods for loading configurations
-pub struct ConfigLoader;
-
-impl ConfigLoader {
-    /// Load configuration from a file path
-    pub fn load_from_path(path: &Path) -> anyhow::Result<SantaConfig> {
-        SantaConfig::load_from(path)
-    }
-
-    /// Load configuration from a string
-    pub fn load_from_str(contents: &str) -> anyhow::Result<SantaConfig> {
-        SantaConfig::load_from_str(contents)
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -371,18 +356,5 @@ packages =
                 || error_msg.contains("At least one source must be configured")
                 || error_msg.contains("Failed to parse CCL config")
         );
-    }
-
-    #[test]
-    fn test_config_loader_from_str() {
-        let ccl = r#"
-sources =
-  = cargo
-packages =
-  = ripgrep
-        "#;
-
-        let result = ConfigLoader::load_from_str(ccl);
-        assert!(result.is_ok());
     }
 }

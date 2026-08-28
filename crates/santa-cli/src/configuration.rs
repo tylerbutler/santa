@@ -21,9 +21,7 @@ pub enum UnknownPackageReason {
 }
 
 // Re-export SantaConfig and related types from santa-data
-pub use santa_data::config::{
-    ConfigPackageSource, PackageNameOverride, SantaConfig, SantaConfigBuilder,
-};
+pub use santa_data::config::{ConfigPackageSource, PackageNameOverride, SantaConfig};
 
 /// Extension trait for SantaConfig with CLI-specific functionality
 pub trait SantaConfigExt {
