@@ -133,6 +133,16 @@ enum Commands {
     /// Manage package sources
     #[clap(subcommand)]
     Sources(SourcesCommands),
+    /// Initialize a new santa configuration
+    Init {
+        /// Accept defaults without prompting
+        #[clap(short, long)]
+        yes: bool,
+
+        /// Output path for the config file (default: ~/.config/santa/config.ccl)
+        #[clap(short, long)]
+        output: Option<std::path::PathBuf>,
+    },
 }
 
 /// Subcommands for managing package sources
@@ -466,6 +476,12 @@ pub async fn run() -> Result<(), anyhow::Error> {
         }
     };
 
+    // Handle init before config loading (init creates the config)
+    if let Commands::Init { yes, output } = &command {
+        santa::init::run_init(*yes, output.as_deref()).await?;
+        return Ok(());
+    }
+
     // Handle shell completions with enhanced suggestions
     if let Commands::Completions { shell } = &command {
         let mut cmd = build_cli();
@@ -646,6 +662,10 @@ pub async fn run() -> Result<(), anyhow::Error> {
         Commands::Sources(sources_cmd) => {
             handle_sources_command(sources_cmd, &config).await?;
         }
+        Commands::Init { .. } => {
+            // This is handled earlier in the function
+            unreachable!("Init should be handled before this point");
+        }
     }
 
     // Check for updates after command completes (non-blocking, cached for 24h)
@@ -659,7 +679,18 @@ async fn main() {
     match run().await {
         Ok(()) => {}
         Err(err) => {
-            eprintln!("error: {err}");
+            use colored::Colorize;
+            if let Some(santa_err) = err.downcast_ref::<santa::errors::SantaError>() {
+                eprintln!("{} {}", "error:".red().bold(), santa_err);
+                if let Some(hint) = santa_err.hint() {
+                    eprintln!("{} {}", "hint:".cyan().bold(), hint);
+                }
+            } else {
+                eprintln!("{} {}", "error:".red().bold(), err);
+                for cause in err.chain().skip(1) {
+                    eprintln!("  {} {}", "caused by:".dimmed(), cause);
+                }
+            }
             std::process::exit(1);
         }
     }

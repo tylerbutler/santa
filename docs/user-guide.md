@@ -8,7 +8,7 @@ Santa manages packages across multiple package managers with a unified interface
 
 ```bash
 # Install from crates.io
-cargo install santa-cli
+cargo install santa
 
 # Or build from source
 git clone https://github.com/tylerbutler/santa.git
@@ -32,6 +32,61 @@ cargo install --path crates/santa-cli
    ```bash
    santa install
    ```
+
+## Getting Started with `santa init`
+
+The fastest way to get started is to run `santa init`:
+
+```sh
+santa init
+```
+
+This will:
+1. Detect which common/Tier 1 package managers are available on your system
+2. Let you choose which ones to include
+3. Optionally seed your config with common dev tools
+4. Write a starter config to `~/.config/santa/config.ccl`
+
+`santa init` writes the same top-level shape Santa loads everywhere: a `sources =`
+list followed by a `packages =` list. Starter packages are written using Santa's
+canonical package names so source-specific package name differences are resolved
+later during package lookup.
+
+```ccl
+/= Santa package configuration
+
+sources =
+  = brew
+  = cargo
+
+packages =
+  = ripgrep
+  = fd
+  = jq
+  = bat
+```
+
+### Non-interactive mode
+
+For scripted setups, use `--yes` to accept all defaults:
+
+```sh
+santa init --yes
+```
+
+### Custom output path
+
+To write the config somewhere else:
+
+```sh
+santa init --output ./my-config.ccl
+```
+
+To verify that Santa can load the generated file:
+
+```sh
+santa --config ./my-config.ccl config
+```
 
 ## Command Reference
 
@@ -209,10 +264,10 @@ Later files override earlier ones.
 
 Default location: `~/.config/santa/config.ccl`
 
-Override with `SANTA_CONFIG` environment variable:
+Override with `SANTA_CONFIG_PATH` environment variable:
 
 ```bash
-export SANTA_CONFIG=/path/to/my/config.ccl
+export SANTA_CONFIG_PATH=/path/to/my/config.ccl
 santa status
 ```
 
@@ -229,7 +284,7 @@ sources =
 packages =
   = bat
   = ripgrep
-  = fd-find
+  = fd
 ```
 
 ## Common Workflows
@@ -238,7 +293,7 @@ packages =
 
 ```bash
 # 1. Install Santa
-cargo install santa-cli
+cargo install santa
 
 # 2. Update source definitions
 santa sources update

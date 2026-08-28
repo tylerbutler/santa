@@ -1,5 +1,9 @@
 /= Cargo packages
 blindspot =
 cargo-update =
+dotenv-linter =
+hurl =
+procs =
 when-cli =
 starship =
+xsv =

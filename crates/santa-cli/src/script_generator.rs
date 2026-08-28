@@ -540,4 +540,43 @@ mod tests {
             "Script should contain source name"
         );
     }
+
+    #[test]
+    fn test_generate_install_script_shell_supports_tier2_managers() {
+        let generator = ScriptGenerator::new().unwrap();
+        let packages = vec!["example.pkg".to_string()];
+
+        let cases = [
+            ("arch", "sudo pacman -S --noconfirm"),
+            ("aur", "yay -S --noconfirm"),
+            ("dnf", "sudo dnf install -y"),
+            ("nix", "nix-env -iA"),
+            ("winget", "winget install --id"),
+            ("flathub", "flatpak install flathub"),
+        ];
+
+        for (manager, expected_command) in cases {
+            let script = generator
+                .generate_install_script(&packages, manager, ScriptFormat::Shell, manager)
+                .unwrap();
+
+            assert!(
+                script.contains(expected_command),
+                "Script for {manager} should contain '{expected_command}'"
+            );
+        }
+    }
+
+    #[test]
+    fn test_generate_install_script_powershell_uses_winget_id_mode() {
+        let generator = ScriptGenerator::new().unwrap();
+        let packages = vec!["Git.Git".to_string()];
+        let script = generator
+            .generate_install_script(&packages, "winget", ScriptFormat::PowerShell, "winget")
+            .unwrap();
+
+        assert!(script.contains("winget install --id"));
+        assert!(script.contains("--accept-package-agreements"));
+        assert!(script.contains("--accept-source-agreements"));
+    }
 }
