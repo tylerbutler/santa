@@ -86,7 +86,7 @@ derive_builder = "0.20.2"
 which = "8.0.4"
 
 # Data validation with derive macros
-validator = { version = "0.20", features = ["derive"] }
+validator = { version = "0.21", features = ["derive"] }
 
 # File system change notifications for hot-reloading
 notify = "8.2.0"
